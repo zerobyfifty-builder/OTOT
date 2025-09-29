@@ -82,8 +82,8 @@ const Landing = () => {
             </Card>
 
             <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plane className="h-8 w-8 text-accent" />
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Plane className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">2. Calculate Impact</h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -123,8 +123,8 @@ const Landing = () => {
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Users className="h-6 w-6 text-accent" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Users className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Community Partnership</h3>
@@ -147,8 +147,8 @@ const Landing = () => {
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Award className="h-6 w-6 text-accent" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Award className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Certified Impact</h3>
