@@ -162,17 +162,17 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-accent text-accent-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Make a Difference?</h2>
-          <p className="text-xl mb-8 text-primary-foreground/90 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 text-accent-foreground/90 max-w-2xl mx-auto">
             Join thousands of responsible travelers who are helping reforest Kenya while exploring its natural beauty.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-card text-foreground hover:bg-card/90 px-8 py-3">
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3">
               Start Your Journey
             </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary px-8 py-3">
+            <Button size="lg" variant="outline" className="border-accent-foreground text-accent-foreground hover:bg-accent-foreground hover:text-accent px-8 py-3">
               Learn More
             </Button>
           </div>
