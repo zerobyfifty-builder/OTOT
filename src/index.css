@@ -18,8 +18,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 15%;
 
-    /* Bright aquamarine green - Humboldt brand color */
-    --primary: 165 100% 70%;
+    /* Bright aquamarine - vibrant primary color */
+    --primary: 180 100% 50%;
     --primary-foreground: 0 0% 100%;
 
     /* Light grey for secondary elements */
@@ -29,8 +29,8 @@ All colors MUST be HSL.
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    /* Aquamarine accent - same as primary */
-    --accent: 165 100% 70%;
+    /* Forest green accent for variety */
+    --accent: 140 100% 35%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -76,8 +76,8 @@ All colors MUST be HSL.
     --popover: 0 0% 15%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 165 100% 70%;
-    --primary-foreground: 0 0% 10%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -85,8 +85,8 @@ All colors MUST be HSL.
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 165 100% 70%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 140 100% 35%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 95%;
