@@ -47,6 +47,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        nav: {
+          DEFAULT: "hsl(var(--nav-background))",
+          foreground: "hsl(var(--nav-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -62,12 +66,6 @@ export default {
         'gradient-primary': 'var(--gradient-primary)',
         'gradient-hero': 'var(--gradient-hero)', 
         'gradient-accent': 'var(--gradient-accent)',
-      },
-      colors: {
-        'nav': {
-          DEFAULT: "hsl(var(--nav-background))",
-          foreground: "hsl(var(--nav-foreground))",
-        },
       },
       boxShadow: {
         'card': 'var(--shadow-card)',

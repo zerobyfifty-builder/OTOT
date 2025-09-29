@@ -18,8 +18,8 @@ const Landing = () => {
             <a href="#impact" className="text-muted-foreground hover:text-primary transition-colors">Impact</a>
           </nav>
           <div className="space-x-3">
-            <Button variant="outline" size="sm">Sign In</Button>
-            <Button size="sm">Get Started</Button>
+            <Button variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">Sign In</Button>
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">Get Started</Button>
           </div>
         </div>
       </header>
@@ -39,10 +39,10 @@ const Landing = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3">
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3">
               Take the Pledge
             </Button>
-            <Button variant="outline" size="lg" className="px-8 py-3">
+            <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3">
               Calculate My Impact
             </Button>
           </div>
