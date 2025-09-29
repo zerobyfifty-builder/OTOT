@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TreePine, Plane, Heart, Award, Users, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Landing = () => {
   return (
@@ -18,8 +19,12 @@ const Landing = () => {
             <a href="#impact" className="text-muted-foreground hover:text-primary transition-colors">Impact</a>
           </nav>
           <div className="space-x-3">
-            <Button variant="outline" size="sm" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">Sign In</Button>
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">Get Started</Button>
+            <Link to="/auth/login">
+              <Button variant="outline" size="sm" className="border-2 border-primary text-muted-foreground hover:bg-primary hover:text-muted-foreground">Sign In</Button>
+            </Link>
+            <Link to="/auth/signup">
+              <Button size="sm" className="bg-primary text-muted-foreground hover:bg-primary/90">Get Started</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -39,12 +44,16 @@ const Landing = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3">
-              Take the Pledge
-            </Button>
-            <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3">
-              Calculate My Impact
-            </Button>
+            <Link to="/auth/signup">
+              <Button size="lg" className="bg-primary text-muted-foreground hover:bg-primary/90 px-8 py-3">
+                Take the Pledge
+              </Button>
+            </Link>
+            <Link to="/auth/signup">
+              <Button variant="outline" size="lg" className="border-2 border-primary text-muted-foreground hover:bg-primary hover:text-muted-foreground px-8 py-3">
+                Calculate My Impact
+              </Button>
+            </Link>
           </div>
 
           {/* Stats */}

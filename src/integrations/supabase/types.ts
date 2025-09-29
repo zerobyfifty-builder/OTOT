@@ -14,7 +14,249 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      certificates: {
+        Row: {
+          certificate_type: Database["public"]["Enums"]["certificate_type"]
+          certificate_url: string
+          created_at: string
+          id: string
+          issued_date: string
+          user_id: string
+        }
+        Insert: {
+          certificate_type: Database["public"]["Enums"]["certificate_type"]
+          certificate_url: string
+          created_at?: string
+          id?: string
+          issued_date?: string
+          user_id: string
+        }
+        Update: {
+          certificate_type?: Database["public"]["Enums"]["certificate_type"]
+          certificate_url?: string
+          created_at?: string
+          id?: string
+          issued_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lodges: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          latitude: number | null
+          location: string
+          longitude: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trees: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          images: Json | null
+          latitude: number | null
+          location_name: string | null
+          lodge_id: string | null
+          longitude: number | null
+          num_trees: number
+          otot_id: string
+          plant_date: string | null
+          purchase_type: Database["public"]["Enums"]["purchase_type"]
+          status: Database["public"]["Enums"]["tree_status_type"]
+          tree_type: string | null
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          images?: Json | null
+          latitude?: number | null
+          location_name?: string | null
+          lodge_id?: string | null
+          longitude?: number | null
+          num_trees?: number
+          otot_id: string
+          plant_date?: string | null
+          purchase_type: Database["public"]["Enums"]["purchase_type"]
+          status?: Database["public"]["Enums"]["tree_status_type"]
+          tree_type?: string | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          images?: Json | null
+          latitude?: number | null
+          location_name?: string | null
+          lodge_id?: string | null
+          longitude?: number | null
+          num_trees?: number
+          otot_id?: string
+          plant_date?: string | null
+          purchase_type?: Database["public"]["Enums"]["purchase_type"]
+          status?: Database["public"]["Enums"]["tree_status_type"]
+          tree_type?: string | null
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trees_lodge_id_fkey"
+            columns: ["lodge_id"]
+            isOneToOne: false
+            referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          accommodation_co2: number
+          accommodation_type:
+            | Database["public"]["Enums"]["accommodation_type"]
+            | null
+          created_at: string
+          destination_airport: string
+          entry_source: Database["public"]["Enums"]["entry_source_type"]
+          flight_co2: number
+          from_date: string
+          id: string
+          is_return: boolean
+          num_travelers: number
+          origin_airport: string
+          to_date: string | null
+          total_co2: number
+          travel_class: Database["public"]["Enums"]["travel_class_type"]
+          trees_needed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accommodation_co2?: number
+          accommodation_type?:
+            | Database["public"]["Enums"]["accommodation_type"]
+            | null
+          created_at?: string
+          destination_airport: string
+          entry_source?: Database["public"]["Enums"]["entry_source_type"]
+          flight_co2?: number
+          from_date: string
+          id?: string
+          is_return?: boolean
+          num_travelers?: number
+          origin_airport: string
+          to_date?: string | null
+          total_co2?: number
+          travel_class: Database["public"]["Enums"]["travel_class_type"]
+          trees_needed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accommodation_co2?: number
+          accommodation_type?:
+            | Database["public"]["Enums"]["accommodation_type"]
+            | null
+          created_at?: string
+          destination_airport?: string
+          entry_source?: Database["public"]["Enums"]["entry_source_type"]
+          flight_co2?: number
+          from_date?: string
+          id?: string
+          is_return?: boolean
+          num_travelers?: number
+          origin_airport?: string
+          to_date?: string | null
+          total_co2?: number
+          travel_class?: Database["public"]["Enums"]["travel_class_type"]
+          trees_needed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          otot_id: string | null
+          pledge_date: string | null
+          pledge_status: boolean
+          total_donation: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          otot_id?: string | null
+          pledge_date?: string | null
+          pledge_status?: boolean
+          total_donation?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          otot_id?: string | null
+          pledge_date?: string | null
+          pledge_status?: boolean
+          total_donation?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +265,22 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      accommodation_type:
+        | "Hotel"
+        | "Rental"
+        | "Cruise Ship"
+        | "Service Apartment"
+        | "None"
+      certificate_type: "Pledge" | "Tree Planting"
+      entry_source_type: "Manual" | "Integration"
+      purchase_type: "One-time" | "Subscription"
+      travel_class_type: "Economy" | "Premium Economy" | "Business" | "First"
+      tree_status_type:
+        | "Waiting to be Assigned"
+        | "Assigned"
+        | "Sapling Planted"
+        | "Being Mapped"
+        | "Planted"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +407,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      accommodation_type: [
+        "Hotel",
+        "Rental",
+        "Cruise Ship",
+        "Service Apartment",
+        "None",
+      ],
+      certificate_type: ["Pledge", "Tree Planting"],
+      entry_source_type: ["Manual", "Integration"],
+      purchase_type: ["One-time", "Subscription"],
+      travel_class_type: ["Economy", "Premium Economy", "Business", "First"],
+      tree_status_type: [
+        "Waiting to be Assigned",
+        "Assigned",
+        "Sapling Planted",
+        "Being Mapped",
+        "Planted",
+      ],
+    },
   },
 } as const
