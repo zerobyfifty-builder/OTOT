@@ -8,58 +8,62 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* OTOT Design System - Humboldt Foundation Inspired */
-    --background: 30 40% 98%;
-    --foreground: 150 25% 15%;
+    /* OTOT Design System - Exact Humboldt Foundation Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 25% 15%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 25% 15%;
+    --popover-foreground: 0 0% 15%;
 
-    /* Deep forest green as primary */
-    --primary: 150 50% 22%;
-    --primary-foreground: 0 0% 98%;
+    /* Bright aquamarine green - Humboldt brand color */
+    --primary: 165 100% 70%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Light cream/off-white for secondary */
-    --secondary: 30 30% 94%;
-    --secondary-foreground: 150 25% 15%;
+    /* Light grey for secondary elements */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 30 20% 92%;
-    --muted-foreground: 150 15% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Terracotta accent */
-    --accent: 15 65% 55%;
-    --accent-foreground: 0 0% 98%;
+    /* Aquamarine accent - same as primary */
+    --accent: 165 100% 70%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 30 25% 85%;
-    --input: 30 25% 85%;
-    --ring: 150 50% 22%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 165 100% 70%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Nature-inspired gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(150 50% 22%), hsl(150 60% 28%));
-    --gradient-hero: linear-gradient(135deg, hsl(150 50% 22%), hsl(150 45% 18%));
-    --gradient-accent: linear-gradient(135deg, hsl(15 65% 55%), hsl(25 70% 60%));
+    /* Clean gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(165 100% 70%), hsl(165 100% 75%));
+    --gradient-hero: linear-gradient(135deg, hsl(165 100% 70%), hsl(165 100% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(165 100% 70%), hsl(165 100% 75%));
 
-    /* Elegant shadows */
-    --shadow-card: 0 4px 20px -2px hsl(150 50% 22% / 0.1);
-    --shadow-hero: 0 20px 60px -10px hsl(150 50% 22% / 0.3);
+    /* Clean shadows */
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.1);
+    --shadow-hero: 0 20px 60px -10px hsl(165 100% 70% / 0.3);
+
+    /* Dark navigation bar */
+    --nav-background: 0 0% 20%;
+    --nav-foreground: 0 0% 100%;
 
     /* Sidebar tokens */
-    --sidebar-background: 30 35% 96%;
-    --sidebar-foreground: 150 25% 15%;
-    --sidebar-primary: 150 50% 22%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 30 30% 90%;
-    --sidebar-accent-foreground: 150 25% 15%;
-    --sidebar-border: 30 25% 85%;
-    --sidebar-ring: 150 50% 22%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 165 100% 70%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 165 100% 70%;
   }
 
   .dark {

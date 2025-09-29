@@ -63,6 +63,12 @@ export default {
         'gradient-hero': 'var(--gradient-hero)', 
         'gradient-accent': 'var(--gradient-accent)',
       },
+      colors: {
+        'nav': {
+          DEFAULT: "hsl(var(--nav-background))",
+          foreground: "hsl(var(--nav-foreground))",
+        },
+      },
       boxShadow: {
         'card': 'var(--shadow-card)',
         'hero': 'var(--shadow-hero)',
