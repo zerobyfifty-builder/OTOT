@@ -15,11 +15,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface TreeWithUser {
+  id: string;
+  user_id: string;
+  tree_type: string | null;
+  plant_date: string | null;
+  location_name: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  status: string;
+  user?: {
+    user_id: string;
+    email: string;
+    otot_id: string | null;
+  };
+}
+
 export const LodgeTrees = () => {
   const { lodge } = useLodgeAuth();
   const navigate = useNavigate();
 
-  const { data: trees, isLoading } = useQuery({
+  const { data: trees, isLoading } = useQuery<TreeWithUser[]>({
     queryKey: ['lodge-all-trees', lodge?.id],
     queryFn: async () => {
       if (!lodge) return [];
@@ -44,7 +60,7 @@ export const LodgeTrees = () => {
       return treesData.map(tree => ({
         ...tree,
         user: usersData?.find(u => u.user_id === tree.user_id),
-      }));
+      })) as TreeWithUser[];
     },
     enabled: !!lodge,
   });

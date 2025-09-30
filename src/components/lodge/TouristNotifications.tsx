@@ -18,10 +18,24 @@ interface TouristNotificationsProps {
   lodgeId: string;
 }
 
+interface TreeWithUser {
+  id: string;
+  user_id: string;
+  num_trees: number;
+  tree_type: string | null;
+  status: string;
+  created_at: string;
+  user?: {
+    user_id: string;
+    email: string;
+    otot_id: string | null;
+  };
+}
+
 export const TouristNotifications = ({ lodgeId }: TouristNotificationsProps) => {
   const navigate = useNavigate();
 
-  const { data: trees, isLoading } = useQuery({
+  const { data: trees, isLoading } = useQuery<TreeWithUser[]>({
     queryKey: ['lodge-tourist-trees', lodgeId],
     queryFn: async () => {
       const { data: treesData, error } = await supabase
@@ -44,7 +58,7 @@ export const TouristNotifications = ({ lodgeId }: TouristNotificationsProps) => 
       return treesData.map(tree => ({
         ...tree,
         user: usersData?.find(u => u.user_id === tree.user_id),
-      }));
+      })) as TreeWithUser[];
     },
     enabled: !!lodgeId,
   });
