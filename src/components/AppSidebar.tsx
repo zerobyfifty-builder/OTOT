@@ -20,8 +20,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
+import ototTreeIcon from '@/assets/otot-tree-icon.png';
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -59,27 +59,42 @@ export function AppSidebar() {
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
         <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
-          <div className={`relative ${collapsed ? 'group/logo' : ''}`}>
-            <div onClick={collapsed ? toggleSidebar : undefined} className={collapsed ? 'cursor-pointer' : ''}>
-              <Logo size="sm" showText={!collapsed} iconOnly={collapsed} />
-            </div>
-            {collapsed && (
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <div className="bg-background/80 backdrop-blur-sm rounded p-1">
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Expanded state: icon + text */}
           {!collapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
+            <>
+              <div className="flex items-center gap-2">
+                <img src={ototTreeIcon} alt="OTOT" className="h-10 w-10" />
+                <span className="text-xl font-bold text-foreground">OTOT</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+          
+          {/* Collapsed state: icon with hover to show chevron */}
+          {collapsed && (
+            <div 
+              className="relative group/logo cursor-pointer h-10 w-10"
               onClick={toggleSidebar}
-              className="h-8 w-8"
             >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+              {/* Tree icon - hidden on hover */}
+              <img 
+                src={ototTreeIcon} 
+                alt="OTOT" 
+                className="h-10 w-10 group-hover/logo:opacity-0 transition-opacity duration-200" 
+              />
+              
+              {/* Grey box with chevron - shown on hover */}
+              <div className="absolute inset-0 flex items-center justify-center bg-muted rounded opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
           )}
         </div>
 
