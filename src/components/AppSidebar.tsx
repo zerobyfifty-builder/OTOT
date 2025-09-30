@@ -55,7 +55,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={`group/sidebar ${collapsed ? 'w-16' : 'w-64'}`} collapsible="icon">
+    <Sidebar className={`group/sidebar ${collapsed ? 'w-20' : 'w-64'}`} collapsible="icon">
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
         <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
