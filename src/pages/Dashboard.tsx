@@ -3,69 +3,99 @@ import { Button } from '@/components/ui/button';
 import { 
   TreePine, 
   Plane, 
-  BarChart3, 
-  Calendar,
+  BarChart3,
   TrendingDown,
   Leaf
 } from 'lucide-react';
-import { ActionCard } from '@/components/dashboard/ActionCard';
+import { StatsCard } from '@/components/dashboard/StatsCard';
 import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
+import { RecentContributions } from '@/components/dashboard/RecentContributions';
 import { EducationalCard } from '@/components/dashboard/EducationalCard';
 import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
-  const scrollToSubscription = () => {
-    const subscriptionSection = document.getElementById('subscription-section');
-    subscriptionSection?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const { user } = useAuth();
+
+  // Fetch user stats
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats', user?.id],
+    queryFn: async () => {
+      if (!user) return { trees: 0, trips: 0, co2: 0 };
+
+      const [treesRes, tripsRes] = await Promise.all([
+        supabase
+          .from('trees')
+          .select('num_trees', { count: 'exact' })
+          .eq('user_id', user.id),
+        supabase
+          .from('trips')
+          .select('total_co2')
+          .eq('user_id', user.id)
+      ]);
+
+      const totalTrees = treesRes.data?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
+      const totalTrips = tripsRes.count || 0;
+      const totalCO2 = tripsRes.data?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
+
+      return {
+        trees: totalTrees,
+        trips: totalTrips,
+        co2: totalCO2,
+      };
+    },
+    enabled: !!user,
+  });
 
   return (
     <div className="flex-1 overflow-auto">
       <div className="container mx-auto px-4 py-8 space-y-12">
-        {/* Section 1: Action Cards Grid */}
+        {/* Section 1: Stats Cards */}
         <section>
-          <h2 className="text-3xl font-bold mb-8 pl-4">Take Action Today</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <ActionCard
+          <h2 className="text-3xl font-bold mb-8">Take Action Today</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatsCard
               icon={TreePine}
-              title="Plant a Tree"
-              description="Offset your carbon footprint"
-              buttonText="Get Started"
+              title="Offset"
+              subtitle="your carbon footprint"
+              metric={stats?.trees.toString() || '0'}
+              unit="Trees"
+              buttonText="Plant a Tree"
+              buttonVariant="default"
               href="/carbon-calculator"
             />
             
-            <ActionCard
+            <StatsCard
               icon={Plane}
-              title="Add a Trip"
-              description="Calculate your travel emissions"
-              buttonText="Add Trip"
+              title="Calculate"
+              subtitle="your travel emissions"
+              metric={stats?.trips.toString() || '0'}
+              unit="Trips"
+              buttonText="Add a Trip"
               buttonVariant="outline"
               href="/carbon-calculator"
             />
             
-            <ActionCard
+            <StatsCard
               icon={BarChart3}
-              title="View Activity"
-              description="Track your environmental impact"
+              title="Track"
+              subtitle="your environmental impact"
+              metric={stats?.co2 ? (stats.co2 / 1000).toFixed(1) : '0'}
+              unit="kg CO2"
               buttonText="View Details"
+              buttonVariant="default"
               href="/my-trips"
-            />
-            
-            <ActionCard
-              icon={Calendar}
-              title="Subscribe"
-              description="Monthly tree planting program"
-              buttonText="Learn More"
-              onClick={scrollToSubscription}
             />
           </div>
         </section>
 
-        {/* Section 2: Responsible Traveler Pledge Carousel */}
+        {/* Section 2: Pledge and Contributions */}
         <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Responsible Traveler Pledge</h2>
-          <div className="max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <PledgeCarousel />
+            <RecentContributions />
           </div>
         </section>
 
@@ -96,16 +126,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* Subscription Section (anchor for scroll) */}
-        <section id="subscription-section" className="bg-card rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Monthly Tree Planting Subscription</h2>
-          <p className="text-muted-foreground mb-6">
-            Automatically offset your carbon footprint with our monthly tree planting program
-          </p>
-          <Button size="lg">
-            Start Subscription
-          </Button>
-        </section>
       </div>
     </div>
   );
