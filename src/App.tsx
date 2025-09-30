@@ -4,8 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { LodgeRoute } from "@/components/auth/LodgeRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
@@ -23,6 +25,11 @@ import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
 import Reimbursements from "@/pages/admin/Reimbursements";
 import Reports from "@/pages/admin/Reports";
+import { LodgeLogin } from "@/pages/lodge/LodgeLogin";
+import { LodgeDashboard } from "@/pages/lodge/LodgeDashboard";
+import { PlantTree } from "@/pages/lodge/PlantTree";
+import { LodgeTrees } from "@/pages/lodge/LodgeTrees";
+import { LodgeReimbursements } from "@/pages/lodge/LodgeReimbursements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,8 +50,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
+      <LodgeAuthProvider>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -143,11 +151,35 @@ const App = () => (
               </AdminRoute>
             } />
             
+            {/* Lodge routes */}
+            <Route path="/lodge/login" element={<LodgeLogin />} />
+            <Route path="/lodge/dashboard" element={
+              <LodgeRoute>
+                <LodgeDashboard />
+              </LodgeRoute>
+            } />
+            <Route path="/lodge/plant-tree/:treeId" element={
+              <LodgeRoute>
+                <PlantTree />
+              </LodgeRoute>
+            } />
+            <Route path="/lodge/trees" element={
+              <LodgeRoute>
+                <LodgeTrees />
+              </LodgeRoute>
+            } />
+            <Route path="/lodge/reimbursements" element={
+              <LodgeRoute>
+                <LodgeReimbursements />
+              </LodgeRoute>
+            } />
+            
             {/* 404 page */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
+      </LodgeAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -41,6 +41,41 @@ export type Database = {
         }
         Relationships: []
       }
+      lodge_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_active_at: string
+          lodge_id: string
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_active_at?: string
+          lodge_id: string
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_active_at?: string
+          lodge_id?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lodge_sessions_lodge_id_fkey"
+            columns: ["lodge_id"]
+            isOneToOne: false
+            referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lodges: {
         Row: {
           contact_email: string | null
@@ -52,7 +87,9 @@ export type Database = {
           location: string
           longitude: number | null
           name: string
+          password_hash: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           contact_email?: string | null
@@ -64,7 +101,9 @@ export type Database = {
           location: string
           longitude?: number | null
           name: string
+          password_hash?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           contact_email?: string | null
@@ -76,7 +115,9 @@ export type Database = {
           location?: string
           longitude?: number | null
           name?: string
+          password_hash?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -84,6 +125,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          document_urls: Json | null
           id: string
           lodge_id: string
           notes: string | null
@@ -95,6 +137,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          document_urls?: Json | null
           id?: string
           lodge_id: string
           notes?: string | null
@@ -106,6 +149,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          document_urls?: Json | null
           id?: string
           lodge_id?: string
           notes?: string | null
@@ -128,6 +172,7 @@ export type Database = {
         Row: {
           amount_paid: number
           created_at: string
+          growth_notes: string | null
           id: string
           images: Json | null
           latitude: number | null
@@ -147,6 +192,7 @@ export type Database = {
         Insert: {
           amount_paid: number
           created_at?: string
+          growth_notes?: string | null
           id?: string
           images?: Json | null
           latitude?: number | null
@@ -166,6 +212,7 @@ export type Database = {
         Update: {
           amount_paid?: number
           created_at?: string
+          growth_notes?: string | null
           id?: string
           images?: Json | null
           latitude?: number | null
@@ -332,6 +379,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_lodge_session_valid: {
+        Args: { _lodge_id: string; _session_token: string }
         Returns: boolean
       }
     }
