@@ -51,6 +51,9 @@ All colors MUST be HSL.
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
     --shadow-hero: 0 20px 25px -5px hsl(142 70% 70% / 0.1);
 
+    /* Featured section background */
+    --featured-background: 210 20% 92%;
+
     /* Navigation tokens */
     --nav-background: 0 0% 9%;
     --nav-foreground: 0 0% 100%;
@@ -101,6 +104,8 @@ All colors MUST be HSL.
 
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
     --shadow-hero: 0 20px 25px -5px hsl(142 70% 70% / 0.1);
+
+    --featured-background: 217 20% 20%;
 
     --nav-background: 0 0% 5%;
     --nav-foreground: 210 40% 98%;

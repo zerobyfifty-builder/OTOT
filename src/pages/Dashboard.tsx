@@ -19,6 +19,13 @@ import { useAuth } from '@/contexts/AuthContext';
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
 
+  // Extract user's first name from email or use a default
+  const getUserName = () => {
+    if (!user?.email) return 'Guest';
+    const emailName = user.email.split('@')[0];
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  };
+
   // Fetch user stats
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats', user?.id],
@@ -52,10 +59,24 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="flex-1 overflow-auto">
       <div className="container mx-auto px-4 py-8 space-y-12">
+        {/* Welcome Header */}
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome {getUserName()}!
+          </h1>
+        </div>
+
         {/* Section 1: Stats Cards with Featured Background */}
-        <section className="-mx-4 px-4 py-12 bg-muted/40 rounded-3xl shadow-inner">
-          <div className="container mx-auto">
-            <h2 className="text-4xl font-bold mb-10 text-center bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <section className="relative py-12 px-8 rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
+          {/* Decorative pattern background */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+            <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
+            <div className="absolute bottom-10 left-20 w-48 h-48 rounded-full border-2 border-foreground"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-foreground"></div>
+          </div>
+          
+          <div className="relative z-10">
+            <h2 className="text-4xl font-bold mb-10 text-center text-foreground">
               Take Action Today
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
