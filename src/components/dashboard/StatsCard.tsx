@@ -28,29 +28,36 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   onClick
 }) => {
   const content = (
-    <Card className="h-full hover:shadow-lg transition-shadow">
-      <CardContent className="p-6 space-y-6">
-        <div className="flex items-start space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Icon className="h-5 w-5 text-primary" />
+    <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card border-border/50">
+      <CardContent className="p-8 space-y-6 flex flex-col h-full">
+        {/* Icon and text header */}
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-primary" strokeWidth={2.5} />
           </div>
-          <div>
-            <h3 className="font-semibold text-foreground">{title}</h3>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-foreground mb-1">{title}</h3>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
         </div>
         
-        <div className="text-center py-4">
-          <p className="text-4xl font-bold">
-            <span className="text-foreground">{metric}</span>
+        {/* Metric display - centered and prominent */}
+        <div className="flex-1 flex items-center justify-center py-8">
+          <div className="text-center">
+            <span className="text-6xl font-bold text-foreground tracking-tight">
+              {metric}
+            </span>
             {' '}
-            <span className="text-muted-foreground text-2xl">{unit}</span>
-          </p>
+            <span className="text-3xl font-medium text-muted-foreground">
+              {unit}
+            </span>
+          </div>
         </div>
         
+        {/* Button */}
         <Button 
           variant={buttonVariant}
-          className="w-full"
+          className="w-full h-12 text-base font-medium"
           onClick={onClick}
           asChild={!!href}
         >

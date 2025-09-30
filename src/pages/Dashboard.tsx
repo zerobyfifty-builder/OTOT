@@ -52,42 +52,46 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="flex-1 overflow-auto">
       <div className="container mx-auto px-4 py-8 space-y-12">
-        {/* Section 1: Stats Cards */}
-        <section>
-          <h2 className="text-3xl font-bold mb-8">Take Action Today</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatsCard
-              icon={TreePine}
-              title="Offset"
-              subtitle="your carbon footprint"
-              metric={stats?.trees.toString() || '0'}
-              unit="Trees"
-              buttonText="Plant a Tree"
-              buttonVariant="default"
-              href="/carbon-calculator"
-            />
-            
-            <StatsCard
-              icon={Plane}
-              title="Calculate"
-              subtitle="your travel emissions"
-              metric={stats?.trips.toString() || '0'}
-              unit="Trips"
-              buttonText="Add a Trip"
-              buttonVariant="outline"
-              href="/carbon-calculator"
-            />
-            
-            <StatsCard
-              icon={BarChart3}
-              title="Track"
-              subtitle="your environmental impact"
-              metric={stats?.co2 ? (stats.co2 / 1000).toFixed(1) : '0'}
-              unit="kg CO2"
-              buttonText="View Details"
-              buttonVariant="default"
-              href="/my-trips"
-            />
+        {/* Section 1: Stats Cards with Featured Background */}
+        <section className="-mx-4 px-4 py-12 bg-muted/40 rounded-3xl shadow-inner">
+          <div className="container mx-auto">
+            <h2 className="text-4xl font-bold mb-10 text-center bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Take Action Today
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              <StatsCard
+                icon={TreePine}
+                title="Offset"
+                subtitle="your carbon footprint"
+                metric={stats?.trees.toString() || '0'}
+                unit="Trees"
+                buttonText="Plant a Tree"
+                buttonVariant="default"
+                href="/carbon-calculator"
+              />
+              
+              <StatsCard
+                icon={Plane}
+                title="Calculate"
+                subtitle="your travel emissions"
+                metric={stats?.trips.toString() || '0'}
+                unit="Trips"
+                buttonText="Add a Trip"
+                buttonVariant="outline"
+                href="/carbon-calculator"
+              />
+              
+              <StatsCard
+                icon={BarChart3}
+                title="Track"
+                subtitle="your environmental impact"
+                metric={stats?.co2 ? (stats.co2 / 1000).toFixed(1) : '0'}
+                unit="kg CO2"
+                buttonText="View Details"
+                buttonVariant="default"
+                href="/my-trips"
+              />
+            </div>
           </div>
         </section>
 
