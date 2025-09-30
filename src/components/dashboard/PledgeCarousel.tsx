@@ -153,7 +153,7 @@ export const PledgeCarousel: React.FC = () => {
       <CardContent className="p-0 h-full">
         <div className="grid md:grid-cols-2 h-full">
           {/* Left side - Text content */}
-          <div className="p-8 flex flex-col justify-between">
+          <div className="p-8 flex flex-col justify-between bg-background/85 backdrop-blur-sm">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold">Responsible Traveler Pledge</h3>
