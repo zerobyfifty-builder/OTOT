@@ -1,4 +1,4 @@
-import { TreePine } from "lucide-react";
+import ototLogo from "@/assets/otot-logo.png";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg";
@@ -7,18 +7,16 @@ interface LogoProps {
 
 export const Logo = ({ size = "md", showText = true }: LogoProps) => {
   const sizeClasses = {
-    sm: { container: "w-8 h-8", icon: "h-4 w-4", text: "text-lg" },
-    md: { container: "w-12 h-12", icon: "h-6 w-6", text: "text-2xl" },
-    lg: { container: "w-16 h-16", icon: "h-8 w-8", text: "text-3xl" }
+    sm: { container: "h-8", text: "text-lg" },
+    md: { container: "h-12", text: "text-2xl" },
+    lg: { container: "h-16", text: "text-3xl" }
   };
 
   const classes = sizeClasses[size];
 
   return (
     <div className="flex items-center space-x-2">
-      <div className={`${classes.container} bg-primary rounded-full flex items-center justify-center`}>
-        <TreePine className={`${classes.icon} text-black`} />
-      </div>
+      <img src={ototLogo} alt="OTOT Logo" className={classes.container} />
       {showText && (
         <span className={`${classes.text} font-bold text-foreground`}>OTOT</span>
       )}
