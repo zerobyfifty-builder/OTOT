@@ -24,20 +24,27 @@ export const LodgeTrees = () => {
     queryFn: async () => {
       if (!lodge) return [];
 
-      const { data, error } = await supabase
+      const { data: treesData, error } = await supabase
         .from('trees')
-        .select(`
-          *,
-          users (
-            email,
-            otot_id
-          )
-        `)
+        .select('*')
         .eq('lodge_id', lodge.id)
         .order('plant_date', { ascending: false });
 
       if (error) throw error;
-      return data;
+      if (!treesData) return [];
+
+      // Fetch user data separately
+      const userIds = [...new Set(treesData.map(t => t.user_id))];
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('user_id, email, otot_id')
+        .in('user_id', userIds);
+
+      // Combine data
+      return treesData.map(tree => ({
+        ...tree,
+        user: usersData?.find(u => u.user_id === tree.user_id),
+      }));
     },
     enabled: !!lodge,
   });
@@ -97,7 +104,7 @@ export const LodgeTrees = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {Array.isArray(tree.users) ? tree.users[0]?.email : tree.users?.email}
+                          {tree.user?.email}
                         </TableCell>
                         <TableCell>
                           {tree.plant_date ? (

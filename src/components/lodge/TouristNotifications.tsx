@@ -24,20 +24,27 @@ export const TouristNotifications = ({ lodgeId }: TouristNotificationsProps) => 
   const { data: trees, isLoading } = useQuery({
     queryKey: ['lodge-tourist-trees', lodgeId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: treesData, error } = await supabase
         .from('trees')
-        .select(`
-          *,
-          users (
-            email,
-            otot_id
-          )
-        `)
+        .select('*')
         .eq('lodge_id', lodgeId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      if (!treesData) return [];
+
+      // Fetch user data separately
+      const userIds = [...new Set(treesData.map(t => t.user_id))];
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('user_id, email, otot_id')
+        .in('user_id', userIds);
+
+      // Combine data
+      return treesData.map(tree => ({
+        ...tree,
+        user: usersData?.find(u => u.user_id === tree.user_id),
+      }));
     },
     enabled: !!lodgeId,
   });
@@ -83,11 +90,11 @@ export const TouristNotifications = ({ lodgeId }: TouristNotificationsProps) => 
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-muted-foreground" />
-                        {Array.isArray(tree.users) ? tree.users[0]?.email : tree.users?.email}
+                        {tree.user?.email}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {Array.isArray(tree.users) ? tree.users[0]?.otot_id : tree.users?.otot_id}
+                      {tree.user?.otot_id}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
