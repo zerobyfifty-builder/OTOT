@@ -1,85 +1,26 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import { 
   TreePine, 
   Plane, 
   BarChart3, 
   Calendar,
   TrendingDown,
-  Leaf,
-  Settings,
-  LogOut
+  Leaf
 } from 'lucide-react';
-import { Logo } from '@/components/Logo';
 import { ActionCard } from '@/components/dashboard/ActionCard';
 import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
 import { EducationalCard } from '@/components/dashboard/EducationalCard';
 import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
-import { toast } from 'sonner';
 
 export const Dashboard: React.FC = () => {
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Signed out successfully');
-    } catch (error) {
-      toast.error('Failed to sign out');
-    }
-  };
-
   const scrollToSubscription = () => {
     const subscriptionSection = document.getElementById('subscription-section');
     subscriptionSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header/Navigation */}
-      <header className="bg-nav text-nav-foreground border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <Link to="/">
-                <Logo size="md" />
-              </Link>
-              
-              <nav className="hidden md:flex items-center space-x-6">
-                <Link to="/dashboard" className="text-black hover:text-primary transition-colors">
-                  Dashboard
-                </Link>
-                <Link to="/my-trips" className="text-black hover:text-primary transition-colors">
-                  My Trips
-                </Link>
-                <Link to="/my-trees" className="text-black hover:text-primary transition-colors">
-                  My Trees
-                </Link>
-              </nav>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm">Welcome, {user?.email?.split('@')[0]}</span>
-              <Link to="/profile">
-                <Button variant="ghost" size="sm" className="text-nav-foreground hover:text-primary">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleSignOut}
-                className="text-nav-foreground hover:text-primary"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 overflow-auto">
       <div className="container mx-auto px-4 py-8 space-y-12">
         {/* Section 1: Action Cards Grid */}
         <section>
