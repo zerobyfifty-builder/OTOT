@@ -14,6 +14,7 @@ import { ForgotPassword } from "@/pages/auth/ForgotPassword";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
 import { CarbonCalculator } from "@/pages/CarbonCalculator";
+import { TreePurchase } from "@/pages/TreePurchase";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,10 +89,7 @@ const App = () => (
             <Route path="/tree-purchase" element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">Tree Purchase</h1>
-                    <p className="text-muted-foreground">This feature will be implemented next</p>
-                  </div>
+                  <TreePurchase />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
