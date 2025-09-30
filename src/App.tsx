@@ -15,6 +15,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
 import { CarbonCalculator } from "@/pages/CarbonCalculator";
 import { TreePurchase } from "@/pages/TreePurchase";
+import { MyTrips } from "@/pages/MyTrips";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,10 +63,7 @@ const App = () => (
             <Route path="/my-trips" element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold">My Trips</h1>
-                    <p className="text-muted-foreground">This feature will be implemented next</p>
-                  </div>
+                  <MyTrips />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

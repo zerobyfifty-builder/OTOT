@@ -1,0 +1,423 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { Plane, Calendar, Edit, Eye, Leaf, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { airports } from "@/data/airports";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Database } from "@/integrations/supabase/types";
+
+type Trip = Database["public"]["Tables"]["trips"]["Row"];
+
+const TRAVEL_CLASS_LABELS: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
+  "Economy": "Economy",
+  "Premium Economy": "Premium Economy",
+  "Business": "Business",
+  "First": "First Class",
+};
+
+const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_type"], string> = {
+  "None": "No Accommodation",
+  "Hotel": "Hotel",
+  "Rental": "Rental",
+  "Cruise Ship": "Cruise Ship",
+  "Service Apartment": "Service Apartment",
+};
+
+export const MyTrips = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  const fetchTrips = async () => {
+    setIsLoading(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view your trips.",
+          variant: "destructive",
+        });
+        navigate("/auth/login");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("trips")
+        .select("*")
+        .eq("user_id", userData.user.id)
+        .order("from_date", { ascending: false });
+
+      if (error) throw error;
+      setTrips(data || []);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your trips. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getAirportName = (code: string) => {
+    const airport = airports.find(a => a.code === code);
+    return airport ? airport.city : code;
+  };
+
+  const calculateNights = (fromDate: string, toDate: string) => {
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    return Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const handleOffsetEmissions = (trip: Trip) => {
+    // Convert database enum values to form values
+    const travelClassMap: Record<Database["public"]["Enums"]["travel_class_type"], "economy" | "premium_economy" | "business" | "first"> = {
+      "Economy": "economy",
+      "Premium Economy": "premium_economy",
+      "Business": "business",
+      "First": "first",
+    };
+
+    const accommodationMap: Record<Database["public"]["Enums"]["accommodation_type"], "none" | "hotel" | "rental" | "cruise" | "service_apartment"> = {
+      "None": "none",
+      "Hotel": "hotel",
+      "Rental": "rental",
+      "Cruise Ship": "cruise",
+      "Service Apartment": "service_apartment",
+    };
+
+    navigate("/tree-purchase", {
+      state: {
+        treesNeeded: trip.trees_needed,
+        totalCO2: trip.total_co2,
+        tripData: {
+          originAirport: trip.origin_airport,
+          destinationAirport: trip.destination_airport,
+          travelClass: travelClassMap[trip.travel_class],
+          isReturn: trip.is_return,
+          fromDate: new Date(trip.from_date),
+          toDate: new Date(trip.to_date ? trip.to_date : trip.from_date),
+          accommodationType: accommodationMap[trip.accommodation_type || "None"],
+          numTravelers: trip.num_travelers,
+        },
+      },
+    });
+  };
+
+  const handleEditTrip = (tripId: string) => {
+    // TODO: Implement edit functionality
+    toast({
+      title: "Edit Trip",
+      description: "Edit functionality will be implemented soon.",
+    });
+  };
+
+  const handleViewDetails = (tripId: string) => {
+    // TODO: Implement view details modal/page
+    toast({
+      title: "View Details",
+      description: "Detailed view will be implemented soon.",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your trips...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-7xl py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
+              <p className="text-muted-foreground mb-2">
+                Our Travel Partners automatically add your bookings as long as you use the same email and mobile number used here when making your bookings.
+              </p>
+              <p className="text-sm text-muted-foreground italic">
+                If your trip does not appear here, please add it manually.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/carbon-calculator")}
+              className="ml-4 shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Trip Manually
+            </Button>
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {trips.length === 0 ? (
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Plane className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No trips found</h3>
+              <p className="text-muted-foreground mb-6">
+                Add your first trip to calculate emissions and start offsetting your carbon footprint.
+              </p>
+              <Button onClick={() => navigate("/carbon-calculator")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Trip
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50 border-b">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Dates
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Entered
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Trip Details
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            CO₂ Emissions
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trips.map((trip) => {
+                          const nights = calculateNights(trip.from_date, trip.to_date);
+                          return (
+                            <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
+                              {/* Dates */}
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                                  <div>
+                                    <div>{format(new Date(trip.from_date), "dd MMM yyyy")}</div>
+                                    <div className="text-muted-foreground">to</div>
+                                    <div>{format(new Date(trip.to_date), "dd MMM yyyy")}</div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Entered */}
+                              <td className="px-6 py-4">
+                                <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
+                                  {trip.entry_source}
+                                </Badge>
+                              </td>
+
+                              {/* Trip Details */}
+                              <td className="px-6 py-4">
+                                <div className="space-y-1">
+                                  <div className="font-medium flex items-center gap-2">
+                                    <Plane className="h-4 w-4 text-primary" />
+                                    {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}, {ACCOMMODATION_LABELS[trip.accommodation_type]}
+                                  </div>
+                                  {trip.num_travelers > 1 && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {trip.num_travelers} travelers
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* CO2 Emissions */}
+                              <td className="px-6 py-4">
+                                <div className="space-y-1 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Flight: </span>
+                                    <span className="font-medium">{trip.flight_co2.toFixed(1)} kg CO₂</span>
+                                  </div>
+                                  {trip.accommodation_co2 > 0 && (
+                                    <div>
+                                      <span className="text-muted-foreground">Stay ({nights} {nights === 1 ? "night" : "nights"}): </span>
+                                      <span className="font-medium">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
+                                    </div>
+                                  )}
+                                  <div className="pt-1 border-t">
+                                    <span className="text-muted-foreground">Total: </span>
+                                    <span className="font-semibold text-foreground">{trip.total_co2.toFixed(1)} kg CO₂</span>
+                                  </div>
+                                  <div className="flex items-center gap-1 text-primary font-medium">
+                                    <Leaf className="h-3 w-3" />
+                                    {trip.trees_needed} {trip.trees_needed === 1 ? "tree" : "trees"} needed
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleViewDetails(trip.id)}
+                                    className="w-full"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View Details
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleOffsetEmissions(trip)}
+                                    className="w-full"
+                                  >
+                                    <Leaf className="h-3 w-3 mr-1" />
+                                    Offset Emissions
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEditTrip(trip.id)}
+                                    className="w-full"
+                                  >
+                                    <Edit className="h-3 w-3 mr-1" />
+                                    Edit Trip
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+              {trips.map((trip) => {
+                const nights = calculateNights(trip.from_date, trip.to_date);
+                return (
+                  <Card key={trip.id}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg">
+                          {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
+                        </CardTitle>
+                        <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
+                          {trip.entry_source}
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        {format(new Date(trip.from_date), "dd MMM yyyy")} - {format(new Date(trip.to_date), "dd MMM yyyy")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Trip Details */}
+                      <div className="text-sm">
+                        <div className="text-muted-foreground mb-1">
+                          {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {ACCOMMODATION_LABELS[trip.accommodation_type]}
+                        </div>
+                        {trip.num_travelers > 1 && (
+                          <div className="text-muted-foreground">
+                            {trip.num_travelers} travelers
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Emissions */}
+                      <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Flight:</span>
+                          <span className="font-medium">{trip.flight_co2.toFixed(1)} kg CO₂</span>
+                        </div>
+                        {trip.accommodation_co2 > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Stay ({nights} {nights === 1 ? "night" : "nights"}):</span>
+                            <span className="font-medium">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between pt-1 border-t">
+                          <span className="text-muted-foreground">Total:</span>
+                          <span className="font-semibold">{trip.total_co2.toFixed(1)} kg CO₂</span>
+                        </div>
+                        <div className="flex justify-between items-center text-primary font-medium">
+                          <span className="flex items-center gap-1">
+                            <Leaf className="h-3 w-3" />
+                            Trees needed:
+                          </span>
+                          <span>{trip.trees_needed}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleOffsetEmissions(trip)}
+                          className="w-full"
+                        >
+                          <Leaf className="h-3 w-3 mr-1" />
+                          Offset Emissions
+                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewDetails(trip.id)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditTrip(trip.id)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
