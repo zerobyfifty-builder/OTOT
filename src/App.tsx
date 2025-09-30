@@ -11,6 +11,7 @@ import { Signup } from "@/pages/auth/Signup";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
+import { CarbonCalculator } from "@/pages/CarbonCalculator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,10 +59,7 @@ const App = () => (
             } />
             <Route path="/carbon-calculator" element={
               <ProtectedRoute>
-                <div className="p-8 text-center">
-                  <h1 className="text-2xl font-bold">Carbon Calculator</h1>
-                  <p className="text-muted-foreground">This feature will be implemented next</p>
-                </div>
+                <CarbonCalculator />
               </ProtectedRoute>
             } />
             <Route path="/tree-purchase" element={
