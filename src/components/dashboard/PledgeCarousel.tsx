@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Share2, Download, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { generatePledgeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import { SocialShare } from '@/components/certificates/SocialShare';
 
 const pledgePoints = [
   "Respect nature by following marked paths and protecting natural surroundings",
@@ -42,6 +44,7 @@ export const PledgeCarousel: React.FC = () => {
     if (!user) return;
 
     try {
+      // Update pledge status
       const { error } = await supabase
         .from('users')
         .update({ 
@@ -52,27 +55,34 @@ export const PledgeCarousel: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Congratulations! You\'ve taken the Responsible Traveler Pledge!');
-      // Navigate to tree planting page
-      window.location.href = '/carbon-calculator';
+      // Fetch user details for certificate
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email, otot_id')
+        .eq('user_id', user.id)
+        .single();
+
+      // Generate and download certificate
+      const certificateBlob = await generatePledgeCertificate({
+        userName: userData?.email || 'Responsible Traveler',
+        userId: user.id,
+        ototId: userData?.otot_id,
+      });
+
+      downloadCertificate(certificateBlob, 'responsible-traveler-pledge-certificate.pdf');
+
+      toast.success('Congratulations! Certificate downloaded successfully!');
+      
+      // Navigate to tree planting page after a short delay
+      setTimeout(() => {
+        window.location.href = '/carbon-calculator';
+      }, 2000);
     } catch (error) {
       console.error('Error taking pledge:', error);
       toast.error('Failed to complete pledge');
     }
   };
 
-  const shareOnSocial = (platform: string) => {
-    const text = "I've taken the Responsible Traveler Pledge and committed to sustainable tourism practices! 🌱";
-    const url = window.location.origin;
-    
-    const shareUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${encodeURIComponent(text)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`
-    };
-
-    window.open(shareUrls[platform as keyof typeof shareUrls], '_blank');
-  };
 
   if (isCompleted) {
     return (
@@ -89,35 +99,11 @@ export const PledgeCarousel: React.FC = () => {
             size="lg" 
             className="w-full bg-white text-accent hover:bg-secondary"
           >
-            I want to plant a tree and offset my emissions
+            <Download className="h-4 w-4 mr-2" />
+            Download Certificate & Plant Trees
           </Button>
           
-          <div className="flex justify-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => shareOnSocial('facebook')}
-              className="text-white hover:bg-white/20"
-            >
-              <Facebook className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => shareOnSocial('twitter')}
-              className="text-white hover:bg-white/20"
-            >
-              <Twitter className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => shareOnSocial('linkedin')}
-              className="text-white hover:bg-white/20"
-            >
-              <Linkedin className="h-4 w-4" />
-            </Button>
-          </div>
+          <SocialShare type="pledge" />
         </CardContent>
       </Card>
     );

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Leaf, Info, Heart, MapPin } from "lucide-react";
+import { Leaf, Info, Heart, MapPin, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
+import { SocialShare } from "@/components/certificates/SocialShare";
 
 interface Lodge {
   id: string;
@@ -22,6 +25,7 @@ export const TreePurchase = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const { treesNeeded = 1, totalCO2 = 0, tripData } = location.state || {};
   
@@ -32,6 +36,7 @@ export const TreePurchase = () => {
   const [dedicateTo, setDedicateTo] = useState("");
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessCard, setShowSuccessCard] = useState(false);
 
   const PRICE_PER_TREE = 30;
 
@@ -81,19 +86,67 @@ export const TreePurchase = () => {
   };
 
   const handlePurchase = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to purchase trees.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
-      // TODO: Integrate with Stripe
-      // For now, show a reminder toast
-      toast({
-        title: "Stripe Integration Pending",
-        description: "Payment processing will be implemented with Stripe integration.",
+      // Get user details
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email, otot_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!userData?.otot_id) {
+        // Generate OTOT ID if not exists
+        const ototId = `OTOT-${Date.now()}-${user.id.substring(0, 8)}`;
+        await supabase
+          .from('users')
+          .update({ otot_id: ototId })
+          .eq('user_id', user.id);
+        userData.otot_id = ototId;
+      }
+
+      // Get selected lodge info if any
+      let locationName = undefined;
+      if (selectedLodge) {
+        const lodge = lodges.find(l => l.id === selectedLodge);
+        if (lodge) locationName = lodge.name;
+      }
+
+      // Generate and download certificate
+      const treeCount = getTreeCount();
+      const certificateBlob = await generateTreeCertificate({
+        userName: userData?.email || 'Environmental Supporter',
+        userId: user.id,
+        numTrees: treeCount,
+        co2Offset: totalCO2,
+        ototId: userData.otot_id,
+        location: locationName,
       });
+
+      downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
+
+      // Show success card
+      setShowSuccessCard(true);
       
-      // Navigate to a placeholder confirmation page
-      // navigate("/payment-success");
+      toast({
+        title: "Success!",
+        description: "Certificate downloaded! Share your impact with others.",
+      });
+
+      // TODO: Integrate with Stripe for actual payment
+      // For now, just show success
     } catch (error) {
+      console.error('Error processing purchase:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -120,6 +173,54 @@ export const TreePurchase = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (showSuccessCard) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container max-w-3xl py-8">
+          <Card className="border-primary/20 bg-gradient-primary text-white">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl mb-4">🎉 Thank You!</CardTitle>
+              <CardDescription className="text-white/90 text-lg">
+                You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-white/10 rounded-lg p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80">Trees Planted:</span>
+                  <span className="text-2xl font-bold">{getTreeCount()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80">CO₂ Offset:</span>
+                  <span className="text-2xl font-bold">{totalCO2.toFixed(2)} kg</span>
+                </div>
+              </div>
+
+              <SocialShare type="tree" numTrees={getTreeCount()} />
+
+              <div className="flex gap-3">
+                <Button 
+                  variant="secondary" 
+                  className="flex-1"
+                  onClick={() => navigate('/my-trees')}
+                >
+                  View My Trees
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white border-white/20"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  Back to Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

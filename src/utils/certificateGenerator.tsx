@@ -1,0 +1,133 @@
+import { pdf } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
+import { supabase } from '@/integrations/supabase/client';
+import { PledgeCertificate } from '@/components/certificates/PledgeCertificate';
+import { TreeCertificate } from '@/components/certificates/TreeCertificate';
+
+interface GeneratePledgeCertificateParams {
+  userName: string;
+  userId: string;
+  ototId?: string;
+}
+
+interface GenerateTreeCertificateParams {
+  userName: string;
+  userId: string;
+  numTrees: number;
+  co2Offset: number;
+  ototId: string;
+  location?: string;
+}
+
+const generateQRCode = async (data: string): Promise<string> => {
+  try {
+    return await QRCode.toDataURL(data, {
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#2f7c49',
+        light: '#ffffff',
+      },
+    });
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    return '';
+  }
+};
+
+export const generatePledgeCertificate = async ({
+  userName,
+  userId,
+  ototId,
+}: GeneratePledgeCertificateParams): Promise<Blob> => {
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  
+  const certificateId = `PLD-${Date.now()}-${userId.substring(0, 8)}`;
+  const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
+  const qrCodeDataUrl = await generateQRCode(verificationUrl);
+
+  // Save certificate record to database
+  try {
+    await supabase.from('certificates').insert({
+      user_id: userId,
+      certificate_type: 'Pledge',
+      certificate_url: verificationUrl,
+      issued_date: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error saving certificate to database:', error);
+  }
+
+  const blob = await pdf(
+    <PledgeCertificate
+      userName={userName}
+      date={date}
+      certificateId={certificateId}
+      ototId={ototId}
+      qrCodeDataUrl={qrCodeDataUrl}
+    />
+  ).toBlob();
+  
+  return blob;
+};
+
+export const generateTreeCertificate = async ({
+  userName,
+  userId,
+  numTrees,
+  co2Offset,
+  ototId,
+  location,
+}: GenerateTreeCertificateParams): Promise<Blob> => {
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  
+  const certificateId = `TRE-${Date.now()}-${userId.substring(0, 8)}`;
+  const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
+  const qrCodeDataUrl = await generateQRCode(verificationUrl);
+
+  // Save certificate record to database
+  try {
+    await supabase.from('certificates').insert({
+      user_id: userId,
+      certificate_type: 'Tree Planting',
+      certificate_url: verificationUrl,
+      issued_date: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error saving certificate to database:', error);
+  }
+
+  const blob = await pdf(
+    <TreeCertificate
+      userName={userName}
+      numTrees={numTrees}
+      date={date}
+      certificateId={certificateId}
+      ototId={ototId}
+      co2Offset={co2Offset}
+      location={location}
+      qrCodeDataUrl={qrCodeDataUrl}
+    />
+  ).toBlob();
+  
+  return blob;
+};
+
+export const downloadCertificate = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};

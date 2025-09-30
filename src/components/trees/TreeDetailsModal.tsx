@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Database } from "@/integrations/supabase/types";
+import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type TreeStatus = Database["public"]["Enums"]["tree_status_type"];
 
@@ -73,9 +76,41 @@ export const TreeDetailsModal = ({ isOpen, onClose, tree, mapboxToken }: TreeDet
     };
   }, [isOpen, tree.latitude, tree.longitude, mapboxToken]);
 
-  const handleDownloadCertificate = () => {
-    // TODO: Implement certificate download
-    console.log("Download certificate for:", tree.otot_id);
+  const handleDownloadCertificate = async () => {
+    try {
+      // Get user details
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please log in to download certificate');
+        return;
+      }
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email, otot_id')
+        .eq('user_id', user.id)
+        .single();
+
+      // Generate and download certificate
+      const certificateBlob = await generateTreeCertificate({
+        userName: userData?.email || 'Environmental Supporter',
+        userId: user.id,
+        numTrees: tree.num_trees,
+        co2Offset: tree.num_trees * 22, // Approximate annual offset per tree
+        ototId: userData?.otot_id || tree.otot_id,
+        location: tree.location_name || undefined,
+      });
+
+      downloadCertificate(
+        certificateBlob, 
+        `tree-certificate-${tree.otot_id}.pdf`
+      );
+
+      toast.success('Certificate downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast.error('Failed to download certificate');
+    }
   };
 
   return (
