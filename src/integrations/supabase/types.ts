@@ -80,6 +80,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reimbursements: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          lodge_id: string
+          notes: string | null
+          payment_date: string | null
+          request_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          lodge_id: string
+          notes?: string | null
+          payment_date?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          lodge_id?: string
+          notes?: string | null
+          payment_date?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reimbursements_lodge_id_fkey"
+            columns: ["lodge_id"]
+            isOneToOne: false
+            referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trees: {
         Row: {
           amount_paid: number
@@ -221,6 +265,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string
@@ -262,7 +327,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       accommodation_type:
@@ -271,6 +342,7 @@ export type Database = {
         | "Cruise Ship"
         | "Service Apartment"
         | "None"
+      app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
       entry_source_type: "Manual" | "Integration"
       purchase_type: "One-time" | "Subscription"
@@ -415,6 +487,7 @@ export const Constants = {
         "Service Apartment",
         "None",
       ],
+      app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
       entry_source_type: ["Manual", "Integration"],
       purchase_type: ["One-time", "Subscription"],

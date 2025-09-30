@@ -1,6 +1,7 @@
-import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight, Shield, Map, FileText } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { toast } from 'sonner';
 import {
   Sidebar,
@@ -33,7 +34,17 @@ const menuItems = [
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminCheck();
+  const location = useLocation();
   const collapsed = state === 'collapsed';
+
+  const adminItems = [
+    { title: 'Admin Dashboard', url: '/admin/dashboard', icon: Shield },
+    { title: 'Trees Management', url: '/admin/trees', icon: TreePine },
+    { title: 'Lodge Management', url: '/admin/lodges', icon: Map },
+    { title: 'Reimbursements', url: '/admin/reimbursements', icon: Calculator },
+    { title: 'Reports', url: '/admin/reports', icon: FileText },
+  ];
 
   const handleSignOut = async () => {
     try {
@@ -122,11 +133,39 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      {isAdmin && (
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground font-medium'
+                            : 'hover:bg-muted text-foreground'
+                        }`
+                      }
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
+      )}
+    </SidebarContent>
 
       {/* User Profile Footer */}
       <SidebarFooter>

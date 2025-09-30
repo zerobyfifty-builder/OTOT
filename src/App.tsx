@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
@@ -17,6 +18,11 @@ import { CarbonCalculator } from "@/pages/CarbonCalculator";
 import { TreePurchase } from "@/pages/TreePurchase";
 import { MyTrips } from "@/pages/MyTrips";
 import { MyTrees } from "@/pages/MyTrees";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import TreesManagement from "@/pages/admin/TreesManagement";
+import LodgesManagement from "@/pages/admin/LodgesManagement";
+import Reimbursements from "@/pages/admin/Reimbursements";
+import Reports from "@/pages/admin/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -98,6 +104,43 @@ const App = () => (
                   </div>
                 </DashboardLayout>
               </ProtectedRoute>
+            } />
+            
+            {/* Admin routes */}
+            <Route path="/admin/dashboard" element={
+              <AdminRoute>
+                <DashboardLayout>
+                  <AdminDashboard />
+                </DashboardLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/trees" element={
+              <AdminRoute>
+                <DashboardLayout>
+                  <TreesManagement />
+                </DashboardLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/lodges" element={
+              <AdminRoute>
+                <DashboardLayout>
+                  <LodgesManagement />
+                </DashboardLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/reimbursements" element={
+              <AdminRoute>
+                <DashboardLayout>
+                  <Reimbursements />
+                </DashboardLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <AdminRoute>
+                <DashboardLayout>
+                  <Reports />
+                </DashboardLayout>
+              </AdminRoute>
             } />
             
             {/* 404 page */}
