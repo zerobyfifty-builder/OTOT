@@ -81,8 +81,8 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="h-8 w-8 text-primary" />
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <Award className="h-8 w-8 text-black" />
               </div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">1. Take the Pledge</h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -91,8 +91,8 @@ const Landing = () => {
             </Card>
 
             <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plane className="h-8 w-8 text-primary" />
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <Plane className="h-8 w-8 text-black" />
               </div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">2. Calculate Impact</h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -101,8 +101,8 @@ const Landing = () => {
             </Card>
 
             <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TreePine className="h-8 w-8 text-primary" />
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <TreePine className="h-8 w-8 text-black" />
               </div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">3. Plant Trees</h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -120,8 +120,8 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Globe className="h-6 w-6 text-primary" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Globe className="h-6 w-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Real Impact</h3>
@@ -132,8 +132,8 @@ const Landing = () => {
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Users className="h-6 w-6 text-primary" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Users className="h-6 w-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Community Partnership</h3>
@@ -144,8 +144,8 @@ const Landing = () => {
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Heart className="h-6 w-6 text-primary" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Heart className="h-6 w-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Simple & Affordable</h3>
@@ -156,8 +156,8 @@ const Landing = () => {
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Award className="h-6 w-6 text-primary" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <Award className="h-6 w-6 text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Certified Impact</h3>

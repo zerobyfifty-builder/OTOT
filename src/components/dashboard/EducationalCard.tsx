@@ -16,8 +16,8 @@ export const EducationalCard: React.FC<EducationalCardProps> = ({
   return (
     <Card className={`text-center hover:shadow-lg transition-shadow cursor-pointer ${className}`}>
       <CardHeader>
-        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-          <Icon className="h-6 w-6 text-primary" />
+        <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-2">
+          <Icon className="h-6 w-6 text-black" />
         </div>
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
