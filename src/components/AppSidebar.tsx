@@ -1,4 +1,4 @@
-import { Home, Plane, TreePine, Calculator, Settings, LogOut, User } from 'lucide-react';
+import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Logo } from '@/components/Logo';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -30,7 +31,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const { user, signOut } = useAuth();
   const collapsed = state === 'collapsed';
 
@@ -54,11 +55,26 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={collapsed ? 'w-16' : 'w-64'} collapsible="icon">
+    <Sidebar className={`group/sidebar ${collapsed ? 'w-16' : 'w-64'}`} collapsible="icon">
       <SidebarContent>
-        {/* Logo Section */}
-        <div className={`p-4 border-b ${collapsed ? 'flex justify-center' : ''}`}>
-          <Logo size={collapsed ? 'sm' : 'md'} />
+        {/* Logo Section with Collapse Button */}
+        <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+          <Logo size={collapsed ? 'sm' : 'md'} showText={!collapsed} />
+          {!collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+          {collapsed && (
+            <div className="absolute left-16 top-4 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 pointer-events-none">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
         </div>
 
         {/* Navigation Menu */}
@@ -95,8 +111,9 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <button
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted transition-colors ${
-                collapsed ? 'justify-center' : ''
+                collapsed ? 'justify-center' : 'justify-start'
               }`}
+              onClick={collapsed ? toggleSidebar : undefined}
             >
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-primary-foreground">
@@ -104,7 +121,7 @@ export function AppSidebar() {
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
-                <div className="flex flex-col items-start overflow-hidden">
+                <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full">
                     {getUserDisplayName()}
                   </span>
