@@ -18,10 +18,10 @@ const Landing = () => {
           </nav>
           <div className="space-x-3">
             <Link to="/auth/login">
-              <Button variant="outline" size="sm" className="border-2 border-primary text-muted-foreground hover:bg-primary hover:text-muted-foreground">Sign In</Button>
+              <Button variant="outline" size="sm" className="border-2 border-primary text-black hover:bg-primary hover:text-black">Sign In</Button>
             </Link>
             <Link to="/auth/signup">
-              <Button size="sm" className="bg-primary text-muted-foreground hover:bg-primary/90">Get Started</Button>
+              <Button size="sm" className="bg-primary text-black hover:bg-primary/90">Get Started</Button>
             </Link>
           </div>
         </div>
@@ -43,12 +43,12 @@ const Landing = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Link to="/auth/signup">
-              <Button size="lg" className="bg-primary text-muted-foreground hover:bg-primary/90 px-8 py-3">
+              <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
                 Take the Pledge
               </Button>
             </Link>
             <Link to="/auth/signup">
-              <Button variant="outline" size="lg" className="border-2 border-primary text-muted-foreground hover:bg-primary hover:text-muted-foreground px-8 py-3">
+              <Button variant="outline" size="lg" className="border-2 border-primary text-black hover:bg-primary hover:text-black px-8 py-3">
                 Calculate My Impact
               </Button>
             </Link>
@@ -176,10 +176,10 @@ const Landing = () => {
             Join thousands of responsible travelers who are helping reforest Kenya while exploring its natural beauty.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3">
+            <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
               Start Your Journey
             </Button>
-            <Button size="lg" variant="outline" className="border-accent-foreground text-accent-foreground hover:bg-accent-foreground hover:text-accent px-8 py-3">
+            <Button size="lg" variant="outline" className="border-accent-foreground text-black hover:bg-accent-foreground hover:text-black px-8 py-3">
               Learn More
             </Button>
           </div>
