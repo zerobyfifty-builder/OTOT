@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import { ActionCard } from '@/components/dashboard/ActionCard';
 import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
 import { EducationalCard } from '@/components/dashboard/EducationalCard';
@@ -42,9 +43,8 @@ export const Dashboard: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link to="/" className="flex items-center space-x-2">
-                <TreePine className="h-8 w-8 text-primary" />
-                <span className="text-2xl font-bold">OTOT</span>
+              <Link to="/">
+                <Logo size="md" />
               </Link>
               
               <nav className="hidden md:flex items-center space-x-6">

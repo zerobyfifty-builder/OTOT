@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TreePine, Plane, Heart, Award, Users, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Logo } from "@/components/Logo";
 
 const Landing = () => {
   return (
@@ -9,10 +10,7 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <TreePine className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">OTOT</span>
-          </div>
+          <Logo size="md" />
           <nav className="hidden md:flex space-x-6">
             <a href="#about" className="text-black hover:text-primary transition-colors">About</a>
             <a href="#how-it-works" className="text-black hover:text-primary transition-colors">How It Works</a>
@@ -193,9 +191,8 @@ const Landing = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <TreePine className="h-6 w-6 text-primary" />
-                <span className="text-lg font-bold text-foreground">OTOT</span>
+              <div className="mb-4">
+                <Logo size="sm" />
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 Kenya's sustainable tourism initiative connecting responsible travelers with reforestation efforts.
