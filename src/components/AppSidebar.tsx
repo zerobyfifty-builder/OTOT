@@ -59,7 +59,18 @@ export function AppSidebar() {
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
         <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
-          <Logo size={collapsed ? 'sm' : 'md'} showText={!collapsed} />
+          <div className={`relative ${collapsed ? 'group/logo' : ''}`}>
+            <div onClick={collapsed ? toggleSidebar : undefined} className={collapsed ? 'cursor-pointer' : ''}>
+              <Logo size="sm" showText={!collapsed} iconOnly={collapsed} />
+            </div>
+            {collapsed && (
+              <div className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 pointer-events-none">
+                <div className="bg-background/80 backdrop-blur-sm rounded p-1">
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
           {!collapsed && (
             <Button
               variant="ghost"
@@ -69,11 +80,6 @@ export function AppSidebar() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-          )}
-          {collapsed && (
-            <div className="absolute left-16 top-4 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 pointer-events-none">
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
           )}
         </div>
 
