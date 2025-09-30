@@ -80,14 +80,14 @@ export function AppSidebar() {
           {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
-              className="relative group/logo cursor-pointer h-8 w-8"
+              className="relative group/logo cursor-pointer h-10 w-12"
               onClick={toggleSidebar}
             >
               {/* Tree icon - hidden on hover */}
               <img 
                 src={ototTreeIcon} 
                 alt="OTOT" 
-                className="h-8 w-8 rounded-full object-cover group-hover/logo:opacity-0 transition-opacity duration-200" 
+                className="h-10 w-10 rounded-full object-cover group-hover/logo:opacity-0 transition-opacity duration-200" 
               />
               
               {/* Grey box with chevron - shown on hover */}
