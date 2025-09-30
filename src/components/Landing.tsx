@@ -14,9 +14,9 @@ const Landing = () => {
             <span className="text-2xl font-bold text-foreground">OTOT</span>
           </div>
           <nav className="hidden md:flex space-x-6">
-            <a href="#about" className="text-muted-foreground hover:text-primary transition-colors">About</a>
-            <a href="#how-it-works" className="text-muted-foreground hover:text-primary transition-colors">How It Works</a>
-            <a href="#impact" className="text-muted-foreground hover:text-primary transition-colors">Impact</a>
+            <a href="#about" className="text-black hover:text-primary transition-colors">About</a>
+            <a href="#how-it-works" className="text-black hover:text-primary transition-colors">How It Works</a>
+            <a href="#impact" className="text-black hover:text-primary transition-colors">Impact</a>
           </nav>
           <div className="space-x-3">
             <Link to="/auth/login">

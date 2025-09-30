@@ -48,13 +48,13 @@ export const Dashboard: React.FC = () => {
               </Link>
               
               <nav className="hidden md:flex items-center space-x-6">
-                <Link to="/dashboard" className="hover:text-primary transition-colors">
+                <Link to="/dashboard" className="text-black hover:text-primary transition-colors">
                   Dashboard
                 </Link>
-                <Link to="/my-trips" className="hover:text-primary transition-colors">
+                <Link to="/my-trips" className="text-black hover:text-primary transition-colors">
                   My Trips
                 </Link>
-                <Link to="/my-trees" className="hover:text-primary transition-colors">
+                <Link to="/my-trees" className="text-black hover:text-primary transition-colors">
                   My Trees
                 </Link>
               </nav>
