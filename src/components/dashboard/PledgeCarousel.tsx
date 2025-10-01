@@ -127,31 +127,30 @@ export const PledgeCarousel: React.FC = () => {
     return (
       <Card className="h-full">
         <CardContent className="p-8 flex flex-col h-full">
-          <h2 className="text-4xl font-bold mb-12 text-foreground">
+          <h2 className="text-xl font-bold mb-6 text-foreground">
             Ready to Make a Difference?
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-8 flex-1">
+          <div className="grid md:grid-cols-2 gap-6 flex-1">
             {/* Left section - Certificate */}
-            <div className="flex flex-col items-center justify-between space-y-6">
-              <h3 className="text-2xl font-semibold text-muted-foreground w-full text-center">
+            <div className="flex flex-col justify-between space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">
                 Share Pledge Certificate
               </h3>
               
-              <div className="flex-1 flex items-center justify-center w-full">
-                <div className="bg-primary/10 rounded-lg p-8 flex items-center justify-center aspect-[3/4] w-full max-w-[280px]">
-                  <div className="text-center space-y-4">
-                    <div className="text-6xl">📜</div>
-                    <p className="text-sm text-muted-foreground">Certificate Preview</p>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="bg-primary/10 rounded-lg p-6 flex items-center justify-center aspect-[3/4] w-full max-w-[200px]">
+                  <div className="text-center space-y-2">
+                    <div className="text-4xl">📜</div>
+                    <p className="text-xs text-muted-foreground">Certificate Preview</p>
                   </div>
                 </div>
               </div>
               
               <Button 
                 onClick={takePledge}
-                size="lg" 
                 variant="outline"
-                className="w-full max-w-sm border-primary text-foreground hover:bg-primary hover:text-black"
+                className="w-fit border-primary text-foreground hover:bg-primary hover:text-black"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download & Share
@@ -162,24 +161,23 @@ export const PledgeCarousel: React.FC = () => {
             <div className="hidden md:block w-px bg-border self-stretch mx-auto" />
 
             {/* Right section - Plant a Tree */}
-            <div className="flex flex-col items-center justify-between space-y-6">
-              <h3 className="text-2xl font-semibold text-muted-foreground w-full text-center">
+            <div className="flex flex-col justify-between space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">
                 Take Climate Action
               </h3>
               
-              <div className="flex-1 flex items-center justify-center w-full">
+              <div className="flex-1 flex items-center justify-center">
                 <img 
                   src={treeGreen} 
                   alt="Tree icon" 
-                  className="w-64 h-64 object-contain"
+                  className="w-48 h-48 object-contain"
                 />
               </div>
               
               <Button 
                 onClick={() => window.location.href = '/carbon-calculator'}
-                size="lg" 
                 variant="outline"
-                className="w-full max-w-sm border-primary text-foreground hover:bg-primary hover:text-black"
+                className="w-fit border-primary text-foreground hover:bg-primary hover:text-black"
               >
                 Plant a Tree
               </Button>
