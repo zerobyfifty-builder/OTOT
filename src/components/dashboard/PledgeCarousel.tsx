@@ -139,11 +139,11 @@ export const PledgeCarousel: React.FC = () => {
                   Share Pledge Certificate
                 </h3>
                 
-                <div className="flex items-center justify-center mb-8">
+                <div className="flex items-center justify-center mb-12">
                   <img 
                     src={certificateIcon} 
                     alt="Certificate icon" 
-                    className="w-32 h-32 object-contain"
+                    className="w-24 h-24 object-contain opacity-90"
                   />
                 </div>
               </div>
@@ -167,11 +167,11 @@ export const PledgeCarousel: React.FC = () => {
                   Take Climate Action
                 </h3>
                 
-                <div className="flex items-center justify-center mb-8">
+                <div className="flex items-center justify-center mb-12">
                   <img 
                     src={treeGreen} 
                     alt="Tree icon" 
-                    className="w-32 h-32 object-contain"
+                    className="w-24 h-24 object-contain opacity-90"
                   />
                 </div>
               </div>
