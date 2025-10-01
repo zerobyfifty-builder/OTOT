@@ -126,69 +126,63 @@ export const PledgeCarousel: React.FC = () => {
   if (isCompleted) {
     return (
       <Card className="h-full">
-        <CardContent className="p-4 sm:p-6 md:p-8 flex flex-col h-full">
-          <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground text-center">
+        <CardContent className="p-8 md:p-12 flex flex-col h-full">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 text-foreground">
             Ready to Make a Difference?
           </h2>
           
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:gap-8 flex-1 items-stretch">
+          <div className="grid grid-cols-2 gap-8 md:gap-16 flex-1">
             {/* Left section - Certificate */}
-            <div className="flex flex-col justify-between space-y-2 sm:space-y-4">
-              <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-foreground text-center">
+            <div className="flex flex-col items-center space-y-6 md:space-y-8">
+              <h3 className="text-xl md:text-2xl font-bold text-foreground">
                 Share Pledge Certificate
               </h3>
               
-              <div className="flex-1 flex items-center justify-center py-2 sm:py-4">
-                <div className="bg-primary/10 rounded-lg p-3 sm:p-4 md:p-6 flex items-center justify-center aspect-[3/4] w-full max-w-[120px] sm:max-w-[160px] md:max-w-[200px]">
-                  <div className="text-center space-y-1 sm:space-y-2">
-                    <div className="text-2xl sm:text-3xl md:text-4xl">📜</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Certificate Preview</p>
+              <div className="flex-1 flex items-center justify-center w-full max-w-[280px]">
+                <div className="bg-primary/10 rounded-lg p-4 w-full aspect-[3/4] flex items-center justify-center">
+                  <div className="text-center space-y-2">
+                    <div className="text-5xl">📜</div>
+                    <p className="text-sm text-muted-foreground">Certificate Preview</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex justify-center">
-                <Button 
-                  onClick={takePledge}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs sm:text-sm border-primary text-foreground hover:bg-primary hover:text-black"
-                >
-                  <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Download & Share</span>
-                  <span className="sm:hidden">Download</span>
-                </Button>
-              </div>
+              <Button 
+                onClick={takePledge}
+                variant="outline"
+                size="lg"
+                className="w-full max-w-[280px] text-base md:text-lg border-2 border-primary text-foreground hover:bg-primary/10 font-semibold"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Download & Share
+              </Button>
             </div>
 
             {/* Divider */}
-            <div className="w-px bg-border self-stretch mx-auto" />
+            <div className="w-px bg-border self-stretch" />
 
             {/* Right section - Plant a Tree */}
-            <div className="flex flex-col justify-between space-y-2 sm:space-y-4">
-              <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-foreground text-center">
+            <div className="flex flex-col items-center space-y-6 md:space-y-8">
+              <h3 className="text-xl md:text-2xl font-bold text-foreground">
                 Take Climate Action
               </h3>
               
-              <div className="flex-1 flex items-center justify-center py-2 sm:py-4">
+              <div className="flex-1 flex items-center justify-center w-full max-w-[280px]">
                 <img 
                   src={treeGreen} 
                   alt="Tree icon" 
-                  className="w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 object-contain"
+                  className="w-full h-auto max-h-[300px] object-contain"
                 />
               </div>
               
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => window.location.href = '/carbon-calculator'}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs sm:text-sm border-primary text-foreground hover:bg-primary hover:text-black"
-                >
-                  <span className="hidden sm:inline">Plant a Tree</span>
-                  <span className="sm:hidden">Plant</span>
-                </Button>
-              </div>
+              <Button 
+                onClick={() => window.location.href = '/carbon-calculator'}
+                variant="outline"
+                size="lg"
+                className="w-full max-w-[280px] text-base md:text-lg border-2 border-primary text-foreground hover:bg-primary/10 font-semibold"
+              >
+                Plant a Tree
+              </Button>
             </div>
           </div>
         </CardContent>
