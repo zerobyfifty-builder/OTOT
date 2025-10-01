@@ -126,19 +126,19 @@ export const PledgeCarousel: React.FC = () => {
   if (isCompleted) {
     return (
       <Card className="h-full">
-        <CardContent className="p-8 flex flex-col h-full">
-          <h2 className="text-xl font-bold mb-6 text-foreground">
+        <CardContent className="p-6 sm:p-8 flex flex-col h-full">
+          <h2 className="text-xl font-bold mb-6 text-foreground text-center sm:text-left">
             Ready to Make a Difference?
           </h2>
           
-          <div className="grid md:grid-cols-2 gap-6 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 items-stretch">
             {/* Left section - Certificate */}
-            <div className="flex flex-col justify-between space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="flex flex-col justify-between space-y-4 min-h-[300px]">
+              <h3 className="text-lg font-semibold text-foreground text-center lg:text-left">
                 Share Pledge Certificate
               </h3>
               
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex-1 flex items-center justify-center py-4">
                 <div className="bg-primary/10 rounded-lg p-6 flex items-center justify-center aspect-[3/4] w-full max-w-[200px]">
                   <div className="text-center space-y-2">
                     <div className="text-4xl">📜</div>
@@ -147,40 +147,45 @@ export const PledgeCarousel: React.FC = () => {
                 </div>
               </div>
               
-              <Button 
-                onClick={takePledge}
-                variant="outline"
-                className="w-fit border-primary text-foreground hover:bg-primary hover:text-black"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download & Share
-              </Button>
+              <div className="flex justify-center lg:justify-start">
+                <Button 
+                  onClick={takePledge}
+                  variant="outline"
+                  className="w-full sm:w-fit border-primary text-foreground hover:bg-primary hover:text-black"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download & Share
+                </Button>
+              </div>
             </div>
 
             {/* Divider */}
-            <div className="hidden md:block w-px bg-border self-stretch mx-auto" />
+            <div className="hidden lg:block w-px bg-border self-stretch mx-auto" />
+            <div className="lg:hidden h-px bg-border w-full" />
 
             {/* Right section - Plant a Tree */}
-            <div className="flex flex-col justify-between space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="flex flex-col justify-between space-y-4 min-h-[300px]">
+              <h3 className="text-lg font-semibold text-foreground text-center lg:text-left">
                 Take Climate Action
               </h3>
               
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex-1 flex items-center justify-center py-4">
                 <img 
                   src={treeGreen} 
                   alt="Tree icon" 
-                  className="w-48 h-48 object-contain"
+                  className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
                 />
               </div>
               
-              <Button 
-                onClick={() => window.location.href = '/carbon-calculator'}
-                variant="outline"
-                className="w-fit border-primary text-foreground hover:bg-primary hover:text-black"
-              >
-                Plant a Tree
-              </Button>
+              <div className="flex justify-center lg:justify-start">
+                <Button 
+                  onClick={() => window.location.href = '/carbon-calculator'}
+                  variant="outline"
+                  className="w-full sm:w-fit border-primary text-foreground hover:bg-primary hover:text-black"
+                >
+                  Plant a Tree
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
