@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import pledgeNature from '@/assets/pledge-nature.jpg';
 import pledgeCommunity from '@/assets/pledge-community.jpg';
 import pledgeWater from '@/assets/pledge-water.jpg';
 import treeGreen from '@/assets/tree-green.png';
+import certificateIcon from '@/assets/certificate-icon.png';
 
 interface PledgePoint {
   text: string;
@@ -139,7 +140,11 @@ export const PledgeCarousel: React.FC = () => {
                 </h3>
                 
                 <div className="flex items-center justify-center mb-8">
-                  <Award className="w-32 h-32 text-primary" strokeWidth={1.5} />
+                  <img 
+                    src={certificateIcon} 
+                    alt="Certificate icon" 
+                    className="w-32 h-32 object-contain"
+                  />
                 </div>
               </div>
               
