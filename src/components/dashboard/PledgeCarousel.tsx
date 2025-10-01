@@ -10,6 +10,7 @@ import { SocialShare } from '@/components/certificates/SocialShare';
 import pledgeNature from '@/assets/pledge-nature.jpg';
 import pledgeCommunity from '@/assets/pledge-community.jpg';
 import pledgeWater from '@/assets/pledge-water.jpg';
+import treeGreen from '@/assets/tree-green.png';
 
 interface PledgePoint {
   text: string;
@@ -124,23 +125,66 @@ export const PledgeCarousel: React.FC = () => {
 
   if (isCompleted) {
     return (
-      <Card className="bg-gradient-primary text-white h-full">
-        <CardContent className="p-8 text-center space-y-6 flex flex-col items-center justify-center h-full">
-          <div className="text-4xl mb-4">🌿</div>
-          <h3 className="text-2xl font-bold">Ready to Make a Difference?</h3>
-          <p className="text-lg opacity-90">
-            You've committed to responsible travel. Now offset your carbon footprint by planting trees!
-          </p>
-          <Button 
-            onClick={takePledge}
-            size="lg" 
-            className="w-full bg-white text-accent hover:bg-secondary"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download Certificate & Plant Trees
-          </Button>
+      <Card className="h-full">
+        <CardContent className="p-8 flex flex-col h-full">
+          <h2 className="text-4xl font-bold mb-12 text-foreground">
+            Ready to Make a Difference?
+          </h2>
           
-          <SocialShare type="pledge" />
+          <div className="grid md:grid-cols-2 gap-8 flex-1">
+            {/* Left section - Certificate */}
+            <div className="flex flex-col items-center justify-between space-y-6">
+              <h3 className="text-2xl font-semibold text-muted-foreground w-full text-center">
+                Share Pledge Certificate
+              </h3>
+              
+              <div className="flex-1 flex items-center justify-center w-full">
+                <div className="bg-primary/10 rounded-lg p-8 flex items-center justify-center aspect-[3/4] w-full max-w-[280px]">
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl">📜</div>
+                    <p className="text-sm text-muted-foreground">Certificate Preview</p>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={takePledge}
+                size="lg" 
+                variant="outline"
+                className="w-full max-w-sm border-primary text-foreground hover:bg-primary hover:text-black"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download & Share
+              </Button>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden md:block w-px bg-border self-stretch mx-auto" />
+
+            {/* Right section - Plant a Tree */}
+            <div className="flex flex-col items-center justify-between space-y-6">
+              <h3 className="text-2xl font-semibold text-muted-foreground w-full text-center">
+                Take Climate Action
+              </h3>
+              
+              <div className="flex-1 flex items-center justify-center w-full">
+                <img 
+                  src={treeGreen} 
+                  alt="Tree icon" 
+                  className="w-64 h-64 object-contain"
+                />
+              </div>
+              
+              <Button 
+                onClick={() => window.location.href = '/carbon-calculator'}
+                size="lg" 
+                variant="outline"
+                className="w-full max-w-sm border-primary text-foreground hover:bg-primary hover:text-black"
+              >
+                Plant a Tree
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
