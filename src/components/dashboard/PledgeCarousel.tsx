@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -126,40 +126,39 @@ export const PledgeCarousel: React.FC = () => {
   if (isCompleted) {
     return (
       <Card className="relative overflow-hidden h-full">
-        <CardContent className="p-0 h-full">
-          <div className="grid md:grid-cols-2 h-full">
+        <CardContent className="p-8 h-full flex flex-col">
+          {/* Title spanning both sections */}
+          <h2 className="text-2xl font-bold mb-8 text-foreground">Ready to Make a Difference?</h2>
+          
+          <div className="grid grid-cols-2 gap-8 flex-1">
             {/* Left side - Share Pledge Certificate */}
-            <div className="p-8 flex flex-col justify-between bg-background/85 backdrop-blur-sm">
-              <div>
-                <h2 className="text-xl font-bold mb-6">Ready to Make a Difference?</h2>
-                
-                <h3 className="text-lg font-semibold mb-6 text-foreground">
+            <div className="flex flex-col items-center justify-between">
+              <div className="flex flex-col items-center flex-1 justify-center">
+                <h3 className="text-lg font-semibold mb-8 text-foreground">
                   Share Pledge Certificate
                 </h3>
                 
                 <div className="flex items-center justify-center mb-8">
-                  <div className="bg-primary/10 rounded-lg p-6 flex items-center justify-center aspect-[3/4] w-full max-w-[200px]">
-                    <div className="text-center space-y-2">
-                      <div className="text-4xl">📜</div>
-                      <p className="text-xs text-muted-foreground">Certificate Preview</p>
-                    </div>
-                  </div>
+                  <Award className="w-32 h-32 text-primary" strokeWidth={1.5} />
                 </div>
               </div>
               
               <Button 
                 onClick={takePledge}
-                className="w-fit"
+                className="w-full max-w-[280px]"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download & Share
               </Button>
             </div>
 
+            {/* Divider */}
+            <div className="absolute left-1/2 top-24 bottom-8 w-px bg-border -translate-x-1/2" />
+
             {/* Right side - Take Climate Action */}
-            <div className="p-8 flex flex-col justify-between bg-background/85 backdrop-blur-sm border-l border-border">
-              <div>
-                <h3 className="text-lg font-semibold mb-6 text-foreground">
+            <div className="flex flex-col items-center justify-between">
+              <div className="flex flex-col items-center flex-1 justify-center">
+                <h3 className="text-lg font-semibold mb-8 text-foreground">
                   Take Climate Action
                 </h3>
                 
@@ -167,14 +166,14 @@ export const PledgeCarousel: React.FC = () => {
                   <img 
                     src={treeGreen} 
                     alt="Tree icon" 
-                    className="w-48 h-48 object-contain"
+                    className="w-32 h-32 object-contain"
                   />
                 </div>
               </div>
               
               <Button 
                 onClick={() => window.location.href = '/carbon-calculator'}
-                className="w-fit"
+                className="w-full max-w-[280px]"
               >
                 Plant a Tree
               </Button>
