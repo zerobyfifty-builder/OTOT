@@ -129,7 +129,7 @@ export const PledgeCarousel: React.FC = () => {
       <Card className="relative overflow-hidden h-full">
         <CardContent className="p-8 h-full flex flex-col">
           {/* Title spanning both sections */}
-          <h2 className="text-2xl font-bold mb-8 text-foreground">Ready to Make a Difference?</h2>
+          <h2 className="text-xl font-bold mb-8 text-foreground">Ready to Make a Difference?</h2>
           
           <div className="grid grid-cols-2 gap-8 flex-1">
             {/* Left side - Share Pledge Certificate */}
@@ -139,11 +139,11 @@ export const PledgeCarousel: React.FC = () => {
                   Share Pledge Certificate
                 </h3>
                 
-                <div className="flex items-center justify-center mb-12">
+                <div className="flex items-center justify-center mb-12 w-24 h-24 mx-auto">
                   <img 
                     src={certificateIcon} 
                     alt="Certificate icon" 
-                    className="w-24 h-24 object-contain opacity-90"
+                    className="w-full h-full object-contain opacity-90"
                   />
                 </div>
               </div>
@@ -167,11 +167,11 @@ export const PledgeCarousel: React.FC = () => {
                   Take Climate Action
                 </h3>
                 
-                <div className="flex items-center justify-center mb-12">
+                <div className="flex items-center justify-center mb-12 w-24 h-24 mx-auto">
                   <img 
                     src={treeGreen} 
                     alt="Tree icon" 
-                    className="w-24 h-24 object-contain opacity-90"
+                    className="w-full h-full object-contain opacity-90"
                   />
                 </div>
               </div>
