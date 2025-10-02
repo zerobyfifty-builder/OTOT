@@ -167,7 +167,7 @@ export const PledgeCarousel: React.FC = () => {
                   Take Climate Action
                 </h3>
                 
-                <div className="flex items-center justify-center mb-12 w-16 h-16 mx-auto">
+                <div className="flex items-center justify-center mb-12 w-20 h-20 mx-auto">
                   <img 
                     src={treeGreen} 
                     alt="Tree icon" 
