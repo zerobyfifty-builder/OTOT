@@ -87,6 +87,7 @@ export const CarbonCalculator = () => {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -348,7 +349,7 @@ export const CarbonCalculator = () => {
                       name={`flights.${index}.originAirport`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 text-primary">
+                          <FormLabel className="flex items-center gap-2 text-foreground">
                             <MapPin className="h-4 w-4" />
                             Trip From
                           </FormLabel>
@@ -378,7 +379,7 @@ export const CarbonCalculator = () => {
                         name={`flights.${index}.destinationAirport`}
                         render={({ field }) => (
                           <FormItem className="flex-1">
-                            <FormLabel className="flex items-center gap-2 text-primary">
+                            <FormLabel className="flex items-center gap-2 text-foreground">
                               <MapPin className="h-4 w-4" />
                               Trip To
                             </FormLabel>
@@ -447,7 +448,7 @@ export const CarbonCalculator = () => {
                           step={0.5}
                           value={[field.value]}
                           onValueChange={(vals) => field.onChange(vals[0])}
-                          className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-[#FF8C00] [&_[role=slider]]:border-2"
+                          className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-foreground [&_[role=slider]]:border-2"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>Domestic</span>
@@ -473,7 +474,7 @@ export const CarbonCalculator = () => {
                   name="numTravelers"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-primary">
+                      <FormLabel className="flex items-center gap-2 text-foreground">
                         <Users className="h-4 w-4" />
                         Number of Travelers
                       </FormLabel>
@@ -512,7 +513,7 @@ export const CarbonCalculator = () => {
                   name="accommodationType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-primary">
+                      <FormLabel className="flex items-center gap-2 text-foreground">
                         <Hotel className="h-4 w-4" />
                         Accommodation Type
                       </FormLabel>
@@ -544,7 +545,7 @@ export const CarbonCalculator = () => {
                   name="travelClass"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2 text-primary">
+                      <FormLabel className="flex items-center gap-2 text-foreground">
                         <Plane className="h-4 w-4" />
                         Travelled by
                       </FormLabel>
@@ -569,11 +570,11 @@ export const CarbonCalculator = () => {
 
                 {/* Dates/Days */}
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2 text-primary">
+                  <FormLabel className="flex items-center gap-2 text-foreground">
                     <CalIcon className="h-4 w-4" />
                     Dates/Days
                   </FormLabel>
-                  <Popover>
+                  <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -645,6 +646,7 @@ export const CarbonCalculator = () => {
                               type="button"
                               size="sm"
                               className="bg-primary hover:bg-primary/90"
+                              onClick={() => setDatePickerOpen(false)}
                             >
                               Apply
                             </Button>
