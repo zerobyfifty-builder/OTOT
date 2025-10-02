@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -128,6 +128,19 @@ export const PledgeCarousel: React.FC = () => {
     return (
       <Card className="relative overflow-hidden h-full">
         <CardContent className="p-8 h-full flex flex-col">
+          {/* Back button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setIsCompleted(false);
+              setCurrentSlide(0);
+            }}
+            className="absolute top-4 right-4 h-8 w-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          
           {/* Title spanning both sections */}
           <h2 className="text-xl font-bold mb-8 text-foreground">Ready to Make a Difference?</h2>
           

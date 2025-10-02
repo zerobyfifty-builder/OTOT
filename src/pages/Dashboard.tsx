@@ -3,15 +3,16 @@ import { Button } from '@/components/ui/button';
 import { 
   TreePine, 
   Plane, 
-  BarChart3,
-  TrendingDown,
-  Leaf
+  BarChart3
 } from 'lucide-react';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
 import { RecentContributions } from '@/components/dashboard/RecentContributions';
-import { EducationalCard } from '@/components/dashboard/EducationalCard';
+import { ClimateActionCard } from '@/components/dashboard/ClimateActionCard';
 import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
+import reduceFootprintImg from '@/assets/climate-reduce-footprint.jpg';
+import carbonOffsetsImg from '@/assets/climate-carbon-offsets.jpg';
+import offsetTravelImg from '@/assets/climate-offset-travel.jpg';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -124,21 +125,27 @@ export const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* Section 3: Educational Cards */}
+        {/* Section 3: Climate Action Cards */}
         <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Learn & Act</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <EducationalCard
-              icon={TrendingDown}
-              title="Learn where to reduce"
+          <h2 className="text-3xl font-bold mb-8 text-left">Step up Your Climate Action</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ClimateActionCard
+              image={reduceFootprintImg}
+              title="Reduce your footprint"
+              description="Discover simple ways to shrink your daily footprint on the planet."
+              onClick={() => window.location.href = '/carbon-calculator'}
             />
-            <EducationalCard
-              icon={Leaf}
-              title="Understand carbon credits"
+            <ClimateActionCard
+              image={carbonOffsetsImg}
+              title="Decode carbon offsets"
+              description="Understand what makes an offset truly effective and high-quality."
+              onClick={() => window.location.href = '/carbon-calculator'}
             />
-            <EducationalCard
-              icon={Plane}
-              title="Offset your travel"
+            <ClimateActionCard
+              image={offsetTravelImg}
+              title="Offset your travels"
+              description="Calculate your travel emissions and offset them responsibly."
+              onClick={() => window.location.href = '/carbon-calculator'}
             />
           </div>
         </section>
