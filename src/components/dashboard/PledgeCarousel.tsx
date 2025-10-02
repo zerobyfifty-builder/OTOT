@@ -10,7 +10,7 @@ import { SocialShare } from '@/components/certificates/SocialShare';
 import pledgeNature from '@/assets/pledge-nature.jpg';
 import pledgeCommunity from '@/assets/pledge-community.jpg';
 import pledgeWater from '@/assets/pledge-water.jpg';
-import treeGreen from '@/assets/tree-green.png';
+import treeGreen from '@/assets/tree-green-cropped.png';
 import certificateIcon from '@/assets/certificate-icon.png';
 
 interface PledgePoint {
