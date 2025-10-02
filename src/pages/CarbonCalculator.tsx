@@ -253,12 +253,9 @@ export const CarbonCalculator = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl py-8 px-4">
         {/* Header */}
-        <div className="mb-8 flex items-center gap-4">
-          <Plane className="h-10 w-10 text-[#FF8C00]" />
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
-            <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
+          <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
         </div>
 
         <Form {...form}>
@@ -284,15 +281,15 @@ export const CarbonCalculator = () => {
                         className="flex gap-6"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="return" id="return" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <RadioGroupItem value="return" id="return" className="border-primary text-primary" />
                           <Label htmlFor="return" className="cursor-pointer">Return</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="oneway" id="oneway" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <RadioGroupItem value="oneway" id="oneway" className="border-primary text-primary" />
                           <Label htmlFor="oneway" className="cursor-pointer">One way</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="multicity" id="multicity" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <RadioGroupItem value="multicity" id="multicity" className="border-primary text-primary" />
                           <Label htmlFor="multicity" className="cursor-pointer">Multi-city</Label>
                         </div>
                       </RadioGroup>
@@ -315,7 +312,7 @@ export const CarbonCalculator = () => {
                           className={cn(
                             "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
                             field.value === "airports"
-                              ? "border-[#FF8C00] text-[#FF8C00]"
+                              ? "border-primary text-primary"
                               : "border-transparent text-muted-foreground hover:text-foreground"
                           )}
                         >
@@ -327,7 +324,7 @@ export const CarbonCalculator = () => {
                           className={cn(
                             "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
                             field.value === "flighttime"
-                              ? "border-[#FF8C00] text-[#FF8C00]"
+                              ? "border-primary text-primary"
                               : "border-transparent text-muted-foreground hover:text-foreground"
                           )}
                         >
@@ -490,7 +487,7 @@ export const CarbonCalculator = () => {
                         <Button
                           type="button"
                           size="icon"
-                          className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white h-10 w-20"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-20"
                           onClick={() => field.onChange(Math.max(1, field.value - 1))}
                         >
                           <Minus className="h-4 w-4" />
@@ -498,7 +495,7 @@ export const CarbonCalculator = () => {
                         <Button
                           type="button"
                           size="icon"
-                          className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white h-10 w-20"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-20"
                           onClick={() => field.onChange(Math.min(20, field.value + 1))}
                         >
                           <Plus className="h-4 w-4" />
