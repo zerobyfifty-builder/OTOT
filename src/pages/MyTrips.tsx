@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plane, Calendar, Edit, Eye, Leaf, Plus } from "lucide-react";
+import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { airports } from "@/data/airports";
@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 
@@ -32,6 +42,7 @@ export const MyTrips = () => {
   const { toast } = useToast();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTrips();
@@ -132,6 +143,34 @@ export const MyTrips = () => {
       title: "View Details",
       description: "Detailed view will be implemented soon.",
     });
+  };
+
+  const handleDeleteTrip = async (tripId: string) => {
+    try {
+      const { error } = await supabase
+        .from("trips")
+        .delete()
+        .eq("id", tripId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Trip Deleted",
+        description: "Your trip has been deleted successfully.",
+      });
+
+      // Refresh the trips list
+      fetchTrips();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete your trip. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingTripId(null);
+    }
   };
 
   if (isLoading) {
@@ -309,6 +348,15 @@ export const MyTrips = () => {
                                     <Edit className="h-3 w-3 mr-1" />
                                     Edit Trip
                                   </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => setDeletingTripId(trip.id)}
+                                    className="w-full"
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Delete
+                                  </Button>
                                 </div>
                               </td>
                             </tr>
@@ -409,6 +457,15 @@ export const MyTrips = () => {
                             Edit
                           </Button>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setDeletingTripId(trip.id)}
+                          className="w-full"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Delete Trip
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -417,6 +474,28 @@ export const MyTrips = () => {
             </div>
           </>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deletingTripId} onOpenChange={() => setDeletingTripId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your trip
+                and remove the data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deletingTripId && handleDeleteTrip(deletingTripId)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

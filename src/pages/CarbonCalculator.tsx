@@ -198,15 +198,31 @@ export const CarbonCalculator = () => {
         return;
       }
 
+      // Map form values to database enum values
+      const travelClassMap: Record<FormData['travelClass'], 'Economy' | 'Premium Economy' | 'Business' | 'First'> = {
+        economy: 'Economy',
+        premium_economy: 'Premium Economy',
+        business: 'Business',
+        first: 'First',
+      };
+
+      const accommodationTypeMap: Record<FormData['accommodationType'], 'None' | 'Hotel' | 'Rental' | 'Cruise Ship' | 'Service Apartment'> = {
+        none: 'None',
+        hotel: 'Hotel',
+        rental: 'Rental',
+        cruise: 'Cruise Ship',
+        service_apartment: 'Service Apartment',
+      };
+
       const { error } = await supabase.from("trips").insert([{
         user_id: userData.user.id,
         origin_airport: data.flights[0]?.originAirport || "",
         destination_airport: data.flights[0]?.destinationAirport || "",
-        travel_class: data.travelClass as any,
+        travel_class: travelClassMap[data.travelClass],
         is_return: data.tripType === "return",
         from_date: format(data.fromDate, "yyyy-MM-dd"),
         to_date: data.toDate ? format(data.toDate, "yyyy-MM-dd") : format(data.fromDate, "yyyy-MM-dd"),
-        accommodation_type: data.accommodationType as any,
+        accommodation_type: data.accommodationType === 'none' ? null : accommodationTypeMap[data.accommodationType],
         num_travelers: data.numTravelers,
         flight_co2: calculation.flightCO2,
         accommodation_co2: calculation.accommodationCO2,
@@ -220,6 +236,9 @@ export const CarbonCalculator = () => {
         title: "Trip Saved",
         description: "Your trip has been saved successfully.",
       });
+      
+      // Navigate to My Trips page
+      navigate("/my-trips");
     } catch (error) {
       console.error("Error saving trip:", error);
       toast({
