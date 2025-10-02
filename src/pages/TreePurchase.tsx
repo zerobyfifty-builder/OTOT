@@ -27,7 +27,7 @@ export const TreePurchase = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const { treesNeeded = 1, totalCO2 = 0, tripData } = location.state || {};
+  const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
   
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("onetime");
   const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
@@ -150,6 +150,7 @@ export const TreePurchase = () => {
           status: "Waiting to be Assigned",
           lodge_id: selectedLodge || null,
           location_name: locationName,
+          trip_id: tripId || null, // Link to trip if available
         });
       }
 
@@ -161,6 +162,8 @@ export const TreePurchase = () => {
         console.error('Error saving trees:', treeError);
         throw treeError;
       }
+
+      console.log(`Successfully saved ${treeCount} tree records to database`);
 
       // Show success card
       setShowSuccessCard(true);

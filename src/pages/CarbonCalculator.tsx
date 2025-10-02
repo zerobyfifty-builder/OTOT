@@ -263,17 +263,77 @@ export const CarbonCalculator = () => {
     }
   };
 
-  const onPlantTrees = () => {
+  const onPlantTrees = async () => {
     if (!calculation) return;
     
-    const data = form.getValues();
-    navigate("/tree-purchase", {
-      state: {
-        treesNeeded: calculation.treesNeeded,
-        totalCO2: calculation.totalCO2,
-        tripData: data,
-      },
-    });
+    setIsSaving(true);
+    try {
+      const data = form.getValues();
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData.user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to plant trees.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Map form values to database enum values
+      const travelClassMap: Record<FormData['travelClass'], 'Economy' | 'Premium Economy' | 'Business' | 'First'> = {
+        economy: 'Economy',
+        premium_economy: 'Premium Economy',
+        business: 'Business',
+        first: 'First',
+      };
+
+      const accommodationTypeMap: Record<FormData['accommodationType'], 'None' | 'Hotel' | 'Rental' | 'Cruise Ship' | 'Service Apartment'> = {
+        none: 'None',
+        hotel: 'Hotel',
+        rental: 'Rental',
+        cruise: 'Cruise Ship',
+        service_apartment: 'Service Apartment',
+      };
+
+      // First, save the trip to get the trip_id
+      const { data: tripData, error: tripError } = await supabase.from("trips").insert([{
+        user_id: userData.user.id,
+        origin_airport: data.flights?.[0]?.originAirport || "",
+        destination_airport: data.flights?.[0]?.destinationAirport || "",
+        travel_class: travelClassMap[data.travelClass],
+        is_return: data.tripType === "return",
+        from_date: format(data.fromDate, "yyyy-MM-dd"),
+        to_date: data.toDate ? format(data.toDate, "yyyy-MM-dd") : format(data.fromDate, "yyyy-MM-dd"),
+        accommodation_type: data.accommodationType === 'none' ? null : accommodationTypeMap[data.accommodationType],
+        num_travelers: data.numTravelers,
+        flight_co2: calculation.flightCO2,
+        accommodation_co2: calculation.accommodationCO2,
+        total_co2: calculation.totalCO2,
+        trees_needed: calculation.treesNeeded,
+      }]).select().single();
+
+      if (tripError) throw tripError;
+
+      // Navigate to tree purchase with trip_id
+      navigate("/tree-purchase", {
+        state: {
+          treesNeeded: calculation.treesNeeded,
+          totalCO2: calculation.totalCO2,
+          tripData: data,
+          tripId: tripData?.id,
+        },
+      });
+    } catch (error) {
+      console.error("Error saving trip:", error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save your trip. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const tripType = form.watch("tripType");
@@ -292,13 +352,6 @@ export const CarbonCalculator = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCalculate)} className="space-y-6">
-            {/* Date Range Display (when dates are selected) */}
-            {fromDate && toDate && (
-              <div className="flex justify-end text-sm text-muted-foreground">
-                {format(fromDate, "EEE dd MMM")} - {format(toDate, "EEE dd MMM")}
-              </div>
-            )}
-
             {/* Trip Type Radio Buttons */}
             <div className="flex items-center justify-between">
               <FormField

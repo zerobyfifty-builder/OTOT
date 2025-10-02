@@ -121,6 +121,7 @@ export const MyTrips = () => {
       state: {
         treesNeeded: trip.trees_needed,
         totalCO2: trip.total_co2,
+        tripId: trip.id, // Pass the trip ID
         tripData: {
           originAirport: trip.origin_airport,
           destinationAirport: trip.destination_airport,
