@@ -1,39 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Plane, Hotel, Users, MapPin } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { CalendarIcon, Plane, MapPin, Users, Hotel, Calendar as CalIcon, Minus, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { airports, calculateDistance } from "@/data/airports";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
-  travelClass: z.enum(["economy", "premium_economy", "business", "first"]),
-  isReturn: z.boolean().default(false),
+const flightSchema = z.object({
   originAirport: z.string().min(3, "Please select departure airport"),
   destinationAirport: z.string().min(3, "Please select arrival airport"),
+});
+
+const formSchema = z.object({
+  tripType: z.enum(["return", "oneway", "multicity"]),
+  inputMode: z.enum(["airports", "flighttime"]),
+  travelClass: z.enum(["economy", "premium_economy", "business", "first"]),
+  flights: z.array(flightSchema).min(1),
+  flightHours: z.number().min(0.5).max(20),
   fromDate: z.date({
     required_error: "From date is required",
   }),
-  toDate: z.date({
-    required_error: "To date is required",
-  }),
+  toDate: z.date().optional(),
   accommodationType: z.enum(["none", "hotel", "rental", "cruise", "service_apartment"]),
   numTravelers: z.number().min(1).max(20),
-}).refine((data) => data.toDate >= data.fromDate, {
-  message: "To date must be after from date",
-  path: ["toDate"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -65,10 +67,10 @@ const EMISSION_FACTORS = {
 };
 
 const TRAVEL_CLASS_LABELS = {
-  economy: "Plane - Economy",
-  premium_economy: "Plane - Premium Economy",
-  business: "Plane - Business",
-  first: "Plane - First",
+  economy: "Economy",
+  premium_economy: "Premium Economy",
+  business: "Business",
+  first: "First",
 };
 
 const ACCOMMODATION_LABELS = {
@@ -89,32 +91,60 @@ export const CarbonCalculator = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      tripType: "return",
+      inputMode: "airports",
       travelClass: "economy",
-      isReturn: false,
+      flights: [{ originAirport: "", destinationAirport: "" }],
+      flightHours: 5,
       numTravelers: 1,
       accommodationType: "none",
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "flights",
+  });
+
   const calculateEmissions = (data: FormData): CalculationResult => {
-    // Find airports
-    const origin = airports.find(a => a.code === data.originAirport);
-    const destination = airports.find(a => a.code === data.destinationAirport);
-    
-    if (!origin || !destination) {
-      throw new Error("Invalid airports");
+    let totalDistance = 0;
+    let flightCO2 = 0;
+
+    if (data.inputMode === "airports") {
+      // Calculate based on airports
+      data.flights.forEach(flight => {
+        const origin = airports.find(a => a.code === flight.originAirport);
+        const destination = airports.find(a => a.code === flight.destinationAirport);
+        
+        if (origin && destination) {
+          const distance = calculateDistance(origin, destination);
+          totalDistance += distance;
+        }
+      });
+
+      // Apply trip type multiplier
+      const tripMultiplier = data.tripType === "return" ? 2 : 1;
+      totalDistance *= tripMultiplier;
+    } else {
+      // Calculate based on flight hours
+      const avgSpeed = 850; // km/h average flight speed
+      totalDistance = data.flightHours * avgSpeed;
+      
+      // Apply trip type multiplier
+      if (data.tripType === "return") {
+        totalDistance *= 2;
+      }
     }
 
-    // Calculate distance
-    const distance = calculateDistance(origin, destination);
-    
     // Calculate flight CO2
     const emissionFactor = EMISSION_FACTORS.flight[data.travelClass];
-    const tripMultiplier = data.isReturn ? 2 : 1;
-    const flightCO2 = distance * emissionFactor * data.numTravelers * tripMultiplier;
+    flightCO2 = totalDistance * emissionFactor * data.numTravelers;
     
     // Calculate nights
-    const nights = Math.ceil((data.toDate.getTime() - data.fromDate.getTime()) / (1000 * 60 * 60 * 24));
+    let nights = 0;
+    if (data.toDate) {
+      nights = Math.max(1, differenceInDays(data.toDate, data.fromDate));
+    }
     
     // Calculate accommodation CO2
     const accommodationFactor = EMISSION_FACTORS.accommodation[data.accommodationType];
@@ -125,7 +155,7 @@ export const CarbonCalculator = () => {
     const treesNeeded = Math.ceil(totalCO2 / 22); // 22 kg CO2 per tree per year
     
     return {
-      distance,
+      distance: totalDistance,
       flightCO2,
       accommodationCO2,
       totalCO2,
@@ -169,12 +199,12 @@ export const CarbonCalculator = () => {
 
       const { error } = await supabase.from("trips").insert([{
         user_id: userData.user.id,
-        origin_airport: data.originAirport,
-        destination_airport: data.destinationAirport,
+        origin_airport: data.flights[0]?.originAirport || "",
+        destination_airport: data.flights[0]?.destinationAirport || "",
         travel_class: data.travelClass as any,
-        is_return: data.isReturn,
+        is_return: data.tripType === "return",
         from_date: format(data.fromDate, "yyyy-MM-dd"),
-        to_date: format(data.toDate, "yyyy-MM-dd"),
+        to_date: data.toDate ? format(data.toDate, "yyyy-MM-dd") : format(data.fromDate, "yyyy-MM-dd"),
         accommodation_type: data.accommodationType as any,
         num_travelers: data.numTravelers,
         flight_co2: calculation.flightCO2,
@@ -214,35 +244,317 @@ export const CarbonCalculator = () => {
     });
   };
 
+  const tripType = form.watch("tripType");
+  const inputMode = form.watch("inputMode");
+  const fromDate = form.watch("fromDate");
+  const toDate = form.watch("toDate");
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Carbon Calculator</h1>
-          <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
+      <div className="container max-w-5xl py-8 px-4">
+        {/* Header */}
+        <div className="mb-8 flex items-center gap-4">
+          <Plane className="h-10 w-10 text-[#FF8C00]" />
+          <div>
+            <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
+            <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
+          </div>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCalculate)} className="space-y-6">
-            {/* Travel Method Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plane className="h-5 w-5 text-primary" />
-                  Travel Method
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            {/* Date Range Display (when dates are selected) */}
+            {fromDate && toDate && (
+              <div className="flex justify-end text-sm text-muted-foreground">
+                {format(fromDate, "EEE dd MMM")} - {format(toDate, "EEE dd MMM")}
+              </div>
+            )}
+
+            {/* Trip Type Radio Buttons */}
+            <div className="flex items-center justify-between">
+              <FormField
+                control={form.control}
+                name="tripType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex gap-6"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="return" id="return" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <Label htmlFor="return" className="cursor-pointer">Return</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="oneway" id="oneway" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <Label htmlFor="oneway" className="cursor-pointer">One way</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="multicity" id="multicity" className="border-[#FF8C00] text-[#FF8C00]" />
+                          <Label htmlFor="multicity" className="cursor-pointer">Multi-city</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* Input Mode Tabs */}
+              <FormField
+                control={form.control}
+                name="inputMode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex gap-0 border-b-2 border-border">
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("airports")}
+                          className={cn(
+                            "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
+                            field.value === "airports"
+                              ? "border-[#FF8C00] text-[#FF8C00]"
+                              : "border-transparent text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Airports
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => field.onChange("flighttime")}
+                          className={cn(
+                            "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
+                            field.value === "flighttime"
+                              ? "border-[#FF8C00] text-[#FF8C00]"
+                              : "border-transparent text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Flight Time
+                        </button>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Airports Mode */}
+            {inputMode === "airports" && (
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    {/* Trip From */}
+                    <FormField
+                      control={form.control}
+                      name={`flights.${index}.originAirport`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2 text-primary">
+                            <MapPin className="h-4 w-4" />
+                            Trip From
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Departure Airport" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px]">
+                              {airports.map((airport) => (
+                                <SelectItem key={airport.code} value={airport.code}>
+                                  {airport.city}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Trip To */}
+                    <div className="flex gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`flights.${index}.destinationAirport`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel className="flex items-center gap-2 text-primary">
+                              <MapPin className="h-4 w-4" />
+                              Trip To
+                            </FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Destination Airport" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="max-h-[300px]">
+                                {airports.map((airport) => (
+                                  <SelectItem key={airport.code} value={airport.code}>
+                                    {airport.city}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      {tripType === "multicity" && index > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mt-8"
+                          onClick={() => remove(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {tripType === "multicity" && (
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-foreground"
+                    onClick={() => append({ originAirport: "", destinationAirport: "" })}
+                  >
+                    Add Flight
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Flight Time Mode */}
+            {inputMode === "flighttime" && (
+              <FormField
+                control={form.control}
+                name="flightHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between mb-4">
+                      <FormLabel>Flight Time (Hours one way)</FormLabel>
+                      <span className="text-lg font-semibold">{field.value} Hours</span>
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <Slider
+                          min={0.5}
+                          max={20}
+                          step={0.5}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-[#FF8C00] [&_[role=slider]]:border-2"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Domestic</span>
+                          <span>Medium-haul</span>
+                          <span>Long-haul</span>
+                          <span>Ultra long-haul</span>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Two Column Layout for remaining fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-6">
+                {/* Number of Travelers */}
+                <FormField
+                  control={form.control}
+                  name="numTravelers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-primary">
+                        <Users className="h-4 w-4" />
+                        Number of Travelers
+                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white h-10 w-20"
+                          onClick={() => field.onChange(Math.max(1, field.value - 1))}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          className="bg-[#FF8C00] hover:bg-[#FF8C00]/90 text-white h-10 w-20"
+                          onClick={() => field.onChange(Math.min(20, field.value + 1))}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Accommodation Type */}
+                <FormField
+                  control={form.control}
+                  name="accommodationType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-primary">
+                        <Hotel className="h-4 w-4" />
+                        Accommodation Type
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select accommodation" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.entries(ACCOMMODATION_LABELS).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-6">
+                {/* Travelled by */}
                 <FormField
                   control={form.control}
                   name="travelClass"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Travelled by</FormLabel>
+                      <FormLabel className="flex items-center gap-2 text-primary">
+                        <Plane className="h-4 w-4" />
+                        Travelled by
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select travel class" />
+                            <SelectValue placeholder="Select class" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -258,316 +570,164 @@ export const CarbonCalculator = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="isReturn"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Return trip (doubles calculation)</FormLabel>
+                {/* Dates/Days */}
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2 text-primary">
+                    <CalIcon className="h-4 w-4" />
+                    Dates/Days
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !fromDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {fromDate && toDate ? (
+                          <>
+                            {format(fromDate, "EEE dd MMM")} - {format(toDate, "EEE dd MMM")} ({differenceInDays(toDate, fromDate)} days)
+                            <X 
+                              className="ml-auto h-4 w-4" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                form.setValue("fromDate", undefined as any);
+                                form.setValue("toDate", undefined);
+                              }}
+                            />
+                          </>
+                        ) : (
+                          <span>Select date range</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Calendar
+                              mode="single"
+                              selected={fromDate}
+                              onSelect={(date) => form.setValue("fromDate", date as Date)}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </div>
+                          <div>
+                            <Calendar
+                              mode="single"
+                              selected={toDate}
+                              onSelect={(date) => form.setValue("toDate", date)}
+                              disabled={(date) => fromDate ? date < fromDate : false}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between border-t pt-3 mt-3">
+                          <div className="text-sm">
+                            {fromDate && toDate && (
+                              <span>{format(fromDate, "MMM dd, yyyy")} - {format(toDate, "MMM dd, yyyy")}</span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                form.setValue("fromDate", undefined as any);
+                                form.setValue("toDate", undefined);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90"
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Route Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Route
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="originAirport"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trip From</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select departure airport" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[300px]">
-                          {airports.map((airport) => (
-                            <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} - {airport.name} ({airport.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="destinationAirport"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trip To</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select arrival airport" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[300px]">
-                          {airports.map((airport) => (
-                            <SelectItem key={airport.code} value={airport.code}>
-                              {airport.city} - {airport.name} ({airport.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Dates Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5 text-primary" />
-                  Dates
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="fromDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>From Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="toDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>To Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Accommodation Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Hotel className="h-5 w-5 text-primary" />
-                  Accommodation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="accommodationType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Accommodation Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select accommodation type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(ACCOMMODATION_LABELS).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Travelers Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Travelers
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="numTravelers"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Travelers</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={20}
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              </div>
+            </div>
 
             {/* Calculate Button */}
-            <Button 
-              type="submit" 
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={isCalculating}
-            >
-              {isCalculating ? "Calculating..." : "Calculate Emissions"}
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={isCalculating}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-lg"
+              >
+                {isCalculating ? "Calculating..." : "Calculate My Footprint"}
+              </Button>
+            </div>
           </form>
         </Form>
 
         {/* Calculation Results */}
         {calculation && (
-          <Card className="mt-8 border-primary">
-            <CardHeader>
-              <CardTitle className="text-2xl">Your Carbon Footprint</CardTitle>
-              <CardDescription>Based on your travel details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
+          <div className="mt-8 p-6 border-2 border-primary rounded-lg bg-card">
+            <h2 className="text-2xl font-bold mb-2">Your Carbon Footprint</h2>
+            <p className="text-muted-foreground mb-6">Based on your travel details</p>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-secondary rounded-lg">
+                <span className="text-sm font-medium">Flight Carbon Footprint:</span>
+                <span className="text-sm">
+                  {calculation.distance.toLocaleString()} km by Plane: 
+                  <strong className="ml-2">{calculation.flightCO2.toFixed(1)} kg CO2</strong>
+                </span>
+              </div>
+
+              {calculation.accommodationCO2 > 0 && (
                 <div className="flex justify-between items-center p-4 bg-secondary rounded-lg">
-                  <span className="text-sm font-medium">Flight Carbon Footprint:</span>
+                  <span className="text-sm font-medium">Stay Carbon Footprint:</span>
                   <span className="text-sm">
-                    {form.getValues("isReturn") ? "2" : "1"} × {calculation.distance.toLocaleString()} km by Plane: 
-                    <strong className="ml-2">{calculation.flightCO2.toFixed(1)} kg CO2</strong>
+                    {ACCOMMODATION_LABELS[form.getValues("accommodationType")]} - {calculation.nights} nights: 
+                    <strong className="ml-2">{calculation.accommodationCO2.toFixed(1)} kg CO2</strong>
                   </span>
                 </div>
+              )}
 
-                {calculation.accommodationCO2 > 0 && (
-                  <div className="flex justify-between items-center p-4 bg-secondary rounded-lg">
-                    <span className="text-sm font-medium">Stay Carbon Footprint:</span>
-                    <span className="text-sm">
-                      {ACCOMMODATION_LABELS[form.getValues("accommodationType")]} - {calculation.nights} nights: 
-                      <strong className="ml-2">{calculation.accommodationCO2.toFixed(1)} kg CO2</strong>
-                    </span>
-                  </div>
-                )}
-
-                <div className="p-6 bg-gradient-primary rounded-lg text-center">
-                  <p className="text-sm font-medium mb-2">TOTAL TRIP CO2</p>
-                  <p className="text-4xl font-bold">{calculation.totalCO2.toFixed(1)} kg CO2</p>
-                </div>
-
-                <div className="p-6 bg-accent text-accent-foreground rounded-lg text-center">
-                  <p className="text-lg font-semibold">
-                    You'll need <span className="text-3xl font-bold">{calculation.treesNeeded}</span> trees
-                  </p>
-                  <p className="text-sm mt-1">to remove this trip's CO2 emissions</p>
-                </div>
+              <div className="p-6 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-center">
+                <p className="text-sm font-medium mb-2 text-primary-foreground">TOTAL TRIP CO2</p>
+                <p className="text-4xl font-bold text-primary-foreground">{calculation.totalCO2.toFixed(1)} kg CO2</p>
               </div>
 
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={onSaveTrip}
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : "Save Trip"}
-                </Button>
-                <Button
-                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={onPlantTrees}
-                >
-                  Plant Trees
-                </Button>
+              <div className="p-6 bg-accent text-accent-foreground rounded-lg text-center">
+                <p className="text-lg font-semibold">
+                  You'll need <span className="text-3xl font-bold">{calculation.treesNeeded}</span> trees
+                </p>
+                <p className="text-sm mt-1">to remove this trip's CO2 emissions</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="flex gap-4 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={onSaveTrip}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save Trip"}
+              </Button>
+              <Button
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={onPlantTrees}
+              >
+                Plant Trees
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </div>
