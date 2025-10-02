@@ -139,7 +139,7 @@ export const PledgeCarousel: React.FC = () => {
                   Share Pledge Certificate
                 </h3>
                 
-                <div className="flex items-center justify-center mb-12 w-16 h-16 mx-auto">
+                <div className="flex items-center justify-center mb-12 w-12 h-12 mx-auto">
                   <img 
                     src={certificateIcon} 
                     alt="Certificate icon" 
