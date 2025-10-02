@@ -134,7 +134,7 @@ export const PledgeCarousel: React.FC = () => {
           <div className="grid grid-cols-2 gap-8 flex-1">
             {/* Left side - Share Pledge Certificate */}
             <div className="flex flex-col items-center justify-between">
-              <div className="flex flex-col items-center flex-1 justify-center">
+              <div className="flex flex-col items-center w-full">
                 <h3 className="text-lg font-semibold mb-8 text-foreground">
                   Share Pledge Certificate
                 </h3>
@@ -162,12 +162,12 @@ export const PledgeCarousel: React.FC = () => {
 
             {/* Right side - Take Climate Action */}
             <div className="flex flex-col items-center justify-between">
-              <div className="flex flex-col items-center flex-1 justify-center">
+              <div className="flex flex-col items-center w-full">
                 <h3 className="text-lg font-semibold mb-8 text-foreground">
                   Take Climate Action
                 </h3>
                 
-                <div className="flex items-center justify-center mb-12 w-24 h-24 mx-auto">
+                <div className="flex items-center justify-center mb-12 w-16 h-16 mx-auto">
                   <img 
                     src={treeGreen} 
                     alt="Tree icon" 
