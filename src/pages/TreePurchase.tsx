@@ -37,6 +37,7 @@ export const TreePurchase = () => {
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
+  const [subscriptionYears, setSubscriptionYears] = useState(1);
 
   const PRICE_PER_TREE = 30;
 
@@ -77,13 +78,15 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded;
       case "subscription":
-        return 1;
+        return subscriptionYears * 12; // Total trees for selected years
       case "custom":
         return customTreeCount;
       default:
         return 0;
     }
   };
+
+  const getSubscriptionMonths = () => subscriptionYears * 12;
 
   const handlePurchase = async () => {
     if (!user) {
@@ -135,12 +138,36 @@ export const TreePurchase = () => {
 
       downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
 
+      // Save tree records to database
+      const treeRecords = [];
+      for (let i = 0; i < treeCount; i++) {
+        treeRecords.push({
+          user_id: user.id,
+          otot_id: userData.otot_id,
+          num_trees: 1,
+          purchase_type: selectedOption === "subscription" ? "Subscription" : selectedOption === "custom" ? "Custom" : "One-time",
+          amount_paid: PRICE_PER_TREE,
+          status: "Waiting to be Assigned",
+          lodge_id: selectedLodge || null,
+          location_name: locationName,
+        });
+      }
+
+      const { error: treeError } = await supabase
+        .from('trees')
+        .insert(treeRecords);
+
+      if (treeError) {
+        console.error('Error saving trees:', treeError);
+        throw treeError;
+      }
+
       // Show success card
       setShowSuccessCard(true);
       
       toast({
         title: "Success!",
-        description: "Certificate downloaded! Share your impact with others.",
+        description: "Trees planted and certificate downloaded! Share your impact with others.",
       });
 
       // TODO: Integrate with Stripe for actual payment
@@ -329,16 +356,39 @@ export const TreePurchase = () => {
                   <CardDescription>Subscribe to plant trees monthly</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
-                  <div className="py-4">
-                    <p className="text-3xl font-bold text-accent">
-                      ${PRICE_PER_TREE}/mo
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      for {treesNeeded} months
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Total: ${treesNeeded * PRICE_PER_TREE} over {treesNeeded} months
-                    </p>
+                  <div className="py-4 space-y-4">
+                    <div>
+                      <p className="text-3xl font-bold text-accent">
+                        ${PRICE_PER_TREE}/mo
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        for {getSubscriptionMonths()} months ({subscriptionYears} {subscriptionYears === 1 ? 'year' : 'years'})
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Total: ${getSubscriptionMonths() * PRICE_PER_TREE} over {subscriptionYears} {subscriptionYears === 1 ? 'year' : 'years'}
+                      </p>
+                    </div>
+                    
+                    {selectedOption === "subscription" && (
+                      <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Select Duration (Years)</Label>
+                          <span className="text-sm font-semibold">{subscriptionYears} {subscriptionYears === 1 ? 'Year' : 'Years'}</span>
+                        </div>
+                        <Slider
+                          min={1}
+                          max={10}
+                          step={1}
+                          value={[subscriptionYears]}
+                          onValueChange={(vals) => setSubscriptionYears(vals[0])}
+                          className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>1 Year</span>
+                          <span>10 Years</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <Button
                     variant={selectedOption === "subscription" ? "default" : "outline"}
@@ -499,7 +549,7 @@ export const TreePurchase = () => {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {getTreeCount()} {getTreeCount() === 1 ? "tree" : "trees"}
-                    {selectedOption === "subscription" && ` × ${treesNeeded} months`}
+                    {selectedOption === "subscription" && ` over ${getSubscriptionMonths()} months`}
                   </p>
                 </div>
                 <div className="text-right">

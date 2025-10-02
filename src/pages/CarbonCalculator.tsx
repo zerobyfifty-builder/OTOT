@@ -28,7 +28,7 @@ const formSchema = z.object({
   tripType: z.enum(["return", "oneway", "multicity"]),
   inputMode: z.enum(["airports", "flighttime"]),
   travelClass: z.enum(["economy", "premium_economy", "business", "first"]),
-  flights: z.array(flightSchema).min(1),
+  flights: z.array(flightSchema).optional(),
   flightHours: z.number().min(0.5).max(20),
   fromDate: z.date({
     required_error: "From date is required",
@@ -36,7 +36,19 @@ const formSchema = z.object({
   toDate: z.date().optional(),
   accommodationType: z.enum(["none", "hotel", "rental", "cruise", "service_apartment"]),
   numTravelers: z.number().min(1).max(20),
-});
+}).refine(
+  (data) => {
+    if (data.inputMode === "airports") {
+      return data.flights && data.flights.length > 0 && 
+             data.flights.every(f => f.originAirport && f.destinationAirport);
+    }
+    return true;
+  },
+  {
+    message: "Please select both departure and arrival airports",
+    path: ["flights"],
+  }
+);
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -111,7 +123,7 @@ export const CarbonCalculator = () => {
     let totalDistance = 0;
     let flightCO2 = 0;
 
-    if (data.inputMode === "airports") {
+    if (data.inputMode === "airports" && data.flights) {
       // Calculate based on airports
       data.flights.forEach(flight => {
         const origin = airports.find(a => a.code === flight.originAirport);
@@ -126,7 +138,7 @@ export const CarbonCalculator = () => {
       // Apply trip type multiplier
       const tripMultiplier = data.tripType === "return" ? 2 : 1;
       totalDistance *= tripMultiplier;
-    } else {
+    } else if (data.inputMode === "flighttime") {
       // Calculate based on flight hours
       const avgSpeed = 850; // km/h average flight speed
       totalDistance = data.flightHours * avgSpeed;
@@ -643,12 +655,7 @@ export const CarbonCalculator = () => {
                             />
                           </div>
                         </div>
-                        <div className="flex items-center justify-between border-t pt-3 mt-3">
-                          <div className="text-sm">
-                            {fromDate && toDate && (
-                              <span>{format(fromDate, "MMM dd, yyyy")} - {format(toDate, "MMM dd, yyyy")}</span>
-                            )}
-                          </div>
+                        <div className="flex items-center justify-end border-t pt-3 mt-3">
                           <div className="flex gap-2">
                             <Button
                               type="button"
