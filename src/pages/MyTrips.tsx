@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2 } from "lucide-react";
+import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { airports } from "@/data/airports";
@@ -19,6 +19,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 
@@ -259,58 +265,53 @@ export const MyTrips = () => {
                           return (
                             <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
                               {/* Dates */}
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  <div>
-                                    <div>{format(new Date(trip.from_date), "dd MMM yyyy")}</div>
+                              <td className="px-6 py-6">
+                                <div className="flex items-start gap-3">
+                                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                  <div className="text-sm">
+                                    <div className="font-medium text-foreground">{format(new Date(trip.from_date), "dd MMM yyyy")}</div>
                                     <div className="text-muted-foreground">to</div>
-                                    <div>{format(new Date(trip.to_date), "dd MMM yyyy")}</div>
+                                    <div className="font-medium text-foreground">{format(new Date(trip.to_date), "dd MMM yyyy")}</div>
                                   </div>
                                 </div>
                               </td>
 
                               {/* Entered */}
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-6">
                                 <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
                                   {trip.entry_source}
                                 </Badge>
                               </td>
 
                               {/* Trip Details */}
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-6">
                                 <div className="space-y-1">
-                                  <div className="font-medium flex items-center gap-2">
+                                  <div className="font-medium flex items-center gap-2 text-foreground">
                                     <Plane className="h-4 w-4 text-primary" />
                                     {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}, {ACCOMMODATION_LABELS[trip.accommodation_type]}
+                                    {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}{trip.accommodation_type && trip.accommodation_type !== "None" && `, ${ACCOMMODATION_LABELS[trip.accommodation_type]}`}
                                   </div>
-                                  {trip.num_travelers > 1 && (
-                                    <div className="text-xs text-muted-foreground">
-                                      {trip.num_travelers} travelers
-                                    </div>
-                                  )}
                                 </div>
                               </td>
 
                               {/* CO2 Emissions */}
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-6">
                                 <div className="space-y-1 text-sm">
                                   <div>
                                     <span className="text-muted-foreground">Flight: </span>
-                                    <span className="font-medium">{trip.flight_co2.toFixed(1)} kg CO₂</span>
+                                    <span className="font-semibold text-foreground">{trip.flight_co2.toFixed(1)} kg CO₂</span>
                                   </div>
                                   {trip.accommodation_co2 > 0 && (
                                     <div>
                                       <span className="text-muted-foreground">Stay ({nights} {nights === 1 ? "night" : "nights"}): </span>
-                                      <span className="font-medium">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
+                                      <span className="font-semibold text-foreground">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
                                     </div>
                                   )}
-                                  <div className="pt-1 border-t">
+                                  <div>
                                     <span className="text-muted-foreground">Total: </span>
-                                    <span className="font-semibold text-foreground">{trip.total_co2.toFixed(1)} kg CO₂</span>
+                                    <span className="font-bold text-foreground">{trip.total_co2.toFixed(1)} kg CO₂</span>
                                   </div>
                                   <div className="flex items-center gap-1 text-primary font-medium">
                                     <Leaf className="h-3 w-3" />
@@ -320,43 +321,44 @@ export const MyTrips = () => {
                               </td>
 
                               {/* Actions */}
-                              <td className="px-6 py-4">
-                                <div className="flex flex-col gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleViewDetails(trip.id)}
-                                    className="w-full"
-                                  >
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    View Details
-                                  </Button>
+                              <td className="px-6 py-6">
+                                <div className="flex items-center gap-2">
                                   <Button
                                     size="sm"
                                     onClick={() => handleOffsetEmissions(trip)}
-                                    className="w-full"
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                                   >
                                     <Leaf className="h-3 w-3 mr-1" />
-                                    Offset Emissions
+                                    Offset
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleEditTrip(trip.id)}
-                                    className="w-full"
-                                  >
-                                    <Edit className="h-3 w-3 mr-1" />
-                                    Edit Trip
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => setDeletingTripId(trip.id)}
-                                    className="w-full"
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-1" />
-                                    Delete
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip.id)}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleEditTrip(trip.id)}>
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Edit Trip
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => setDeletingTripId(trip.id)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete Trip
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </td>
                             </tr>
