@@ -1,4 +1,4 @@
-import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight, Shield, Map, FileText } from 'lucide-react';
+import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight, Shield, Map, FileText, BarChart3 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
@@ -28,6 +28,7 @@ const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'My Trips', url: '/my-trips', icon: Plane },
   { title: 'My Trees', url: '/my-trees', icon: TreePine },
+  { title: 'My Impact', url: '/my-impact', icon: BarChart3 },
   { title: 'Carbon Calculator', url: '/carbon-calculator', icon: Calculator },
 ];
 

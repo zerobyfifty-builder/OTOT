@@ -20,6 +20,7 @@ import { CarbonCalculator } from "@/pages/CarbonCalculator";
 import { TreePurchase } from "@/pages/TreePurchase";
 import { MyTrips } from "@/pages/MyTrips";
 import { MyTrees } from "@/pages/MyTrees";
+import { MyImpact } from "@/pages/MyImpact";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
@@ -86,6 +87,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <MyTrees />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-impact" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <MyImpact />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
