@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Leaf, MapPin, Filter, Search, Plus, Sprout } from "lucide-react";
+import { Leaf, Plus, Sprout, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TreeDetailsModal } from "@/components/trees/TreeDetailsModal";
+import { TreeMap } from "@/components/trees/TreeMap";
+import { TreeDetailPanel } from "@/components/trees/TreeDetailPanel";
 import { Database } from "@/integrations/supabase/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type TreeStatus = Database["public"]["Enums"]["tree_status_type"];
@@ -27,23 +36,17 @@ export const MyTrees = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [trees, setTrees] = useState<Tree[]>([]);
-  const [filteredTrees, setFilteredTrees] = useState<Tree[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("date");
   const [mapboxToken, setMapboxToken] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchTrees();
     checkMapboxToken();
   }, []);
-
-  useEffect(() => {
-    filterAndSortTrees();
-  }, [trees, searchQuery, statusFilter, sortBy]);
 
   const checkMapboxToken = async () => {
     // In production, this would come from Supabase edge function secrets
@@ -102,38 +105,11 @@ export const MyTrees = () => {
     }
   };
 
-  const filterAndSortTrees = () => {
-    let filtered = [...trees];
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(tree => tree.status === statusFilter);
-    }
-
-    // Apply search
-    if (searchQuery) {
-      filtered = filtered.filter(tree =>
-        tree.location_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tree.otot_id.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "date":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case "location":
-          return (a.location_name || "").localeCompare(b.location_name || "");
-        case "trees":
-          return b.num_trees - a.num_trees;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredTrees(filtered);
-  };
+  // Pagination
+  const totalPages = Math.ceil(trees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTrees = trees.slice(startIndex, endIndex);
 
   const calculateTotals = () => {
     const totalTrees = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
@@ -254,175 +230,153 @@ export const MyTrees = () => {
           </Card>
         ) : (
           <>
-            {/* Filters and Search */}
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by location or OTOT ID..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full md:w-[200px]">
-                      <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="Waiting to be Assigned">Waiting to be Assigned</SelectItem>
-                      <SelectItem value="Assigned">Assigned</SelectItem>
-                      <SelectItem value="Sapling Planted">Sapling Planted</SelectItem>
-                      <SelectItem value="Being Mapped">Being Mapped</SelectItem>
-                      <SelectItem value="Planted">Planted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-full md:w-[200px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date">Date (Newest)</SelectItem>
-                      <SelectItem value="location">Location</SelectItem>
-                      <SelectItem value="trees">Number of Trees</SelectItem>
-                    </SelectContent>
-                  </Select>
+            {/* Interactive Map */}
+            {!showTokenInput && mapboxToken && (
+              <div className="mb-8">
+                <TreeMap
+                  trees={trees}
+                  mapboxToken={mapboxToken}
+                  onTreeClick={setSelectedTree}
+                />
+              </div>
+            )}
+
+            {/* Trees Table */}
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="w-16">No.</TableHead>
+                        <TableHead>TreeTracker</TableHead>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Farmer</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Recipient</TableHead>
+                        <TableHead>Sent Date</TableHead>
+                        <TableHead>Sending Type</TableHead>
+                        <TableHead className="text-right">TreeChain</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedTrees.map((tree, index) => (
+                        <TableRow key={tree.id}>
+                          <TableCell className="font-medium">
+                            {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <button
+                              onClick={() => setSelectedTree(tree)}
+                              className="text-primary hover:underline flex items-center gap-1"
+                            >
+                              {tree.otot_id}
+                              <ExternalLink className="h-3 w-3" />
+                            </button>
+                          </TableCell>
+                          <TableCell>{tree.location_name || 'Guatemala'}</TableCell>
+                          <TableCell>Manuela Tecun</TableCell>
+                          <TableCell>
+                            <Badge className={STATUS_COLORS[tree.status]}>
+                              {tree.status === "Planted" ? "gifted" : tree.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            example@email.com
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(tree.created_at), "d/M/yyyy")}
+                          </TableCell>
+                          <TableCell>treecard</TableCell>
+                          <TableCell className="text-right">
+                            <button className="text-primary hover:underline text-sm">
+                              view
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 p-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ←
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ←
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        value={currentPage}
+                        onChange={(e) => {
+                          const page = parseInt(e.target.value);
+                          if (page >= 1 && page <= totalPages) {
+                            setCurrentPage(page);
+                          }
+                        }}
+                        className="w-16 text-center"
+                      />
+                      <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      →
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      →
+                    </Button>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-16">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
-            {/* Desktop Table View */}
-            <div className="hidden lg:block">
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 border-b">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            Date
-                          </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            No of Trees
-                          </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            Location
-                          </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredTrees.map((tree) => (
-                          <tr key={tree.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="px-6 py-4 text-sm">
-                              {format(new Date(tree.created_at), "dd MMM yyyy")}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2 font-medium">
-                                <Leaf className="h-4 w-4 text-primary" />
-                                {tree.num_trees} {tree.num_trees === 1 ? "tree" : "trees"}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {tree.location_name ? (
-                                <button
-                                  onClick={() => setSelectedTree(tree)}
-                                  className="flex items-center gap-2 text-primary hover:underline"
-                                >
-                                  <MapPin className="h-4 w-4" />
-                                  {tree.location_name}
-                                </button>
-                              ) : (
-                                <span className="text-muted-foreground">Pending Assignment</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {tree.status === "Planted" && tree.latitude && tree.longitude ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => setSelectedTree(tree)}
-                                  className="bg-accent hover:bg-accent/90"
-                                >
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  View Location
-                                </Button>
-                              ) : (
-                                <Badge className={STATUS_COLORS[tree.status]}>
-                                  {tree.status}
-                                </Badge>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="lg:hidden space-y-4">
-              {filteredTrees.map((tree) => (
-                <Card key={tree.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Leaf className="h-5 w-5 text-primary" />
-                          {tree.num_trees} {tree.num_trees === 1 ? "tree" : "trees"}
-                        </CardTitle>
-                        <CardDescription>
-                          {format(new Date(tree.created_at), "dd MMM yyyy")}
-                        </CardDescription>
-                      </div>
-                      <Badge className={STATUS_COLORS[tree.status]}>
-                        {tree.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {tree.location_name ? (
-                      <button
-                        onClick={() => setSelectedTree(tree)}
-                        className="flex items-center gap-2 text-primary hover:underline w-full text-left"
-                      >
-                        <MapPin className="h-4 w-4" />
-                        {tree.location_name}
-                      </button>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Location: Pending Assignment</p>
-                    )}
-                    {tree.status === "Planted" && tree.latitude && tree.longitude && (
-                      <Button
-                        size="sm"
-                        onClick={() => setSelectedTree(tree)}
-                        className="w-full"
-                      >
-                        <MapPin className="h-3 w-3 mr-1" />
-                        View Location
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </>
         )}
 
-        {/* Tree Details Modal */}
+        {/* Tree Detail Panel */}
         {selectedTree && (
-          <TreeDetailsModal
-            isOpen={!!selectedTree}
-            onClose={() => setSelectedTree(null)}
+          <TreeDetailPanel
             tree={selectedTree}
-            mapboxToken={mapboxToken}
+            onClose={() => setSelectedTree(null)}
           />
         )}
       </div>
