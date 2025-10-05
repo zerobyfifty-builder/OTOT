@@ -9,72 +9,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
-
 const TRAVEL_CLASS_LABELS: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
   "Economy": "Economy",
   "Premium Economy": "Premium Economy",
   "Business": "Business",
-  "First": "First Class",
+  "First": "First Class"
 };
-
 const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_type"], string> = {
   "None": "No Accommodation",
   "Hotel": "Hotel",
   "Rental": "Rental",
   "Cruise Ship": "Cruise Ship",
-  "Service Apartment": "Service Apartment",
+  "Service Apartment": "Service Apartment"
 };
-
 export const MyTrips = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
-
   useEffect(() => {
     fetchTrips();
   }, []);
-
   const fetchTrips = async () => {
     setIsLoading(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      
+      const {
+        data: userData
+      } = await supabase.auth.getUser();
       if (!userData.user) {
         toast({
           title: "Authentication Required",
           description: "Please log in to view your trips.",
-          variant: "destructive",
+          variant: "destructive"
         });
         navigate("/auth/login");
         return;
       }
-
-      const { data, error } = await supabase
-        .from("trips")
-        .select("*")
-        .eq("user_id", userData.user.id)
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("trips").select("*").eq("user_id", userData.user.id).order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
       setTrips(data || []);
     } catch (error) {
@@ -82,29 +64,26 @@ export const MyTrips = () => {
       toast({
         title: "Error",
         description: "Failed to load your trips. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const getAirportName = (code: string) => {
     const airport = airports.find(a => a.code === code);
     return airport ? airport.city : code;
   };
-
   const calculateNights = (fromDate: string, toDate: string) => {
     const from = new Date(fromDate);
     const to = new Date(toDate);
     return Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
   };
-
   const formatDateRange = (fromDate: string, toDate: string) => {
     const from = new Date(fromDate);
     const to = new Date(toDate);
     const days = calculateNights(fromDate, toDate);
-    
+
     // Format as "12 to 15 Oct 2025" or "12 Oct 2025" if same day
     if (format(from, "dd MMM yyyy") === format(to, "dd MMM yyyy")) {
       return {
@@ -112,7 +91,7 @@ export const MyTrips = () => {
         daysText: "Same day"
       };
     }
-    
+
     // Check if same month and year
     if (format(from, "MMM yyyy") === format(to, "MMM yyyy")) {
       return {
@@ -120,7 +99,7 @@ export const MyTrips = () => {
         daysText: `${days} ${days === 1 ? 'day' : 'days'}`
       };
     }
-    
+
     // Check if same year
     if (format(from, "yyyy") === format(to, "yyyy")) {
       return {
@@ -128,36 +107,34 @@ export const MyTrips = () => {
         daysText: `${days} ${days === 1 ? 'day' : 'days'}`
       };
     }
-    
+
     // Different years
     return {
       dateText: `${format(from, "dd MMM yyyy")} to ${format(to, "dd MMM yyyy")}`,
       daysText: `${days} ${days === 1 ? 'day' : 'days'}`
     };
   };
-
   const handleOffsetEmissions = (trip: Trip) => {
     // Convert database enum values to form values
     const travelClassMap: Record<Database["public"]["Enums"]["travel_class_type"], "economy" | "premium_economy" | "business" | "first"> = {
       "Economy": "economy",
       "Premium Economy": "premium_economy",
       "Business": "business",
-      "First": "first",
+      "First": "first"
     };
-
     const accommodationMap: Record<Database["public"]["Enums"]["accommodation_type"], "none" | "hotel" | "rental" | "cruise" | "service_apartment"> = {
       "None": "none",
       "Hotel": "hotel",
       "Rental": "rental",
       "Cruise Ship": "cruise",
-      "Service Apartment": "service_apartment",
+      "Service Apartment": "service_apartment"
     };
-
     navigate("/tree-purchase", {
       state: {
         treesNeeded: trip.trees_needed,
         totalCO2: trip.total_co2,
-        tripId: trip.id, // Pass the trip ID
+        tripId: trip.id,
+        // Pass the trip ID
         tripData: {
           originAirport: trip.origin_airport,
           destinationAirport: trip.destination_airport,
@@ -166,40 +143,34 @@ export const MyTrips = () => {
           fromDate: new Date(trip.from_date),
           toDate: new Date(trip.to_date ? trip.to_date : trip.from_date),
           accommodationType: accommodationMap[trip.accommodation_type || "None"],
-          numTravelers: trip.num_travelers,
-        },
-      },
+          numTravelers: trip.num_travelers
+        }
+      }
     });
   };
-
   const handleEditTrip = (tripId: string) => {
     // TODO: Implement edit functionality
     toast({
       title: "Edit Trip",
-      description: "Edit functionality will be implemented soon.",
+      description: "Edit functionality will be implemented soon."
     });
   };
-
   const handleViewDetails = (tripId: string) => {
     // TODO: Implement view details modal/page
     toast({
       title: "View Details",
-      description: "Detailed view will be implemented soon.",
+      description: "Detailed view will be implemented soon."
     });
   };
-
   const handleDeleteTrip = async (tripId: string) => {
     try {
-      const { error } = await supabase
-        .from("trips")
-        .delete()
-        .eq("id", tripId);
-
+      const {
+        error
+      } = await supabase.from("trips").delete().eq("id", tripId);
       if (error) throw error;
-
       toast({
         title: "Trip Deleted",
-        description: "Your trip has been deleted successfully.",
+        description: "Your trip has been deleted successfully."
       });
 
       // Refresh the trips list
@@ -209,43 +180,33 @@ export const MyTrips = () => {
       toast({
         title: "Delete Failed",
         description: "Failed to delete your trip. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setDeletingTripId(null);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading your trips...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container max-w-7xl py-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
-              <p className="text-muted-foreground mb-2">
-                Our Travel Partners automatically add your bookings as long as you use the same email and mobile number used here when making your bookings.
-              </p>
+              <p className="text-muted-foreground mb-2">Our Travel Partners automatically add your travels when you use the same email and mobile number when making your bookings.</p>
               <p className="text-sm text-muted-foreground italic">
                 If your trip does not appear here, please add it manually.
               </p>
             </div>
-            <Button
-              onClick={() => navigate("/carbon-calculator")}
-              className="ml-4 shrink-0"
-            >
+            <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
               <Plus className="h-4 w-4 mr-2" />
               Add Trip Manually
             </Button>
@@ -253,8 +214,7 @@ export const MyTrips = () => {
         </div>
 
         {/* Empty State */}
-        {trips.length === 0 ? (
-          <Card className="py-12">
+        {trips.length === 0 ? <Card className="py-12">
             <CardContent className="text-center">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Plane className="h-8 w-8 text-primary" />
@@ -268,9 +228,7 @@ export const MyTrips = () => {
                 Add Your First Trip
               </Button>
             </CardContent>
-          </Card>
-        ) : (
-          <>
+          </Card> : <>
             {/* Desktop Table View */}
             <div className="hidden lg:block">
               <Card>
@@ -300,11 +258,13 @@ export const MyTrips = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {trips.map((trip) => {
-                          const nights = calculateNights(trip.from_date, trip.to_date);
-                          const { dateText, daysText } = formatDateRange(trip.from_date, trip.to_date);
-                          return (
-                            <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
+                        {trips.map(trip => {
+                      const nights = calculateNights(trip.from_date, trip.to_date);
+                      const {
+                        dateText,
+                        daysText
+                      } = formatDateRange(trip.from_date, trip.to_date);
+                      return <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
                               {/* Date Added */}
                               <td className="px-6 py-6">
                                 <div className="text-sm">
@@ -338,11 +298,9 @@ export const MyTrips = () => {
                                   <div className="text-sm text-muted-foreground">
                                     {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}
                                   </div>
-                                  {trip.accommodation_type && trip.accommodation_type !== "None" && (
-                                    <div className="text-xs text-muted-foreground">
+                                  {trip.accommodation_type && trip.accommodation_type !== "None" && <div className="text-xs text-muted-foreground">
                                       {ACCOMMODATION_LABELS[trip.accommodation_type]}
-                                    </div>
-                                  )}
+                                    </div>}
                                   <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="text-xs">
                                     {trip.entry_source}
                                   </Badge>
@@ -356,12 +314,10 @@ export const MyTrips = () => {
                                     <span className="text-muted-foreground">Flight: </span>
                                     <span className="font-semibold text-foreground">{trip.flight_co2.toFixed(1)} kg</span>
                                   </div>
-                                  {trip.accommodation_co2 > 0 && (
-                                    <div>
+                                  {trip.accommodation_co2 > 0 && <div>
                                       <span className="text-muted-foreground">Stay: </span>
                                       <span className="font-semibold text-foreground">{trip.accommodation_co2.toFixed(1)} kg</span>
-                                    </div>
-                                  )}
+                                    </div>}
                                   <div className="pt-1 border-t">
                                     <span className="text-muted-foreground">Total: </span>
                                     <span className="font-bold text-foreground">{trip.total_co2.toFixed(1)} kg CO₂</span>
@@ -385,21 +341,13 @@ export const MyTrips = () => {
                               {/* Actions */}
                               <td className="px-6 py-6">
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleOffsetEmissions(trip)}
-                                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                                  >
+                                  <Button size="sm" onClick={() => handleOffsetEmissions(trip)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                                     <Leaf className="h-3 w-3 mr-1" />
                                     Offset
                                   </Button>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-8 w-8 p-0"
-                                      >
+                                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                                         <MoreVertical className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -412,10 +360,7 @@ export const MyTrips = () => {
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Trip
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        onClick={() => setDeletingTripId(trip.id)}
-                                        className="text-destructive focus:text-destructive"
-                                      >
+                                      <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Delete Trip
                                       </DropdownMenuItem>
@@ -423,9 +368,8 @@ export const MyTrips = () => {
                                   </DropdownMenu>
                                 </div>
                               </td>
-                            </tr>
-                          );
-                        })}
+                            </tr>;
+                    })}
                       </tbody>
                     </table>
                   </div>
@@ -435,10 +379,9 @@ export const MyTrips = () => {
 
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
-              {trips.map((trip) => {
-                const nights = calculateNights(trip.from_date, trip.to_date);
-                return (
-                  <Card key={trip.id}>
+              {trips.map(trip => {
+            const nights = calculateNights(trip.from_date, trip.to_date);
+            return <Card key={trip.id}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">
@@ -461,11 +404,9 @@ export const MyTrips = () => {
                         <div className="text-muted-foreground">
                           {ACCOMMODATION_LABELS[trip.accommodation_type]}
                         </div>
-                        {trip.num_travelers > 1 && (
-                          <div className="text-muted-foreground">
+                        {trip.num_travelers > 1 && <div className="text-muted-foreground">
                             {trip.num_travelers} travelers
-                          </div>
-                        )}
+                          </div>}
                       </div>
 
                       {/* Emissions */}
@@ -474,12 +415,10 @@ export const MyTrips = () => {
                           <span className="text-muted-foreground">Flight:</span>
                           <span className="font-medium">{trip.flight_co2.toFixed(1)} kg CO₂</span>
                         </div>
-                        {trip.accommodation_co2 > 0 && (
-                          <div className="flex justify-between">
+                        {trip.accommodation_co2 > 0 && <div className="flex justify-between">
                             <span className="text-muted-foreground">Stay ({nights} {nights === 1 ? "night" : "nights"}):</span>
                             <span className="font-medium">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
-                          </div>
-                        )}
+                          </div>}
                         <div className="flex justify-between pt-1 border-t">
                           <span className="text-muted-foreground">Total:</span>
                           <span className="font-semibold">{trip.total_co2.toFixed(1)} kg CO₂</span>
@@ -495,49 +434,30 @@ export const MyTrips = () => {
 
                       {/* Actions */}
                       <div className="flex flex-col gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleOffsetEmissions(trip)}
-                          className="w-full"
-                        >
+                        <Button size="sm" onClick={() => handleOffsetEmissions(trip)} className="w-full">
                           <Leaf className="h-3 w-3 mr-1" />
                           Offset Emissions
                         </Button>
                         <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewDetails(trip.id)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleViewDetails(trip.id)}>
                             <Eye className="h-3 w-3 mr-1" />
                             View
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditTrip(trip.id)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleEditTrip(trip.id)}>
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => setDeletingTripId(trip.id)}
-                          className="w-full"
-                        >
+                        <Button size="sm" variant="destructive" onClick={() => setDeletingTripId(trip.id)} className="w-full">
                           <Trash2 className="h-3 w-3 mr-1" />
                           Delete Trip
                         </Button>
                       </div>
                     </CardContent>
-                  </Card>
-                );
-              })}
+                  </Card>;
+          })}
             </div>
-          </>
-        )}
+          </>}
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={!!deletingTripId} onOpenChange={() => setDeletingTripId(null)}>
@@ -551,16 +471,12 @@ export const MyTrips = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletingTripId && handleDeleteTrip(deletingTripId)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
+              <AlertDialogAction onClick={() => deletingTripId && handleDeleteTrip(deletingTripId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
-  );
+    </div>;
 };
