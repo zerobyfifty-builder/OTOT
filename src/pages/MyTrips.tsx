@@ -201,7 +201,7 @@ export const MyTrips = () => {
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
-              <p className="text-muted-foreground mb-2">Our Travel Partners automatically add your travels when you use the same email and mobile number when making your bookings.</p>
+              <p className="text-muted-foreground mb-2">Our Travel Partners automatically add your trips when you book using the same email and mobile number.</p>
               <p className="text-sm text-muted-foreground italic">
                 If your trip does not appear here, please add it manually.
               </p>
