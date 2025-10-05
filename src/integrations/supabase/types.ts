@@ -256,6 +256,7 @@ export type Database = {
           destination_airport: string
           entry_source: Database["public"]["Enums"]["entry_source_type"]
           flight_co2: number
+          friendly_trip_id: string | null
           from_date: string
           id: string
           is_return: boolean
@@ -277,6 +278,7 @@ export type Database = {
           destination_airport: string
           entry_source?: Database["public"]["Enums"]["entry_source_type"]
           flight_co2?: number
+          friendly_trip_id?: string | null
           from_date: string
           id?: string
           is_return?: boolean
@@ -298,6 +300,7 @@ export type Database = {
           destination_airport?: string
           entry_source?: Database["public"]["Enums"]["entry_source_type"]
           flight_co2?: number
+          friendly_trip_id?: string | null
           from_date?: string
           id?: string
           is_return?: boolean
