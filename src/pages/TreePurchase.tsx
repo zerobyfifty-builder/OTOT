@@ -200,7 +200,7 @@ export const TreePurchase = () => {
           user_id: user.id,
           otot_id: uniqueTreeId,
           num_trees: 1,
-          purchase_type: selectedOption === "subscription" ? "Subscription" : selectedOption === "custom" ? "Flexible" : "One-time",
+          purchase_type: selectedOption === "subscription" ? "Subscription" : "One-time",
           amount_paid: PRICE_PER_TREE,
           status: "Waiting to be Assigned",
           lodge_id: selectedLodge || null,
