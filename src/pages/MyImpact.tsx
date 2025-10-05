@@ -203,33 +203,42 @@ export const MyImpact = () => {
         
         <Card className="p-6 bg-muted/30">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Data table */}
-            <div className="space-y-4">
+            {/* Data table and notes */}
+            <div className="space-y-6">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="w-full">
                   <thead>
-                    <tr className="bg-[#8BC34A] text-foreground">
-                      <th className="p-3 text-left font-semibold">← 2021</th>
-                      <th className="p-3 text-left font-semibold">2022</th>
-                      <th className="p-3 text-left font-semibold">2023</th>
-                      <th className="p-3 text-left font-semibold">2024 to date</th>
+                    <tr className="border-b-2 border-border">
+                      <th className="p-3 text-left font-semibold text-foreground">← 2021</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2022</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2023</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2024 to date</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-[#C5E1A5]">
-                      <td className="p-3 font-semibold">Number of trees</td>
-                      <td className="p-3">-</td>
-                      <td className="p-3">-</td>
-                      <td className="p-3">{stats.totalTrees.toLocaleString()}</td>
+                    <tr className="border-b border-border">
+                      <td className="p-3 font-semibold text-foreground">Number of trees</td>
+                      <td className="p-3 text-muted-foreground">-</td>
+                      <td className="p-3 text-muted-foreground">-</td>
+                      <td className="p-3 text-foreground">{stats.totalTrees.toLocaleString()}</td>
                     </tr>
-                    <tr className="bg-[#C5E1A5]">
-                      <td className="p-3 font-semibold">CO₂ sequestered (Kg)</td>
-                      <td className="p-3">-</td>
-                      <td className="p-3">-</td>
-                      <td className="p-3">{(stats.carbonToDate * 1000).toLocaleString()}</td>
+                    <tr className="border-b border-border">
+                      <td className="p-3 font-semibold text-foreground">CO₂ sequestered (Kg)</td>
+                      <td className="p-3 text-muted-foreground">-</td>
+                      <td className="p-3 text-muted-foreground">-</td>
+                      <td className="p-3 text-foreground">{(stats.carbonToDate * 1000).toLocaleString()}</td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Notes section below table */}
+              <div className="pt-4">
+                <h4 className="font-semibold mb-2 text-foreground">Notes</h4>
+                <p className="text-sm text-muted-foreground">
+                  Please note that in the CO₂ calculation we only take into account the CO₂ contribution from the trees you
+                  have bought, so not from the trees you have gotten as a gift. We otherwise would double count.
+                </p>
               </div>
             </div>
 
@@ -257,14 +266,6 @@ export const MyImpact = () => {
               </div>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6 bg-background border">
-          <h4 className="font-semibold mb-2">Notes</h4>
-          <p className="text-sm text-muted-foreground">
-            Please note that in the CO₂ calculation we only take into account the CO₂ contribution from the trees you
-            have bought, so not from the trees you have gotten as a gift. We otherwise would double count.
-          </p>
         </Card>
       </section>
 
