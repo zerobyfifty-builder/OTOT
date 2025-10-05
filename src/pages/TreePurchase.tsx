@@ -407,7 +407,7 @@ export const TreePurchase = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Trees Committed</p>
                       <p className="text-2xl font-bold text-foreground">
-                        {getTreeCount()} {getTreeCount() === 1 ? "Tree" : "Trees"}
+                        {Math.max(0, treesNeeded - treesPlanted)} {(treesNeeded - treesPlanted) === 1 ? "Tree" : "Trees"}
                       </p>
                     </div>
                   </div>
