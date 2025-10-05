@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Leaf, Info, Heart, MapPin, Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -37,9 +38,9 @@ export const TreePurchase = () => {
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
-  const [subscriptionYears, setSubscriptionYears] = useState(1);
+  const [subscriptionMonths, setSubscriptionMonths] = useState(3);
 
-  const PRICE_PER_TREE = 30;
+  const PRICE_PER_TREE = 4.5;
 
   useEffect(() => {
     fetchLodges();
@@ -65,7 +66,7 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
       case "subscription":
-        return PRICE_PER_TREE;
+        return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
       case "custom":
         return customTreeCount * PRICE_PER_TREE;
       default:
@@ -78,7 +79,7 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded;
       case "subscription":
-        return subscriptionYears * 12; // Total trees for selected years
+        return treesNeeded;
       case "custom":
         return customTreeCount;
       default:
@@ -86,7 +87,38 @@ export const TreePurchase = () => {
     }
   };
 
-  const getSubscriptionMonths = () => subscriptionYears * 12;
+  const getTreeCreditPercentage = () => {
+    if (selectedOption !== "custom") return 100;
+    return Math.round((customTreeCount / treesNeeded) * 100);
+  };
+
+  const getTreeDebtPercentage = () => {
+    return 100 - getTreeCreditPercentage();
+  };
+
+  const getProgressBarColor = () => {
+    const percentage = getTreeCreditPercentage();
+    if (percentage <= 30) return "bg-red-500";
+    if (percentage <= 70) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
+  const getMotivationalMessage = () => {
+    const percentage = getTreeCreditPercentage();
+    if (percentage === 100) {
+      return "Amazing! You've fully offset your flight emissions. 🌍💚";
+    }
+    if (percentage >= 80) {
+      return `Almost there! Just ${treesNeeded - customTreeCount} more ${treesNeeded - customTreeCount === 1 ? 'tree' : 'trees'} to reach full offset.`;
+    }
+    if (percentage >= 50) {
+      return `Great progress! You're ${percentage}% of the way to offsetting your emissions.`;
+    }
+    if (percentage >= 30) {
+      return `Good start! You're ${percentage}% of the way to offsetting your emissions.`;
+    }
+    return `Great start! You're ${percentage}% of the way to offsetting your emissions.`;
+  };
 
   const handlePurchase = async () => {
     if (!user) {
@@ -323,7 +355,7 @@ export const TreePurchase = () => {
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
                     <p className="text-3xl font-bold text-primary">
-                      ${treesNeeded * PRICE_PER_TREE}
+                      ${(treesNeeded * PRICE_PER_TREE).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Plant {treesNeeded} {treesNeeded === 1 ? "tree" : "trees"} now
@@ -356,39 +388,39 @@ export const TreePurchase = () => {
                     <Leaf className="h-8 w-8 text-accent" />
                   </div>
                   <CardTitle className="text-xl">Monthly Tree Planting</CardTitle>
-                  <CardDescription>Subscribe to plant trees monthly</CardDescription>
+                  <CardDescription>Complete payment within 1 year</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4 space-y-4">
                     <div>
                       <p className="text-3xl font-bold text-accent">
-                        ${PRICE_PER_TREE}/mo
+                        ${calculatePrice().toFixed(2)}/mo
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        for {getSubscriptionMonths()} months ({subscriptionYears} {subscriptionYears === 1 ? 'year' : 'years'})
+                        for {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Total: ${getSubscriptionMonths() * PRICE_PER_TREE} over {subscriptionYears} {subscriptionYears === 1 ? 'year' : 'years'}
+                        Total: ${(treesNeeded * PRICE_PER_TREE).toFixed(2)} over {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
                       </p>
                     </div>
                     
                     {selectedOption === "subscription" && (
                       <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
-                          <Label className="text-sm">Select Duration (Years)</Label>
-                          <span className="text-sm font-semibold">{subscriptionYears} {subscriptionYears === 1 ? 'Year' : 'Years'}</span>
+                          <Label className="text-sm">Select Duration (Months)</Label>
+                          <span className="text-sm font-semibold">{subscriptionMonths} {subscriptionMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                         <Slider
                           min={1}
-                          max={10}
+                          max={12}
                           step={1}
-                          value={[subscriptionYears]}
-                          onValueChange={(vals) => setSubscriptionYears(vals[0])}
+                          value={[subscriptionMonths]}
+                          onValueChange={(vals) => setSubscriptionMonths(vals[0])}
                           className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>1 Year</span>
-                          <span>10 Years</span>
+                          <span>1 Month</span>
+                          <span>12 Months</span>
                         </div>
                       </div>
                     )}
@@ -406,7 +438,7 @@ export const TreePurchase = () => {
                 </CardContent>
               </Card>
 
-              {/* Option 3: Custom Amount */}
+              {/* Option 3: Flexible Tree Planting */}
               <Card
                 className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
                   selectedOption === "custom"
@@ -419,13 +451,13 @@ export const TreePurchase = () => {
                   <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-accent" />
                   </div>
-                  <CardTitle className="text-xl">Custom Contribution</CardTitle>
+                  <CardTitle className="text-xl">Flexible Tree Planting</CardTitle>
                   <CardDescription>Choose your own tree quantity</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
                     <p className="text-3xl font-bold text-foreground">
-                      ${customTreeCount * PRICE_PER_TREE}
+                      ${(customTreeCount * PRICE_PER_TREE).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
                       for {customTreeCount} {customTreeCount === 1 ? "tree" : "trees"}
@@ -440,10 +472,37 @@ export const TreePurchase = () => {
                           value={[customTreeCount]}
                           onValueChange={(value) => setCustomTreeCount(value[0])}
                           min={1}
-                          max={Math.max(treesNeeded * 3, 50)}
+                          max={treesNeeded}
                           step={1}
                           className="w-full"
                         />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>1 Tree</span>
+                          <span>{treesNeeded} Trees</span>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar and Stats */}
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-green-600 font-medium">Tree Credit: {getTreeCreditPercentage()}%</span>
+                            <span className="text-muted-foreground">Tree Debt: {getTreeDebtPercentage()}%</span>
+                          </div>
+                          <div className="relative w-full h-3 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
+                              style={{ width: `${getTreeCreditPercentage()}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Motivational Message */}
+                        <div className="bg-accent/10 rounded-lg p-3">
+                          <p className="text-sm text-foreground font-medium text-center">
+                            {getMotivationalMessage()}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -552,12 +611,12 @@ export const TreePurchase = () => {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {getTreeCount()} {getTreeCount() === 1 ? "tree" : "trees"}
-                    {selectedOption === "subscription" && ` over ${getSubscriptionMonths()} months`}
+                    {selectedOption === "subscription" && ` over ${subscriptionMonths} months`}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-4xl font-bold text-primary">
-                    ${calculatePrice()}
+                    ${calculatePrice().toFixed(2)}
                   </p>
                   {selectedOption === "subscription" && (
                     <p className="text-sm text-muted-foreground">per month</p>
