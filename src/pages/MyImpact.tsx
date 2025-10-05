@@ -8,38 +8,34 @@ import { toast } from 'sonner';
 import { TreeMap } from '@/components/trees/TreeMap';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
-
 export const MyImpact = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [copied, setCopied] = useState(false);
   const [trees, setTrees] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalTrees: 0,
     familiesHelped: 0,
     carbonToDate: 0,
-    carbonLifetime: 0,
+    carbonLifetime: 0
   });
   const [mapboxToken] = useState('pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTc5MXZuOWowbzRvMmpzYjl0azU2a2hkIn0.HdEr7_dQrIh2aPxCORV7Sg');
-
   useEffect(() => {
     if (user) {
       fetchTreeData();
     }
   }, [user]);
-
   const fetchTreeData = async () => {
     if (!user) return;
-
-    const { data: treesData, error } = await supabase
-      .from('trees')
-      .select('*')
-      .eq('user_id', user.id);
-
+    const {
+      data: treesData,
+      error
+    } = await supabase.from('trees').select('*').eq('user_id', user.id);
     if (error) {
       console.error('Error fetching trees:', error);
       return;
     }
-
     setTrees(treesData || []);
 
     // Calculate stats
@@ -49,12 +45,13 @@ export const MyImpact = () => {
 
     setStats({
       totalTrees,
-      familiesHelped: Math.floor(totalTrees / 10), // Estimate: 1 family per 10 trees
-      carbonToDate: carbonToDate / 1000, // Convert to tonnes
-      carbonLifetime: carbonLifetime / 1000, // Convert to tonnes
+      familiesHelped: Math.floor(totalTrees / 10),
+      // Estimate: 1 family per 10 trees
+      carbonToDate: carbonToDate / 1000,
+      // Convert to tonnes
+      carbonLifetime: carbonLifetime / 1000 // Convert to tonnes
     });
   };
-
   const handleGenerateLink = () => {
     const link = `${window.location.origin}/impact/${user?.id}`;
     navigator.clipboard.writeText(link);
@@ -64,52 +61,48 @@ export const MyImpact = () => {
   };
 
   // Carbon data for pie chart
-  const carbonData = [
-    { name: 'Carbon sequestered to date', value: stats.carbonToDate, fill: '#8BC34A' },
-    { name: 'Carbon to be sequestered over trees lifetime', value: stats.carbonLifetime - stats.carbonToDate, fill: '#C5E1A5' },
-  ];
+  const carbonData = [{
+    name: 'Carbon sequestered to date',
+    value: stats.carbonToDate,
+    fill: '#8BC34A'
+  }, {
+    name: 'Carbon to be sequestered over trees lifetime',
+    value: stats.carbonLifetime - stats.carbonToDate,
+    fill: '#C5E1A5'
+  }];
 
   // Mock species data
-  const speciesData = [
-    {
-      name: 'Acacia',
-      scientificName: 'Acacia auriculiformis',
-      description: 'Acacia auriculiformis, commonly called auri trees, are fast-growing evergreen trees with gnarled trunks and sweet-smelling yellow flowers. The trees are often used for shade, erosion control, and charcoal.',
-      image: '/src/assets/tree-green.png'
-    },
-    {
-      name: 'Acrocarpus fraxinifolius',
-      scientificName: 'Acrocarpus fraxinifolius',
-      description: 'Acrocarpus fraxinifolius is foliage deciduous trees. Also classified as exotic big tree that can grow up to 60 m height.',
-      image: '/src/assets/tree-green.png'
-    },
-    {
-      name: 'Albizia/Mugavu',
-      scientificName: 'Albizia',
-      description: "Albizzia is in the Guinness Book of Records as the world's fastest growing tree. Albizzia is a large tree that can grow up to 40 m tall with the first branch at a height of up to 20 m.",
-      image: '/src/assets/tree-green.png'
-    },
-  ];
+  const speciesData = [{
+    name: 'Acacia',
+    scientificName: 'Acacia auriculiformis',
+    description: 'Acacia auriculiformis, commonly called auri trees, are fast-growing evergreen trees with gnarled trunks and sweet-smelling yellow flowers. The trees are often used for shade, erosion control, and charcoal.',
+    image: '/src/assets/tree-green.png'
+  }, {
+    name: 'Acrocarpus fraxinifolius',
+    scientificName: 'Acrocarpus fraxinifolius',
+    description: 'Acrocarpus fraxinifolius is foliage deciduous trees. Also classified as exotic big tree that can grow up to 60 m height.',
+    image: '/src/assets/tree-green.png'
+  }, {
+    name: 'Albizia/Mugavu',
+    scientificName: 'Albizia',
+    description: "Albizzia is in the Guinness Book of Records as the world's fastest growing tree. Albizzia is a large tree that can grow up to 40 m tall with the first branch at a height of up to 20 m.",
+    image: '/src/assets/tree-green.png'
+  }];
 
   // Mock partners data
-  const partnersData = [
-    {
-      name: 'Trees4Trees',
-      logo: '/src/assets/otot-tree-icon.png',
-      description: 'Trees4Trees in Indonesia empowers local communities through partnership reforestation initiatives. By increasing the area of community planted and owned forests, livelihood assets are created, the negative effects of deforestation are reduced and the environment is renewed.',
-    },
-    {
-      name: 'FEED',
-      logo: '/src/assets/otot-tree-icon.png',
-      description: 'FEED in the Philippines supports sustainable education & tree planting, aiming to grow, preserve and protect Philippine biodiversity. FEED does this through social forestry programs and research in partnership with the University of the Philippines based in Los Baños.',
-    },
-  ];
-
-  return (
-    <div className="p-8 space-y-12">
+  const partnersData = [{
+    name: 'Trees4Trees',
+    logo: '/src/assets/otot-tree-icon.png',
+    description: 'Trees4Trees in Indonesia empowers local communities through partnership reforestation initiatives. By increasing the area of community planted and owned forests, livelihood assets are created, the negative effects of deforestation are reduced and the environment is renewed.'
+  }, {
+    name: 'FEED',
+    logo: '/src/assets/otot-tree-icon.png',
+    description: 'FEED in the Philippines supports sustainable education & tree planting, aiming to grow, preserve and protect Philippine biodiversity. FEED does this through social forestry programs and research in partnership with the University of the Philippines based in Los Baños.'
+  }];
+  return <div className="p-8 space-y-12">
       {/* Page Header */}
       <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Sustainability Report</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-2">My Impact</h1>
       </div>
 
       {/* Section 1: Share Impact & UN SDG Metrics */}
@@ -122,22 +115,16 @@ export const MyImpact = () => {
             <div className="flex-1 space-y-4">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Share your impact report.</h2>
-                <p className="text-muted-foreground">
-                  You can share your company's impact report with everyone using the following link.
-                </p>
+                <p className="text-muted-foreground">Use this link to share your impact report and inspire others.</p>
               </div>
               <Button onClick={handleGenerateLink} className="bg-primary hover:bg-primary/90">
-                {copied ? (
-                  <>
+                {copied ? <>
                     <Check className="mr-2 h-4 w-4" />
                     Copied!
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <Link2 className="mr-2 h-4 w-4" />
                     Generate link
-                  </>
-                )}
+                  </>}
               </Button>
             </div>
           </div>
@@ -251,18 +238,8 @@ export const MyImpact = () => {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={carbonData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {carbonData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
+                    <Pie data={carbonData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
+                      {carbonData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
                     </Pie>
                     <ChartTooltip />
                   </PieChart>
@@ -300,27 +277,16 @@ export const MyImpact = () => {
             Ecuador, Haiti, India, Malaysia, Madagascar, Thailand
           </p>
         </div>
-        {mapboxToken && trees.length > 0 && (
-          <TreeMap
-            trees={trees}
-            mapboxToken={mapboxToken}
-            onTreeClick={() => {}}
-          />
-        )}
+        {mapboxToken && trees.length > 0 && <TreeMap trees={trees} mapboxToken={mapboxToken} onTreeClick={() => {}} />}
       </section>
 
       {/* Section 4: Species Planted */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Species planted:</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {speciesData.map((species, index) => (
-            <Card key={index} className="overflow-hidden">
+          {speciesData.map((species, index) => <Card key={index} className="overflow-hidden">
               <div className="aspect-square bg-muted relative overflow-hidden">
-                <img
-                  src={species.image}
-                  alt={species.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={species.image} alt={species.name} className="w-full h-full object-cover" />
               </div>
               <div className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
@@ -329,8 +295,7 @@ export const MyImpact = () => {
                 </div>
                 <p className="text-sm text-muted-foreground">{species.description}</p>
               </div>
-            </Card>
-          ))}
+            </Card>)}
         </div>
         <div className="flex justify-center">
           <Button variant="outline" className="min-w-[200px]">
@@ -343,8 +308,7 @@ export const MyImpact = () => {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Trees were planted by:</h2>
         <div className="space-y-6">
-          {partnersData.map((partner, index) => (
-            <Card key={index} className="p-8 bg-muted/30">
+          {partnersData.map((partner, index) => <Card key={index} className="p-8 bg-muted/30">
               <div className="flex items-start gap-6">
                 <div className="flex-shrink-0">
                   <div className="w-24 h-24 bg-background rounded-lg flex items-center justify-center">
@@ -356,10 +320,8 @@ export const MyImpact = () => {
                   <p className="text-muted-foreground leading-relaxed">{partner.description}</p>
                 </div>
               </div>
-            </Card>
-          ))}
+            </Card>)}
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
