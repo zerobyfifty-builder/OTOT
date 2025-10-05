@@ -31,6 +31,18 @@ export const TreePurchase = () => {
   const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
   
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("onetime");
+  
+  // Calculate min and max months based on trees needed
+  const getMonthlyBounds = () => {
+    // Minimum months: need to fit within 12 months, so if we have more than 12 trees, we need fewer months
+    const minMonths = Math.ceil(treesNeeded / 12);
+    // Maximum months: can't exceed 12 months, and each month must have at least 1 tree
+    const maxMonths = Math.min(treesNeeded, 12);
+    return { minMonths, maxMonths };
+  };
+  
+  const { minMonths, maxMonths } = getMonthlyBounds();
+  const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
   const [customTreeCount, setCustomTreeCount] = useState(1); // Default to 1 tree
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
@@ -38,7 +50,6 @@ export const TreePurchase = () => {
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
-  const [subscriptionMonths, setSubscriptionMonths] = useState(3);
 
   // Reset subscription months when deselecting monthly option
   const handleOptionChange = (option: "onetime" | "subscription" | "custom") => {
@@ -429,7 +440,7 @@ export const TreePurchase = () => {
                         for {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Total: ${(treesNeeded * PRICE_PER_TREE).toFixed(2)} over {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
+                        {Math.ceil(treesNeeded / subscriptionMonths)} {Math.ceil(treesNeeded / subscriptionMonths) === 1 ? 'tree' : 'trees'} per month
                       </p>
                     </div>
                     
@@ -440,16 +451,16 @@ export const TreePurchase = () => {
                           <span className="text-sm font-semibold">{subscriptionMonths} {subscriptionMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                         <Slider
-                          min={1}
-                          max={12}
+                          min={minMonths}
+                          max={maxMonths}
                           step={1}
                           value={[subscriptionMonths]}
                           onValueChange={(vals) => setSubscriptionMonths(vals[0])}
                           className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>1 Month</span>
-                          <span>12 Months</span>
+                          <span>{minMonths} {minMonths === 1 ? 'Month' : 'Months'}</span>
+                          <span>{maxMonths} {maxMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                       </div>
                     )}

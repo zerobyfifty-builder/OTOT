@@ -73,7 +73,7 @@ export const MyTrips = () => {
         .from("trips")
         .select("*")
         .eq("user_id", userData.user.id)
-        .order("from_date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setTrips(data || []);
@@ -98,6 +98,42 @@ export const MyTrips = () => {
     const from = new Date(fromDate);
     const to = new Date(toDate);
     return Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const formatDateRange = (fromDate: string, toDate: string) => {
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const days = calculateNights(fromDate, toDate);
+    
+    // Format as "12 to 15 Oct 2025" or "12 Oct 2025" if same day
+    if (format(from, "dd MMM yyyy") === format(to, "dd MMM yyyy")) {
+      return {
+        dateText: format(from, "dd MMM yyyy"),
+        daysText: "Same day"
+      };
+    }
+    
+    // Check if same month and year
+    if (format(from, "MMM yyyy") === format(to, "MMM yyyy")) {
+      return {
+        dateText: `${format(from, "dd")} to ${format(to, "dd MMM yyyy")}`,
+        daysText: `${days} ${days === 1 ? 'day' : 'days'}`
+      };
+    }
+    
+    // Check if same year
+    if (format(from, "yyyy") === format(to, "yyyy")) {
+      return {
+        dateText: `${format(from, "dd MMM")} to ${format(to, "dd MMM yyyy")}`,
+        daysText: `${days} ${days === 1 ? 'day' : 'days'}`
+      };
+    }
+    
+    // Different years
+    return {
+      dateText: `${format(from, "dd MMM yyyy")} to ${format(to, "dd MMM yyyy")}`,
+      daysText: `${days} ${days === 1 ? 'day' : 'days'}`
+    };
   };
 
   const handleOffsetEmissions = (trip: Trip) => {
@@ -244,16 +280,19 @@ export const MyTrips = () => {
                       <thead className="bg-muted/50 border-b">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            Dates
+                            Date Added
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                            Entered
+                            Travel Dates
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Trip Details
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             CO₂ Emissions
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Trees Needed
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Actions
@@ -263,25 +302,30 @@ export const MyTrips = () => {
                       <tbody>
                         {trips.map((trip) => {
                           const nights = calculateNights(trip.from_date, trip.to_date);
+                          const { dateText, daysText } = formatDateRange(trip.from_date, trip.to_date);
                           return (
                             <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
-                              {/* Dates */}
+                              {/* Date Added */}
                               <td className="px-6 py-6">
-                                <div className="flex items-start gap-3">
-                                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                  <div className="text-sm">
-                                    <div className="font-medium text-foreground">{format(new Date(trip.from_date), "dd MMM yyyy")}</div>
-                                    <div className="text-muted-foreground">to</div>
-                                    <div className="font-medium text-foreground">{format(new Date(trip.to_date), "dd MMM yyyy")}</div>
+                                <div className="text-sm">
+                                  <div className="font-medium text-foreground">
+                                    {format(new Date(trip.created_at), "dd MMM yyyy")}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {format(new Date(trip.created_at), "HH:mm")}
                                   </div>
                                 </div>
                               </td>
 
-                              {/* Entered */}
+                              {/* Travel Dates */}
                               <td className="px-6 py-6">
-                                <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
-                                  {trip.entry_source}
-                                </Badge>
+                                <div className="flex items-start gap-3">
+                                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                  <div className="text-sm">
+                                    <div className="font-medium text-foreground">{dateText}</div>
+                                    <div className="text-xs text-muted-foreground">{daysText}</div>
+                                  </div>
+                                </div>
                               </td>
 
                               {/* Trip Details */}
@@ -292,8 +336,16 @@ export const MyTrips = () => {
                                     {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}{trip.accommodation_type && trip.accommodation_type !== "None" && `, ${ACCOMMODATION_LABELS[trip.accommodation_type]}`}
+                                    {TRAVEL_CLASS_LABELS[trip.travel_class]}, {trip.is_return ? "Return" : "One-way"}
                                   </div>
+                                  {trip.accommodation_type && trip.accommodation_type !== "None" && (
+                                    <div className="text-xs text-muted-foreground">
+                                      {ACCOMMODATION_LABELS[trip.accommodation_type]}
+                                    </div>
+                                  )}
+                                  <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="text-xs">
+                                    {trip.entry_source}
+                                  </Badge>
                                 </div>
                               </td>
 
@@ -302,21 +354,30 @@ export const MyTrips = () => {
                                 <div className="space-y-1 text-sm">
                                   <div>
                                     <span className="text-muted-foreground">Flight: </span>
-                                    <span className="font-semibold text-foreground">{trip.flight_co2.toFixed(1)} kg CO₂</span>
+                                    <span className="font-semibold text-foreground">{trip.flight_co2.toFixed(1)} kg</span>
                                   </div>
                                   {trip.accommodation_co2 > 0 && (
                                     <div>
-                                      <span className="text-muted-foreground">Stay ({nights} {nights === 1 ? "night" : "nights"}): </span>
-                                      <span className="font-semibold text-foreground">{trip.accommodation_co2.toFixed(1)} kg CO₂</span>
+                                      <span className="text-muted-foreground">Stay: </span>
+                                      <span className="font-semibold text-foreground">{trip.accommodation_co2.toFixed(1)} kg</span>
                                     </div>
                                   )}
-                                  <div>
+                                  <div className="pt-1 border-t">
                                     <span className="text-muted-foreground">Total: </span>
                                     <span className="font-bold text-foreground">{trip.total_co2.toFixed(1)} kg CO₂</span>
                                   </div>
-                                  <div className="flex items-center gap-1 text-primary font-medium">
-                                    <Leaf className="h-3 w-3" />
-                                    {trip.trees_needed} {trip.trees_needed === 1 ? "tree" : "trees"} needed
+                                </div>
+                              </td>
+
+                              {/* Trees Needed */}
+                              <td className="px-6 py-6">
+                                <div className="flex items-center gap-2">
+                                  <Leaf className="h-5 w-5 text-primary" />
+                                  <div>
+                                    <div className="font-bold text-lg text-foreground">{trip.trees_needed}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {trip.trees_needed === 1 ? "tree" : "trees"}
+                                    </div>
                                   </div>
                                 </div>
                               </td>
