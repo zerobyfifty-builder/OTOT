@@ -203,13 +203,14 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                       <div className="text-right">
                         <div className="font-semibold text-accent">{tree.num_trees} trees</div>
                         <button 
-                          className="text-xs text-primary hover:underline"
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
                           onClick={() => {
-                            // Copy trip ID to clipboard
-                            navigator.clipboard.writeText(trip.id);
+                            navigator.clipboard.writeText(trip.friendly_trip_id || trip.id);
+                            // Could add a toast notification here
                           }}
+                          title="Click to copy Trip ID"
                         >
-                          Trip ID: {trip.id.substring(0, 8)}...
+                          {trip.friendly_trip_id}
                         </button>
                       </div>
                     </div>

@@ -29,6 +29,7 @@ export const TreePurchase = () => {
   const { user } = useAuth();
   
   const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
+  const [treesPlanted, setTreesPlanted] = useState(0);
   
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("onetime");
   
@@ -63,7 +64,29 @@ export const TreePurchase = () => {
 
   useEffect(() => {
     fetchLodges();
-  }, []);
+    if (tripId && user) {
+      fetchTreesPlanted();
+    }
+  }, [tripId, user]);
+
+  const fetchTreesPlanted = async () => {
+    if (!tripId || !user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("trees")
+        .select("num_trees")
+        .eq("trip_id", tripId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      
+      const total = data?.reduce((sum, tree) => sum + tree.num_trees, 0) || 0;
+      setTreesPlanted(total);
+    } catch (error) {
+      console.error("Error fetching trees planted:", error);
+    }
+  };
 
   const fetchLodges = async () => {
     try {
@@ -343,7 +366,7 @@ export const TreePurchase = () => {
             {/* Trip Summary Card */}
             <Card className="bg-accent/10 border-accent/20">
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
                       <Leaf className="h-6 w-6 text-accent" />
@@ -363,6 +386,17 @@ export const TreePurchase = () => {
                       <p className="text-sm text-muted-foreground">Trees Needed</p>
                       <p className="text-2xl font-bold text-foreground">
                         {treesNeeded} {treesNeeded === 1 ? "Tree" : "Trees"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <Leaf className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Trees Planted</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {treesPlanted} {treesPlanted === 1 ? "Tree" : "Trees"}
                       </p>
                     </div>
                   </div>

@@ -301,8 +301,8 @@ export const MyTrips = () => {
                       return <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
                               {/* Trip ID */}
                               <td className="px-6 py-6">
-                                <span className="text-xs font-mono text-muted-foreground">
-                                  {trip.id.substring(0, 8)}...
+                                <span className="text-sm font-semibold text-foreground">
+                                  {trip.friendly_trip_id}
                                 </span>
                               </td>
 
@@ -446,13 +446,18 @@ export const MyTrips = () => {
             const nights = calculateNights(trip.from_date, trip.to_date);
             return <Card key={trip.id}>
                     <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="text-sm font-semibold text-muted-foreground">
+                          Trip ID: {trip.friendly_trip_id}
+                        </div>
+                        <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
+                          {trip.entry_source}
+                        </Badge>
+                      </div>
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">
                           {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
                         </CardTitle>
-                        <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
-                          {trip.entry_source}
-                        </Badge>
                       </div>
                       <CardDescription>
                         {format(new Date(trip.from_date), "dd MMM yyyy")} - {format(new Date(trip.to_date), "dd MMM yyyy")}
@@ -493,11 +498,23 @@ export const MyTrips = () => {
                           </span>
                           <span>{trip.trees_needed}</span>
                         </div>
+                        <div className="flex justify-between items-center text-accent font-medium">
+                          <span className="flex items-center gap-1">
+                            <Leaf className="h-3 w-3" />
+                            Trees planted:
+                          </span>
+                          <span>{trip.treesPlanted}</span>
+                        </div>
                       </div>
 
                       {/* Actions */}
                       <div className="flex flex-col gap-2">
-                        <Button size="sm" onClick={() => handleOffsetEmissions(trip)} className="w-full">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleOffsetEmissions(trip)} 
+                          className="w-full"
+                          disabled={trip.treesPlanted >= trip.trees_needed}
+                        >
                           <Leaf className="h-3 w-3 mr-1" />
                           Offset Emissions
                         </Button>

@@ -105,7 +105,7 @@ export const MyTrees = () => {
       if (error) throw error;
       setTrees(data || []);
 
-      // Fetch associated trips
+      // Fetch associated trips with friendly_trip_id
       const tripIds = [...new Set(data?.map(t => t.trip_id).filter(Boolean) || [])];
       if (tripIds.length > 0) {
         const { data: tripsData } = await supabase
@@ -295,13 +295,7 @@ export const MyTrees = () => {
                             {startIndex + index + 1}
                           </TableCell>
                           <TableCell className="text-left">
-                            {tree.trip_id ? (
-                              <span className="text-sm font-mono text-muted-foreground">
-                                {tree.trip_id.substring(0, 8)}...
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
+                            {tree.trip_id && trips[tree.trip_id] ? trips[tree.trip_id].friendly_trip_id || "-" : "-"}
                           </TableCell>
                           <TableCell className="text-left">
                             <button
