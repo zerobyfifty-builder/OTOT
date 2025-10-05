@@ -8,6 +8,9 @@ import { toast } from 'sonner';
 import { TreeMap } from '@/components/trees/TreeMap';
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import SDG15Icon from '@/assets/SDG_15.png';
+import SDG13Icon from '@/assets/SDG_13.png';
+import SDG10Icon from '@/assets/SDG_10.png';
 export const MyImpact = () => {
   const {
     user
@@ -137,9 +140,8 @@ export const MyImpact = () => {
             {/* Trees Planted */}
             <Card className="p-6 bg-[hsl(120,40%,90%)] border-none">
               <div className="flex items-center gap-4">
-                <div className="bg-[hsl(120,60%,40%)] rounded-lg p-4 flex-shrink-0">
-                  <div className="text-white text-2xl font-bold">15</div>
-                  <div className="text-white text-xs">LIFE<br />ON LAND</div>
+                <div className="flex-shrink-0">
+                  <img src={SDG15Icon} alt="SDG 15 Life on Land" className="w-20 h-20 rounded-lg" />
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Trees planted</p>
@@ -151,9 +153,8 @@ export const MyImpact = () => {
             {/* Families Helped */}
             <Card className="p-6 bg-[hsl(330,70%,90%)] border-none">
               <div className="flex items-center gap-4">
-                <div className="bg-[hsl(330,80%,45%)] rounded-lg p-4 flex-shrink-0">
-                  <div className="text-white text-2xl font-bold">10</div>
-                  <div className="text-white text-xs">REDUCED<br />INEQUALITIES</div>
+                <div className="flex-shrink-0">
+                  <img src={SDG10Icon} alt="SDG 10 Reduced Inequalities" className="w-20 h-20 rounded-lg" />
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Families helped</p>
@@ -165,9 +166,8 @@ export const MyImpact = () => {
             {/* Carbon Sequestered to Date */}
             <Card className="p-6 bg-[hsl(120,30%,85%)] border-none">
               <div className="flex items-center gap-4">
-                <div className="bg-[hsl(120,45%,35%)] rounded-lg p-4 flex-shrink-0">
-                  <div className="text-white text-2xl font-bold">13</div>
-                  <div className="text-white text-xs">CLIMATE<br />ACTION</div>
+                <div className="flex-shrink-0">
+                  <img src={SDG13Icon} alt="SDG 13 Climate Action" className="w-20 h-20 rounded-lg" />
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Carbon sequestered to date*</p>
@@ -179,9 +179,8 @@ export const MyImpact = () => {
             {/* Carbon Sequestered over Lifetime */}
             <Card className="p-6 bg-[hsl(120,30%,85%)] border-none">
               <div className="flex items-center gap-4">
-                <div className="bg-[hsl(120,45%,35%)] rounded-lg p-4 flex-shrink-0">
-                  <div className="text-white text-2xl font-bold">13</div>
-                  <div className="text-white text-xs">CLIMATE<br />ACTION</div>
+                <div className="flex-shrink-0">
+                  <img src={SDG13Icon} alt="SDG 13 Climate Action" className="w-20 h-20 rounded-lg" />
                 </div>
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Carbon sequestered over lifetime*</p>
