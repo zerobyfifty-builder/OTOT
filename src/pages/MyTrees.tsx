@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Leaf, Plus, Sprout, ExternalLink } from "lucide-react";
+import { Leaf, Plus, Sprout, ExternalLink, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TreeMap } from "@/components/trees/TreeMap";
 import { TreeDetailPanel } from "@/components/trees/TreeDetailPanel";
+import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
 import { Database } from "@/integrations/supabase/types";
 import {
   Table,
@@ -22,7 +23,9 @@ import {
 } from "@/components/ui/table";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
+type Trip = Database["public"]["Tables"]["trips"]["Row"];
 type TreeStatus = Database["public"]["Enums"]["tree_status_type"];
+type PurchaseType = Database["public"]["Enums"]["purchase_type"];
 
 const STATUS_COLORS: Record<TreeStatus, string> = {
   "Waiting to be Assigned": "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
@@ -32,12 +35,20 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
   "Planted": "bg-accent/10 text-accent border-accent/20",
 };
 
+const SOURCE_COLORS: Record<PurchaseType, string> = {
+  "One-time": "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  "Subscription": "bg-green-500/10 text-green-700 border-green-500/20",
+};
+
 export const MyTrees = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [trees, setTrees] = useState<Tree[]>([]);
+  const [trips, setTrips] = useState<Record<string, Trip>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
   const [mapboxToken, setMapboxToken] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,6 +104,23 @@ export const MyTrees = () => {
 
       if (error) throw error;
       setTrees(data || []);
+
+      // Fetch associated trips
+      const tripIds = [...new Set(data?.map(t => t.trip_id).filter(Boolean) || [])];
+      if (tripIds.length > 0) {
+        const { data: tripsData } = await supabase
+          .from("trips")
+          .select("*")
+          .in("id", tripIds);
+        
+        if (tripsData) {
+          const tripsMap = tripsData.reduce((acc, trip) => {
+            acc[trip.id] = trip;
+            return acc;
+          }, {} as Record<string, Trip>);
+          setTrips(tripsMap);
+        }
+      }
     } catch (error) {
       console.error("Error fetching trees:", error);
       toast({
@@ -249,13 +277,13 @@ export const MyTrees = () => {
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="w-16">No.</TableHead>
-                        <TableHead>TreeTracker</TableHead>
+                        <TableHead className="text-left">TreeTracker</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Farmer</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Recipient</TableHead>
-                        <TableHead>Sent Date</TableHead>
-                        <TableHead>Sending Type</TableHead>
+                        <TableHead>Payment Date</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Trip</TableHead>
                         <TableHead className="text-right">TreeChain</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -265,7 +293,7 @@ export const MyTrees = () => {
                           <TableCell className="font-medium">
                             {startIndex + index + 1}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-left">
                             <button
                               onClick={() => setSelectedTree(tree)}
                               className="text-primary hover:underline flex items-center gap-1"
@@ -281,13 +309,29 @@ export const MyTrees = () => {
                               {tree.status === "Planted" ? "gifted" : tree.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            example@email.com
-                          </TableCell>
                           <TableCell>
                             {format(new Date(tree.created_at), "d/M/yyyy")}
                           </TableCell>
-                          <TableCell>treecard</TableCell>
+                          <TableCell>
+                            <Badge className={SOURCE_COLORS[tree.purchase_type]}>
+                              {tree.purchase_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {tree.trip_id && trips[tree.trip_id] ? (
+                              <button
+                                onClick={() => {
+                                  setSelectedTrip(trips[tree.trip_id]);
+                                  setIsTripSheetOpen(true);
+                                }}
+                                className="text-primary hover:text-primary/80"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
                             <button className="text-primary hover:underline text-sm">
                               view
@@ -379,6 +423,16 @@ export const MyTrees = () => {
             onClose={() => setSelectedTree(null)}
           />
         )}
+
+        {/* Trip Details Sheet */}
+        <TripDetailsSheet
+          trip={selectedTrip}
+          isOpen={isTripSheetOpen}
+          onClose={() => {
+            setIsTripSheetOpen(false);
+            setSelectedTrip(null);
+          }}
+        />
       </div>
     </div>
   );

@@ -272,8 +272,11 @@ export const MyTrips = () => {
                                     {format(new Date(trip.created_at), "dd MMM yyyy")}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {format(new Date(trip.created_at), "HH:mm")}
+                                    {format(new Date(trip.created_at), "h:mm a")}
                                   </div>
+                                  <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="text-xs mt-1">
+                                    {trip.entry_source}
+                                  </Badge>
                                 </div>
                               </td>
 
@@ -301,9 +304,6 @@ export const MyTrips = () => {
                                   {trip.accommodation_type && trip.accommodation_type !== "None" && <div className="text-xs text-muted-foreground">
                                       {ACCOMMODATION_LABELS[trip.accommodation_type]}
                                     </div>}
-                                  <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="text-xs">
-                                    {trip.entry_source}
-                                  </Badge>
                                 </div>
                               </td>
 
