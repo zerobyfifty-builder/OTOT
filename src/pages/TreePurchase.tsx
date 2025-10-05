@@ -134,9 +134,21 @@ export const TreePurchase = () => {
     }
   };
 
+  const getTreesCommitted = () => {
+    switch (selectedOption) {
+      case "onetime":
+      case "subscription":
+        return Math.max(0, treesNeeded - treesPlanted);
+      case "custom":
+        return customTreeCount;
+      default:
+        return 0;
+    }
+  };
+
   const getTreeCreditPercentage = () => {
-    if (selectedOption !== "custom") return 100;
-    return Math.round((customTreeCount / treesNeeded) * 100);
+    const totalProgress = treesPlanted + getTreesCommitted();
+    return Math.round((totalProgress / treesNeeded) * 100);
   };
 
   const getTreeDebtPercentage = () => {
@@ -407,7 +419,7 @@ export const TreePurchase = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Trees Committed</p>
                       <p className="text-2xl font-bold text-foreground">
-                        {Math.max(0, treesNeeded - treesPlanted)} {(treesNeeded - treesPlanted) === 1 ? "Tree" : "Trees"}
+                        {getTreesCommitted()} {getTreesCommitted() === 1 ? "Tree" : "Trees"}
                       </p>
                     </div>
                   </div>
