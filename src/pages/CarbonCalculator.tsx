@@ -61,13 +61,13 @@ interface CalculationResult {
   nights: number;
 }
 
-// Emission factors
+// Emission factors based on realistic benchmarks (London-Nairobi 6818km reference)
 const EMISSION_FACTORS = {
   flight: {
-    economy: 0.255,
-    premium_economy: 0.38,
-    business: 0.51,
-    first: 0.68,
+    economy: 0.117,        // 798 kg CO2 / 6818 km
+    premium_economy: 0.187, // 1276.8 kg CO2 / 6818 km
+    business: 0.339,        // 2314 kg CO2 / 6818 km
+    first: 0.468,           // 3191.9 kg CO2 / 6818 km
   },
   accommodation: {
     none: 0,
@@ -77,6 +77,9 @@ const EMISSION_FACTORS = {
     service_apartment: 12,
   },
 };
+
+// Tree offset capacity: ~160 kg CO2 per tree (based on benchmark: 798kg / 5 trees)
+const KG_CO2_PER_TREE = 160;
 
 const TRAVEL_CLASS_LABELS = {
   economy: "Economy",
@@ -163,9 +166,9 @@ export const CarbonCalculator = () => {
     const accommodationFactor = EMISSION_FACTORS.accommodation[data.accommodationType];
     const accommodationCO2 = accommodationFactor * nights * data.numTravelers;
     
-    // Calculate total and trees needed
+    // Calculate total and trees needed (rounded to nearest whole number)
     const totalCO2 = flightCO2 + accommodationCO2;
-    const treesNeeded = Math.ceil(totalCO2 / 22); // 22 kg CO2 per tree per year
+    const treesNeeded = Math.round(totalCO2 / KG_CO2_PER_TREE);
     
     return {
       distance: totalDistance,
