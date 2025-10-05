@@ -69,6 +69,14 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
+  // Cap customTreeCount when treesPlanted changes
+  useEffect(() => {
+    const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
+    if (customTreeCount > maxAvailable) {
+      setCustomTreeCount(maxAvailable);
+    }
+  }, [treesPlanted, treesNeeded]);
+
   const fetchTreesPlanted = async () => {
     if (!tripId || !user) return;
     
@@ -583,13 +591,13 @@ export const TreePurchase = () => {
                           value={[customTreeCount]}
                           onValueChange={(value) => setCustomTreeCount(value[0])}
                           min={1}
-                          max={treesNeeded}
+                          max={Math.max(1, treesNeeded - treesPlanted)}
                           step={1}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>1 Tree</span>
-                          <span>{treesNeeded} Trees</span>
+                          <span>{Math.max(1, treesNeeded - treesPlanted)} Trees</span>
                         </div>
                       </div>
                       
