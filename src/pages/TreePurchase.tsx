@@ -343,7 +343,7 @@ export const TreePurchase = () => {
             {/* Trip Summary Card */}
             <Card className="bg-accent/10 border-accent/20">
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
                       <Leaf className="h-6 w-6 text-accent" />
@@ -365,6 +365,31 @@ export const TreePurchase = () => {
                         {treesNeeded} {treesNeeded === 1 ? "Tree" : "Trees"}
                       </p>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <Leaf className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Trees Committed</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {getTreeCount()} {getTreeCount() === 1 ? "Tree" : "Trees"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Progress Bar Section */}
+                <div className="space-y-2 pt-4 border-t border-accent/20">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-green-600 font-medium">Tree Credit: {getTreeCreditPercentage()}%</span>
+                    <span className="text-muted-foreground">Tree Debt: {getTreeDebtPercentage()}%</span>
+                  </div>
+                  <div className="relative w-full h-3 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
+                      style={{ width: `${getTreeCreditPercentage()}%` }}
+                    />
                   </div>
                 </div>
               </CardContent>
