@@ -447,8 +447,13 @@ export const MyTrips = () => {
             return <Card key={trip.id}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="text-sm font-semibold text-muted-foreground">
-                          Trip ID: {trip.friendly_trip_id}
+                        <div>
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Trip ID: {trip.friendly_trip_id}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(trip.created_at), "dd MMM yyyy, h:mm a")}
+                          </div>
                         </div>
                         <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
                           {trip.entry_source}
@@ -508,30 +513,41 @@ export const MyTrips = () => {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
                         <Button 
                           size="sm" 
                           onClick={() => handleOffsetEmissions(trip)} 
-                          className="w-full"
+                          className="flex-1"
                           disabled={trip.treesPlanted >= trip.trees_needed}
                         >
                           <Leaf className="h-3 w-3 mr-1" />
                           Offset Emissions
                         </Button>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleViewDetails(trip)}>
-                            <Eye className="h-3 w-3 mr-1" />
-                            View
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleEditTrip(trip.id)}>
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                        </div>
-                        <Button size="sm" variant="destructive" onClick={() => setDeletingTripId(trip.id)} className="w-full">
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Delete Trip
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-9 w-9 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(trip)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewTreeDetails(trip.id)}>
+                              <Leaf className="h-4 w-4 mr-2" />
+                              Tree Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditTrip(trip.id)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Trip
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Trip
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </CardContent>
                   </Card>;
