@@ -692,21 +692,32 @@ export const CarbonCalculator = () => {
                       <div className="p-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
+                            <p className="text-sm font-medium mb-2 text-center">From Date</p>
                             <Calendar
                               mode="single"
                               selected={fromDate}
-                              onSelect={(date) => form.setValue("fromDate", date as Date)}
+                              onSelect={(date) => {
+                                form.setValue("fromDate", date as Date);
+                                // For one-way trips, allow same date selection
+                                if (tripType === "oneway" && !toDate) {
+                                  form.setValue("toDate", date);
+                                }
+                              }}
                               initialFocus
                               className="pointer-events-auto"
                             />
                           </div>
                           <div>
+                            <p className="text-sm font-medium mb-2 text-center">To Date</p>
                             <Calendar
                               mode="single"
                               selected={toDate}
                               onSelect={(date) => form.setValue("toDate", date)}
-                              disabled={(date) => fromDate ? date < fromDate : false}
-                              initialFocus
+                              disabled={(date) => {
+                                if (!fromDate) return false;
+                                // For one-way, allow same date; for return, allow same or later
+                                return tripType === "oneway" ? date < fromDate : date < fromDate;
+                              }}
                               className="pointer-events-auto"
                             />
                           </div>

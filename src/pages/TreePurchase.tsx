@@ -31,7 +31,7 @@ export const TreePurchase = () => {
   const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
   
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("onetime");
-  const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
+  const [customTreeCount, setCustomTreeCount] = useState(1); // Default to 1 tree
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
   const [dedicateTo, setDedicateTo] = useState("");
@@ -39,6 +39,14 @@ export const TreePurchase = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
   const [subscriptionMonths, setSubscriptionMonths] = useState(3);
+
+  // Reset subscription months when deselecting monthly option
+  const handleOptionChange = (option: "onetime" | "subscription" | "custom") => {
+    if (selectedOption === "subscription" && option !== "subscription") {
+      setSubscriptionMonths(3); // Reset to default when leaving subscription
+    }
+    setSelectedOption(option);
+  };
 
   const PRICE_PER_TREE = 4.5;
 
@@ -157,20 +165,11 @@ export const TreePurchase = () => {
         if (lodge) locationName = lodge.name;
       }
 
-      // Generate and download certificate
       const treeCount = getTreeCount();
-      const certificateBlob = await generateTreeCertificate({
-        userName: userData?.email || 'Environmental Supporter',
-        userId: user.id,
-        numTrees: treeCount,
-        co2Offset: totalCO2,
-        ototId: userData.otot_id,
-        location: locationName,
-      });
+      const totalCost = calculatePrice();
+      const paymentReference = `SIMULATED-${Date.now()}`;
 
-      downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
-
-      // Save tree records to database
+      // Save tree records to database FIRST (simulating successful payment)
       const treeRecords = [];
       for (let i = 0; i < treeCount; i++) {
         treeRecords.push({
@@ -182,7 +181,7 @@ export const TreePurchase = () => {
           status: "Waiting to be Assigned",
           lodge_id: selectedLodge || null,
           location_name: locationName,
-          trip_id: tripId || null, // Link to trip if available
+          trip_id: tripId || null,
         });
       }
 
@@ -191,27 +190,38 @@ export const TreePurchase = () => {
         .insert(treeRecords);
 
       if (treeError) {
-        console.error('Error saving trees:', treeError);
-        throw treeError;
+        console.error('Error saving trees to database:', treeError);
+        throw new Error('Failed to save tree purchase to database. Please try again.');
       }
 
-      console.log(`Successfully saved ${treeCount} tree records to database`);
+      console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
+
+      // Generate certificate AFTER successful database save
+      const certificateBlob = await generateTreeCertificate({
+        userName: userData?.email || 'Environmental Supporter',
+        userId: user.id,
+        numTrees: treeCount,
+        co2Offset: totalCO2,
+        ototId: userData.otot_id,
+        location: locationName,
+      });
+
+      // Download certificate only after everything succeeded
+      downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
 
       // Show success card
       setShowSuccessCard(true);
       
       toast({
         title: "Success!",
-        description: "Trees planted and certificate downloaded! Share your impact with others.",
+        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}. Certificate downloaded.`,
       });
 
-      // TODO: Integrate with Stripe for actual payment
-      // For now, just show success
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing purchase:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Purchase Failed",
+        description: error.message || "Failed to complete purchase. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -343,7 +353,7 @@ export const TreePurchase = () => {
                     ? "ring-2 ring-primary shadow-lg scale-105"
                     : "hover:scale-102"
                 }`}
-                onClick={() => setSelectedOption("onetime")}
+                onClick={() => handleOptionChange("onetime")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
@@ -366,7 +376,7 @@ export const TreePurchase = () => {
                     className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedOption("onetime");
+                      handleOptionChange("onetime");
                     }}
                   >
                     {selectedOption === "onetime" ? "Selected" : "Select"}
@@ -381,7 +391,7 @@ export const TreePurchase = () => {
                     ? "ring-2 ring-primary shadow-lg"
                     : "hover:scale-102"
                 }`}
-                onClick={() => setSelectedOption("subscription")}
+                onClick={() => handleOptionChange("subscription")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-4">
@@ -430,7 +440,7 @@ export const TreePurchase = () => {
                     className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedOption("subscription");
+                      handleOptionChange("subscription");
                     }}
                   >
                     {selectedOption === "subscription" ? "Selected" : "Select"}
@@ -445,7 +455,7 @@ export const TreePurchase = () => {
                     ? "ring-2 ring-primary shadow-lg"
                     : "hover:scale-102"
                 }`}
-                onClick={() => setSelectedOption("custom")}
+                onClick={() => handleOptionChange("custom")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
@@ -512,7 +522,7 @@ export const TreePurchase = () => {
                     className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedOption("custom");
+                      handleOptionChange("custom");
                     }}
                   >
                     {selectedOption === "custom" ? "Selected" : "Select"}
