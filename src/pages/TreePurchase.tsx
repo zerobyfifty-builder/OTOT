@@ -82,6 +82,11 @@ export const TreePurchase = () => {
     }
   };
 
+  // Calculate monthly price independently (always based on treesNeeded, not affected by custom slider)
+  const calculateMonthlyPrice = () => {
+    return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+  };
+
   const getTreeCount = () => {
     switch (selectedOption) {
       case "onetime":
@@ -151,10 +156,15 @@ export const TreePurchase = () => {
       if (!userData?.otot_id) {
         // Generate OTOT ID if not exists
         const ototId = `OTOT-${Date.now()}-${user.id.substring(0, 8)}`;
-        await supabase
+        const { error: updateError } = await supabase
           .from('users')
           .update({ otot_id: ototId })
           .eq('user_id', user.id);
+        
+        if (updateError) {
+          console.error('Error updating OTOT ID:', updateError);
+          throw new Error('Failed to generate user ID. Please try again.');
+        }
         userData.otot_id = ototId;
       }
 
@@ -169,14 +179,17 @@ export const TreePurchase = () => {
       const totalCost = calculatePrice();
       const paymentReference = `SIMULATED-${Date.now()}`;
 
+      // Generate a unique OTOT ID for this tree planting session
+      const treeOtotId = `TREE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
       // Save tree records to database FIRST (simulating successful payment)
       const treeRecords = [];
       for (let i = 0; i < treeCount; i++) {
         treeRecords.push({
           user_id: user.id,
-          otot_id: userData.otot_id,
+          otot_id: treeOtotId,
           num_trees: 1,
-          purchase_type: selectedOption === "subscription" ? "Subscription" : selectedOption === "custom" ? "Custom" : "One-time",
+          purchase_type: selectedOption === "subscription" ? "Subscription" : selectedOption === "custom" ? "Flexible" : "One-time",
           amount_paid: PRICE_PER_TREE,
           status: "Waiting to be Assigned",
           lodge_id: selectedLodge || null,
@@ -185,13 +198,19 @@ export const TreePurchase = () => {
         });
       }
 
-      const { error: treeError } = await supabase
+      const { data: insertedTrees, error: treeError } = await supabase
         .from('trees')
-        .insert(treeRecords);
+        .insert(treeRecords)
+        .select();
 
       if (treeError) {
         console.error('Error saving trees to database:', treeError);
-        throw new Error('Failed to save tree purchase to database. Please try again.');
+        console.error('Full error details:', JSON.stringify(treeError, null, 2));
+        throw new Error(`Failed to save tree purchase: ${treeError.message || 'Database error'}`);
+      }
+
+      if (!insertedTrees || insertedTrees.length === 0) {
+        throw new Error('No trees were saved to the database.');
       }
 
       console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
@@ -404,7 +423,7 @@ export const TreePurchase = () => {
                   <div className="py-4 space-y-4">
                     <div>
                       <p className="text-3xl font-bold text-accent">
-                        ${calculatePrice().toFixed(2)}/mo
+                        ${calculateMonthlyPrice().toFixed(2)}/mo
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         for {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
