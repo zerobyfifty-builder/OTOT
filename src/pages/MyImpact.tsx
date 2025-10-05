@@ -114,7 +114,7 @@ export const MyImpact = () => {
             </div>
             <div className="flex-1 space-y-4">
               <div>
-                <h2 className="text-xl font-semibold mb-2">Share your impact report.</h2>
+                <h2 className="text-xl font-semibold mb-2">Share your impact report!</h2>
                 <p className="text-muted-foreground">Use this link to share your impact report and inspire others.</p>
               </div>
               <Button onClick={handleGenerateLink} className="bg-primary hover:bg-primary/90">
@@ -131,9 +131,7 @@ export const MyImpact = () => {
         </Card>
 
         <div>
-          <p className="text-muted-foreground mb-6">
-            EcoMatcher has contributed to the United Nations Sustainability Development Goals through treeplanting.
-          </p>
+          <p className="text-muted-foreground mb-6">Your climate action though tree planting has contributed to the United Nations Sustainability Development Goals.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Trees Planted */}
