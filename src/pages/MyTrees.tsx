@@ -277,6 +277,7 @@ export const MyTrees = () => {
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="w-16">No.</TableHead>
+                        <TableHead className="text-left">Trip ID</TableHead>
                         <TableHead className="text-left">TreeTracker</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Farmer</TableHead>
@@ -292,6 +293,15 @@ export const MyTrees = () => {
                         <TableRow key={tree.id}>
                           <TableCell className="font-medium">
                             {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell className="text-left">
+                            {tree.trip_id ? (
+                              <span className="text-sm font-mono text-muted-foreground">
+                                {tree.trip_id.substring(0, 8)}...
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-left">
                             <button

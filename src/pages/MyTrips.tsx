@@ -11,7 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
+import { TreeDetailsSheet } from "@/components/trees/TreeDetailsSheet";
+
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
+
+interface TripWithTreeCount extends Trip {
+  treesPlanted: number;
+}
 const TRAVEL_CLASS_LABELS: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
   "Economy": "Economy",
   "Premium Economy": "Premium Economy",
@@ -27,21 +34,21 @@ const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_ty
 };
 export const MyTrips = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const { toast } = useToast();
+  const [trips, setTrips] = useState<TripWithTreeCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
+  const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
+  const [selectedTripForTrees, setSelectedTripForTrees] = useState<string | null>(null);
+  const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
+  const [isTreeDetailsOpen, setIsTreeDetailsOpen] = useState(false);
   useEffect(() => {
     fetchTrips();
   }, []);
   const fetchTrips = async () => {
     setIsLoading(true);
     try {
-      const {
-        data: userData
-      } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         toast({
           title: "Authentication Required",
@@ -51,14 +58,33 @@ export const MyTrips = () => {
         navigate("/auth/login");
         return;
       }
-      const {
-        data,
-        error
-      } = await supabase.from("trips").select("*").eq("user_id", userData.user.id).order("created_at", {
-        ascending: false
-      });
+
+      const { data, error } = await supabase
+        .from("trips")
+        .select("*")
+        .eq("user_id", userData.user.id)
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
-      setTrips(data || []);
+
+      // Fetch tree counts for each trip
+      const tripsWithCounts = await Promise.all(
+        (data || []).map(async (trip) => {
+          const { data: treesData } = await supabase
+            .from("trees")
+            .select("num_trees")
+            .eq("trip_id", trip.id);
+
+          const treesPlanted = treesData?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
+
+          return {
+            ...trip,
+            treesPlanted
+          };
+        })
+      );
+
+      setTrips(tripsWithCounts);
     } catch (error) {
       console.error("Error fetching trips:", error);
       toast({
@@ -114,7 +140,7 @@ export const MyTrips = () => {
       daysText: `${days} ${days === 1 ? 'day' : 'days'}`
     };
   };
-  const handleOffsetEmissions = (trip: Trip) => {
+  const handleOffsetEmissions = (trip: TripWithTreeCount) => {
     // Convert database enum values to form values
     const travelClassMap: Record<Database["public"]["Enums"]["travel_class_type"], "economy" | "premium_economy" | "business" | "first"> = {
       "Economy": "economy",
@@ -155,12 +181,14 @@ export const MyTrips = () => {
       description: "Edit functionality will be implemented soon."
     });
   };
-  const handleViewDetails = (tripId: string) => {
-    // TODO: Implement view details modal/page
-    toast({
-      title: "View Details",
-      description: "Detailed view will be implemented soon."
-    });
+  const handleViewDetails = (trip: TripWithTreeCount) => {
+    setSelectedTripForDetails(trip);
+    setIsTripDetailsOpen(true);
+  };
+
+  const handleViewTreeDetails = (tripId: string) => {
+    setSelectedTripForTrees(tripId);
+    setIsTreeDetailsOpen(true);
   };
   const handleDeleteTrip = async (tripId: string) => {
     try {
@@ -238,6 +266,9 @@ export const MyTrips = () => {
                       <thead className="bg-muted/50 border-b">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Trip ID
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Date Added
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
@@ -253,6 +284,9 @@ export const MyTrips = () => {
                             Trees Needed
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Trees Planted
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Actions
                           </th>
                         </tr>
@@ -265,6 +299,13 @@ export const MyTrips = () => {
                         daysText
                       } = formatDateRange(trip.from_date, trip.to_date);
                       return <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
+                              {/* Trip ID */}
+                              <td className="px-6 py-6">
+                                <span className="text-xs font-mono text-muted-foreground">
+                                  {trip.id.substring(0, 8)}...
+                                </span>
+                              </td>
+
                               {/* Date Added */}
                               <td className="px-6 py-6">
                                 <div className="text-sm">
@@ -338,10 +379,28 @@ export const MyTrips = () => {
                                 </div>
                               </td>
 
+                              {/* Trees Planted */}
+                              <td className="px-6 py-6">
+                                <div className="flex items-center gap-2">
+                                  <Leaf className="h-5 w-5 text-accent" />
+                                  <div>
+                                    <div className="font-bold text-lg text-foreground">{trip.treesPlanted}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {trip.treesPlanted === 1 ? "tree" : "trees"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+
                               {/* Actions */}
                               <td className="px-6 py-6">
                                 <div className="flex items-center gap-2">
-                                  <Button size="sm" onClick={() => handleOffsetEmissions(trip)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => handleOffsetEmissions(trip)} 
+                                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                                    disabled={trip.treesPlanted >= trip.trees_needed}
+                                  >
                                     <Leaf className="h-3 w-3 mr-1" />
                                     Offset
                                   </Button>
@@ -352,9 +411,13 @@ export const MyTrips = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleViewDetails(trip.id)}>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip)}>
                                         <Eye className="h-4 w-4 mr-2" />
                                         View Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleViewTreeDetails(trip.id)}>
+                                        <Leaf className="h-4 w-4 mr-2" />
+                                        Tree Details
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleEditTrip(trip.id)}>
                                         <Edit className="h-4 w-4 mr-2" />
@@ -439,7 +502,7 @@ export const MyTrips = () => {
                           Offset Emissions
                         </Button>
                         <div className="grid grid-cols-2 gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleViewDetails(trip.id)}>
+                          <Button size="sm" variant="outline" onClick={() => handleViewDetails(trip)}>
                             <Eye className="h-3 w-3 mr-1" />
                             View
                           </Button>
@@ -477,6 +540,26 @@ export const MyTrips = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Trip Details Sheet */}
+        <TripDetailsSheet
+          trip={selectedTripForDetails}
+          isOpen={isTripDetailsOpen}
+          onClose={() => {
+            setIsTripDetailsOpen(false);
+            setSelectedTripForDetails(null);
+          }}
+        />
+
+        {/* Tree Details Sheet */}
+        <TreeDetailsSheet
+          tripId={selectedTripForTrees}
+          isOpen={isTreeDetailsOpen}
+          onClose={() => {
+            setIsTreeDetailsOpen(false);
+            setSelectedTripForTrees(null);
+          }}
+        />
       </div>
     </div>;
 };
