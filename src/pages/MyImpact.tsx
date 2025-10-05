@@ -11,6 +11,9 @@ import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import SDG15Icon from '@/assets/SDG_15.png';
 import SDG13Icon from '@/assets/SDG_13.png';
 import SDG10Icon from '@/assets/SDG_10.png';
+import acaciaImage from '@/assets/acacia-auriculiformis.jpg';
+import acrocarpusImage from '@/assets/acrocarpus-fraxinifolius.jpg';
+import albiziaImage from '@/assets/albizia-mugavu.jpg';
 export const MyImpact = () => {
   const {
     user
@@ -74,22 +77,22 @@ export const MyImpact = () => {
     fill: '#C5E1A5'
   }];
 
-  // Mock species data
+  // Species data
   const speciesData = [{
     name: 'Acacia',
     scientificName: 'Acacia auriculiformis',
     description: 'Acacia auriculiformis, commonly called auri trees, are fast-growing evergreen trees with gnarled trunks and sweet-smelling yellow flowers. The trees are often used for shade, erosion control, and charcoal.',
-    image: '/src/assets/tree-green.png'
+    image: acaciaImage
   }, {
     name: 'Acrocarpus fraxinifolius',
     scientificName: 'Acrocarpus fraxinifolius',
     description: 'Acrocarpus fraxinifolius is foliage deciduous trees. Also classified as exotic big tree that can grow up to 60 m height.',
-    image: '/src/assets/tree-green.png'
+    image: acrocarpusImage
   }, {
     name: 'Albizia/Mugavu',
-    scientificName: 'Albizia',
-    description: "Albizzia is in the Guinness Book of Records as the world's fastest growing tree. Albizzia is a large tree that can grow up to 40 m tall with the first branch at a height of up to 20 m.",
-    image: '/src/assets/tree-green.png'
+    scientificName: 'Albizia coriaria',
+    description: "Albizia is in the Guinness Book of Records as the world's fastest growing tree. Albizia is a large tree that can grow up to 40 m tall with the first branch at a height of up to 20 m.",
+    image: albiziaImage
   }];
 
   // Mock partners data
@@ -138,7 +141,7 @@ export const MyImpact = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Trees Planted */}
-            <Card className="p-6 bg-[hsl(120,40%,90%)] border-none">
+            <Card className="p-6 bg-muted/50 border-none">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
                   <img src={SDG15Icon} alt="SDG 15 Life on Land" className="w-20 h-20 rounded-lg" />
@@ -151,7 +154,7 @@ export const MyImpact = () => {
             </Card>
 
             {/* Families Helped */}
-            <Card className="p-6 bg-[hsl(330,70%,90%)] border-none">
+            <Card className="p-6 bg-muted/50 border-none">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
                   <img src={SDG10Icon} alt="SDG 10 Reduced Inequalities" className="w-20 h-20 rounded-lg" />
@@ -164,7 +167,7 @@ export const MyImpact = () => {
             </Card>
 
             {/* Carbon Sequestered to Date */}
-            <Card className="p-6 bg-[hsl(120,30%,85%)] border-none">
+            <Card className="p-6 bg-muted/50 border-none">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
                   <img src={SDG13Icon} alt="SDG 13 Climate Action" className="w-20 h-20 rounded-lg" />
@@ -177,7 +180,7 @@ export const MyImpact = () => {
             </Card>
 
             {/* Carbon Sequestered over Lifetime */}
-            <Card className="p-6 bg-[hsl(120,30%,85%)] border-none">
+            <Card className="p-6 bg-muted/50 border-none">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
                   <img src={SDG13Icon} alt="SDG 13 Climate Action" className="w-20 h-20 rounded-lg" />
@@ -198,41 +201,41 @@ export const MyImpact = () => {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Carbon calculation details</h2>
         
-        <div>
-          <h3 className="text-lg font-semibold mb-4 text-muted-foreground">Data table</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-primary text-primary-foreground">
-                  <th className="p-4 text-left">← 2021</th>
-                  <th className="p-4 text-left">2022</th>
-                  <th className="p-4 text-left">2023</th>
-                  <th className="p-4 text-left">2024 to date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-primary/20">
-                  <td className="p-4 font-semibold">Number of trees</td>
-                  <td className="p-4">-</td>
-                  <td className="p-4">-</td>
-                  <td className="p-4">{stats.totalTrees.toLocaleString()}</td>
-                </tr>
-                <tr className="bg-primary/20">
-                  <td className="p-4 font-semibold">CO₂ sequestered (Kg)</td>
-                  <td className="p-4">-</td>
-                  <td className="p-4">-</td>
-                  <td className="p-4">{(stats.carbonToDate * 1000).toLocaleString()}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Card className="p-6 bg-muted/30">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Data table */}
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-[#8BC34A] text-foreground">
+                      <th className="p-3 text-left font-semibold">← 2021</th>
+                      <th className="p-3 text-left font-semibold">2022</th>
+                      <th className="p-3 text-left font-semibold">2023</th>
+                      <th className="p-3 text-left font-semibold">2024 to date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-[#C5E1A5]">
+                      <td className="p-3 font-semibold">Number of trees</td>
+                      <td className="p-3">-</td>
+                      <td className="p-3">-</td>
+                      <td className="p-3">{stats.totalTrees.toLocaleString()}</td>
+                    </tr>
+                    <tr className="bg-[#C5E1A5]">
+                      <td className="p-3 font-semibold">CO₂ sequestered (Kg)</td>
+                      <td className="p-3">-</td>
+                      <td className="p-3">-</td>
+                      <td className="p-3">{(stats.carbonToDate * 1000).toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-        <div>
-          <h3 className="text-lg font-semibold mb-4 text-muted-foreground">Data graphic</h3>
-          <Card className="p-6 bg-muted/30">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="h-[300px]">
+            {/* Data graphic */}
+            <div className="flex flex-col items-center justify-center space-y-6">
+              <div className="h-[250px] w-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={carbonData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
@@ -242,7 +245,7 @@ export const MyImpact = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full bg-[#8BC34A]" />
                   <span className="text-sm">carbon sequestered to date</span>
@@ -253,16 +256,16 @@ export const MyImpact = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
+        </Card>
 
-          <Card className="mt-6 p-6 bg-background border">
-            <h4 className="font-semibold mb-2">Notes</h4>
-            <p className="text-sm text-muted-foreground">
-              Please note that in the CO₂ calculation we only take into account the CO₂ contribution from the trees you
-              have bought, so not from the trees you have gotten as a gift. We otherwise would double count.
-            </p>
-          </Card>
-        </div>
+        <Card className="p-6 bg-background border">
+          <h4 className="font-semibold mb-2">Notes</h4>
+          <p className="text-sm text-muted-foreground">
+            Please note that in the CO₂ calculation we only take into account the CO₂ contribution from the trees you
+            have bought, so not from the trees you have gotten as a gift. We otherwise would double count.
+          </p>
+        </Card>
       </section>
 
       {/* Section 3: Tree Locations Map */}
@@ -281,16 +284,16 @@ export const MyImpact = () => {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">Species planted:</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {speciesData.map((species, index) => <Card key={index} className="overflow-hidden">
-              <div className="aspect-square bg-muted relative overflow-hidden">
-                <img src={species.image} alt={species.name} className="w-full h-full object-cover" />
+          {speciesData.map((species, index) => <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
+              <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                <img src={species.image} alt={species.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
               </div>
-              <div className="p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{species.name}</h3>
-                  <span className="text-2xl">🌱</span>
+              <div className="p-6 space-y-3">
+                <div>
+                  <h3 className="text-xl font-bold text-foreground mb-1">{species.name}</h3>
+                  <p className="text-sm text-muted-foreground italic">{species.scientificName}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{species.description}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{species.description}</p>
               </div>
             </Card>)}
         </div>
