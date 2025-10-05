@@ -26,7 +26,7 @@ export const MyImpact = () => {
     carbonToDate: 0,
     carbonLifetime: 0
   });
-  const [mapboxToken] = useState('pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTc5MXZuOWowbzRvMmpzYjl0azU2a2hkIn0.HdEr7_dQrIh2aPxCORV7Sg');
+  const [mapboxToken] = useState('pk.eyJ1IjoicmFtc2VudGhpbCIsImEiOiJjbWdlNmsyeGwwYXFhMmlzZjR2c2J1ejdnIn0._afBkwGcrWPS4S6QJOKGHg');
   useEffect(() => {
     if (user) {
       fetchTreeData();
