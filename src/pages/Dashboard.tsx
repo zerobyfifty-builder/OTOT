@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
       ]);
 
       const totalTrees = treesRes.data?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
-      const totalTrips = tripsRes.count || 0;
+      const totalTrips = tripsRes.data?.length || 0;
       const totalCO2 = tripsRes.data?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
 
       return {
