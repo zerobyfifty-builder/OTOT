@@ -190,15 +190,15 @@ export const TreePurchase = () => {
       const totalCost = calculatePrice();
       const paymentReference = `SIMULATED-${Date.now()}`;
 
-      // Generate a unique OTOT ID for this tree planting session
-      const treeOtotId = `TREE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
       // Save tree records to database FIRST (simulating successful payment)
       const treeRecords = [];
       for (let i = 0; i < treeCount; i++) {
+        // Generate a unique OTOT ID for EACH tree
+        const uniqueTreeId = `TREE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        
         treeRecords.push({
           user_id: user.id,
-          otot_id: treeOtotId,
+          otot_id: uniqueTreeId,
           num_trees: 1,
           purchase_type: selectedOption === "subscription" ? "Subscription" : selectedOption === "custom" ? "Flexible" : "One-time",
           amount_paid: PRICE_PER_TREE,
