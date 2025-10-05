@@ -600,29 +600,6 @@ export const TreePurchase = () => {
                           <span>{Math.max(1, treesNeeded - treesPlanted)} Trees</span>
                         </div>
                       </div>
-                      
-                      {/* Progress Bar and Stats */}
-                      <div className="space-y-3 pt-2">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-600 font-medium">Tree Credit: {getTreeCreditPercentage()}%</span>
-                            <span className="text-muted-foreground">Tree Debt: {getTreeDebtPercentage()}%</span>
-                          </div>
-                          <div className="relative w-full h-3 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
-                              style={{ width: `${getTreeCreditPercentage()}%` }}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Motivational Message */}
-                        <div className="bg-accent/10 rounded-lg p-3">
-                          <p className="text-sm text-foreground font-medium text-center">
-                            {getMotivationalMessage()}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   )}
                   
