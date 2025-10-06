@@ -124,8 +124,12 @@ export default function Pledge() {
     const newAccepted = new Set(acceptedSlides);
     if (checked) {
       newAccepted.add(slideNumber);
-      // Auto-advance to next slide after checking
+      // Auto-advance to next slide or completion slide
       setTimeout(() => {
+        if (current === 10) {
+          // If on completion slide, stay there
+          return;
+        }
         api?.scrollNext();
       }, 500);
     } else {
@@ -276,28 +280,34 @@ export default function Pledge() {
 
             <div className="relative h-full flex flex-col justify-center items-center px-6 py-20 text-center">
               <div className="max-w-2xl space-y-8">
-                <h1 className="text-white text-5xl md:text-6xl font-bold drop-shadow-lg">
-                  Thank You for Taking the Pledge!
-                </h1>
+                {allAccepted && (
+                  <>
+                    <h1 className="text-white text-5xl md:text-6xl font-bold drop-shadow-lg">
+                      Thank You for Taking the Pledge!
+                    </h1>
 
-                <p className="text-white text-xl md:text-2xl drop-shadow-lg">
-                  You're now a Responsible Traveler. Take the next step and offset your carbon footprint by planting trees in Kenya.
-                </p>
+                    <p className="text-white text-xl md:text-2xl drop-shadow-lg">
+                      You're now a Responsible Traveler. Take the next step and offset your carbon footprint by planting trees in Kenya.
+                    </p>
+                  </>
+                )}
 
                 {!allAccepted && (
-                  <div className="bg-yellow-500/90 backdrop-blur-sm px-6 py-4 rounded-lg max-w-md">
-                    <p className="text-foreground font-medium mb-3">
+                  <div className="bg-primary/20 backdrop-blur-md px-8 py-6 rounded-xl max-w-md mx-auto border border-primary/30">
+                    <p className="text-white text-lg font-medium mb-4">
                       Please accept all 10 principles to complete your pledge
                     </p>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-5 gap-3">
                       {pledgeSlides.map((slide) => (
                         <button
                           key={slide.number}
-                          onClick={() => api?.scrollTo(slide.number - 1)}
-                          className={`flex items-center justify-center h-10 w-10 rounded-full font-bold transition-all ${
+                          onClick={() => {
+                            api?.scrollTo(slide.number - 1);
+                          }}
+                          className={`flex items-center justify-center h-12 w-12 rounded-full font-bold transition-all ${
                             acceptedSlides.has(slide.number)
                               ? 'bg-primary text-primary-foreground'
-                              : 'bg-white text-foreground border-2 border-foreground'
+                              : 'bg-white text-foreground border-2 border-primary'
                           }`}
                           aria-label={`Go to pledge ${slide.number}`}
                         >
@@ -309,7 +319,7 @@ export default function Pledge() {
                 )}
 
                 {allAccepted && (
-                  <div className="space-y-4">
+                  <div className="flex flex-col gap-4 items-center">
                     <Button
                       size="lg"
                       className="w-full md:w-auto min-w-[280px] text-lg h-14"

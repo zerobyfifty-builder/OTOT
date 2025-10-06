@@ -42,7 +42,7 @@ const Landing = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Link to="/auth/signup">
+            <Link to="/pledge">
               <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
                 Take the Pledge
               </Button>
@@ -176,9 +176,11 @@ const Landing = () => {
             Join thousands of responsible travelers who are helping reforest Kenya while exploring its natural beauty.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
-              Start Your Journey
-            </Button>
+            <Link to="/pledge">
+              <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
+                Start Your Journey
+              </Button>
+            </Link>
             <Button size="lg" variant="outline" className="border-accent-foreground text-black hover:bg-accent-foreground hover:text-black px-8 py-3">
               Learn More
             </Button>
@@ -202,9 +204,9 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold text-foreground mb-3">Get Started</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Take the Pledge</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Calculate Impact</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Plant Trees</a></li>
+                <li><Link to="/pledge" className="text-muted-foreground hover:text-primary transition-colors">Take the Pledge</Link></li>
+                <li><Link to="/auth/signup" className="text-muted-foreground hover:text-primary transition-colors">Calculate Impact</Link></li>
+                <li><Link to="/auth/signup" className="text-muted-foreground hover:text-primary transition-colors">Plant Trees</Link></li>
               </ul>
             </div>
             
