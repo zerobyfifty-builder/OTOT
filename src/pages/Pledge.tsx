@@ -275,14 +275,18 @@ export default function Pledge() {
                       ? 'translate-y-0 opacity-100' 
                       : 'translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
                   }`}>
-                    <img 
-                      src={pledgeHandIcon} 
-                      alt="Pledge" 
+                    <div 
                       className="h-7 w-7 transition-all duration-300"
                       style={{
-                        filter: acceptedSlides.has(slide.number)
-                          ? 'brightness(0) invert(1) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white)'
-                          : 'brightness(0) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black)'
+                        backgroundColor: acceptedSlides.has(slide.number) ? '#ffffff' : '#000000',
+                        WebkitMaskImage: `url(${pledgeHandIcon})`,
+                        WebkitMaskSize: 'contain',
+                        WebkitMaskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center',
+                        maskImage: `url(${pledgeHandIcon})`,
+                        maskSize: 'contain',
+                        maskRepeat: 'no-repeat',
+                        maskPosition: 'center'
                       }}
                     />
                   </div>
