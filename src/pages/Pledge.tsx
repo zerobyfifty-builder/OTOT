@@ -258,28 +258,28 @@ export default function Pledge() {
                 {/* Acceptance button with hand icon */}
                 <button
                   onClick={() => handleAcceptSlide(slide.number, !acceptedSlides.has(slide.number))}
-                  className={`group relative flex items-center justify-center space-x-3 px-6 py-4 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden ${
+                  className={`group relative flex items-center justify-center px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden ${
                     acceptedSlides.has(slide.number)
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-white/90 backdrop-blur-sm text-foreground'
                   }`}
                 >
-                  <div className="relative flex items-center space-x-3">
-                    {/* Hand icon - slides up on hover or stays if accepted */}
-                    <div className={`relative h-6 w-6 overflow-hidden ${acceptedSlides.has(slide.number) ? '' : 'opacity-0 group-hover:opacity-100'}`}>
-                      <img 
-                        src={pledgeHandIcon} 
-                        alt="Pledge" 
-                        className={`h-6 w-6 transition-all duration-300 ${
-                          acceptedSlides.has(slide.number) 
-                            ? 'invert translate-y-0' 
-                            : 'translate-y-8 group-hover:translate-y-0'
-                        }`}
-                      />
-                    </div>
-                    <span className="font-medium select-none">
-                      I Commit
-                    </span>
+                  {/* Text */}
+                  <span className="font-medium select-none relative z-10">
+                    I Commit
+                  </span>
+                  
+                  {/* Hand icon - slides up on hover and overlays on text */}
+                  <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+                    acceptedSlides.has(slide.number) 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                  }`}>
+                    <img 
+                      src={pledgeHandIcon} 
+                      alt="Pledge" 
+                      className={`h-7 w-7 ${acceptedSlides.has(slide.number) ? 'invert' : ''}`}
+                    />
                   </div>
                 </button>
 
