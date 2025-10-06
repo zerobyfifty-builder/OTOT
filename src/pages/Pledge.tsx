@@ -258,7 +258,7 @@ export default function Pledge() {
                 {/* Acceptance button with hand icon */}
                 <button
                   onClick={() => handleAcceptSlide(slide.number, !acceptedSlides.has(slide.number))}
-                  className={`group relative flex items-center justify-center px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden ${
+                  className={`group relative flex items-center justify-center px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden cursor-none ${
                     acceptedSlides.has(slide.number)
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-white/90 backdrop-blur-sm text-foreground'
@@ -278,15 +278,11 @@ export default function Pledge() {
                     <img 
                       src={pledgeHandIcon} 
                       alt="Pledge" 
-                      className={`h-7 w-7 transition-all duration-300 ${
-                        acceptedSlides.has(slide.number) 
-                          ? 'brightness-0 invert saturate-100' 
-                          : 'brightness-0 saturate-100'
-                      }`}
+                      className="h-7 w-7 transition-all duration-300"
                       style={{
-                        filter: acceptedSlides.has(slide.number) 
-                          ? 'brightness(0) invert(1)' 
-                          : 'brightness(0) saturate(100%)'
+                        filter: acceptedSlides.has(slide.number)
+                          ? 'brightness(0) invert(1) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white) drop-shadow(0 0 0 white)'
+                          : 'brightness(0) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black) drop-shadow(0 0 0 black)'
                       }}
                     />
                   </div>
