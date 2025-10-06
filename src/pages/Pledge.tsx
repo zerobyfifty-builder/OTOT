@@ -258,22 +258,29 @@ export default function Pledge() {
                 {/* Acceptance button with hand icon */}
                 <button
                   onClick={() => handleAcceptSlide(slide.number, !acceptedSlides.has(slide.number))}
-                  className={`flex items-center space-x-3 px-6 py-4 rounded-full shadow-lg transition-all transform hover:scale-105 ${
+                  className={`group relative flex items-center justify-center space-x-3 px-6 py-4 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden ${
                     acceptedSlides.has(slide.number)
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-white/90 backdrop-blur-sm text-foreground'
                   }`}
                 >
-                  <img 
-                    src={pledgeHandIcon} 
-                    alt="Pledge" 
-                    className={`h-6 w-6 transition-transform ${
-                      acceptedSlides.has(slide.number) ? 'invert scale-110 animate-pulse' : ''
-                    }`}
-                  />
-                  <span className="font-medium select-none">
-                    I Commit
-                  </span>
+                  <div className="relative flex items-center space-x-3">
+                    {/* Hand icon - slides up on hover or stays if accepted */}
+                    <div className={`relative h-6 w-6 overflow-hidden ${acceptedSlides.has(slide.number) ? '' : 'opacity-0 group-hover:opacity-100'}`}>
+                      <img 
+                        src={pledgeHandIcon} 
+                        alt="Pledge" 
+                        className={`h-6 w-6 transition-all duration-300 ${
+                          acceptedSlides.has(slide.number) 
+                            ? 'invert translate-y-0' 
+                            : 'translate-y-8 group-hover:translate-y-0'
+                        }`}
+                      />
+                    </div>
+                    <span className="font-medium select-none">
+                      I Commit
+                    </span>
+                  </div>
                 </button>
 
                 {/* Progress dots */}
