@@ -82,9 +82,21 @@ export default function Pledge() {
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
   const [returnToCompletion, setReturnToCompletion] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Detect touch device
+  useEffect(() => {
+    const checkTouch = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0
+      );
+    };
+    checkTouch();
+  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -254,7 +266,9 @@ export default function Pledge() {
                 {/* Acceptance button with hand icon */}
                 <button
                   onClick={() => handleAcceptSlide(slide.number, !acceptedSlides.has(slide.number))}
-                  className={`group relative flex items-center justify-center px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden cursor-none ${
+                  className={`group relative flex items-center justify-center px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105 overflow-hidden ${
+                    isTouchDevice ? 'cursor-pointer' : 'cursor-none'
+                  } ${
                     acceptedSlides.has(slide.number)
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-white/90 backdrop-blur-sm text-foreground'
@@ -262,16 +276,22 @@ export default function Pledge() {
                 >
                   {/* Text */}
                   <span className={`font-medium select-none relative z-10 transition-opacity duration-300 ${
-                    acceptedSlides.has(slide.number) ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'
+                    acceptedSlides.has(slide.number) 
+                      ? 'opacity-0' 
+                      : isTouchDevice 
+                        ? 'opacity-100' 
+                        : 'opacity-100 group-hover:opacity-0'
                   }`}>
                     I Commit
                   </span>
                   
-                  {/* Hand icon - slides up on hover and replaces text */}
+                  {/* Hand icon - on mobile: shows on click, on desktop: slides up on hover */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
                     acceptedSlides.has(slide.number) 
                       ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                      : isTouchDevice
+                        ? 'translate-y-12 opacity-0'
+                        : 'translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
                   }`}>
                     <img 
                       src={pledgeHandIcon} 
