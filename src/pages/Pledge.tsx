@@ -278,7 +278,11 @@ export default function Pledge() {
                     <img 
                       src={pledgeHandIcon} 
                       alt="Pledge" 
-                      className={`h-7 w-7 ${acceptedSlides.has(slide.number) ? 'invert' : ''}`}
+                      className={`h-7 w-7 transition-all duration-300 ${
+                        acceptedSlides.has(slide.number) 
+                          ? 'brightness-0 invert' 
+                          : 'brightness-0'
+                      }`}
                     />
                   </div>
                 </button>
