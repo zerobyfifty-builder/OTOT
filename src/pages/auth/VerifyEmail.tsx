@@ -4,13 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Mail, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function VerifyEmail() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If user is already verified, redirect to dashboard
+    // Check for auth hash in URL (email verification callback)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    
+    if (accessToken) {
+      // User just verified their email via the link
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: hashParams.get('refresh_token') || '',
+      }).then(() => {
+        navigate('/dashboard');
+      });
+      return;
+    }
+
+    // If user is already verified and logged in, redirect to dashboard
     if (user?.email_confirmed_at) {
       navigate('/dashboard');
     }
