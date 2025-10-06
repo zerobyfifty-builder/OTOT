@@ -79,6 +79,7 @@ export default function Pledge() {
   const [acceptedSlides, setAcceptedSlides] = useState<Set<number>>(new Set());
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
+  const [returnToCompletion, setReturnToCompletion] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -124,18 +125,32 @@ export default function Pledge() {
     const newAccepted = new Set(acceptedSlides);
     if (checked) {
       newAccepted.add(slideNumber);
-      // Auto-advance to next slide or completion slide
+      // Auto-advance to next slide or back to completion slide
       setTimeout(() => {
-        if (current === 10) {
-          // If on completion slide, stay there
-          return;
+        if (returnToCompletion) {
+          // Return to completion slide
+          api?.scrollTo(10);
+          setReturnToCompletion(false);
+        } else if (current !== 10) {
+          // Normal flow - advance to next slide
+          api?.scrollNext();
         }
-        api?.scrollNext();
       }, 500);
     } else {
       newAccepted.delete(slideNumber);
     }
     setAcceptedSlides(newAccepted);
+  };
+
+  const handleRestart = () => {
+    setAcceptedSlides(new Set());
+    setReturnToCompletion(false);
+    sessionStorage.removeItem('pledge-progress');
+    api?.scrollTo(0);
+    toast({
+      title: "Pledge restarted",
+      description: "All progress has been cleared.",
+    });
   };
 
   const allAccepted = acceptedSlides.size === 10;
@@ -182,12 +197,22 @@ export default function Pledge() {
       {/* Header with logo */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center">
         <img src={ototLogo} alt="OTOT Logo" className="h-12 w-auto" />
-        <a
-          href="/"
-          className="text-sm text-white hover:text-primary transition-colors"
-        >
-          Learn More
-        </a>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRestart}
+            className="text-white hover:text-primary hover:bg-white/10 backdrop-blur-sm"
+          >
+            Restart
+          </Button>
+          <a
+            href="/"
+            className="text-sm text-white hover:text-primary transition-colors"
+          >
+            Learn More
+          </a>
+        </div>
       </div>
 
       <Carousel
@@ -302,6 +327,7 @@ export default function Pledge() {
                         <button
                           key={slide.number}
                           onClick={() => {
+                            setReturnToCompletion(true);
                             api?.scrollTo(slide.number - 1);
                           }}
                           className={`flex items-center justify-center h-12 w-12 rounded-full font-bold transition-all ${
