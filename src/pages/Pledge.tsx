@@ -149,10 +149,6 @@ export default function Pledge() {
     setReturnToCompletion(false);
     sessionStorage.removeItem('pledge-progress');
     api?.scrollTo(0);
-    toast({
-      title: "Pledge restarted",
-      description: "All progress has been cleared.",
-    });
   };
 
   const allAccepted = acceptedSlides.size === 10;
@@ -265,28 +261,26 @@ export default function Pledge() {
                   }`}
                 >
                   {/* Text */}
-                  <span className="font-medium select-none relative z-10">
+                  <span className={`font-medium select-none relative z-10 transition-opacity duration-300 ${
+                    acceptedSlides.has(slide.number) ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'
+                  }`}>
                     I Commit
                   </span>
                   
-                  {/* Hand icon - slides up on hover and overlays on text */}
+                  {/* Hand icon - slides up on hover and replaces text */}
                   <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
                     acceptedSlides.has(slide.number) 
                       ? 'translate-y-0 opacity-100' 
                       : 'translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
                   }`}>
-                    <div 
-                      className="h-7 w-7 transition-all duration-300"
+                    <img 
+                      src={pledgeHandIcon} 
+                      alt="Pledge" 
+                      className="h-10 w-10 transition-all duration-300"
                       style={{
-                        backgroundColor: acceptedSlides.has(slide.number) ? '#ffffff' : '#000000',
-                        WebkitMaskImage: `url(${pledgeHandIcon})`,
-                        WebkitMaskSize: 'contain',
-                        WebkitMaskRepeat: 'no-repeat',
-                        WebkitMaskPosition: 'center',
-                        maskImage: `url(${pledgeHandIcon})`,
-                        maskSize: 'contain',
-                        maskRepeat: 'no-repeat',
-                        maskPosition: 'center'
+                        filter: acceptedSlides.has(slide.number) 
+                          ? 'brightness(0) invert(1)' 
+                          : 'brightness(0)'
                       }}
                     />
                   </div>
