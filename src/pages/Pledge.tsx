@@ -280,9 +280,14 @@ export default function Pledge() {
                       alt="Pledge" 
                       className={`h-7 w-7 transition-all duration-300 ${
                         acceptedSlides.has(slide.number) 
-                          ? 'brightness-0 invert' 
-                          : 'brightness-0'
+                          ? 'brightness-0 invert saturate-100' 
+                          : 'brightness-0 saturate-100'
                       }`}
+                      style={{
+                        filter: acceptedSlides.has(slide.number) 
+                          ? 'brightness(0) invert(1)' 
+                          : 'brightness(0) saturate(100%)'
+                      }}
                     />
                   </div>
                 </button>
