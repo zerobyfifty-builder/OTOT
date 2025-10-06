@@ -16,61 +16,61 @@ const pledgeSlides = [
   {
     number: 1,
     text: "Respect nature by following marked paths and protecting natural surroundings",
-    image: "/pledge/pledge-1.webp",
+    image: `/pledge/pledge-1.webp?v=${Date.now()}`,
     alt: "Kenya savanna landscape with acacia trees"
   },
   {
     number: 2,
     text: "Leave no waste behind by disposing of trash properly and keeping natural areas clean",
-    image: "/pledge/pledge-2.webp",
+    image: `/pledge/pledge-2.webp?v=${Date.now()}`,
     alt: "People cleaning up waste in natural areas"
   },
   {
     number: 3,
     text: "Support reforestation to fight climate change through tree planting",
-    image: "/pledge/pledge-3.webp",
+    image: `/pledge/pledge-3.webp?v=${Date.now()}`,
     alt: "Dense forest canopy showing reforestation efforts"
   },
   {
     number: 4,
     text: "Reduce my carbon footprint by choosing eco-friendly travel options",
-    image: "/pledge/pledge-4.webp",
+    image: `/pledge/pledge-4.webp?v=${Date.now()}`,
     alt: "Eco-friendly bicycles for sustainable transport"
   },
   {
     number: 5,
     text: "Respect wildlife by observing animals without disturbing their habitats",
-    image: "/pledge/pledge-5.webp",
+    image: `/pledge/pledge-5.webp?v=${Date.now()}`,
     alt: "Elephant family in their natural habitat"
   },
   {
     number: 6,
     text: "Respect local cultures by honoring traditions and supporting communities",
-    image: "/pledge/pledge-6.webp",
+    image: `/pledge/pledge-6.webp?v=${Date.now()}`,
     alt: "Local community members in traditional attire"
   },
   {
     number: 7,
     text: "Use resources wisely by conserving water and minimizing waste",
-    image: "/pledge/pledge-7.webp",
+    image: `/pledge/pledge-7.webp?v=${Date.now()}`,
     alt: "Child drinking clean water"
   },
   {
     number: 8,
     text: "Camp responsibly in designated areas with eco-friendly practices",
-    image: "/pledge/pledge-8.webp",
+    image: `/pledge/pledge-8.webp?v=${Date.now()}`,
     alt: "Camping tent in natural surroundings"
   },
   {
     number: 9,
     text: "Learn and share about Kenya's conservation efforts",
-    image: "/pledge/pledge-9.webp",
+    image: `/pledge/pledge-9.webp?v=${Date.now()}`,
     alt: "Giraffes in conservation area"
   },
   {
     number: 10,
     text: "Care for our global environment through responsible tourism",
-    image: "/pledge/pledge-10.webp",
+    image: `/pledge/pledge-10.webp?v=${Date.now()}`,
     alt: "Volunteers working together for environmental conservation"
   }
 ];
@@ -337,7 +337,7 @@ export default function Pledge() {
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url(/pledge/pledge-10.webp)`,
+                backgroundImage: `url(/pledge/pledge-10.webp?v=${Date.now()})`,
               }}
             >
               <div className="absolute inset-0 bg-black/60" />
