@@ -14,6 +14,8 @@ import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
+import VerifyEmail from "@/pages/auth/VerifyEmail";
+import Pledge from "@/pages/Pledge";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
 import { CarbonCalculator } from "@/pages/CarbonCalculator";
@@ -60,6 +62,8 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/verify-email" element={<VerifyEmail />} />
+            <Route path="/pledge" element={<Pledge />} />
             
             {/* Protected routes with sidebar */}
             <Route path="/dashboard" element={
