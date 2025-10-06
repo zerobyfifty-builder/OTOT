@@ -254,7 +254,7 @@ export default function Pledge() {
               {/* Content */}
               <div className="relative h-full flex flex-col justify-center items-center px-6 py-20 text-center">
                 {/* Number indicator */}
-                <div className="text-[#1a5d1a] text-8xl font-bold mb-8 drop-shadow-lg">
+                <div className="text-[#4caf50] text-8xl font-bold mb-8 drop-shadow-lg">
                   {slide.number}
                 </div>
 
