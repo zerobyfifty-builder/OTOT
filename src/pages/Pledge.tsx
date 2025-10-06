@@ -124,6 +124,10 @@ export default function Pledge() {
     const newAccepted = new Set(acceptedSlides);
     if (checked) {
       newAccepted.add(slideNumber);
+      // Auto-advance to next slide after checking
+      setTimeout(() => {
+        api?.scrollNext();
+      }, 500);
     } else {
       newAccepted.delete(slideNumber);
     }
@@ -229,7 +233,7 @@ export default function Pledge() {
                     htmlFor={`pledge-${slide.number}`}
                     className="text-foreground font-medium cursor-pointer select-none"
                   >
-                    I commit to this principle
+                    I Commit
                   </label>
                 </div>
 
@@ -281,10 +285,26 @@ export default function Pledge() {
                 </p>
 
                 {!allAccepted && (
-                  <div className="bg-yellow-500/90 backdrop-blur-sm px-6 py-3 rounded-lg">
-                    <p className="text-foreground font-medium">
+                  <div className="bg-yellow-500/90 backdrop-blur-sm px-6 py-4 rounded-lg max-w-md">
+                    <p className="text-foreground font-medium mb-3">
                       Please accept all 10 principles to complete your pledge
                     </p>
+                    <div className="grid grid-cols-5 gap-2">
+                      {pledgeSlides.map((slide) => (
+                        <button
+                          key={slide.number}
+                          onClick={() => api?.scrollTo(slide.number - 1)}
+                          className={`flex items-center justify-center h-10 w-10 rounded-full font-bold transition-all ${
+                            acceptedSlides.has(slide.number)
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-white text-foreground border-2 border-foreground'
+                          }`}
+                          aria-label={`Go to pledge ${slide.number}`}
+                        >
+                          {slide.number}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -308,9 +328,13 @@ export default function Pledge() {
                   </div>
                 )}
 
-                <p className="text-white/80 text-sm">
-                  Join thousands of travelers who took the pledge
-                </p>
+                <div className="text-white/80 text-sm space-y-1">
+                  <p>Join thousands of travelers who took the pledge</p>
+                  <div className="flex justify-center gap-6 text-white font-semibold">
+                    <span>🌍 1,000+ Tourists</span>
+                    <span>🌎 50+ Countries</span>
+                  </div>
+                </div>
               </div>
 
               {/* Progress dots */}
