@@ -18,13 +18,13 @@ export const Logo = ({ size = "md", showText = true, iconOnly = false }: LogoPro
 
   if (iconOnly) {
     return (
-      <img src={ototTreeIcon} alt="OTOT" className={classes.container} />
+      <img src={ototTreeIcon} alt="OTOT" className={`${classes.container} brightness-0 invert`} />
     );
   }
 
   return (
     <div className="flex items-center space-x-2">
-      <img src={ototLogo} alt="OTOT Logo" className={classes.container} />
+      <img src={ototLogo} alt="OTOT Logo" className={`${classes.container} [filter:brightness(0)_invert(1)]`} />
       {showText && (
         <span className={`${classes.text} font-bold text-foreground`}>OTOT</span>
       )}

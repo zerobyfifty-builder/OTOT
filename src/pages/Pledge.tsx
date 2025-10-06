@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PledgeSignupModal } from '@/components/pledge/PledgeSignupModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ototLogo from '@/assets/otot-logo.png';
+import refreshIcon from '@/assets/refresh-icon.png';
+import pledgeHandIcon from '@/assets/pledge-hand.png';
 
 const pledgeSlides = [
   {
@@ -196,23 +198,26 @@ export default function Pledge() {
     <div className="relative h-screen w-screen overflow-hidden bg-background">
       {/* Header with logo */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center">
-        <img src={ototLogo} alt="OTOT Logo" className="h-12 w-auto" />
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRestart}
-            className="text-white hover:text-primary hover:bg-white/10 backdrop-blur-sm"
-          >
-            Restart
-          </Button>
-          <a
-            href="/"
-            className="text-sm text-white hover:text-primary transition-colors"
-          >
-            Learn More
-          </a>
-        </div>
+        <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+          <img src={ototLogo} alt="OTOT Logo" className="h-12 w-auto" />
+        </a>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRestart}
+                className="text-white hover:bg-white/20 backdrop-blur-sm h-10 w-10"
+              >
+                <img src={refreshIcon} alt="Restart" className="h-6 w-6 invert" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Restart pledge</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <Carousel
@@ -250,21 +255,26 @@ export default function Pledge() {
                   {slide.text}
                 </h2>
 
-                {/* Acceptance checkbox */}
-                <div className="flex items-center space-x-3 bg-white/90 backdrop-blur-sm px-6 py-4 rounded-full shadow-lg">
-                  <Checkbox
-                    id={`pledge-${slide.number}`}
-                    checked={acceptedSlides.has(slide.number)}
-                    onCheckedChange={(checked) => handleAcceptSlide(slide.number, checked as boolean)}
-                    className="h-6 w-6"
+                {/* Acceptance button with hand icon */}
+                <button
+                  onClick={() => handleAcceptSlide(slide.number, !acceptedSlides.has(slide.number))}
+                  className={`flex items-center space-x-3 px-6 py-4 rounded-full shadow-lg transition-all transform hover:scale-105 ${
+                    acceptedSlides.has(slide.number)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-white/90 backdrop-blur-sm text-foreground'
+                  }`}
+                >
+                  <img 
+                    src={pledgeHandIcon} 
+                    alt="Pledge" 
+                    className={`h-6 w-6 transition-transform ${
+                      acceptedSlides.has(slide.number) ? 'invert scale-110 animate-pulse' : ''
+                    }`}
                   />
-                  <label
-                    htmlFor={`pledge-${slide.number}`}
-                    className="text-foreground font-medium cursor-pointer select-none"
-                  >
+                  <span className="font-medium select-none">
                     I Commit
-                  </label>
-                </div>
+                  </span>
+                </button>
 
                 {/* Progress dots */}
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-2">
