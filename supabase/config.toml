@@ -1,1 +1,16 @@
 project_id = "iezhssfzbiwnofhpjahv"
+
+[functions.deeplink-create]
+verify_jwt = false
+
+[functions.deeplink-validate]
+verify_jwt = false
+
+[functions.magic-link-send]
+verify_jwt = false
+
+[functions.magic-link-verify]
+verify_jwt = false
+
+[functions.set-password]
+verify_jwt = true

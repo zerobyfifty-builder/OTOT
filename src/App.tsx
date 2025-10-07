@@ -15,6 +15,7 @@ import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
 import VerifyEmail from "@/pages/auth/VerifyEmail";
+import MagicLink from "@/pages/auth/MagicLink";
 import Pledge from "@/pages/Pledge";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/verify-email" element={<VerifyEmail />} />
+            <Route path="/auth/magic" element={<MagicLink />} />
             <Route path="/pledge" element={<Pledge />} />
             
             {/* Protected routes with sidebar */}

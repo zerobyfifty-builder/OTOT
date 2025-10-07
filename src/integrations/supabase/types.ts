@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      auth_logs: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          success: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_type: Database["public"]["Enums"]["certificate_type"]
@@ -38,6 +71,33 @@ export type Database = {
           id?: string
           issued_date?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      ephemeral_sessions: {
+        Row: {
+          consumed: boolean | null
+          created_at: string
+          expires_at: string
+          id: string
+          pledge_context: Json | null
+          token_hash: string
+        }
+        Insert: {
+          consumed?: boolean | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          pledge_context?: Json | null
+          token_hash: string
+        }
+        Update: {
+          consumed?: boolean | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          pledge_context?: Json | null
+          token_hash?: string
         }
         Relationships: []
       }
@@ -121,6 +181,39 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_tokens: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          device_fingerprint: string | null
+          email: string
+          expires_at: string
+          id: string
+          pledge_context: Json | null
+          token_hash: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          pledge_context?: Json | null
+          token_hash: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          pledge_context?: Json | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
       reimbursements: {
         Row: {
           amount: number
@@ -182,6 +275,9 @@ export type Database = {
           num_trees: number
           otot_id: string
           plant_date: string | null
+          pledge_status:
+            | Database["public"]["Enums"]["pledge_status_type"]
+            | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
           status: Database["public"]["Enums"]["tree_status_type"]
           tree_type: string | null
@@ -202,6 +298,9 @@ export type Database = {
           num_trees?: number
           otot_id: string
           plant_date?: string | null
+          pledge_status?:
+            | Database["public"]["Enums"]["pledge_status_type"]
+            | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_type?: string | null
@@ -222,6 +321,9 @@ export type Database = {
           num_trees?: number
           otot_id?: string
           plant_date?: string | null
+          pledge_status?:
+            | Database["public"]["Enums"]["pledge_status_type"]
+            | null
           purchase_type?: Database["public"]["Enums"]["purchase_type"]
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_type?: string | null
@@ -339,9 +441,13 @@ export type Database = {
       users: {
         Row: {
           created_at: string
+          created_via: string | null
           email: string
+          email_verified: boolean | null
           id: string
+          last_login_at: string | null
           otot_id: string | null
+          password_hash: string | null
           pledge_date: string | null
           pledge_status: boolean
           total_donation: number
@@ -350,9 +456,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_via?: string | null
           email: string
+          email_verified?: boolean | null
           id?: string
+          last_login_at?: string | null
           otot_id?: string | null
+          password_hash?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
           total_donation?: number
@@ -361,9 +471,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_via?: string | null
           email?: string
+          email_verified?: boolean | null
           id?: string
+          last_login_at?: string | null
           otot_id?: string | null
+          password_hash?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
           total_donation?: number
@@ -377,6 +491,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -399,6 +517,10 @@ export type Database = {
       app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
       entry_source_type: "Manual" | "Integration"
+      pledge_status_type:
+        | "pending_email_confirmation"
+        | "confirmed"
+        | "completed"
       purchase_type: "One-time" | "Subscription"
       travel_class_type: "Economy" | "Premium Economy" | "Business" | "First"
       tree_status_type:
@@ -544,6 +666,11 @@ export const Constants = {
       app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
       entry_source_type: ["Manual", "Integration"],
+      pledge_status_type: [
+        "pending_email_confirmation",
+        "confirmed",
+        "completed",
+      ],
       purchase_type: ["One-time", "Subscription"],
       travel_class_type: ["Economy", "Premium Economy", "Business", "First"],
       tree_status_type: [
