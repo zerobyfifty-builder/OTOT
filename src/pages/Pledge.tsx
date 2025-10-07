@@ -4,7 +4,6 @@ import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PledgeSignupModal } from '@/components/pledge/PledgeSignupModal';
 import { EmailCaptureModal } from '@/components/pledge/EmailCaptureModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,7 +81,6 @@ export default function Pledge() {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [acceptedSlides, setAcceptedSlides] = useState<Set<number>>(new Set());
-  const [showSignupModal, setShowSignupModal] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
   const [returnToCompletion, setReturnToCompletion] = useState(false);
@@ -502,13 +500,6 @@ export default function Pledge() {
             description: "We've sent you a magic link to continue.",
           });
         }}
-      />
-
-      {/* Legacy Signup Modal (for backward compatibility) */}
-      <PledgeSignupModal
-        open={showSignupModal}
-        onOpenChange={setShowSignupModal}
-        action={signupAction}
       />
     </div>
   );
