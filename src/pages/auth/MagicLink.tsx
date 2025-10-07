@@ -44,12 +44,12 @@ export default function MagicLink() {
           throw new Error(result.error || "Verification failed");
         }
 
-        // Use the OTP token to verify and create session
-        if (result.otpToken && result.tokenHash && result.email) {
+        // Use the recovery token to verify and create session
+        if (result.recoveryToken && result.email) {
           const { error: verifyError } = await supabase.auth.verifyOtp({
             email: result.email,
-            token: result.otpToken,
-            type: 'magiclink',
+            token: result.recoveryToken,
+            type: 'recovery',
           });
 
           if (verifyError) throw verifyError;
