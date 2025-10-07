@@ -164,23 +164,24 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("user_id", userId);
     }
 
-    // Generate a recovery link to get a valid OTP token
+    // Generate a magiclink to get a valid OTP token
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: "recovery",
+      type: "magiclink",
       email: email,
     });
 
     if (linkError || !linkData) {
-      console.error("Error generating recovery link:", linkError);
+      console.error("Error generating magiclink:", linkError);
       throw linkError;
     }
 
-    // Extract the token from the recovery link
+    // Extract the token from the magiclink
     const actionUrl = new URL(linkData.properties.action_link);
-    const recoveryToken = actionUrl.searchParams.get("token");
+    const otpToken = actionUrl.searchParams.get("token");
+    const otpTokenHash = actionUrl.searchParams.get("token_hash");
 
-    if (!recoveryToken) {
-      throw new Error("Failed to extract recovery token from action link");
+    if (!otpToken || !otpTokenHash) {
+      throw new Error("Failed to extract token from action link");
     }
 
     // Log successful verification
@@ -198,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Magic link verified successfully for:", email);
 
-    // Return recovery token for client-side verification
+    // Return magiclink token for client-side verification
     const redirectUrl = magicToken.pledge_context?.redirectUrl || "/dashboard";
 
     return new Response(
@@ -207,8 +208,9 @@ const handler = async (req: Request): Promise<Response> => {
         isNewUser,
         userId,
         email,
-        recoveryToken,
-        type: "recovery",
+        token: otpToken,
+        tokenHash: otpTokenHash,
+        type: "magiclink",
         redirectUrl,
         pledgeContext: magicToken.pledge_context,
       }),
