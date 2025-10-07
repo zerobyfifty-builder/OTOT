@@ -44,34 +44,16 @@ export default function MagicLink() {
           throw new Error(result.error || "Verification failed");
         }
 
-        // Use the magiclink token to verify and create session
-        if (result.token && result.email) {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            email: result.email,
-            token: result.token,
-            type: 'magiclink',
-          });
-
-          if (verifyError) throw verifyError;
-
-          setIsNewUser(result.isNewUser);
+        // Redirect to Supabase auth URL to complete authentication
+        if (result.authUrl) {
           setStatus("success");
-          setMessage(
-            result.isNewUser
-              ? "Welcome! Your account has been created."
-              : "Welcome back! You're now signed in."
-          );
-
-          toast.success(
-            result.isNewUser ? "Account created successfully!" : "Signed in successfully!"
-          );
-
-          // Redirect after a short delay
-          setTimeout(() => {
-            navigate(result.redirectUrl || "/dashboard");
-          }, 1500);
+          setMessage("Redirecting to complete authentication...");
+          
+          // Redirect to Supabase's auth URL which will handle authentication
+          // and redirect back to our app
+          window.location.href = result.authUrl;
         } else {
-          throw new Error("Failed to establish session");
+          throw new Error("Failed to get authentication URL");
         }
       } catch (error: any) {
         console.error("Magic link verification error:", error);

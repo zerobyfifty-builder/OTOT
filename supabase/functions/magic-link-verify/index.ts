@@ -164,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("user_id", userId);
     }
 
-    // Generate a magiclink to get a valid OTP token
+    // Generate a magiclink authentication URL
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email: email,
@@ -175,14 +175,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw linkError;
     }
 
-    // Extract the token from the magiclink
-    const actionUrl = new URL(linkData.properties.action_link);
-    const otpToken = actionUrl.searchParams.get("token");
-    const otpTokenHash = actionUrl.searchParams.get("token_hash");
-
-    if (!otpToken || !otpTokenHash) {
-      throw new Error("Failed to extract token from action link");
-    }
+    // Use the action_link directly for authentication
+    const authUrl = linkData.properties.action_link;
 
     // Log successful verification
     await supabase.from("auth_logs").insert({
@@ -199,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Magic link verified successfully for:", email);
 
-    // Return magiclink token for client-side verification
+    // Return the authentication URL for client-side redirect
     const redirectUrl = magicToken.pledge_context?.redirectUrl || "/dashboard";
 
     return new Response(
@@ -208,9 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
         isNewUser,
         userId,
         email,
-        token: otpToken,
-        tokenHash: otpTokenHash,
-        type: "magiclink",
+        authUrl,
         redirectUrl,
         pledgeContext: magicToken.pledge_context,
       }),
