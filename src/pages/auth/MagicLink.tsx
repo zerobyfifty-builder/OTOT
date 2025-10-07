@@ -44,18 +44,15 @@ export default function MagicLink() {
           throw new Error(result.error || "Verification failed");
         }
 
-        // Use the session URL to authenticate
-        const sessionUrl = new URL(result.sessionUrl);
-        const accessToken = sessionUrl.searchParams.get("access_token");
-        const refreshToken = sessionUrl.searchParams.get("refresh_token");
-
-        if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
+        // Use the OTP token to verify and create session
+        if (result.otpToken && result.tokenHash && result.email) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            email: result.email,
+            token: result.otpToken,
+            type: 'magiclink',
           });
 
-          if (sessionError) throw sessionError;
+          if (verifyError) throw verifyError;
 
           setIsNewUser(result.isNewUser);
           setStatus("success");

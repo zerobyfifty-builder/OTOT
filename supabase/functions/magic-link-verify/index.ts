@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
     const data = encoder.encode(rawToken);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const tokenHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const magicTokenHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     const ipAddress = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: magicToken, error: tokenError } = await supabase
       .from("magic_tokens")
       .select("*")
-      .eq("token_hash", tokenHash)
+      .eq("token_hash", magicTokenHash)
       .is("consumed_at", null)
       .single();
 
@@ -164,15 +164,24 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("user_id", userId);
     }
 
-    // Generate session token
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+    // Generate a magic link and extract the token
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email: email,
     });
 
-    if (sessionError || !sessionData) {
-      console.error("Error generating session:", sessionError);
-      throw sessionError;
+    if (linkError || !linkData) {
+      console.error("Error generating link:", linkError);
+      throw linkError;
+    }
+
+    // Extract the token from the action link
+    const actionUrl = new URL(linkData.properties.action_link);
+    const otpToken = actionUrl.searchParams.get("token");
+    const tokenHash = actionUrl.searchParams.get("token_hash");
+
+    if (!otpToken || !tokenHash) {
+      throw new Error("Failed to extract token from action link");
     }
 
     // Log successful verification
@@ -190,9 +199,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Magic link verified successfully for:", email);
 
-    // Return session info and redirect URL
+    // Return OTP token for client-side verification
     const redirectUrl = magicToken.pledge_context?.redirectUrl || "/dashboard";
-    const appDeepLink = `otot://auth?session=${sessionData.properties.action_link}`;
 
     return new Response(
       JSON.stringify({
@@ -200,9 +208,10 @@ const handler = async (req: Request): Promise<Response> => {
         isNewUser,
         userId,
         email,
-        sessionUrl: sessionData.properties.action_link,
+        otpToken,
+        tokenHash,
+        type: "magiclink",
         redirectUrl,
-        appDeepLink,
         pledgeContext: magicToken.pledge_context,
       }),
       {
