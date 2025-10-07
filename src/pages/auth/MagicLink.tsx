@@ -28,18 +28,12 @@ export default function MagicLink() {
 
       try {
         // Call the edge function to verify the token
-        const { data, error } = await supabase.functions.invoke("magic-link-verify", {
-          body: {},
-          method: "GET",
-        });
-
-        if (error) throw error;
-
         const response = await fetch(
           `${SUPABASE_URL}/functions/v1/magic-link-verify?token=${token}`,
           {
             headers: {
               'apikey': SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
             },
           }
         );
