@@ -282,6 +282,9 @@ export const TreePurchase = () => {
       // Download certificate only after everything succeeded
       downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
 
+      // Unfreeze sidebar after successful payment (Proceed to Payment clicked)
+      sessionStorage.removeItem('carbon_calculator_flow_active');
+      
       // Show success card
       setShowSuccessCard(true);
       

@@ -30,6 +30,12 @@ export default function VerifyEmail() {
           const redirectUrl = sessionStorage.getItem('magic_link_redirect');
           if (redirectUrl) {
             sessionStorage.removeItem('magic_link_redirect');
+            
+            // If redirecting to carbon calculator, set flag to freeze sidebar
+            if (redirectUrl === '/carbon-calculator') {
+              sessionStorage.setItem('carbon_calculator_flow_active', 'true');
+            }
+            
             navigate(redirectUrl);
           } else {
             // Default to dashboard

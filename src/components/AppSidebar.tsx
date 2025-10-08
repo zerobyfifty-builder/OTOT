@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight, Shield, Map, FileText, BarChart3 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,11 +34,21 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpen } = useSidebar();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
   const location = useLocation();
   const collapsed = state === 'collapsed';
+  
+  // Check if carbon calculator flow is active (sidebar should be frozen)
+  const isFlowActive = sessionStorage.getItem('carbon_calculator_flow_active') === 'true';
+  
+  // Force collapse sidebar when flow is active
+  React.useEffect(() => {
+    if (isFlowActive && !collapsed) {
+      setOpen(false);
+    }
+  }, [isFlowActive, collapsed, setOpen]);
 
   const adminItems = [
     { title: 'Admin Dashboard', url: '/admin/dashboard', icon: Shield },
@@ -67,7 +78,10 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={`group/sidebar ${collapsed ? 'w-20' : 'w-64'}`} collapsible="icon">
+    <Sidebar 
+      className={`group/sidebar ${collapsed ? 'w-20' : 'w-64'} ${isFlowActive ? 'pointer-events-none opacity-60' : ''}`} 
+      collapsible="icon"
+    >
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
         <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
@@ -81,8 +95,9 @@ export function AppSidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={toggleSidebar}
+                onClick={isFlowActive ? undefined : toggleSidebar}
                 className="h-8 w-8"
+                disabled={isFlowActive}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -92,8 +107,8 @@ export function AppSidebar() {
           {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
-              className="relative group/logo cursor-pointer w-full flex items-center justify-center"
-              onClick={toggleSidebar}
+              className={`relative group/logo w-full flex items-center justify-center ${isFlowActive ? '' : 'cursor-pointer'}`}
+              onClick={isFlowActive ? undefined : toggleSidebar}
             >
               {/* Tree icon - hidden on hover */}
               <img 
@@ -176,7 +191,8 @@ export function AppSidebar() {
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted transition-colors ${
                 collapsed ? 'justify-center' : 'justify-start'
               }`}
-              onClick={collapsed ? toggleSidebar : undefined}
+              onClick={collapsed && !isFlowActive ? toggleSidebar : undefined}
+              disabled={isFlowActive}
             >
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-primary-foreground">
