@@ -16,16 +16,25 @@ export default function VerifyEmail() {
     const accessToken = hashParams.get('access_token');
     const type = hashParams.get('type');
     
-    // Only handle email verification callbacks, not magic links
-    if (accessToken && type !== 'magiclink') {
-      // User just verified their email via the link
+    // Handle both magic link and email verification callbacks
+    if (accessToken) {
+      // User just verified their email or used magic link
       supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: hashParams.get('refresh_token') || '',
       }).then(({ data, error }) => {
         if (!error && data.session) {
           // Successfully verified and logged in
-          navigate('/dashboard');
+          
+          // Check if there's a stored redirect URL from magic link flow
+          const redirectUrl = sessionStorage.getItem('magic_link_redirect');
+          if (redirectUrl) {
+            sessionStorage.removeItem('magic_link_redirect');
+            navigate(redirectUrl);
+          } else {
+            // Default to dashboard
+            navigate('/dashboard');
+          }
         } else {
           // If there's an error, show login page
           navigate('/auth/login');

@@ -48,6 +48,12 @@ export default function MagicLink() {
         if (result.authUrl) {
           setStatus("success");
           setMessage("Redirecting to complete authentication...");
+          setIsNewUser(result.isNewUser);
+          
+          // Store the redirectUrl for use after authentication completes
+          if (result.redirectUrl) {
+            sessionStorage.setItem('magic_link_redirect', result.redirectUrl);
+          }
           
           // Redirect to Supabase's auth URL which will handle authentication
           // and redirect back to our app
