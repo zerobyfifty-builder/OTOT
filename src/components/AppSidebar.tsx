@@ -111,18 +111,18 @@ export function AppSidebar() {
               onClick={isFlowActive ? undefined : toggleSidebar}
             >
               {/* Tree icon with circular background - hidden on hover */}
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
                 <img 
                   src={ototTreeIcon} 
                   alt="OTOT" 
-                  className="h-10 w-10 object-contain" 
+                  className="h-14 w-14 object-contain" 
                 />
               </div>
               
               {/* Grey box with chevron - shown on hover */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-12 w-12 flex items-center justify-center bg-muted rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <div className="h-16 w-16 flex items-center justify-center bg-muted rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
             </div>
