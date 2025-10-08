@@ -5,16 +5,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plane, Leaf, Globe, ArrowRight } from 'lucide-react';
 import { validateDeepLink } from '@/utils/magicLinkAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { EmailCaptureModal } from '@/components/pledge/EmailCaptureModal';
 import ototLogo from '@/assets/otot-logo.png';
 
 export default function CO2Calculator() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { user } = useAuth();
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [calculatorContext, setCalculatorContext] = useState<any>(null);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
 
   // Handle deep link tokens for QR code/URL campaigns
   useEffect(() => {
@@ -40,33 +40,18 @@ export default function CO2Calculator() {
   }, [searchParams, toast]);
 
   const handleGetStarted = () => {
-    // Pass context if available
-    const state = calculatorContext ? { context: calculatorContext } : undefined;
-    navigate('/carbon-calculator', { state });
+    // Show magic link modal instead of navigating
+    setShowEmailCapture(true);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       {/* Header */}
       <header className="border-b border-border/40 backdrop-blur-sm bg-background/80 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4">
           <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
             <img src={ototLogo} alt="OTOT Logo" className="h-10 w-auto" />
           </a>
-          {user ? (
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
-              My Dashboard
-            </Button>
-          ) : (
-            <div className="flex gap-3">
-              <Button onClick={() => navigate('/auth/login')} variant="ghost">
-                Log In
-              </Button>
-              <Button onClick={() => navigate('/auth/signup')}>
-                Sign Up
-              </Button>
-            </div>
-          )}
         </div>
       </header>
 
@@ -222,6 +207,22 @@ export default function CO2Calculator() {
           </div>
         </div>
       </footer>
+
+      {/* Email Capture Modal */}
+      <EmailCaptureModal
+        open={showEmailCapture}
+        onOpenChange={setShowEmailCapture}
+        pledgeContext={{ 
+          redirectUrl: '/carbon-calculator',
+          campaign: calculatorContext?.campaign || 'carbon_calculator'
+        }}
+        onEmailSubmitted={() => {
+          toast({
+            title: "Check your email!",
+            description: "We've sent you a magic link to access the carbon calculator.",
+          });
+        }}
+      />
     </div>
   );
 }
