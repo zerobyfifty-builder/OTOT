@@ -110,16 +110,18 @@ export function AppSidebar() {
               className={`relative group/logo w-full flex items-center justify-center ${isFlowActive ? '' : 'cursor-pointer'}`}
               onClick={isFlowActive ? undefined : toggleSidebar}
             >
-              {/* Tree icon - hidden on hover */}
-              <img 
-                src={ototTreeIcon} 
-                alt="OTOT" 
-                className="h-10 w-10 rounded-full object-cover group-hover/logo:opacity-0 transition-opacity duration-200" 
-              />
+              {/* Tree icon with circular background - hidden on hover */}
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
+                <img 
+                  src={ototTreeIcon} 
+                  alt="OTOT" 
+                  className="h-10 w-10 object-contain" 
+                />
+              </div>
               
               {/* Grey box with chevron - shown on hover */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-10 w-10 flex items-center justify-center bg-muted rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                <div className="h-12 w-12 flex items-center justify-center bg-muted rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
