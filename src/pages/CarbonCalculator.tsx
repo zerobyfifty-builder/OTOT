@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,6 +7,7 @@ import { format, differenceInDays } from "date-fns";
 import { CalendarIcon, Plane, MapPin, Users, Hotel, Calendar as CalIcon, Minus, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { airports, calculateDistance } from "@/data/airports";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -17,6 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { EmailCaptureModal } from "@/components/pledge/EmailCaptureModal";
 import { cn } from "@/lib/utils";
 
 const flightSchema = z.object({
@@ -98,11 +100,16 @@ const ACCOMMODATION_LABELS = {
 
 export const CarbonCalculator = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'save' | 'plant' | null>(null);
+  const [calculatorContext, setCalculatorContext] = useState<any>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -121,6 +128,33 @@ export const CarbonCalculator = () => {
     control: form.control,
     name: "flights",
   });
+
+  // Handle context from landing page or deep link
+  useEffect(() => {
+    if (location.state?.context) {
+      setCalculatorContext(location.state.context);
+    }
+  }, [location]);
+
+  // Restore calculator data from sessionStorage after magic link login
+  useEffect(() => {
+    const savedCalculator = sessionStorage.getItem('calculator-data');
+    if (savedCalculator && user) {
+      try {
+        const data = JSON.parse(savedCalculator);
+        form.reset(data.formData);
+        setCalculation(data.calculation);
+        sessionStorage.removeItem('calculator-data');
+        
+        toast({
+          title: "Welcome back!",
+          description: "Your calculator data has been restored.",
+        });
+      } catch (error) {
+        console.error('Error restoring calculator data:', error);
+      }
+    }
+  }, [user]);
 
   const calculateEmissions = (data: FormData): CalculationResult => {
     let totalDistance = 0;
@@ -199,19 +233,23 @@ export const CarbonCalculator = () => {
   const onSaveTrip = async () => {
     if (!calculation) return;
     
+    // If not logged in, trigger magic link flow
+    if (!user) {
+      // Save calculator data to sessionStorage
+      const calculatorData = {
+        formData: form.getValues(),
+        calculation,
+      };
+      sessionStorage.setItem('calculator-data', JSON.stringify(calculatorData));
+      
+      setPendingAction('save');
+      setShowEmailCapture(true);
+      return;
+    }
+    
     setIsSaving(true);
     try {
       const data = form.getValues();
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to save your trip.",
-          variant: "destructive",
-        });
-        return;
-      }
 
       // Map form values to database enum values
       const travelClassMap: Record<FormData['travelClass'], 'Economy' | 'Premium Economy' | 'Business' | 'First'> = {
@@ -230,7 +268,7 @@ export const CarbonCalculator = () => {
       };
 
       const { error } = await supabase.from("trips").insert([{
-        user_id: userData.user.id,
+        user_id: user.id,
         origin_airport: data.flights[0]?.originAirport || "",
         destination_airport: data.flights[0]?.destinationAirport || "",
         travel_class: travelClassMap[data.travelClass],
@@ -269,19 +307,23 @@ export const CarbonCalculator = () => {
   const onPlantTrees = async () => {
     if (!calculation) return;
     
+    // If not logged in, trigger magic link flow
+    if (!user) {
+      // Save calculator data to sessionStorage
+      const calculatorData = {
+        formData: form.getValues(),
+        calculation,
+      };
+      sessionStorage.setItem('calculator-data', JSON.stringify(calculatorData));
+      
+      setPendingAction('plant');
+      setShowEmailCapture(true);
+      return;
+    }
+    
     setIsSaving(true);
     try {
       const data = form.getValues();
-      const { data: userData } = await supabase.auth.getUser();
-      
-      if (!userData.user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to plant trees.",
-          variant: "destructive",
-        });
-        return;
-      }
 
       // Map form values to database enum values
       const travelClassMap: Record<FormData['travelClass'], 'Economy' | 'Premium Economy' | 'Business' | 'First'> = {
@@ -301,7 +343,7 @@ export const CarbonCalculator = () => {
 
       // First, save the trip to get the trip_id
       const { data: tripData, error: tripError } = await supabase.from("trips").insert([{
-        user_id: userData.user.id,
+        user_id: user.id,
         origin_airport: data.flights?.[0]?.originAirport || "",
         destination_airport: data.flights?.[0]?.destinationAirport || "",
         travel_class: travelClassMap[data.travelClass],
@@ -822,6 +864,15 @@ export const CarbonCalculator = () => {
           </div>
         )}
       </div>
+
+      {/* Email Capture Modal for Magic Link Flow */}
+      <EmailCaptureModal
+        open={showEmailCapture}
+        onOpenChange={setShowEmailCapture}
+        pledgeContext={{
+          redirectUrl: '/carbon-calculator',
+        }}
+      />
     </div>
   );
 };
