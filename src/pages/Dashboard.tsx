@@ -3,8 +3,11 @@ import { Button } from '@/components/ui/button';
 import { 
   TreePine, 
   Plane, 
-  BarChart3
+  BarChart3,
+  Download,
+  Sprout
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
 import { RecentContributions } from '@/components/dashboard/RecentContributions';
@@ -19,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Extract user's first name from email or use a default
   const getUserName = () => {
@@ -77,9 +81,31 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="relative z-10">
-            <h2 className="text-4xl font-bold mb-10 text-center text-foreground">
-              Take Action Today
-            </h2>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10 gap-6">
+              <h2 className="text-4xl font-bold text-foreground">
+                Take Action Today
+              </h2>
+              <div className="flex flex-wrap gap-4">
+                <Button
+                  size="lg"
+                  variant="default"
+                  className="flex items-center gap-2 text-base px-6 py-6"
+                  onClick={() => navigate('/certificates')}
+                >
+                  <Download className="h-5 w-5" />
+                  Download Pledge Certificate
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="flex items-center gap-2 text-base px-6 py-6"
+                  onClick={() => navigate('/tree-purchase')}
+                >
+                  <Sprout className="h-5 w-5" />
+                  Plant Trees
+                </Button>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
               <StatsCard
                 icon={TreePine}

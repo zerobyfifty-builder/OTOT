@@ -14,14 +14,22 @@ export default function VerifyEmail() {
     // Check for auth hash in URL (email verification callback)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
     
-    if (accessToken) {
+    // Only handle email verification callbacks, not magic links
+    if (accessToken && type !== 'magiclink') {
       // User just verified their email via the link
       supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: hashParams.get('refresh_token') || '',
-      }).then(() => {
-        navigate('/dashboard');
+      }).then(({ data, error }) => {
+        if (!error && data.session) {
+          // Successfully verified and logged in
+          navigate('/dashboard');
+        } else {
+          // If there's an error, show login page
+          navigate('/auth/login');
+        }
       });
       return;
     }
