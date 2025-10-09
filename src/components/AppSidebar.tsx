@@ -148,7 +148,7 @@ export function AppSidebar() {
                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                            isActive
                              ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary'
+                             : 'text-white hover:bg-sidebar-accent hover:text-sidebar-primary'
                          }`
                        }
                      >
@@ -175,7 +175,7 @@ export function AppSidebar() {
                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                            isActive
                              ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
-                             : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary'
+                             : 'text-white hover:bg-sidebar-accent hover:text-sidebar-primary'
                          }`
                        }
                      >
