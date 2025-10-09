@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import ototTreeIcon from '@/assets/otot-tree-icon.png';
+import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -93,7 +93,6 @@ export function AppSidebar() {
                   src={ototTreeIcon} 
                   alt="OTOT" 
                   className="h-10 w-10"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(71%) sepia(13%) saturate(1453%) hue-rotate(91deg) brightness(95%) contrast(90%)' }}
                 />
                 <span className="text-xl font-bold text-sidebar-foreground">OTOT</span>
               </div>
@@ -112,22 +111,21 @@ export function AppSidebar() {
           {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
-              className={`relative group/logo w-full flex items-center justify-center ${isFlowActive ? '' : 'cursor-pointer'}`}
+              className={`relative group/logo w-full flex items-center justify-center py-2 ${isFlowActive ? '' : 'cursor-pointer'}`}
               onClick={isFlowActive ? undefined : toggleSidebar}
             >
               {/* Tree icon with circular background - hidden on hover */}
-              <div className="h-16 w-16 rounded-full bg-sidebar-primary/20 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
+              <div className="h-14 w-14 rounded-full bg-sidebar-primary flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
                 <img 
                   src={ototTreeIcon} 
                   alt="OTOT" 
-                  className="h-14 w-14 object-contain"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(71%) sepia(13%) saturate(1453%) hue-rotate(91deg) brightness(95%) contrast(90%)' }}
+                  className="h-12 w-12 object-contain"
                 />
               </div>
               
               {/* Grey box with chevron - shown on hover */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-16 w-16 flex items-center justify-center bg-sidebar-accent rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                <div className="h-14 w-14 flex items-center justify-center bg-sidebar-accent rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
                   <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
                 </div>
               </div>
