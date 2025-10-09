@@ -29,11 +29,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   onClick,
   colorVariant = 'green'
 }) => {
-  const bgColorClass = {
-    green: 'bg-card-light-green',
-    lavender: 'bg-card-light-lavender',
-    beige: 'bg-card-light-beige'
-  }[colorVariant];
+  const bgColorClass = 'bg-white';
 
   const content = (
     <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${bgColorClass} border-none`}>
