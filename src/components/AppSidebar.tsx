@@ -111,22 +111,20 @@ export function AppSidebar() {
           {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
-              className={`relative group/logo w-full flex items-center justify-center py-3 ${isFlowActive ? '' : 'cursor-pointer'}`}
+              className={`relative group/logo w-full flex items-center justify-center py-4 ${isFlowActive ? '' : 'cursor-pointer'}`}
               onClick={isFlowActive ? undefined : toggleSidebar}
             >
-              {/* Tree icon with background - hidden on hover */}
-              <div className="w-full px-3 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
-                <div className="h-16 w-16 rounded-xl bg-sidebar-primary flex items-center justify-center">
-                  <img 
-                    src={ototTreeIcon} 
-                    alt="OTOT" 
-                    className="h-14 w-14 object-contain"
-                  />
-                </div>
+              {/* Tree icon - hidden on hover */}
+              <div className="group-hover/logo:opacity-0 transition-opacity duration-200">
+                <img 
+                  src={ototTreeIcon} 
+                  alt="OTOT" 
+                  className="h-16 w-16 object-contain"
+                />
               </div>
               
               {/* Grey box with chevron - shown on hover */}
-              <div className="absolute inset-0 flex items-center justify-center px-3">
+              <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-16 w-16 flex items-center justify-center bg-sidebar-accent rounded-xl opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
                   <ChevronRight className="h-6 w-6 text-sidebar-foreground" />
                 </div>
