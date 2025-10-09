@@ -5,9 +5,10 @@ interface LogoProps {
   size?: "sm" | "md" | "lg";
   showText?: boolean;
   iconOnly?: boolean;
+  variant?: "default" | "sidebar";
 }
 
-export const Logo = ({ size = "md", showText = true, iconOnly = false }: LogoProps) => {
+export const Logo = ({ size = "md", showText = true, iconOnly = false, variant = "default" }: LogoProps) => {
   const sizeClasses = {
     sm: { container: "h-10 w-10", text: "text-lg" },
     md: { container: "h-12", text: "text-2xl" },
@@ -17,6 +18,17 @@ export const Logo = ({ size = "md", showText = true, iconOnly = false }: LogoPro
   const classes = sizeClasses[size];
 
   if (iconOnly) {
+    // Green tree icon for sidebar (visible on black background)
+    if (variant === "sidebar") {
+      return (
+        <img 
+          src={ototTreeIcon} 
+          alt="OTOT" 
+          className={`${classes.container}`}
+          style={{ filter: 'brightness(0) saturate(100%) invert(71%) sepia(13%) saturate(1453%) hue-rotate(91deg) brightness(95%) contrast(90%)' }}
+        />
+      );
+    }
     return (
       <img src={ototTreeIcon} alt="OTOT" className={`${classes.container} brightness-0 invert`} />
     );

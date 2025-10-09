@@ -54,19 +54,24 @@ All colors MUST be HSL.
     /* Featured section background */
     --featured-background: 210 20% 92%;
 
+    /* Calendar/Card color blocks from design */
+    --card-light-green: 142 55% 85%;
+    --card-light-lavender: 235 35% 88%;
+    --card-light-beige: 30 40% 92%;
+
     /* Navigation tokens */
     --nav-background: 0 0% 9%;
     --nav-foreground: 0 0% 100%;
 
-    /* Sidebar tokens */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 142 70% 70%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 98%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 142 70% 70%;
+    /* Sidebar tokens - BLACK BACKGROUND */
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 142 60% 55%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 142 60% 55%;
   }
 
   .dark {
@@ -107,17 +112,23 @@ All colors MUST be HSL.
 
     --featured-background: 217 20% 20%;
 
+    /* Calendar/Card color blocks - darker for dark mode */
+    --card-light-green: 142 45% 30%;
+    --card-light-lavender: 235 25% 35%;
+    --card-light-beige: 30 30% 28%;
+
     --nav-background: 0 0% 5%;
     --nav-foreground: 210 40% 98%;
 
-    --sidebar-background: 217 32% 12%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 142 70% 70%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 32% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 32% 27%;
-    --sidebar-ring: 142 70% 70%;
+    /* Sidebar tokens - BLACK BACKGROUND */
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 142 60% 55%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 142 60% 55%;
   }
 }
 

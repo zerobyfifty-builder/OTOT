@@ -14,6 +14,7 @@ interface StatsCardProps {
   buttonVariant?: 'default' | 'outline';
   href?: string;
   onClick?: () => void;
+  colorVariant?: 'green' | 'lavender' | 'beige';
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -25,10 +26,17 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   buttonText,
   buttonVariant = 'default',
   href,
-  onClick
+  onClick,
+  colorVariant = 'green'
 }) => {
+  const bgColorClass = {
+    green: 'bg-card-light-green',
+    lavender: 'bg-card-light-lavender',
+    beige: 'bg-card-light-beige'
+  }[colorVariant];
+
   const content = (
-    <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card border-border/50">
+    <Card className={`h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${bgColorClass} border-none`}>
       <CardContent className="p-8 space-y-6 flex flex-col h-full">
         {/* Icon and text header */}
         <div className="flex items-start gap-4">

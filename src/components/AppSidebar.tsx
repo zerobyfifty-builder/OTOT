@@ -84,19 +84,24 @@ export function AppSidebar() {
     >
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
-        <div className={`p-4 border-b flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`p-4 border-b border-sidebar-border flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           {/* Expanded state: icon + text */}
           {!collapsed && (
             <>
               <div className="flex items-center gap-2">
-                <img src={ototTreeIcon} alt="OTOT" className="h-10 w-10" />
-                <span className="text-xl font-bold text-foreground">OTOT</span>
+                <img 
+                  src={ototTreeIcon} 
+                  alt="OTOT" 
+                  className="h-10 w-10"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(71%) sepia(13%) saturate(1453%) hue-rotate(91deg) brightness(95%) contrast(90%)' }}
+                />
+                <span className="text-xl font-bold text-sidebar-foreground">OTOT</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={isFlowActive ? undefined : toggleSidebar}
-                className="h-8 w-8"
+                className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
                 disabled={isFlowActive}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -111,18 +116,19 @@ export function AppSidebar() {
               onClick={isFlowActive ? undefined : toggleSidebar}
             >
               {/* Tree icon with circular background - hidden on hover */}
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
+              <div className="h-16 w-16 rounded-full bg-sidebar-primary/20 flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
                 <img 
                   src={ototTreeIcon} 
                   alt="OTOT" 
-                  className="h-14 w-14 object-contain" 
+                  className="h-14 w-14 object-contain"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(71%) sepia(13%) saturate(1453%) hue-rotate(91deg) brightness(95%) contrast(90%)' }}
                 />
               </div>
               
               {/* Grey box with chevron - shown on hover */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-16 w-16 flex items-center justify-center bg-muted rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <div className="h-16 w-16 flex items-center justify-center bg-sidebar-accent rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                  <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
                 </div>
               </div>
             </div>
@@ -136,19 +142,19 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground font-medium'
-                            : 'hover:bg-muted text-foreground'
-                        }`
-                      }
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
+                     <NavLink
+                       to={item.url}
+                       className={({ isActive }) =>
+                         `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                           isActive
+                             ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
+                             : 'hover:bg-sidebar-accent text-sidebar-foreground'
+                         }`
+                       }
+                     >
+                       <item.icon className="h-5 w-5 flex-shrink-0" />
+                       {!collapsed && <span>{item.title}</span>}
+                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
             ))}
@@ -163,19 +169,19 @@ export function AppSidebar() {
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground font-medium'
-                            : 'hover:bg-muted text-foreground'
-                        }`
-                      }
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
+                     <NavLink
+                       to={item.url}
+                       className={({ isActive }) =>
+                         `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                           isActive
+                             ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
+                             : 'hover:bg-sidebar-accent text-sidebar-foreground'
+                         }`
+                       }
+                     >
+                       <item.icon className="h-5 w-5 flex-shrink-0" />
+                       {!collapsed && <span>{item.title}</span>}
+                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -188,31 +194,31 @@ export function AppSidebar() {
       {/* User Profile Footer */}
       <SidebarFooter>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted transition-colors ${
-                collapsed ? 'justify-center' : 'justify-start'
-              }`}
-              onClick={collapsed && !isFlowActive ? toggleSidebar : undefined}
-              disabled={isFlowActive}
-            >
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
-              {!collapsed && (
-                <div className="flex flex-col items-start overflow-hidden text-left">
-                  <span className="text-sm font-medium truncate w-full">
-                    {getUserDisplayName()}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate w-full">
-                    {user?.email}
-                  </span>
-                </div>
-              )}
-            </button>
-          </DropdownMenuTrigger>
+           <DropdownMenuTrigger asChild>
+             <button
+               className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-sidebar-accent transition-colors ${
+                 collapsed ? 'justify-center' : 'justify-start'
+               }`}
+               onClick={collapsed && !isFlowActive ? toggleSidebar : undefined}
+               disabled={isFlowActive}
+             >
+               <Avatar className="h-8 w-8 flex-shrink-0">
+                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+                   {getUserInitials()}
+                 </AvatarFallback>
+               </Avatar>
+               {!collapsed && (
+                 <div className="flex flex-col items-start overflow-hidden text-left">
+                   <span className="text-sm font-medium truncate w-full text-sidebar-foreground">
+                     {getUserDisplayName()}
+                   </span>
+                   <span className="text-xs text-sidebar-foreground/70 truncate w-full">
+                     {user?.email}
+                   </span>
+                 </div>
+               )}
+             </button>
+           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{getUserDisplayName()}</p>

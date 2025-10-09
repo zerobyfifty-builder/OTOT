@@ -116,6 +116,7 @@ export const Dashboard: React.FC = () => {
                 buttonText="Plant a Tree"
                 buttonVariant="default"
                 href="/carbon-calculator"
+                colorVariant="green"
               />
               
               <StatsCard
@@ -127,6 +128,7 @@ export const Dashboard: React.FC = () => {
                 buttonText="Add a Trip"
                 buttonVariant="outline"
                 href="/carbon-calculator"
+                colorVariant="lavender"
               />
               
               <StatsCard
@@ -138,6 +140,7 @@ export const Dashboard: React.FC = () => {
                 buttonText="View Details"
                 buttonVariant="default"
                 href="/my-trips"
+                colorVariant="beige"
               />
             </div>
           </div>

@@ -61,6 +61,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "card-light-green": "hsl(var(--card-light-green))",
+        "card-light-lavender": "hsl(var(--card-light-lavender))",
+        "card-light-beige": "hsl(var(--card-light-beige))",
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
