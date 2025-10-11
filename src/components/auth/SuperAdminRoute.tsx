@@ -29,7 +29,7 @@ export const SuperAdminRoute: React.FC<SuperAdminRouteProps> = ({ children }) =>
             roles!inner(name)
           `)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
