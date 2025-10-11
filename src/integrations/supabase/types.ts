@@ -14,6 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          organization_id: string | null
+          resource_id: string | null
+          resource_type: string | null
+          session_id: string | null
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          session_id?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          session_id?: string | null
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_keys: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_hash: string
+          key_name: string
+          key_prefix: string
+          last_used: string | null
+          organization_id: string
+          rate_limit: number | null
+          scopes: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash: string
+          key_name: string
+          key_prefix: string
+          last_used?: string | null
+          organization_id: string
+          rate_limit?: number | null
+          scopes?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash?: string
+          key_name?: string
+          key_prefix?: string
+          last_used?: string | null
+          organization_id?: string
+          rate_limit?: number | null
+          scopes?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auth_logs: {
         Row: {
           created_at: string
@@ -100,6 +209,63 @@ export type Database = {
           token_hash?: string
         }
         Relationships: []
+      }
+      integration_logs: {
+        Row: {
+          api_key_id: string | null
+          duration_ms: number | null
+          endpoint: string
+          id: string
+          ip_address: unknown | null
+          method: string
+          organization_id: string
+          request_body: Json | null
+          response_body: Json | null
+          status_code: number
+          timestamp: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          duration_ms?: number | null
+          endpoint: string
+          id?: string
+          ip_address?: unknown | null
+          method: string
+          organization_id: string
+          request_body?: Json | null
+          response_body?: Json | null
+          status_code: number
+          timestamp?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          duration_ms?: number | null
+          endpoint?: string
+          id?: string
+          ip_address?: unknown | null
+          method?: string
+          organization_id?: string
+          request_body?: Json | null
+          response_body?: Json | null
+          status_code?: number
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lodge_sessions: {
         Row: {
@@ -214,6 +380,332 @@ export type Database = {
         }
         Relationships: []
       }
+      module_permissions: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          id: string
+          module_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_permissions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modules: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          display_name: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_module_id: string | null
+          route: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_module_id?: string | null
+          route?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_module_id?: string | null
+          route?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_parent_module_id_fkey"
+            columns: ["parent_module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_modules: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          module_id: string
+          organization_id: string
+          permissions: Json | null
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id: string
+          organization_id: string
+          permissions?: Json | null
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string
+          organization_id?: string
+          permissions?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_modules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: Json | null
+          api_key_hash: string | null
+          api_webhook_url: string | null
+          bank_account: Json | null
+          category: string
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          has_api_access: boolean | null
+          id: string
+          is_active: boolean | null
+          legal_name: string | null
+          logo_url: string | null
+          metadata: Json | null
+          name: string
+          onboarded_by: string | null
+          onboarded_date: string | null
+          partner_type_id: string | null
+          payment_terms: string | null
+          tax_id: string | null
+          updated_at: string | null
+          verified: boolean | null
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          api_key_hash?: string | null
+          api_webhook_url?: string | null
+          bank_account?: Json | null
+          category: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          has_api_access?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name: string
+          onboarded_by?: string | null
+          onboarded_date?: string | null
+          partner_type_id?: string | null
+          payment_terms?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          api_key_hash?: string | null
+          api_webhook_url?: string | null
+          bank_account?: Json | null
+          category?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          has_api_access?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name?: string
+          onboarded_by?: string | null
+          onboarded_date?: string | null
+          partner_type_id?: string | null
+          payment_terms?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_partner_type_id_fkey"
+            columns: ["partner_type_id"]
+            isOneToOne: false
+            referencedRelation: "partner_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_transactions: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          invoice_url: string | null
+          notes: string | null
+          organization_id: string
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string
+          receipt_url: string | null
+          related_tree_id: string | null
+          related_trip_id: string | null
+          related_user_id: string | null
+          requested_at: string | null
+          requested_by: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_url?: string | null
+          notes?: string | null
+          organization_id: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          receipt_url?: string | null
+          related_tree_id?: string | null
+          related_trip_id?: string | null
+          related_user_id?: string | null
+          requested_at?: string | null
+          requested_by: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          invoice_url?: string | null
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          receipt_url?: string | null
+          related_tree_id?: string | null
+          related_trip_id?: string | null
+          related_user_id?: string | null
+          requested_at?: string | null
+          requested_by?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          default_modules: Json | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_api: boolean | null
+          transaction_enabled: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          default_modules?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_api?: boolean | null
+          transaction_enabled?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          default_modules?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_api?: boolean | null
+          transaction_enabled?: boolean | null
+        }
+        Relationships: []
+      }
       reimbursements: {
         Row: {
           amount: number
@@ -260,6 +752,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      roles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          name: string
+          role_category: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          name: string
+          role_category: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          name?: string
+          role_category?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       trees: {
         Row: {
@@ -446,10 +968,12 @@ export type Database = {
           email_verified: boolean | null
           id: string
           last_login_at: string | null
+          organization_id: string | null
           otot_id: string | null
           password_hash: string | null
           pledge_date: string | null
           pledge_status: boolean
+          role_id: string | null
           total_donation: number
           updated_at: string
           user_id: string
@@ -461,10 +985,12 @@ export type Database = {
           email_verified?: boolean | null
           id?: string
           last_login_at?: string | null
+          organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
+          role_id?: string | null
           total_donation?: number
           updated_at?: string
           user_id: string
@@ -476,15 +1002,32 @@ export type Database = {
           email_verified?: boolean | null
           id?: string
           last_login_at?: string | null
+          organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
+          role_id?: string | null
           total_donation?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -495,6 +1038,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_user_organization: {
+        Args: { user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -504,6 +1051,10 @@ export type Database = {
       }
       is_lodge_session_valid: {
         Args: { _lodge_id: string; _session_token: string }
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: { user_id: string }
         Returns: boolean
       }
     }
