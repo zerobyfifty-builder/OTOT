@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
 import { LodgeRoute } from "@/components/auth/LodgeRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -27,6 +28,8 @@ import { MyTrips } from "@/pages/MyTrips";
 import { MyTrees } from "@/pages/MyTrees";
 import { MyImpact } from "@/pages/MyImpact";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import GodModeOverview from "@/pages/admin/GodModeOverview";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
 import Reimbursements from "@/pages/admin/Reimbursements";
@@ -45,6 +48,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <AppSidebar />
       <main className="flex-1 overflow-auto bg-background">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
+const AdminLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <AdminSidebar />
+      <main className="flex-1 overflow-auto bg-admin-cream">
         {children}
       </main>
     </div>
@@ -132,7 +146,16 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Admin routes */}
+            {/* God Mode Admin routes */}
+            <Route path="/admin" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <GodModeOverview />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
               <AdminRoute>
                 <DashboardLayout>

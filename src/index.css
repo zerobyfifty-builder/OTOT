@@ -72,6 +72,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 20%;
     --sidebar-ring: 142 60% 55%;
+
+    /* Admin Dashboard - Humboldt Foundation Aesthetic */
+    --admin-primary: 138 70% 22%;      /* Deep forest green #1a5d1a */
+    --admin-cream: 40 40% 98%;         /* Cream background #faf8f5 */
+    --admin-accent: 15 65% 57%;        /* Terracotta #d4704b */
+    --admin-muted: 40 20% 90%;         /* Light cream for cards */
   }
 
   .dark {

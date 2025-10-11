@@ -64,6 +64,12 @@ export default {
         "card-light-green": "hsl(var(--card-light-green))",
         "card-light-lavender": "hsl(var(--card-light-lavender))",
         "card-light-beige": "hsl(var(--card-light-beige))",
+        admin: {
+          primary: "hsl(var(--admin-primary))",
+          cream: "hsl(var(--admin-cream))",
+          accent: "hsl(var(--admin-accent))",
+          muted: "hsl(var(--admin-muted))",
+        },
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
