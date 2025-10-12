@@ -38,6 +38,8 @@ import Users from "@/pages/admin/Users";
 import AllPartners from "@/pages/admin/AllPartners";
 import AccessControlRoles from "@/pages/admin/AccessControlRoles";
 import AccessControlModules from "@/pages/admin/AccessControlModules";
+import FinancialTransactions from "@/pages/admin/FinancialTransactions";
+import TreesAll from "@/pages/admin/TreesAll";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
@@ -223,6 +225,24 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <AccessControlModules />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Financial routes */}
+            <Route path="/admin/financial/transactions" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <FinancialTransactions />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Trees routes */}
+            <Route path="/admin/trees" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <TreesAll />
                 </AdminLayout>
               </SuperAdminRoute>
             } />

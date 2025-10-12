@@ -17,16 +17,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -37,61 +27,65 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
-interface User {
+interface Tree {
   id: string;
   user_id: string;
-  email: string;
+  otot_id: string;
+  num_trees: number;
+  tree_type: string | null;
+  status: "Waiting to be Assigned" | "Assigned" | "Sapling Planted" | "Being Mapped" | "Planted";
+  plant_date: string | null;
+  location_name: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  amount_paid: number;
   created_at: string;
-  pledge_status: boolean;
-  total_donation: number;
-  roles?: {
+  users?: {
+    email: string;
+  };
+  lodges?: {
     name: string;
-    display_name: string;
   };
 }
 
-export default function Users() {
-  const [users, setUsers] = useState<User[]>([]);
+export default function TreesAll() {
+  const [trees, setTrees] = useState<Tree[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
-    fetchUsers();
-  }, [currentPage, pageSize, searchTerm, roleFilter]);
+    fetchTrees();
+  }, [currentPage, pageSize, searchTerm, statusFilter]);
 
-  const fetchUsers = async () => {
+  const fetchTrees = async () => {
     setLoading(true);
     try {
       let query = supabase
-        .from("users")
+        .from("trees")
         .select(
           `
-          id,
-          user_id,
-          email,
-          created_at,
-          pledge_status,
-          total_donation,
-          roles!inner(name, display_name)
+          *,
+          users(email),
+          lodges(name)
         `,
           { count: "exact" }
         );
 
       if (searchTerm) {
-        query = query.ilike("email", `%${searchTerm}%`);
+        query = query.or(
+          `otot_id.ilike.%${searchTerm}%,location_name.ilike.%${searchTerm}%,tree_type.ilike.%${searchTerm}%`
+        );
       }
 
-      if (roleFilter && roleFilter !== "all") {
-        query = query.eq("roles.name", roleFilter);
+      if (statusFilter && statusFilter !== "all") {
+        query = query.eq("status", statusFilter as any);
       }
 
       const { data, error, count } = await query
@@ -100,79 +94,87 @@ export default function Users() {
 
       if (error) throw error;
 
-      setUsers(data || []);
+      setTrees(data as any || []);
       setTotalCount(count || 0);
     } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
+      console.error("Error fetching trees:", error);
+      toast.error("Failed to fetch trees");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
-
-    setDeleting(true);
-    try {
-      // Call edge function to delete user (requires super admin privileges)
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `https://iezhssfzbiwnofhpjahv.supabase.co/functions/v1/delete-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: userToDelete.user_id }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete user');
-      }
-
-      toast.success("User and all related data deleted successfully");
-      setUserToDelete(null);
-      fetchUsers();
-    } catch (error: any) {
-      console.error("Error deleting user:", error);
-      toast.error(error.message || "Failed to delete user");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "super_admin":
-        return "destructive";
-      case "institutional_partner":
-      case "business_partner":
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "Planted":
         return "default";
+      case "Growing":
+        return "secondary";
+      case "Mature":
+        return "outline";
       default:
         return "secondary";
     }
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
+  const totalTreesCount = trees.reduce((sum, t) => sum + t.num_trees, 0);
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-admin-primary">All Users</h1>
+          <h1 className="text-3xl font-bold text-admin-primary">All Trees</h1>
           <p className="text-muted-foreground mt-1">
-            Manage all users across the platform
+            Manage and monitor all planted trees
           </p>
         </div>
-        <Button onClick={fetchUsers} variant="outline" size="icon">
+        <Button onClick={fetchTrees} variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
         </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">
+              Total Tree Records
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Total Trees</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalTreesCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Planted</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {trees.filter((t) => t.status === "Planted").length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">
+              Waiting Assignment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {trees.filter((t) => t.status === "Waiting to be Assigned").length}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -181,7 +183,7 @@ export default function Users() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by email..."
+                placeholder="Search by email, OTOT ID, location, or type..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -191,23 +193,24 @@ export default function Users() {
               />
             </div>
             <Select
-              value={roleFilter}
+              value={statusFilter}
               onValueChange={(value) => {
-                setRoleFilter(value);
+                setStatusFilter(value);
                 setCurrentPage(1);
               }}
             >
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by role" />
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="tourist">Tourists</SelectItem>
-                <SelectItem value="business_partner">Business Partners</SelectItem>
-                <SelectItem value="institutional_partner">
-                  Institutional Partners
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Waiting to be Assigned">
+                  Waiting Assignment
                 </SelectItem>
-                <SelectItem value="super_admin">Super Admins</SelectItem>
+                <SelectItem value="Assigned">Assigned</SelectItem>
+                <SelectItem value="Planted">Planted</SelectItem>
+                <SelectItem value="Growing">Growing</SelectItem>
+                <SelectItem value="Mature">Mature</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -221,7 +224,6 @@ export default function Users() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
                 <SelectItem value="25">25 / page</SelectItem>
                 <SelectItem value="50">50 / page</SelectItem>
                 <SelectItem value="100">100 / page</SelectItem>
@@ -234,9 +236,9 @@ export default function Users() {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary"></div>
             </div>
-          ) : users.length === 0 ? (
+          ) : trees.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              No users found.
+              No trees found.
             </div>
           ) : (
             <>
@@ -244,43 +246,51 @@ export default function Users() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Pledge Status</TableHead>
-                      <TableHead>Total Donation</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>OTOT ID</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Trees</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Lodge</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Plant Date</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
+                    {trees.map((tree) => (
+                      <TableRow key={tree.id}>
+                        <TableCell className="font-mono text-sm">
+                          {tree.otot_id}
+                        </TableCell>
                         <TableCell className="font-medium">
-                          {user.email}
+                          {tree.users?.email}
                         </TableCell>
+                        <TableCell>{tree.num_trees}</TableCell>
+                        <TableCell>{tree.tree_type || "N/A"}</TableCell>
                         <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.roles?.name || "")}>
-                            {user.roles?.display_name || "Unknown"}
+                          <Badge variant={getStatusBadgeVariant(tree.status)}>
+                            {tree.status}
                           </Badge>
                         </TableCell>
+                        <TableCell>{tree.lodges?.name || "N/A"}</TableCell>
                         <TableCell>
-                          <Badge variant={user.pledge_status ? "default" : "secondary"}>
-                            {user.pledge_status ? "Pledged" : "No Pledge"}
-                          </Badge>
+                          {tree.location_name ? (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {tree.location_name}
+                            </div>
+                          ) : (
+                            "N/A"
+                          )}
                         </TableCell>
-                        <TableCell>${user.total_donation.toFixed(2)}</TableCell>
                         <TableCell>
-                          {new Date(user.created_at).toLocaleDateString()}
+                          {tree.plant_date
+                            ? new Date(tree.plant_date).toLocaleDateString()
+                            : "Not planted"}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setUserToDelete(user)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <TableCell className="text-right font-medium">
+                          ${Number(tree.amount_paid).toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -292,7 +302,7 @@ export default function Users() {
                 <p className="text-sm text-muted-foreground">
                   Showing {(currentPage - 1) * pageSize + 1} to{" "}
                   {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
-                  users
+                  trees
                 </p>
                 {totalPages > 1 && (
                   <Pagination>
@@ -345,38 +355,6 @@ export default function Users() {
           )}
         </CardContent>
       </Card>
-
-      <AlertDialog
-        open={!!userToDelete}
-        onOpenChange={() => setUserToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the user <strong>{userToDelete?.email}</strong> and
-              all their associated data including:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>All trips</li>
-                <li>All trees</li>
-                <li>All transactions</li>
-                <li>All certificates</li>
-              </ul>
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteUser}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Deleting..." : "Delete User"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
