@@ -34,6 +34,10 @@ import CreatePartner from "@/pages/admin/CreatePartner";
 import Partners from "@/pages/admin/Partners";
 import PartnersInstitutional from "@/pages/admin/PartnersInstitutional";
 import PartnersBusiness from "@/pages/admin/PartnersBusiness";
+import Users from "@/pages/admin/Users";
+import AllPartners from "@/pages/admin/AllPartners";
+import AccessControlRoles from "@/pages/admin/AccessControlRoles";
+import AccessControlModules from "@/pages/admin/AccessControlModules";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
@@ -167,10 +171,21 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            
+            {/* Users routes */}
+            <Route path="/admin/users" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <Users />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Partners routes */}
             <Route path="/admin/partners" element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <Partners />
+                  <AllPartners />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
@@ -192,6 +207,22 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <CreatePartner />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Access Control routes */}
+            <Route path="/admin/access/roles" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AccessControlRoles />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/access/modules" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AccessControlModules />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
