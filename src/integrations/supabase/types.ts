@@ -1061,6 +1061,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      users_in_same_org: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       accommodation_type:
