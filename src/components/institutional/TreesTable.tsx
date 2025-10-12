@@ -3,9 +3,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, ArrowUpDown, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { formatNumber } from "@/lib/utils";
 
 interface Tree {
   id: string;
@@ -166,53 +167,77 @@ export const TreesTable = ({ trees, isLoading }: TreesTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("user_email")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("user_email")}
+              >
+                <div className="flex items-center gap-2">
                   Tourist
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("tree_type")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("tree_type")}
+              >
+                <div className="flex items-center gap-2">
                   Tree Type
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("num_trees")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("num_trees")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Quantity
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("status")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-2">
                   Status
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("plant_date")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("plant_date")}
+              >
+                <div className="flex items-center gap-2">
                   Plant Date
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("location_name")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("location_name")}
+              >
+                <div className="flex items-center gap-2">
                   Location
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("amount_paid")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("amount_paid")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Amount
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("created_at")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("created_at")}
+              >
+                <div className="flex items-center gap-2">
                   Created
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -232,7 +257,7 @@ export const TreesTable = ({ trees, isLoading }: TreesTableProps) => {
                     {tree.plant_date ? format(new Date(tree.plant_date), "MMM d, yyyy") : "—"}
                   </TableCell>
                   <TableCell>{tree.location_name || "—"}</TableCell>
-                  <TableCell className="text-right">${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${formatNumber(Number(tree.amount_paid))}</TableCell>
                   <TableCell>{format(new Date(tree.created_at), "MMM d, yyyy")}</TableCell>
                 </TableRow>
               ))

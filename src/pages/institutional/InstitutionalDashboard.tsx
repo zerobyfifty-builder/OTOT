@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { TripsTable } from "@/components/institutional/TripsTable";
 import { TreesTable } from "@/components/institutional/TreesTable";
+import { formatNumber } from "@/lib/utils";
 
 export const InstitutionalDashboard = () => {
   const { user, signOut } = useAuth();
@@ -254,7 +255,7 @@ export const InstitutionalDashboard = () => {
               ) : (
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  <span className="text-3xl font-bold">{stats?.totalCO2Offset?.toFixed(0) || 0}</span>
+                  <span className="text-3xl font-bold">{formatNumber(stats?.totalCO2Offset || 0)}</span>
                 </div>
               )}
             </CardContent>
@@ -285,21 +286,21 @@ export const InstitutionalDashboard = () => {
                       <div className="flex items-center justify-between p-4 border rounded-lg bg-primary/5">
                         <div>
                           <p className="text-sm text-muted-foreground">Flight Emissions</p>
-                          <p className="text-2xl font-bold">{stats.flightCO2.toFixed(0)} kg</p>
+                          <p className="text-2xl font-bold">{formatNumber(stats.flightCO2)} kg</p>
                         </div>
                         <Plane className="w-8 h-8 text-primary" />
                       </div>
                       <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/5">
                         <div>
                           <p className="text-sm text-muted-foreground">Accommodation Emissions</p>
-                          <p className="text-2xl font-bold">{stats.accommodationCO2.toFixed(0)} kg</p>
+                          <p className="text-2xl font-bold">{formatNumber(stats.accommodationCO2)} kg</p>
                         </div>
                         <Building className="w-8 h-8 text-secondary" />
                       </div>
                       <div className="flex items-center justify-between p-4 border rounded-lg bg-accent/5">
                         <div>
                           <p className="text-sm text-muted-foreground">Total Emissions</p>
-                          <p className="text-2xl font-bold">{stats.totalCO2Offset.toFixed(0)} kg</p>
+                          <p className="text-2xl font-bold">{formatNumber(stats.totalCO2Offset)} kg</p>
                         </div>
                         <TrendingUp className="w-8 h-8 text-accent" />
                       </div>

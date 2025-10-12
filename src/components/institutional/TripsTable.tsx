@@ -3,8 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, ArrowUpDown, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Search } from "lucide-react";
 import { format } from "date-fns";
+import { formatNumber } from "@/lib/utils";
 
 interface Trip {
   id: string;
@@ -134,53 +135,77 @@ export const TripsTable = ({ trips, isLoading }: TripsTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("user_email")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("user_email")}
+              >
+                <div className="flex items-center gap-2">
                   Tourist
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("origin_airport")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("origin_airport")}
+              >
+                <div className="flex items-center gap-2">
                   Route
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("from_date")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("from_date")}
+              >
+                <div className="flex items-center gap-2">
                   Travel Dates
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" size="sm" onClick={() => handleSort("travel_class")} className="h-8 px-2">
+              <TableHead 
+                className="cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("travel_class")}
+              >
+                <div className="flex items-center gap-2">
                   Class
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("flight_co2")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("flight_co2")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Flight CO₂
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("accommodation_co2")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("accommodation_co2")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Accom. CO₂
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("total_co2")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("total_co2")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Total CO₂
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
-              <TableHead className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => handleSort("trees_needed")} className="h-8 px-2">
+              <TableHead 
+                className="text-right cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={() => handleSort("trees_needed")}
+              >
+                <div className="flex items-center justify-end gap-2">
                   Trees
-                  <ArrowUpDown className="ml-2 h-3 w-3" />
-                </Button>
+                  <ChevronDown className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -197,9 +222,9 @@ export const TripsTable = ({ trips, isLoading }: TripsTableProps) => {
                     {trip.to_date && ` - ${format(new Date(trip.to_date), "MMM d, yyyy")}`}
                   </TableCell>
                   <TableCell className="capitalize">{trip.travel_class}</TableCell>
-                  <TableCell className="text-right">{Number(trip.flight_co2).toFixed(1)} kg</TableCell>
-                  <TableCell className="text-right">{Number(trip.accommodation_co2).toFixed(1)} kg</TableCell>
-                  <TableCell className="text-right font-semibold">{Number(trip.total_co2).toFixed(1)} kg</TableCell>
+                  <TableCell className="text-right">{formatNumber(Number(trip.flight_co2))} kg</TableCell>
+                  <TableCell className="text-right">{formatNumber(Number(trip.accommodation_co2))} kg</TableCell>
+                  <TableCell className="text-right font-semibold">{formatNumber(Number(trip.total_co2))} kg</TableCell>
                   <TableCell className="text-right">{trip.trees_needed}</TableCell>
                 </TableRow>
               ))
