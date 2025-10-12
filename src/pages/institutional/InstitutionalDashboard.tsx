@@ -61,25 +61,55 @@ export const InstitutionalDashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ["institutionalStats", userProfile?.organization_id],
     queryFn: async () => {
-      // Get total trees
+      if (!userProfile?.organization_id) {
+        return {
+          totalTrees: 0,
+          totalTourists: 0,
+          totalTrips: 0,
+          totalCO2Offset: 0,
+        };
+      }
+
+      // Get organization users
+      const { data: orgUsers } = await supabase
+        .from("users")
+        .select("user_id")
+        .eq("organization_id", userProfile.organization_id);
+
+      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
+
+      if (orgUserIds.length === 0) {
+        return {
+          totalTrees: 0,
+          totalTourists: 0,
+          totalTrips: 0,
+          totalCO2Offset: 0,
+        };
+      }
+
+      // Get total trees for organization users
       const { count: totalTrees } = await supabase
         .from("trees")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact", head: true })
+        .in("user_id", orgUserIds);
 
-      // Get total users (tourists)
+      // Get total tourists in organization
       const { count: totalTourists } = await supabase
         .from("users")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", userProfile.organization_id);
 
-      // Get total trips
+      // Get total trips for organization users
       const { count: totalTrips } = await supabase
         .from("trips")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact", head: true })
+        .in("user_id", orgUserIds);
 
-      // Get total CO2 offset
+      // Get total CO2 offset for organization users
       const { data: co2Data } = await supabase
         .from("trips")
-        .select("total_co2");
+        .select("total_co2")
+        .in("user_id", orgUserIds);
       
       const totalCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.total_co2) || 0), 0) || 0;
 
@@ -90,61 +120,74 @@ export const InstitutionalDashboard = () => {
         totalCO2Offset: totalCO2,
       };
     },
+    enabled: !!userProfile?.organization_id,
   });
 
   // Get recent activity
   const { data: recentTrees } = useQuery({
-    queryKey: ["recentTrees"],
+    queryKey: ["recentTrees", userProfile?.organization_id],
     queryFn: async () => {
+      if (!userProfile?.organization_id) return [];
+
+      // Get organization users
+      const { data: orgUsers } = await supabase
+        .from("users")
+        .select("user_id, email")
+        .eq("organization_id", userProfile.organization_id);
+
+      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
+
+      if (orgUserIds.length === 0) return [];
+
       const { data: trees, error } = await supabase
         .from("trees")
         .select("*")
+        .in("user_id", orgUserIds)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-
-      // Fetch user emails separately
       if (!trees) return [];
-      
-      const userIds = [...new Set(trees.map(t => t.user_id))];
-      const { data: users } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .in("user_id", userIds);
 
       return trees.map(tree => ({
         ...tree,
-        user_email: users?.find(u => u.user_id === tree.user_id)?.email || "Unknown"
+        user_email: orgUsers?.find(u => u.user_id === tree.user_id)?.email || "Unknown"
       }));
     },
+    enabled: !!userProfile?.organization_id,
   });
 
   const { data: recentTrips } = useQuery({
-    queryKey: ["recentTrips"],
+    queryKey: ["recentTrips", userProfile?.organization_id],
     queryFn: async () => {
+      if (!userProfile?.organization_id) return [];
+
+      // Get organization users
+      const { data: orgUsers } = await supabase
+        .from("users")
+        .select("user_id, email")
+        .eq("organization_id", userProfile.organization_id);
+
+      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
+
+      if (orgUserIds.length === 0) return [];
+
       const { data: trips, error } = await supabase
         .from("trips")
         .select("*")
+        .in("user_id", orgUserIds)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-
-      // Fetch user emails separately
       if (!trips) return [];
-      
-      const userIds = [...new Set(trips.map(t => t.user_id))];
-      const { data: users } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .in("user_id", userIds);
 
       return trips.map(trip => ({
         ...trip,
-        user_email: users?.find(u => u.user_id === trip.user_id)?.email || "Unknown"
+        user_email: orgUsers?.find(u => u.user_id === trip.user_id)?.email || "Unknown"
       }));
     },
+    enabled: !!userProfile?.organization_id,
   });
 
   const handleLogout = async () => {
