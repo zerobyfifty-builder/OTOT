@@ -61,7 +61,7 @@ const menuItems = [
       { title: "All Partners", url: "/admin/partners" },
       { title: "Institutional", url: "/admin/partners/institutional" },
       { title: "Business", url: "/admin/partners/business" },
-      { title: "Onboard New", url: "/admin/partners/onboard" },
+      { title: "Create New Partner", url: "/admin/partners/create" },
     ],
   },
   {

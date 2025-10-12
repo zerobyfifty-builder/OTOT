@@ -29,6 +29,7 @@ import { MyTrees } from "@/pages/MyTrees";
 import { MyImpact } from "@/pages/MyImpact";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import GodModeOverview from "@/pages/admin/GodModeOverview";
+import CreatePartner from "@/pages/admin/CreatePartner";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
@@ -152,6 +153,11 @@ const App = () => (
                 <AdminLayout>
                   <GodModeOverview />
                 </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/partners/create" element={
+              <SuperAdminRoute>
+                <CreatePartner />
               </SuperAdminRoute>
             } />
             
