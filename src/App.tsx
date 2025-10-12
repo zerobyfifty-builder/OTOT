@@ -43,6 +43,7 @@ import { LodgeDashboard } from "@/pages/lodge/LodgeDashboard";
 import { PlantTree } from "@/pages/lodge/PlantTree";
 import { LodgeTrees } from "@/pages/lodge/LodgeTrees";
 import { LodgeReimbursements } from "@/pages/lodge/LodgeReimbursements";
+import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -147,6 +148,13 @@ const App = () => (
                     <p className="text-muted-foreground">This feature will be implemented next</p>
                   </div>
                 </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Institutional Partner routes */}
+            <Route path="/institutional/dashboard" element={
+              <ProtectedRoute>
+                <InstitutionalDashboard />
               </ProtectedRoute>
             } />
             

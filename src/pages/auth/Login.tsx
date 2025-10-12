@@ -85,7 +85,7 @@ export const Login: React.FC = () => {
           toast.error(error.message || 'Failed to sign in');
         }
       } else {
-        // Check if user is a super admin
+        // Check user role and redirect accordingly
         const { data: session } = await supabase.auth.getSession();
         if (session?.session?.user) {
           const { data: userData } = await supabase
@@ -97,10 +97,18 @@ export const Login: React.FC = () => {
             .eq('user_id', session.session.user.id)
             .maybeSingle();
 
-          const isSuperAdmin = userData?.roles?.name === 'super_admin';
+          const userRole = userData?.roles?.name;
+          const isSuperAdmin = userRole === 'super_admin';
+          const isInstitutionalPartner = userRole === 'institutional_partner';
           
           toast.success('Welcome back!');
-          navigate(isSuperAdmin ? '/admin' : '/dashboard');
+          if (isSuperAdmin) {
+            navigate('/admin');
+          } else if (isInstitutionalPartner) {
+            navigate('/institutional/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
         } else {
           navigate('/dashboard');
         }
