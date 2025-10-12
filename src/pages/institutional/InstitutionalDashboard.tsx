@@ -60,58 +60,37 @@ export const InstitutionalDashboard = () => {
 
   // Fetch statistics
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["institutionalStats", userProfile?.organization_id],
+    queryKey: ["institutionalStats"],
     queryFn: async () => {
-      if (!userProfile?.organization_id) {
-        return {
-          totalTrees: 0,
-          totalTourists: 0,
-          totalTrips: 0,
-          totalCO2Offset: 0,
-        };
-      }
-
-      // Get organization users
-      const { data: orgUsers } = await supabase
-        .from("users")
-        .select("user_id")
-        .eq("organization_id", userProfile.organization_id);
-
-      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
-
-      if (orgUserIds.length === 0) {
-        return {
-          totalTrees: 0,
-          totalTourists: 0,
-          totalTrips: 0,
-          totalCO2Offset: 0,
-        };
-      }
-
-      // Get total trees for organization users
+      // Get total trees
       const { count: totalTrees } = await supabase
         .from("trees")
-        .select("*", { count: "exact", head: true })
-        .in("user_id", orgUserIds);
+        .select("*", { count: "exact", head: true });
 
-      // Get total tourists in organization
+      // Get tourists by role - find role_id for tourist role
+      const { data: roles } = await supabase
+        .from("roles")
+        .select("id")
+        .eq("name", "tourist")
+        .single();
+
       const { count: totalTourists } = await supabase
         .from("users")
         .select("*", { count: "exact", head: true })
-        .eq("organization_id", userProfile.organization_id);
+        .eq("role_id", roles?.id);
 
-      // Get total trips for organization users
+      // Get total trips
       const { count: totalTrips } = await supabase
         .from("trips")
-        .select("*", { count: "exact", head: true })
-        .in("user_id", orgUserIds);
+        .select("*", { count: "exact", head: true });
 
-      // Get total CO2 offset for organization users
+      // Get CO2 data
       const { data: co2Data } = await supabase
         .from("trips")
-        .select("total_co2")
-        .in("user_id", orgUserIds);
+        .select("flight_co2, accommodation_co2, total_co2");
       
+      const flightCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.flight_co2) || 0), 0) || 0;
+      const accommodationCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.accommodation_co2) || 0), 0) || 0;
       const totalCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.total_co2) || 0), 0) || 0;
 
       return {
@@ -119,78 +98,65 @@ export const InstitutionalDashboard = () => {
         totalTourists: totalTourists || 0,
         totalTrips: totalTrips || 0,
         totalCO2Offset: totalCO2,
+        flightCO2,
+        accommodationCO2,
       };
     },
-    enabled: !!userProfile?.organization_id,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Get recent activity
   const { data: recentTrees, isLoading: treesLoading } = useQuery({
-    queryKey: ["recentTrees", userProfile?.organization_id],
+    queryKey: ["recentTrees"],
     queryFn: async () => {
-      if (!userProfile?.organization_id) return [];
-
-      // Get organization users
-      const { data: orgUsers } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .eq("organization_id", userProfile.organization_id);
-
-      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
-
-      if (orgUserIds.length === 0) return [];
-
       const { data: trees, error } = await supabase
         .from("trees")
         .select("*")
-        .in("user_id", orgUserIds)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
       if (!trees) return [];
 
+      // Fetch user emails for these trees
+      const userIds = [...new Set(trees.map(t => t.user_id))];
+      const { data: users } = await supabase
+        .from("users")
+        .select("user_id, email")
+        .in("user_id", userIds);
+
       return trees.map(tree => ({
         ...tree,
-        user_email: orgUsers?.find(u => u.user_id === tree.user_id)?.email || "Unknown"
+        user_email: users?.find(u => u.user_id === tree.user_id)?.email || "Unknown"
       }));
     },
-    enabled: !!userProfile?.organization_id,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const { data: recentTrips, isLoading: tripsLoading } = useQuery({
-    queryKey: ["recentTrips", userProfile?.organization_id],
+    queryKey: ["recentTrips"],
     queryFn: async () => {
-      if (!userProfile?.organization_id) return [];
-
-      // Get organization users
-      const { data: orgUsers } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .eq("organization_id", userProfile.organization_id);
-
-      const orgUserIds = orgUsers?.map(u => u.user_id) || [];
-
-      if (orgUserIds.length === 0) return [];
-
       const { data: trips, error } = await supabase
         .from("trips")
         .select("*")
-        .in("user_id", orgUserIds)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
       if (!trips) return [];
 
+      // Fetch user emails for these trips
+      const userIds = [...new Set(trips.map(t => t.user_id))];
+      const { data: users } = await supabase
+        .from("users")
+        .select("user_id, email")
+        .in("user_id", userIds);
+
       return trips.map(trip => ({
         ...trip,
-        user_email: orgUsers?.find(u => u.user_id === trip.user_id)?.email || "Unknown"
+        user_email: users?.find(u => u.user_id === trip.user_id)?.email || "Unknown"
       }));
     },
-    enabled: !!userProfile?.organization_id,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
@@ -303,30 +269,73 @@ export const InstitutionalDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Platform Activity</CardTitle>
-                <CardDescription>Real-time insights into conservation and tourism activities</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Active Conservation Projects</p>
-                      <p className="text-sm text-muted-foreground">Trees being planted and tracked</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>CO₂ Emissions Breakdown</CardTitle>
+                  <CardDescription>Distribution of carbon emissions by source</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {statsLoading ? (
+                    <Skeleton className="h-64 w-full" />
+                  ) : stats && (stats.flightCO2 > 0 || stats.accommodationCO2 > 0) ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg bg-primary/5">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Flight Emissions</p>
+                          <p className="text-2xl font-bold">{stats.flightCO2.toFixed(0)} kg</p>
+                        </div>
+                        <Plane className="w-8 h-8 text-primary" />
+                      </div>
+                      <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/5">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Accommodation Emissions</p>
+                          <p className="text-2xl font-bold">{stats.accommodationCO2.toFixed(0)} kg</p>
+                        </div>
+                        <Building className="w-8 h-8 text-secondary" />
+                      </div>
+                      <div className="flex items-center justify-between p-4 border rounded-lg bg-accent/5">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Emissions</p>
+                          <p className="text-2xl font-bold">{stats.totalCO2Offset.toFixed(0)} kg</p>
+                        </div>
+                        <TrendingUp className="w-8 h-8 text-accent" />
+                      </div>
                     </div>
-                    <BarChart3 className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Carbon Offsetting Program</p>
-                      <p className="text-sm text-muted-foreground">Tourist carbon footprint tracking</p>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No emissions data yet</p>
                     </div>
-                    <TrendingUp className="w-8 h-8 text-primary" />
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Platform Activity</CardTitle>
+                  <CardDescription>Real-time insights into conservation and tourism activities</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Active Conservation Projects</p>
+                        <p className="text-sm text-muted-foreground">Trees being planted and tracked</p>
+                      </div>
+                      <TreePine className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Carbon Offsetting Program</p>
+                        <p className="text-sm text-muted-foreground">Tourist carbon footprint tracking</p>
+                      </div>
+                      <TrendingUp className="w-8 h-8 text-primary" />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="trips">
