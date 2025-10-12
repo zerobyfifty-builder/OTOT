@@ -85,8 +85,25 @@ export const Login: React.FC = () => {
           toast.error(error.message || 'Failed to sign in');
         }
       } else {
-        toast.success('Welcome back!');
-        navigate('/dashboard');
+        // Check if user is a super admin
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.user) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select(`
+              role_id,
+              roles!inner(name)
+            `)
+            .eq('user_id', session.session.user.id)
+            .maybeSingle();
+
+          const isSuperAdmin = userData?.roles?.name === 'super_admin';
+          
+          toast.success('Welcome back!');
+          navigate(isSuperAdmin ? '/admin' : '/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       toast.error('An unexpected error occurred');
