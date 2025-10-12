@@ -1053,6 +1053,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_institutional_partner: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       is_lodge_session_valid: {
         Args: { _lodge_id: string; _session_token: string }
         Returns: boolean
