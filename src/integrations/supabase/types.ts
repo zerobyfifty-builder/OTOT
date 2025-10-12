@@ -1043,7 +1043,7 @@ export type Database = {
         Returns: string
       }
       get_user_role: {
-        Args: { user_id: string }
+        Args: { input_user_id: string }
         Returns: string
       }
       has_role: {
