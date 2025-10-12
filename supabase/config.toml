@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.set-password]
 verify_jwt = true
+
+[functions.reset-ktb-password]
+verify_jwt = false
