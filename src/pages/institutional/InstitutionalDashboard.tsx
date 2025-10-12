@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, TreePine, TrendingUp, BarChart3, LogOut, Plane, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { TripsTable } from "@/components/institutional/TripsTable";
+import { TreesTable } from "@/components/institutional/TreesTable";
 
 export const InstitutionalDashboard = () => {
   const { user, signOut } = useAuth();
@@ -345,36 +347,7 @@ export const InstitutionalDashboard = () => {
                 <CardDescription>Latest tourist trips and carbon calculations</CardDescription>
               </CardHeader>
               <CardContent>
-                {tripsLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                  </div>
-                ) : recentTrips && recentTrips.length > 0 ? (
-                  <div className="space-y-2">
-                    {recentTrips.map((trip) => (
-                      <div key={trip.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{trip.user_email}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {trip.origin_airport} → {trip.destination_airport}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{trip.total_co2} kg CO₂</p>
-                          <p className="text-sm text-muted-foreground">{trip.trees_needed} trees needed</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Plane className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No trips recorded yet</p>
-                    <p className="text-sm">Tourist trip data will appear here once tourists start using the carbon calculator</p>
-                  </div>
-                )}
+                <TripsTable trips={recentTrips || []} isLoading={tripsLoading} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -386,34 +359,7 @@ export const InstitutionalDashboard = () => {
                 <CardDescription>Latest tree planting activities</CardDescription>
               </CardHeader>
               <CardContent>
-                {treesLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                  </div>
-                ) : recentTrees && recentTrees.length > 0 ? (
-                  <div className="space-y-2">
-                    {recentTrees.map((tree) => (
-                      <div key={tree.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{tree.user_email}</p>
-                          <p className="text-sm text-muted-foreground">{tree.tree_type || "Tree species"}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{tree.num_trees} tree(s)</p>
-                          <p className="text-sm text-muted-foreground">{tree.status}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <TreePine className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No trees planted yet</p>
-                    <p className="text-sm">Tree planting data will appear here once tourists purchase and plant trees</p>
-                  </div>
-                )}
+                <TreesTable trees={recentTrees || []} isLoading={treesLoading} />
               </CardContent>
             </Card>
           </TabsContent>
