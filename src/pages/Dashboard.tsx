@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   TreePine, 
@@ -23,6 +23,32 @@ import { useAuth } from '@/contexts/AuthContext';
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect institutional partners to their dashboard
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select(`
+          role_id,
+          roles!inner(name)
+        `)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const userRole = userData?.roles?.name;
+      
+      if (userRole === 'institutional_partner') {
+        navigate('/institutional/dashboard', { replace: true });
+      } else if (userRole === 'super_admin') {
+        navigate('/admin', { replace: true });
+      }
+    };
+
+    checkUserRole();
+  }, [user, navigate]);
 
   // Extract user's first name from email or use a default
   const getUserName = () => {

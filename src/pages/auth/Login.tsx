@@ -28,34 +28,8 @@ export const Login: React.FC = () => {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkUserRole = async () => {
-      if (user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select(`
-            role_id,
-            roles!inner(name)
-          `)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const userRole = userData?.roles?.name;
-        const isSuperAdmin = userRole === 'super_admin';
-        const isInstitutionalPartner = userRole === 'institutional_partner';
-        
-        if (isSuperAdmin) {
-          navigate('/admin');
-        } else if (isInstitutionalPartner) {
-          navigate('/institutional/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
-      }
-    };
-    
-    checkUserRole();
-  }, [user, navigate]);
+  // No redirect in useEffect - let handleSubmit handle role-based redirect after login
+  // This prevents race conditions between useEffect and handleSubmit
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -108,31 +82,44 @@ export const Login: React.FC = () => {
           toast.error(error.message || 'Failed to sign in');
         }
       } else {
-        // Check user role and redirect accordingly
+        // Successfully signed in - now check user role and redirect
         const { data: session } = await supabase.auth.getSession();
+        console.log('Session after login:', session);
+        
         if (session?.session?.user) {
-          const { data: userData } = await supabase
+          const { data: userData, error: roleError } = await supabase
             .from('users')
             .select(`
               role_id,
+              organization_id,
               roles!inner(name)
             `)
             .eq('user_id', session.session.user.id)
             .maybeSingle();
 
+          console.log('User role data:', userData);
+          console.log('Role query error:', roleError);
+
           const userRole = userData?.roles?.name;
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';
           
+          console.log('Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner});
+          
           toast.success('Welcome back!');
+          
           if (isSuperAdmin) {
+            console.log('Redirecting to /admin');
             navigate('/admin');
           } else if (isInstitutionalPartner) {
+            console.log('Redirecting to /institutional/dashboard');
             navigate('/institutional/dashboard');
           } else {
+            console.log('Redirecting to /dashboard');
             navigate('/dashboard');
           }
         } else {
+          console.log('No session found, redirecting to /dashboard');
           navigate('/dashboard');
         }
       }

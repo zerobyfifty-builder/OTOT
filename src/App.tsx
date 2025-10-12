@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
 import { LodgeRoute } from "@/components/auth/LodgeRoute";
+import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
@@ -153,9 +154,9 @@ const App = () => (
             
             {/* Institutional Partner routes */}
             <Route path="/institutional/dashboard" element={
-              <ProtectedRoute>
+              <InstitutionalRoute>
                 <InstitutionalDashboard />
-              </ProtectedRoute>
+              </InstitutionalRoute>
             } />
             
             {/* God Mode Admin routes */}
