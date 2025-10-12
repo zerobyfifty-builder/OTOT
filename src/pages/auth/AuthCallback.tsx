@@ -21,6 +21,21 @@ export default function AuthCallback() {
         }
 
         if (session) {
+          // Check user role and redirect accordingly
+          const { data: userData } = await supabase
+            .from('users')
+            .select(`
+              role_id,
+              organization_id,
+              roles!inner(name)
+            `)
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          const userRole = userData?.roles?.name;
+          const isSuperAdmin = userRole === 'super_admin';
+          const isInstitutionalPartner = userRole === 'institutional_partner';
+          
           // Check if there's stored pledge context
           const pledgeContextStr = sessionStorage.getItem('pledge_context');
           if (pledgeContextStr) {
@@ -30,12 +45,22 @@ export default function AuthCallback() {
             // Redirect based on pledge context
             if (pledgeContext.redirectUrl) {
               navigate(pledgeContext.redirectUrl);
+            } else if (isSuperAdmin) {
+              navigate('/admin');
+            } else if (isInstitutionalPartner) {
+              navigate('/institutional/dashboard');
             } else {
               navigate('/dashboard');
             }
           } else {
-            // Default redirect to dashboard
-            navigate('/dashboard');
+            // Default redirect based on role
+            if (isSuperAdmin) {
+              navigate('/admin');
+            } else if (isInstitutionalPartner) {
+              navigate('/institutional/dashboard');
+            } else {
+              navigate('/dashboard');
+            }
           }
           
           toast.success("Successfully signed in!");

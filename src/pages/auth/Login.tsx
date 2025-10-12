@@ -29,9 +29,32 @@ export const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
+    const checkUserRole = async () => {
+      if (user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select(`
+            role_id,
+            roles!inner(name)
+          `)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const userRole = userData?.roles?.name;
+        const isSuperAdmin = userRole === 'super_admin';
+        const isInstitutionalPartner = userRole === 'institutional_partner';
+        
+        if (isSuperAdmin) {
+          navigate('/admin');
+        } else if (isInstitutionalPartner) {
+          navigate('/institutional/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    };
+    
+    checkUserRole();
   }, [user, navigate]);
 
   const handleGoogleSignIn = async () => {
