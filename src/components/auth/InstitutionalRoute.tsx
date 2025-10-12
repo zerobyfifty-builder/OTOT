@@ -15,29 +15,36 @@ export const InstitutionalRoute: React.FC<InstitutionalRouteProps> = ({ children
 
   useEffect(() => {
     const checkInstitutionalRole = async () => {
+      console.log('[INSTITUTIONAL_ROUTE] Checking role for user:', user?.id);
       if (!user) {
+        console.log('[INSTITUTIONAL_ROUTE] No user, redirecting to login');
         navigate('/auth/login');
         return;
       }
 
       try {
         // Use RPC function to avoid RLS recursion
-        const { data: userRole } = await supabase
-          .rpc('get_user_role', { user_id: user.id });
+        const { data: userRole, error: roleError } = await supabase
+          .rpc('get_user_role', { input_user_id: user.id });
+        
+        console.log('[INSTITUTIONAL_ROUTE] User role from RPC:', userRole);
+        console.log('[INSTITUTIONAL_ROUTE] Role error:', roleError);
         
         if (userRole === 'institutional_partner') {
+          console.log('[INSTITUTIONAL_ROUTE] User is institutional partner, granting access');
           setIsInstitutional(true);
         } else {
           // Redirect non-institutional users to their appropriate dashboard
+          console.log('[INSTITUTIONAL_ROUTE] User is not institutional, redirecting based on role:', userRole);
           if (userRole === 'super_admin') {
-            navigate('/admin');
+            navigate('/admin', { replace: true });
           } else {
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
           }
         }
       } catch (error) {
-        console.error('Error checking institutional role:', error);
-        navigate('/dashboard');
+        console.error('[INSTITUTIONAL_ROUTE] Error checking institutional role:', error);
+        navigate('/dashboard', { replace: true });
       } finally {
         setLoading(false);
       }

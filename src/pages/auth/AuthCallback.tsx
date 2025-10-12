@@ -23,7 +23,7 @@ export default function AuthCallback() {
         if (session) {
           // Use RPC function to check user role and redirect accordingly
           const { data: userRole } = await supabase
-            .rpc('get_user_role', { user_id: session.user.id });
+            .rpc('get_user_role', { input_user_id: session.user.id });
 
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';

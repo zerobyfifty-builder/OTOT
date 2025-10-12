@@ -84,36 +84,36 @@ export const Login: React.FC = () => {
       } else {
         // Successfully signed in - now check user role and redirect
         const { data: session } = await supabase.auth.getSession();
-        console.log('Session after login:', session);
+        console.log('[LOGIN] Session after login:', session);
         
         if (session?.session?.user) {
           // Use RPC function to avoid RLS recursion
           const { data: userRole, error: roleError } = await supabase
-            .rpc('get_user_role', { user_id: session.session.user.id });
+            .rpc('get_user_role', { input_user_id: session.session.user.id });
 
-          console.log('User role:', userRole);
-          console.log('Role query error:', roleError);
+          console.log('[LOGIN] User role from RPC:', userRole);
+          console.log('[LOGIN] Role query error:', roleError);
 
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';
           
-          console.log('Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner});
+          console.log('[LOGIN] Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner});
           
           toast.success('Welcome back!');
           
           if (isSuperAdmin) {
-            console.log('Redirecting to /admin');
-            navigate('/admin');
+            console.log('[LOGIN] Navigating to /admin');
+            navigate('/admin', { replace: true });
           } else if (isInstitutionalPartner) {
-            console.log('Redirecting to /institutional/dashboard');
-            navigate('/institutional/dashboard');
+            console.log('[LOGIN] Navigating to /institutional/dashboard');
+            navigate('/institutional/dashboard', { replace: true });
           } else {
-            console.log('Redirecting to /dashboard');
-            navigate('/dashboard');
+            console.log('[LOGIN] Navigating to /dashboard');
+            navigate('/dashboard', { replace: true });
           }
         } else {
-          console.log('No session found, redirecting to /dashboard');
-          navigate('/dashboard');
+          console.log('[LOGIN] No session found, redirecting to /dashboard');
+          navigate('/dashboard', { replace: true });
         }
       }
     } catch (err) {

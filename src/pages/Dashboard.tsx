@@ -27,16 +27,28 @@ export const Dashboard: React.FC = () => {
   // Redirect institutional partners to their dashboard
   useEffect(() => {
     const checkUserRole = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('[DASHBOARD] No user, skipping role check');
+        return;
+      }
 
+      console.log('[DASHBOARD] Checking role for user:', user.id);
+      
       // Use RPC function to avoid RLS recursion
-      const { data: userRole } = await supabase
-        .rpc('get_user_role', { user_id: user.id });
+      const { data: userRole, error: roleError } = await supabase
+        .rpc('get_user_role', { input_user_id: user.id });
+      
+      console.log('[DASHBOARD] User role from RPC:', userRole);
+      console.log('[DASHBOARD] Role error:', roleError);
       
       if (userRole === 'institutional_partner') {
+        console.log('[DASHBOARD] User is institutional partner, redirecting to institutional dashboard');
         navigate('/institutional/dashboard', { replace: true });
       } else if (userRole === 'super_admin') {
+        console.log('[DASHBOARD] User is super admin, redirecting to admin');
         navigate('/admin', { replace: true });
+      } else {
+        console.log('[DASHBOARD] User is regular user, staying on dashboard');
       }
     };
 
