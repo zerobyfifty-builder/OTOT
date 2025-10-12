@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Users, TreePine, TrendingUp, BarChart3, LogOut, Plane, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ export const InstitutionalDashboard = () => {
   });
 
   // Fetch statistics
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["institutionalStats", userProfile?.organization_id],
     queryFn: async () => {
       if (!userProfile?.organization_id) {
@@ -121,10 +122,11 @@ export const InstitutionalDashboard = () => {
       };
     },
     enabled: !!userProfile?.organization_id,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Get recent activity
-  const { data: recentTrees } = useQuery({
+  const { data: recentTrees, isLoading: treesLoading } = useQuery({
     queryKey: ["recentTrees", userProfile?.organization_id],
     queryFn: async () => {
       if (!userProfile?.organization_id) return [];
@@ -155,9 +157,10 @@ export const InstitutionalDashboard = () => {
       }));
     },
     enabled: !!userProfile?.organization_id,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  const { data: recentTrips } = useQuery({
+  const { data: recentTrips, isLoading: tripsLoading } = useQuery({
     queryKey: ["recentTrips", userProfile?.organization_id],
     queryFn: async () => {
       if (!userProfile?.organization_id) return [];
@@ -188,6 +191,7 @@ export const InstitutionalDashboard = () => {
       }));
     },
     enabled: !!userProfile?.organization_id,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const handleLogout = async () => {
@@ -229,10 +233,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Trees Planted</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <TreePine className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold">{stats?.totalTrees || 0}</span>
-              </div>
+              {statsLoading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <TreePine className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold">{stats?.totalTrees || 0}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -241,10 +249,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Tourists</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold">{stats?.totalTourists || 0}</span>
-              </div>
+              {statsLoading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold">{stats?.totalTourists || 0}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -253,10 +265,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Trips</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Plane className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold">{stats?.totalTrips || 0}</span>
-              </div>
+              {statsLoading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Plane className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold">{stats?.totalTrips || 0}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -265,10 +281,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">CO₂ Offset (kg)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold">{stats?.totalCO2Offset?.toFixed(0) || 0}</span>
-              </div>
+              {statsLoading ? (
+                <Skeleton className="h-10 w-20" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <span className="text-3xl font-bold">{stats?.totalCO2Offset?.toFixed(0) || 0}</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -316,22 +336,36 @@ export const InstitutionalDashboard = () => {
                 <CardDescription>Latest tourist trips and carbon calculations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {recentTrips?.map((trip) => (
-                    <div key={trip.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{trip.user_email}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {trip.origin_airport} → {trip.destination_airport}
-                        </p>
+                {tripsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : recentTrips && recentTrips.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentTrips.map((trip) => (
+                      <div key={trip.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{trip.user_email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {trip.origin_airport} → {trip.destination_airport}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{trip.total_co2} kg CO₂</p>
+                          <p className="text-sm text-muted-foreground">{trip.trees_needed} trees needed</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{trip.total_co2} kg CO₂</p>
-                        <p className="text-sm text-muted-foreground">{trip.trees_needed} trees needed</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Plane className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No trips recorded yet</p>
+                    <p className="text-sm">Tourist trip data will appear here once tourists start using the carbon calculator</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -343,20 +377,34 @@ export const InstitutionalDashboard = () => {
                 <CardDescription>Latest tree planting activities</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {recentTrees?.map((tree) => (
-                    <div key={tree.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{tree.user_email}</p>
-                        <p className="text-sm text-muted-foreground">{tree.tree_type || "Tree species"}</p>
+                {treesLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : recentTrees && recentTrees.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentTrees.map((tree) => (
+                      <div key={tree.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{tree.user_email}</p>
+                          <p className="text-sm text-muted-foreground">{tree.tree_type || "Tree species"}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{tree.num_trees} tree(s)</p>
+                          <p className="text-sm text-muted-foreground">{tree.status}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{tree.num_trees} tree(s)</p>
-                        <p className="text-sm text-muted-foreground">{tree.status}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <TreePine className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No trees planted yet</p>
+                    <p className="text-sm">Tree planting data will appear here once tourists purchase and plant trees</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
