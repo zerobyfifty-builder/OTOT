@@ -87,20 +87,13 @@ export const Login: React.FC = () => {
         console.log('Session after login:', session);
         
         if (session?.session?.user) {
-          const { data: userData, error: roleError } = await supabase
-            .from('users')
-            .select(`
-              role_id,
-              organization_id,
-              roles!inner(name)
-            `)
-            .eq('user_id', session.session.user.id)
-            .maybeSingle();
+          // Use RPC function to avoid RLS recursion
+          const { data: userRole, error: roleError } = await supabase
+            .rpc('get_user_role', { user_id: session.session.user.id });
 
-          console.log('User role data:', userData);
+          console.log('User role:', userRole);
           console.log('Role query error:', roleError);
 
-          const userRole = userData?.roles?.name;
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';
           

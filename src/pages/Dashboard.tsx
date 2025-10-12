@@ -29,16 +29,9 @@ export const Dashboard: React.FC = () => {
     const checkUserRole = async () => {
       if (!user) return;
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select(`
-          role_id,
-          roles!inner(name)
-        `)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const userRole = userData?.roles?.name;
+      // Use RPC function to avoid RLS recursion
+      const { data: userRole } = await supabase
+        .rpc('get_user_role', { user_id: user.id });
       
       if (userRole === 'institutional_partner') {
         navigate('/institutional/dashboard', { replace: true });

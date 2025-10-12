@@ -21,16 +21,9 @@ export const InstitutionalRoute: React.FC<InstitutionalRouteProps> = ({ children
       }
 
       try {
-        const { data: userData } = await supabase
-          .from('users')
-          .select(`
-            role_id,
-            roles!inner(name)
-          `)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const userRole = userData?.roles?.name;
+        // Use RPC function to avoid RLS recursion
+        const { data: userRole } = await supabase
+          .rpc('get_user_role', { user_id: user.id });
         
         if (userRole === 'institutional_partner') {
           setIsInstitutional(true);
