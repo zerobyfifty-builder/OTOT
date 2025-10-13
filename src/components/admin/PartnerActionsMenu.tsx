@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PartnerEditDialog } from "./PartnerEditDialog";
 import { PartnerDeleteDialog } from "./PartnerDeleteDialog";
 import { PartnerResetPasswordDialog } from "./PartnerResetPasswordDialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { PartnerStatusDialog } from "./PartnerStatusDialog";
 
 interface Partner {
   id: string;
@@ -39,25 +38,7 @@ export function PartnerActionsMenu({ partner, onUpdate }: PartnerActionsMenuProp
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
-
-  const handleToggleActive = async () => {
-    try {
-      const { error } = await supabase
-        .from("organizations")
-        .update({ is_active: !partner.is_active })
-        .eq("id", partner.id);
-
-      if (error) throw error;
-
-      toast.success(
-        `Partner ${partner.is_active ? "deactivated" : "activated"} successfully`
-      );
-      onUpdate();
-    } catch (error) {
-      console.error("Error toggling partner status:", error);
-      toast.error("Failed to update partner status");
-    }
-  };
+  const [statusOpen, setStatusOpen] = useState(false);
 
   return (
     <>
@@ -72,7 +53,7 @@ export function PartnerActionsMenu({ partner, onUpdate }: PartnerActionsMenuProp
             <Edit className="h-4 w-4 mr-2" />
             Edit Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleToggleActive}>
+          <DropdownMenuItem onClick={() => setStatusOpen(true)}>
             <Power className="h-4 w-4 mr-2" />
             {partner.is_active ? "Deactivate" : "Activate"}
           </DropdownMenuItem>
@@ -94,6 +75,13 @@ export function PartnerActionsMenu({ partner, onUpdate }: PartnerActionsMenuProp
       <PartnerEditDialog
         open={editOpen}
         onOpenChange={setEditOpen}
+        partner={partner}
+        onUpdate={onUpdate}
+      />
+      
+      <PartnerStatusDialog
+        open={statusOpen}
+        onOpenChange={setStatusOpen}
         partner={partner}
         onUpdate={onUpdate}
       />
