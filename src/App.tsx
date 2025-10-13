@@ -50,6 +50,8 @@ import { LodgeDashboard } from "@/pages/lodge/LodgeDashboard";
 import { PlantTree } from "@/pages/lodge/PlantTree";
 import { LodgeTrees } from "@/pages/lodge/LodgeTrees";
 import { LodgeReimbursements } from "@/pages/lodge/LodgeReimbursements";
+import { LodgePerformance } from "@/pages/lodge/LodgePerformance";
+import { LodgeHelp } from "@/pages/lodge/LodgeHelp";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -304,6 +306,16 @@ const App = () => (
             <Route path="/lodge/reimbursements" element={
               <LodgeRoute>
                 <LodgeReimbursements />
+              </LodgeRoute>
+            } />
+            <Route path="/lodge/performance" element={
+              <LodgeRoute>
+                <LodgePerformance />
+              </LodgeRoute>
+            } />
+            <Route path="/lodge/help" element={
+              <LodgeRoute>
+                <LodgeHelp />
               </LodgeRoute>
             } />
             
