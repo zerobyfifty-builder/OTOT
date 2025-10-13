@@ -14,6 +14,9 @@ import SDG10Icon from '@/assets/SDG_10.png';
 import acaciaImage from '@/assets/acacia-auriculiformis-new.png';
 import acrocarpusImage from '@/assets/acrocarpus-fraxinifolius-new.png';
 import albiziaImage from '@/assets/albizia-mugavu-new.png';
+import treesForKenyaLogo from '@/assets/trees-for-kenya-logo.jpeg';
+import greenBeltLogo from '@/assets/green-belt-movement-logo.jpg';
+import tistLogo from '@/assets/tist-program-logo.webp';
 export const MyImpact = () => {
   const {
     user
@@ -98,15 +101,15 @@ export const MyImpact = () => {
   // Partners data
   const partnersData = [{
     name: 'Trees for Kenya',
-    logo: '/src/assets/otot-tree-icon.png',
+    logo: treesForKenyaLogo,
     description: 'A non-profit NGO that actively restores degraded forest lands, supports farm forestry, and promotes agroforestry through partnerships with farmers and tree nurseries.'
   }, {
     name: 'The Green Belt Movement',
-    logo: '/src/assets/otot-tree-icon.png',
+    logo: greenBeltLogo,
     description: 'A well-known organization focused on tree planting and water harvesting, empowering communities to take action for environmental conservation.'
   }, {
     name: 'The TIST Program',
-    logo: '/src/assets/otot-tree-icon.png',
+    logo: tistLogo,
     description: 'A program that works with thousands of farmers in Kenya to plant trees, which not only helps the environment but also provides them with income and leadership opportunities through the sale of carbon credits.'
   }];
   return <div className="p-8 space-y-12">
