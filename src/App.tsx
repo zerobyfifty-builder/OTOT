@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
 import { LodgeRoute } from "@/components/auth/LodgeRoute";
+import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -289,34 +290,34 @@ const App = () => (
             {/* Lodge routes */}
             <Route path="/lodge/login" element={<LodgeLogin />} />
             <Route path="/lodge/dashboard" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <LodgeDashboard />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             <Route path="/lodge/plant-tree/:treeId" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <PlantTree />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             <Route path="/lodge/trees" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <LodgeTrees />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             <Route path="/lodge/reimbursements" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <LodgeReimbursements />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             <Route path="/lodge/performance" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <LodgePerformance />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             <Route path="/lodge/help" element={
-              <LodgeRoute>
+              <BusinessPartnerRoute>
                 <LodgeHelp />
-              </LodgeRoute>
+              </BusinessPartnerRoute>
             } />
             
             {/* 404 page */}
