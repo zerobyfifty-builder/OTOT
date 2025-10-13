@@ -1,8 +1,10 @@
 import React from 'react';
-import { Home, Users, TreePine, DollarSign, TrendingUp, HelpCircle, ChevronLeft, ChevronRight, Settings, LogOut } from 'lucide-react';
+import { Home, Users, TreePine, DollarSign, TrendingUp, HelpCircle, ChevronLeft, ChevronRight, Settings, LogOut, Bell } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useLodgeAuth } from '@/contexts/LodgeAuthContext';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +32,7 @@ const menuItems = [
   { title: 'My Trees', url: '/lodge/trees', icon: TreePine },
   { title: 'Reimbursements', url: '/lodge/reimbursements', icon: DollarSign },
   { title: 'View Performance', url: '/lodge/performance', icon: TrendingUp },
+  { title: 'Notifications', url: '/lodge/notifications', icon: Bell, showBadge: true },
   { title: 'Help & Support', url: '/lodge/help', icon: HelpCircle },
 ];
 
@@ -39,6 +42,22 @@ export function LodgeSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+
+  // Fetch unread notifications count
+  const { data: unreadCount } = useQuery({
+    queryKey: ['lodge-unread-notifications', lodge?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_type', 'lodge')
+        .eq('is_read', false);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!lodge,
+  });
 
   const handleSignOut = async () => {
     try {
@@ -123,12 +142,15 @@ export function LodgeSidebar() {
                         to={item.url}
                         className={
                           isActive
-                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-sidebar-primary text-black font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-white hover:text-sidebar-primary hover:bg-sidebar-accent'
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-sidebar-primary text-black font-medium relative'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-white hover:text-sidebar-primary hover:bg-sidebar-accent relative'
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
+                        {item.showBadge && unreadCount > 0 && (
+                          <span className="absolute top-1 left-7 h-2 w-2 rounded-full bg-destructive" />
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

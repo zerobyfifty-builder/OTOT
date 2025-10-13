@@ -234,6 +234,7 @@ export const LodgeDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">View and manage tourist tree planting requests</p>
+              <p className="text-2xl font-bold mt-2">{stats?.pendingTrees || 0} pending</p>
             </CardContent>
           </Card>
 
@@ -260,30 +261,6 @@ export const LodgeDashboard = () => {
             <CardContent>
               <p className="text-sm text-muted-foreground">Submit and track reimbursement requests</p>
               <p className="text-2xl font-bold mt-2">${stats?.totalEarnings || 0}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/performance")}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-purple-600" />
-                View Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Check your performance metrics</p>
-            </CardContent>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/help")}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-orange-600" />
-                Help & Support
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Get help and access resources</p>
             </CardContent>
           </Card>
         </div>
