@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export const LodgeDashboard = () => {
   const navigate = useNavigate();
-  const { lodge, signOut } = useLodgeAuth();
+  const { lodge } = useLodgeAuth();
 
   // Fetch stats
   const { data: stats, isLoading } = useQuery({
@@ -51,17 +51,23 @@ export const LodgeDashboard = () => {
     enabled: !!lodge,
   });
 
-  // Fetch upcoming tourists (mock data - would come from bookings)
-  const upcomingTourists = [
-    { name: "Jane Doe", checkIn: "Oct 15", trees: 2, preferences: "Indigenous species", id: "1" },
-    { name: "Mike Chen", checkIn: "Oct 16", trees: 1, preferences: "Fast-growing", id: "2" },
-    { name: "Sarah Jones", checkIn: "Oct 18", trees: 3, preferences: "Fruit trees", id: "3" },
-  ];
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/lodge/login");
-  };
+  // Fetch notifications for the lodge
+  const { data: notifications } = useQuery({
+    queryKey: ['lodge-notifications', lodge?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('recipient_type', 'lodge')
+        .eq('is_read', false)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lodge,
+  });
 
   if (isLoading) {
     return (
@@ -72,31 +78,13 @@ export const LodgeDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-              <TreePine className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{lodge?.name}</h1>
-              <p className="text-sm text-gray-600">{lodge?.location}</p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={handleLogout} size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-      <div className="p-4 md:p-8 space-y-6">
         {/* Welcome Section */}
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Welcome back, {lodge?.name}! 🌳</h2>
-          <p className="text-gray-600 mt-1">Here's what's happening with your trees today</p>
+          <h2 className="text-3xl font-bold">Welcome back, {lodge?.name}! 🌳</h2>
+          <p className="text-muted-foreground mt-1">Here's what's happening with your trees today</p>
         </div>
 
         {/* Stats Cards */}
@@ -124,19 +112,21 @@ export const LodgeDashboard = () => {
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span>Tourists to assign:</span>
-                  <span className="font-semibold">{upcomingTourists.length}</span>
+                  <span>Trees to assign:</span>
+                  <span className="font-semibold">{stats?.pendingTrees || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Photos to upload:</span>
-                  <span className="font-semibold">5</span>
+                  <span>Trees planted:</span>
+                  <span className="font-semibold">{stats?.plantedTrees || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Updates due:</span>
-                  <span className="font-semibold text-red-600">7</span>
+                  <span>Reimbursements:</span>
+                  <span className="font-semibold text-orange-600">{stats?.pendingReimbursements || 0}</span>
                 </div>
               </div>
-              <Badge variant="destructive" className="w-full justify-center">Action Required</Badge>
+              {(stats?.pendingTrees || 0) > 0 && (
+                <Badge variant="destructive" className="w-full justify-center">Action Required</Badge>
+              )}
             </CardContent>
           </Card>
 
@@ -195,171 +185,108 @@ export const LodgeDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Priority Notifications
+              Notifications ({notifications?.length || 0})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* New Tourist Arrivals */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold flex items-center gap-2">
-                  🔔 New Tourist Arrivals ({upcomingTourists.length})
-                </h3>
-                <Button variant="link" size="sm">View All</Button>
-              </div>
-              <div className="space-y-2">
-                {upcomingTourists.map((tourist) => (
-                  <div key={tourist.id} className="p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium">{tourist.name}</p>
-                      <p className="text-sm text-gray-600">Check-in: {tourist.checkIn} • Trees: {tourist.trees}</p>
+          <CardContent>
+            {!notifications || notifications.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No new notifications</p>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div 
+                    key={notification.id} 
+                    className={`p-4 rounded-lg border ${
+                      notification.priority === 'high' || notification.priority === 'urgent' 
+                        ? 'bg-orange-50 border-orange-200' 
+                        : 'bg-blue-50 border-blue-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm">{notification.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {notification.action_url && (
+                        <Button size="sm" variant="outline" onClick={() => navigate(notification.action_url!)}>
+                          View
+                        </Button>
+                      )}
                     </div>
-                    <Button size="sm" variant="outline">View</Button>
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Pending Actions */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold flex items-center gap-2">
-                  ⏰ Pending Actions (12)
-                </h3>
-                <Button variant="link" size="sm">View Tasks</Button>
-              </div>
-              <div className="space-y-2">
-                {["5 trees need photos uploaded", "3 tree statuses need updating", "2 reimbursement requests ready", "2 tourists arriving tomorrow"].map((task, i) => (
-                  <div key={i} className="p-3 bg-orange-50 rounded-lg flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-600" />
-                    <span className="text-sm">{task}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Completions */}
-            <div>
-              <h3 className="font-semibold flex items-center gap-2 mb-3">
-                ✅ Recent Completions
-              </h3>
-              <div className="space-y-2">
-                {["Tree OTOT-2024-12345 status updated", "Reimbursement REI-789 approved ($150)", "3 photos uploaded successfully"].map((item, i) => (
-                  <div key={i} className="p-3 bg-green-50 rounded-lg flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Quick Actions Tabs */}
-        <Tabs defaultValue="tourists" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tourists">Tourist Assignments</TabsTrigger>
-            <TabsTrigger value="trees">My Trees</TabsTrigger>
-            <TabsTrigger value="reimbursements">Reimbursements</TabsTrigger>
-          </TabsList>
+        {/* Quick Actions Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/tourists")}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                Tourist Assignments
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">View and manage tourist tree planting requests</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="tourists" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Arrivals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tourist</TableHead>
-                      <TableHead>Check-in</TableHead>
-                      <TableHead>Trees</TableHead>
-                      <TableHead>Preferences</TableHead>
-                      <TableHead>Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {upcomingTourists.map((tourist) => (
-                      <TableRow key={tourist.id}>
-                        <TableCell className="font-medium">{tourist.name}</TableCell>
-                        <TableCell>{tourist.checkIn}</TableCell>
-                        <TableCell>{tourist.trees}</TableCell>
-                        <TableCell>{tourist.preferences}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline">Prepare</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/trees")}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TreePine className="w-5 h-5 text-green-600" />
+                My Trees
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Manage trees and upload photos</p>
+              <p className="text-2xl font-bold mt-2">{stats?.totalTrees || 0}</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="trees">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tree Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <TreePine className="w-12 h-12 mx-auto text-green-600 mb-4" />
-                  <p className="text-gray-600 mb-4">Manage your trees and track their growth</p>
-                  <Button onClick={() => navigate("/lodge/trees")}>
-                    View All Trees
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/reimbursements")}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-blue-600" />
+                Reimbursements
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Submit and track reimbursement requests</p>
+              <p className="text-2xl font-bold mt-2">${stats?.totalEarnings || 0}</p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="reimbursements">
-            <Card>
-              <CardHeader>
-                <CardTitle>Reimbursements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <DollarSign className="w-12 h-12 mx-auto text-blue-600 mb-4" />
-                  <p className="text-gray-600 mb-4">Submit and track reimbursement requests</p>
-                  <Button onClick={() => navigate("/lodge/reimbursements")}>
-                    Manage Reimbursements
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/performance")}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-purple-600" />
+                View Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Check your performance metrics</p>
+            </CardContent>
+          </Card>
 
-        {/* Quick Navigation */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            onClick={() => navigate("/lodge/performance")}
-            className="h-auto py-6 flex-col gap-2"
-          >
-            <Star className="w-8 h-8 text-purple-600" />
-            <span className="font-semibold">View Performance</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            onClick={() => navigate("/lodge/help")}
-            className="h-auto py-6 flex-col gap-2"
-          >
-            <HelpCircle className="w-8 h-8 text-blue-600" />
-            <span className="font-semibold">Help & Support</span>
-          </Button>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/help")}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-orange-600" />
+                Help & Support
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Get help and access resources</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-2">
-        <Button size="lg" className="rounded-full w-14 h-14 shadow-lg" onClick={() => navigate("/lodge/trees")}>
-          <CameraIcon className="w-6 h-6" />
-        </Button>
       </div>
     </div>
   );

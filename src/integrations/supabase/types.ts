@@ -462,6 +462,82 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority: string | null
+          read_at: string | null
+          recipient_id: string | null
+          recipient_type: string
+          related_lodge_id: string | null
+          related_tree_id: string | null
+          related_trip_id: string | null
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          recipient_type: string
+          related_lodge_id?: string | null
+          related_tree_id?: string | null
+          related_trip_id?: string | null
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: string | null
+          read_at?: string | null
+          recipient_id?: string | null
+          recipient_type?: string
+          related_lodge_id?: string | null
+          related_tree_id?: string | null
+          related_trip_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_lodge_id_fkey"
+            columns: ["related_lodge_id"]
+            isOneToOne: false
+            referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_related_tree_id_fkey"
+            columns: ["related_tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_related_trip_id_fkey"
+            columns: ["related_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_modules: {
         Row: {
           granted_at: string | null

@@ -13,6 +13,7 @@ import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
 import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
@@ -46,13 +47,14 @@ import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
 import Reimbursements from "@/pages/admin/Reimbursements";
 import Reports from "@/pages/admin/Reports";
-import { LodgeLogin } from "@/pages/lodge/LodgeLogin";
 import { LodgeDashboard } from "@/pages/lodge/LodgeDashboard";
-import { PlantTree } from "@/pages/lodge/PlantTree";
+import { LodgeLogin } from "@/pages/lodge/LodgeLogin";
+import { LodgeTourists } from "@/pages/lodge/LodgeTourists";
 import { LodgeTrees } from "@/pages/lodge/LodgeTrees";
 import { LodgeReimbursements } from "@/pages/lodge/LodgeReimbursements";
 import { LodgePerformance } from "@/pages/lodge/LodgePerformance";
 import { LodgeHelp } from "@/pages/lodge/LodgeHelp";
+import { PlantTree } from "@/pages/lodge/PlantTree";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +76,17 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <AdminSidebar />
       <main className="flex-1 overflow-auto bg-admin-cream">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
+const LodgeLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <LodgeSidebar />
+      <main className="flex-1 overflow-auto bg-background">
         {children}
       </main>
     </div>
@@ -291,12 +304,51 @@ const App = () => (
             <Route path="/lodge/login" element={<LodgeLogin />} />
             <Route path="/lodge/dashboard" element={
               <BusinessPartnerRoute>
-                <LodgeDashboard />
+                <LodgeLayout>
+                  <LodgeDashboard />
+                </LodgeLayout>
+              </BusinessPartnerRoute>
+            } />
+            <Route path="/lodge/tourists" element={
+              <BusinessPartnerRoute>
+                <LodgeLayout>
+                  <LodgeTourists />
+                </LodgeLayout>
+              </BusinessPartnerRoute>
+            } />
+            <Route path="/lodge/trees" element={
+              <BusinessPartnerRoute>
+                <LodgeLayout>
+                  <LodgeTrees />
+                </LodgeLayout>
+              </BusinessPartnerRoute>
+            } />
+            <Route path="/lodge/reimbursements" element={
+              <BusinessPartnerRoute>
+                <LodgeLayout>
+                  <LodgeReimbursements />
+                </LodgeLayout>
+              </BusinessPartnerRoute>
+            } />
+            <Route path="/lodge/performance" element={
+              <BusinessPartnerRoute>
+                <LodgeLayout>
+                  <LodgePerformance />
+                </LodgeLayout>
+              </BusinessPartnerRoute>
+            } />
+            <Route path="/lodge/help" element={
+              <BusinessPartnerRoute>
+                <LodgeLayout>
+                  <LodgeHelp />
+                </LodgeLayout>
               </BusinessPartnerRoute>
             } />
             <Route path="/lodge/plant-tree/:treeId" element={
               <BusinessPartnerRoute>
-                <PlantTree />
+                <LodgeLayout>
+                  <PlantTree />
+                </LodgeLayout>
               </BusinessPartnerRoute>
             } />
             <Route path="/lodge/trees" element={
