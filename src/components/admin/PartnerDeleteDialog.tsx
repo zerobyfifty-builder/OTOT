@@ -35,19 +35,23 @@ export function PartnerDeleteDialog({
   const handleDelete = async () => {
     setLoading(true);
     try {
+      // Archive partner instead of deleting to preserve data integrity
       const { error } = await supabase
         .from("organizations")
-        .delete()
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
         .eq("id", partner.id);
 
       if (error) throw error;
 
-      toast.success("Partner deleted successfully");
+      toast.success("Partner archived successfully");
       onDelete();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error deleting partner:", error);
-      toast.error("Failed to delete partner");
+      console.error("Error archiving partner:", error);
+      toast.error("Failed to archive partner");
     } finally {
       setLoading(false);
     }
@@ -57,10 +61,11 @@ export function PartnerDeleteDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Partner</AlertDialogTitle>
+          <AlertDialogTitle>Archive Partner</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{partner.name}</strong>?
-            This action cannot be undone and will remove all associated data.
+            Are you sure you want to archive <strong>{partner.name}</strong>?
+            This will deactivate the partner and remove them from active participation. 
+            All historical data will be preserved. You can reactivate them later if needed.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -70,7 +75,7 @@ export function PartnerDeleteDialog({
             disabled={loading}
             className="bg-destructive hover:bg-destructive/90"
           >
-            {loading ? "Deleting..." : "Delete Partner"}
+            {loading ? "Archiving..." : "Archive Partner"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
