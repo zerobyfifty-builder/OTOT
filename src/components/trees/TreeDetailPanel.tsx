@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Database } from '@/integrations/supabase/types';
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
+import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 
@@ -41,7 +42,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
-          <img src="/src/assets/otot-logo.png" alt="EcoMatcher" className="h-6" />
+          <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8" />
           <span className="text-sm font-semibold">Tree is planted by: Mara Ecolodge</span>
         </div>
         <Button
