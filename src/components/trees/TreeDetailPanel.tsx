@@ -3,6 +3,8 @@ import { X, ChevronLeft, ChevronRight, MapPin, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Database } from '@/integrations/supabase/types';
+import yourTreeImage from '@/assets/your-tree-demo.png';
+import treeCarerImage from '@/assets/tree-carer-demo.png';
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 
@@ -22,18 +24,16 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     setCurrentSlide((prev) => (prev - 1 + 2) % 2);
   };
 
-  // Mock data - replace with real data when available
-  const treeImage = tree.images && Array.isArray(tree.images) && tree.images.length > 0 
-    ? (tree.images[0] as string)
-    : '/placeholder.svg';
+  // Demo data for all trees
+  const treeImage = yourTreeImage;
   
   const growerData = {
-    name: 'RAMAROLAHY Raymond',
-    photo: '/placeholder.svg',
-    age: 23,
-    children: 1,
-    location: tree.location_name || 'Madagascar',
-    description: 'A 23 years old planter with 1 children from Madagascar. Joining undefined and start planting trees to make world a better place.',
+    name: 'Agnes Wanjiru',
+    photo: treeCarerImage,
+    age: 32,
+    children: 3,
+    location: 'Maasai Mara National Reserve',
+    description: 'A 32-year-old tree planter and mother of three from the Maasai Mara National Reserve. She has been planting trees for over five years to protect the Mara ecosystem, earning a living for her family while helping make the world a better place.',
   };
 
   return (
@@ -42,7 +42,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
           <img src="/src/assets/otot-logo.png" alt="EcoMatcher" className="h-6" />
-          <span className="text-sm font-semibold">Tree is planted by:</span>
+          <span className="text-sm font-semibold">Tree is planted by: Mara Ecolodge</span>
         </div>
         <Button
           variant="ghost"

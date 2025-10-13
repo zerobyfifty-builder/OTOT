@@ -279,8 +279,9 @@ export const MyTrees = () => {
                         <TableHead className="w-16">No.</TableHead>
                         <TableHead className="text-left">Trip ID</TableHead>
                         <TableHead className="text-left">TreeTracker</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Farmer</TableHead>
+                        <TableHead className="text-left">County</TableHead>
+                        <TableHead className="text-left">Planter</TableHead>
+                        <TableHead className="text-left">Carer</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Payment Date</TableHead>
                         <TableHead>Source</TableHead>
@@ -289,60 +290,68 @@ export const MyTrees = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedTrees.map((tree, index) => (
-                        <TableRow key={tree.id}>
-                          <TableCell className="font-medium">
-                            {startIndex + index + 1}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {tree.trip_id && trips[tree.trip_id] ? trips[tree.trip_id].friendly_trip_id || "-" : "-"}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            <button
-                              onClick={() => setSelectedTree(tree)}
-                              className="text-primary hover:underline flex items-center gap-1"
-                            >
-                              {tree.otot_id}
-                              <ExternalLink className="h-3 w-3" />
-                            </button>
-                          </TableCell>
-                          <TableCell>{tree.location_name || 'Guatemala'}</TableCell>
-                          <TableCell>Manuela Tecun</TableCell>
-                          <TableCell>
-                            <Badge className={STATUS_COLORS[tree.status]}>
-                              {tree.status === "Planted" ? "gifted" : tree.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(tree.created_at), "d/M/yyyy")}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={SOURCE_COLORS[tree.purchase_type]}>
-                              {tree.purchase_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {tree.trip_id && trips[tree.trip_id] ? (
+                      {paginatedTrees.map((tree, index) => {
+                        // Demo data for counties and carers
+                        const counties = ['Narok', 'Kakamega', 'Bungoma', 'Kisumu', 'Nairobi'];
+                        const carers = ['Agnes Wanjiru', 'Peter Otieno', 'Mary Wambui', 'James Kipchoge', 'Grace Akinyi'];
+                        const countyIndex = index % counties.length;
+                        
+                        return (
+                          <TableRow key={tree.id}>
+                            <TableCell className="font-medium">
+                              {startIndex + index + 1}
+                            </TableCell>
+                            <TableCell className="text-left">
+                              {tree.trip_id && trips[tree.trip_id] ? trips[tree.trip_id].friendly_trip_id || "-" : "-"}
+                            </TableCell>
+                            <TableCell className="text-left">
                               <button
-                                onClick={() => {
-                                  setSelectedTrip(trips[tree.trip_id]);
-                                  setIsTripSheetOpen(true);
-                                }}
-                                className="text-primary hover:text-primary/80"
+                                onClick={() => setSelectedTree(tree)}
+                                className="text-primary hover:underline flex items-center gap-1"
                               >
-                                <Eye className="h-4 w-4" />
+                                {tree.otot_id}
+                                <ExternalLink className="h-3 w-3" />
                               </button>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <button className="text-primary hover:underline text-sm">
-                              view
-                            </button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                            <TableCell className="text-left">{counties[countyIndex]}</TableCell>
+                            <TableCell className="text-left">Mara Ecolodge</TableCell>
+                            <TableCell className="text-left">{carers[countyIndex]}</TableCell>
+                            <TableCell>
+                              <Badge className={STATUS_COLORS[tree.status]}>
+                                {tree.status === "Planted" ? "gifted" : tree.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {format(new Date(tree.created_at), "d/M/yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={SOURCE_COLORS[tree.purchase_type]}>
+                                {tree.purchase_type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {tree.trip_id && trips[tree.trip_id] ? (
+                                <button
+                                  onClick={() => {
+                                    setSelectedTrip(trips[tree.trip_id]);
+                                    setIsTripSheetOpen(true);
+                                  }}
+                                  className="text-primary hover:text-primary/80"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <button className="text-primary hover:underline text-sm">
+                                view
+                              </button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
