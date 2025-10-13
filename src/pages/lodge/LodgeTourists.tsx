@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLodgeAuth } from "@/contexts/LodgeAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,14 +34,29 @@ interface TreeWithUser {
 export const LodgeTourists = () => {
   const navigate = useNavigate();
   const { lodge } = useLodgeAuth();
+  const { user } = useAuth();
+
+  // Get organization_id from authenticated user
+  const { data: userOrg } = useQuery({
+    queryKey: ['user-organization', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user?.id)
+        .single();
+      return data?.organization_id;
+    },
+    enabled: !!user,
+  });
 
   const { data: trees, isLoading } = useQuery<TreeWithUser[]>({
-    queryKey: ['lodge-tourist-trees', lodge?.id],
+    queryKey: ['lodge-tourist-trees', userOrg],
     queryFn: async () => {
       const { data: treesData, error } = await supabase
         .from('trees')
         .select('*')
-        .eq('lodge_id', lodge?.id)
+        .eq('lodge_id', userOrg)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -59,7 +75,7 @@ export const LodgeTourists = () => {
         user: usersData?.find(u => u.user_id === tree.user_id),
       })) as TreeWithUser[];
     },
-    enabled: !!lodge,
+    enabled: !!userOrg,
   });
 
   const getStatusBadge = (status: string) => {

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useLodgeAuth } from "@/contexts/LodgeAuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,20 +15,35 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export const LodgeDashboard = () => {
   const navigate = useNavigate();
   const { lodge } = useLodgeAuth();
+  const { user } = useAuth();
 
-  // Fetch stats
+  // Get organization_id from authenticated user
+  const { data: userOrg } = useQuery({
+    queryKey: ['user-organization', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user?.id)
+        .single();
+      return data?.organization_id;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch stats using organization_id
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['lodge-stats', lodge?.id],
+    queryKey: ['lodge-stats', userOrg],
     queryFn: async () => {
       const { data: trees } = await supabase
         .from('trees')
         .select('*')
-        .eq('lodge_id', lodge?.id);
+        .eq('lodge_id', userOrg);
 
       const { data: reimbursements } = await supabase
         .from('reimbursements')
         .select('*')
-        .eq('lodge_id', lodge?.id);
+        .eq('lodge_id', userOrg);
 
       const thisMonth = new Date();
       thisMonth.setDate(1);
@@ -48,16 +64,17 @@ export const LodgeDashboard = () => {
         paidEarnings: reimbursements?.filter(r => r.status === 'approved').reduce((sum, r) => sum + Number(r.amount), 0) || 0,
       };
     },
-    enabled: !!lodge,
+    enabled: !!userOrg,
   });
 
-  // Fetch notifications for the lodge
+  // Fetch notifications for the lodge using organization_id
   const { data: notifications } = useQuery({
-    queryKey: ['lodge-notifications', lodge?.id],
+    queryKey: ['lodge-notifications', userOrg],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
+        .eq('recipient_id', userOrg)
         .eq('recipient_type', 'lodge')
         .eq('is_read', false)
         .order('created_at', { ascending: false })
@@ -66,7 +83,7 @@ export const LodgeDashboard = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!lodge,
+    enabled: !!userOrg,
   });
 
   if (isLoading) {
