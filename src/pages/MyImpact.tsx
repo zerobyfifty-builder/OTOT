@@ -95,15 +95,19 @@ export const MyImpact = () => {
     image: albiziaImage
   }];
 
-  // Mock partners data
+  // Partners data
   const partnersData = [{
-    name: 'Trees4Trees',
+    name: 'Trees for Kenya',
     logo: '/src/assets/otot-tree-icon.png',
-    description: 'Trees4Trees in Indonesia empowers local communities through partnership reforestation initiatives. By increasing the area of community planted and owned forests, livelihood assets are created, the negative effects of deforestation are reduced and the environment is renewed.'
+    description: 'A non-profit NGO that actively restores degraded forest lands, supports farm forestry, and promotes agroforestry through partnerships with farmers and tree nurseries.'
   }, {
-    name: 'FEED',
+    name: 'The Green Belt Movement',
     logo: '/src/assets/otot-tree-icon.png',
-    description: 'FEED in the Philippines supports sustainable education & tree planting, aiming to grow, preserve and protect Philippine biodiversity. FEED does this through social forestry programs and research in partnership with the University of the Philippines based in Los Baños.'
+    description: 'A well-known organization focused on tree planting and water harvesting, empowering communities to take action for environmental conservation.'
+  }, {
+    name: 'The TIST Program',
+    logo: '/src/assets/otot-tree-icon.png',
+    description: 'A program that works with thousands of farmers in Kenya to plant trees, which not only helps the environment but also provides them with income and leadership opportunities through the sale of carbon credits.'
   }];
   return <div className="p-8 space-y-12">
       {/* Page Header */}
