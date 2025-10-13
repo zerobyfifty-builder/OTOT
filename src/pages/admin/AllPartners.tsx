@@ -83,7 +83,8 @@ export default function AllPartners() {
           partner_types(name, category)
         `,
           { count: "exact" }
-        );
+        )
+        .eq("archived", false); // Exclude archived partners
 
       if (searchTerm) {
         query = query.or(

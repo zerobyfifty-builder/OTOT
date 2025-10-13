@@ -588,6 +588,8 @@ export type Database = {
           address: Json | null
           api_key_hash: string | null
           api_webhook_url: string | null
+          archived: boolean | null
+          archived_at: string | null
           bank_account: Json | null
           category: string
           contact_email: string | null
@@ -614,6 +616,8 @@ export type Database = {
           address?: Json | null
           api_key_hash?: string | null
           api_webhook_url?: string | null
+          archived?: boolean | null
+          archived_at?: string | null
           bank_account?: Json | null
           category: string
           contact_email?: string | null
@@ -640,6 +644,8 @@ export type Database = {
           address?: Json | null
           api_key_hash?: string | null
           api_webhook_url?: string | null
+          archived?: boolean | null
+          archived_at?: string | null
           bank_account?: Json | null
           category?: string
           contact_email?: string | null

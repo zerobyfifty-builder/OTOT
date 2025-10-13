@@ -64,7 +64,8 @@ export default function PartnersBusiness() {
           partner_types(name, category)
         `
         )
-        .eq("category", "business");
+        .eq("category", "business")
+        .eq("archived", false); // Exclude archived partners
 
       if (searchTerm) {
         query = query.or(

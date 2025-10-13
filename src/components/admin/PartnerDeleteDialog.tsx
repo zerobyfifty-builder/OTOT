@@ -35,18 +35,20 @@ export function PartnerDeleteDialog({
   const handleDelete = async () => {
     setLoading(true);
     try {
-      // Archive partner instead of deleting to preserve data integrity
+      // Permanently archive partner - this hides them from all lists
       const { error } = await supabase
         .from("organizations")
         .update({ 
-          is_active: false,
+          archived: true,
+          archived_at: new Date().toISOString(),
+          is_active: false, // Also deactivate when archiving
           updated_at: new Date().toISOString()
         })
         .eq("id", partner.id);
 
       if (error) throw error;
 
-      toast.success("Partner archived successfully");
+      toast.success("Partner archived permanently");
       onDelete();
       onOpenChange(false);
     } catch (error) {
@@ -61,11 +63,18 @@ export function PartnerDeleteDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Archive Partner</AlertDialogTitle>
+          <AlertDialogTitle>Archive Partner Permanently</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to archive <strong>{partner.name}</strong>?
-            This will deactivate the partner and remove them from active participation. 
-            All historical data will be preserved. You can reactivate them later if needed.
+            Are you sure you want to permanently archive <strong>{partner.name}</strong>?
+            <br /><br />
+            This will:
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Remove them from all partner lists</li>
+              <li>Deactivate their account</li>
+              <li>Preserve all historical data</li>
+            </ul>
+            <br />
+            <strong>Note:</strong> Use "Deactivate" instead if you need temporary suspension.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -75,7 +84,7 @@ export function PartnerDeleteDialog({
             disabled={loading}
             className="bg-destructive hover:bg-destructive/90"
           >
-            {loading ? "Archiving..." : "Archive Partner"}
+            {loading ? "Archiving..." : "Archive Permanently"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
