@@ -11,9 +11,9 @@ import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import SDG15Icon from '@/assets/SDG_15.png';
 import SDG13Icon from '@/assets/SDG_13.png';
 import SDG10Icon from '@/assets/SDG_10.png';
-import acaciaImage from '@/assets/acacia-auriculiformis.jpg';
-import acrocarpusImage from '@/assets/acrocarpus-fraxinifolius.jpg';
-import albiziaImage from '@/assets/albizia-mugavu.jpg';
+import acaciaImage from '@/assets/acacia-auriculiformis-new.png';
+import acrocarpusImage from '@/assets/acrocarpus-fraxinifolius-new.png';
+import albiziaImage from '@/assets/albizia-mugavu-new.png';
 export const MyImpact = () => {
   const {
     user
