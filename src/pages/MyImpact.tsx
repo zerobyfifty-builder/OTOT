@@ -275,13 +275,7 @@ export const MyImpact = () => {
 
       {/* Section 3: Tree Locations Map */}
       <section className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">Tree locations</h2>
-          <p className="text-muted-foreground">
-            Indonesia, UAE, Kenya, Nepal, Bhutan, The Philippines, Uganda, Peru, Malaysia-ReGrow, Guatemala,
-            Ecuador, Haiti, India, Malaysia, Madagascar, Thailand
-          </p>
-        </div>
+        <h2 className="text-2xl font-bold mb-6">Tree locations</h2>
         {mapboxToken && trees.length > 0 && <TreeMap trees={trees} mapboxToken={mapboxToken} onTreeClick={() => {}} />}
       </section>
 
