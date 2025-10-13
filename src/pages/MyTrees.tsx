@@ -314,7 +314,12 @@ export const MyTrees = () => {
                               </button>
                             </TableCell>
                             <TableCell className="text-left">{counties[countyIndex]}</TableCell>
-                            <TableCell className="text-left">Mara Ecolodge</TableCell>
+                            <TableCell className="text-left">
+                              {counties[countyIndex] === 'Narok' 
+                                ? 'Mara Ecolodge' 
+                                : ['Tree for Kenya', 'Tree Planting Society', 'RODI Kenya', 'Emaua'][countyIndex % 4]
+                              }
+                            </TableCell>
                             <TableCell className="text-left">{carers[countyIndex]}</TableCell>
                             <TableCell>
                               <Badge className={STATUS_COLORS[tree.status]}>
