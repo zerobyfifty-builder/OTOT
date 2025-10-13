@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, RefreshCw, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { PartnerActionsMenu } from "@/components/admin/PartnerActionsMenu";
 
 interface Partner {
   id: string;
@@ -228,6 +229,7 @@ export default function AllPartners() {
                       <TableHead>Status</TableHead>
                       <TableHead>API Access</TableHead>
                       <TableHead>Joined</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -277,6 +279,12 @@ export default function AllPartners() {
                         </TableCell>
                         <TableCell>
                           {new Date(partner.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <PartnerActionsMenu 
+                            partner={partner} 
+                            onUpdate={fetchPartners}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
