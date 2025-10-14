@@ -19,10 +19,12 @@ import offsetTravelImg from '@/assets/climate-offset-travel.jpg';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Redirect institutional partners to their dashboard
   useEffect(() => {
@@ -62,13 +64,13 @@ export const Dashboard: React.FC = () => {
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
   };
 
-  // Fetch user stats
+  // Fetch user stats and pledge status
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats', user?.id],
     queryFn: async () => {
-      if (!user) return { trees: 0, trips: 0, co2: 0 };
+      if (!user) return { trees: 0, trips: 0, co2: 0, hasPledged: false };
 
-      const [treesRes, tripsRes] = await Promise.all([
+      const [treesRes, tripsRes, userRes] = await Promise.all([
         supabase
           .from('trees')
           .select('num_trees', { count: 'exact' })
@@ -76,17 +78,24 @@ export const Dashboard: React.FC = () => {
         supabase
           .from('trips')
           .select('total_co2')
+          .eq('user_id', user.id),
+        supabase
+          .from('users')
+          .select('pledge_status')
           .eq('user_id', user.id)
+          .single()
       ]);
 
       const totalTrees = treesRes.data?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
       const totalTrips = tripsRes.data?.length || 0;
       const totalCO2 = tripsRes.data?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
+      const hasPledged = userRes.data?.pledge_status || false;
 
       return {
         trees: totalTrees,
         trips: totalTrips,
         co2: totalCO2,
+        hasPledged,
       };
     },
     enabled: !!user,
@@ -117,15 +126,6 @@ export const Dashboard: React.FC = () => {
                 Take Action Today
               </h2>
               <div className="flex flex-wrap gap-4">
-                <Button
-                  size="lg"
-                  variant="default"
-                  className="flex items-center gap-2 text-base px-6 py-6"
-                  onClick={() => navigate('/certificates')}
-                >
-                  <Download className="h-5 w-5" />
-                  Download Pledge Certificate
-                </Button>
                 <Button
                   size="lg"
                   variant="secondary"
@@ -182,17 +182,64 @@ export const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="relative overflow-hidden">
               <CardContent className="p-8">
-                <h2 className="text-2xl font-bold mb-4">Take the Responsible Traveler Pledge</h2>
-                <p className="text-muted-foreground mb-6">
-                  Commit to 10 principles of responsible tourism and make a positive impact on Kenya's environment and communities.
-                </p>
-                <Button 
-                  size="lg"
-                  onClick={() => navigate('/pledge')}
-                  className="w-full sm:w-auto"
-                >
-                  Start Your Pledge Journey
-                </Button>
+                {!stats?.hasPledged ? (
+                  <>
+                    <h2 className="text-2xl font-bold mb-4">Take the Responsible Traveler Pledge</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Commit to 10 principles of responsible tourism and make a positive impact on Kenya's environment and communities.
+                    </p>
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/pledge')}
+                      className="w-full sm:w-auto"
+                    >
+                      Start Your Pledge Journey
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold mb-4">My Responsible Traveler Pledge</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Thank you for committing to responsible tourism! Share your pledge with others and inspire more travelers to make a difference.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Button 
+                        size="lg"
+                        variant="default"
+                        onClick={() => navigate('/certificates')}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Certificate
+                      </Button>
+                      <Button 
+                        size="lg"
+                        variant="outline"
+                        onClick={() => {
+                          const message = "I just took the Responsible Traveler Pledge! Join me in making a positive impact on Kenya's environment and communities. 🌍🌱";
+                          const url = window.location.origin + '/pledge';
+                          navigator.clipboard.writeText(`${message}\n${url}`);
+                          toast({ title: "Copied!", description: "Share text copied to clipboard" });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        Share My Pledge
+                      </Button>
+                      <Button 
+                        size="lg"
+                        variant="secondary"
+                        onClick={() => {
+                          const url = window.location.origin + '/pledge';
+                          navigator.clipboard.writeText(url);
+                          toast({ title: "Link Copied!", description: "Invite link copied to clipboard. Share it with your friends!" });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        Invite Others to Pledge
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
             <RecentContributions />
