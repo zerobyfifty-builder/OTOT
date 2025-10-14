@@ -79,15 +79,22 @@ export const RecentContributions: React.FC = () => {
                 return (
                   <div 
                     key={tree.id} 
-                    className="flex items-center justify-between py-3 border-b last:border-0"
+                    className="flex items-center justify-between py-3 border-b last:border-0 gap-4"
                   >
-                    <span className="text-foreground font-medium">
-                      {tree.purchase_type === 'Subscription' ? 'Subscription' : 'One-time'}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {co2Offset.toFixed(1)} kg
-                    </span>
-                    <span className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 shrink-0">
+                        <span className="text-lg font-bold text-primary">{tree.num_trees}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-foreground font-medium">
+                          {tree.purchase_type === 'Subscription' ? 'Subscription' : 'One-time'}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {co2Offset.toFixed(1)} kg CO₂ offset
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-muted-foreground text-sm shrink-0">
                       {format(new Date(tree.created_at), 'dd/MM/yyyy')}
                     </span>
                   </div>

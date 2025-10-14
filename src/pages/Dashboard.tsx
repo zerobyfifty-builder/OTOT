@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from '@/components/dashboard/StatsCard';
-import { PledgeCarousel } from '@/components/dashboard/PledgeCarousel';
+import { Card, CardContent } from '@/components/ui/card';
 import { RecentContributions } from '@/components/dashboard/RecentContributions';
 import { ClimateActionCard } from '@/components/dashboard/ClimateActionCard';
 import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
@@ -180,7 +180,21 @@ export const Dashboard: React.FC = () => {
         {/* Section 2: Pledge and Contributions */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PledgeCarousel />
+            <Card className="relative overflow-hidden">
+              <CardContent className="p-8">
+                <h2 className="text-2xl font-bold mb-4">Take the Responsible Traveler Pledge</h2>
+                <p className="text-muted-foreground mb-6">
+                  Commit to 10 principles of responsible tourism and make a positive impact on Kenya's environment and communities.
+                </p>
+                <Button 
+                  size="lg"
+                  onClick={() => navigate('/pledge')}
+                  className="w-full sm:w-auto"
+                >
+                  Start Your Pledge Journey
+                </Button>
+              </CardContent>
+            </Card>
             <RecentContributions />
           </div>
         </section>

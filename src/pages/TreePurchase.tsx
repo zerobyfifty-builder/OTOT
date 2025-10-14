@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import { SocialShare } from "@/components/certificates/SocialShare";
 
@@ -47,6 +48,7 @@ export const TreePurchase = () => {
   const [customTreeCount, setCustomTreeCount] = useState(1); // Default to 1 tree
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
+  const [partnerSelection, setPartnerSelection] = useState<"auto" | "manual">("auto");
   const [dedicateTo, setDedicateTo] = useState("");
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -222,10 +224,11 @@ export const TreePurchase = () => {
         userData.otot_id = ototId;
       }
 
-      // Get selected lodge info if any
+      // Get selected lodge info if any (only if manual selection)
       let locationName = undefined;
-      if (selectedLodge) {
-        const lodge = lodges.find(l => l.id === selectedLodge);
+      const finalLodgeId = partnerSelection === "manual" ? selectedLodge : null;
+      if (finalLodgeId) {
+        const lodge = lodges.find(l => l.id === finalLodgeId);
         if (lodge) locationName = lodge.name;
       }
 
@@ -246,7 +249,7 @@ export const TreePurchase = () => {
           purchase_type: selectedOption === "subscription" ? "Subscription" : "One-time",
           amount_paid: PRICE_PER_TREE,
           status: "Waiting to be Assigned",
-          lodge_id: selectedLodge || null,
+          lodge_id: finalLodgeId,
           location_name: locationName,
           trip_id: tripId || null,
         });
@@ -460,12 +463,11 @@ export const TreePurchase = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Option 1: One-time Purchase - Most Prominent */}
               <Card
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                className={`transition-all duration-300 hover:shadow-lg ${
                   selectedOption === "onetime"
                     ? "ring-2 ring-primary shadow-lg scale-105"
-                    : "hover:scale-102"
+                    : ""
                 }`}
-                onClick={() => handleOptionChange("onetime")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
@@ -498,12 +500,11 @@ export const TreePurchase = () => {
 
               {/* Option 2: Monthly Subscription */}
               <Card
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                className={`transition-all duration-300 hover:shadow-lg ${
                   selectedOption === "subscription"
                     ? "ring-2 ring-primary shadow-lg"
-                    : "hover:scale-102"
+                    : ""
                 }`}
-                onClick={() => handleOptionChange("subscription")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-4">
@@ -562,12 +563,11 @@ export const TreePurchase = () => {
 
               {/* Option 3: Flexible Tree Planting */}
               <Card
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                className={`transition-all duration-300 hover:shadow-lg ${
                   selectedOption === "custom"
                     ? "ring-2 ring-primary shadow-lg"
-                    : "hover:scale-102"
+                    : ""
                 }`}
-                onClick={() => handleOptionChange("custom")}
               >
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
@@ -627,24 +627,41 @@ export const TreePurchase = () => {
               <CardTitle className="text-xl">Additional Options</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Lodge Selection */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  Select Lodge (Optional)
+              {/* Plantation Partner Selection */}
+              <div className="space-y-4">
+                <Label className="flex items-center gap-2 text-base font-semibold">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Select Plantation Partners
                 </Label>
-                <Select value={selectedLodge} onValueChange={setSelectedLodge}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a lodge for your trees" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lodges.map((lodge) => (
-                      <SelectItem key={lodge.id} value={lodge.id}>
-                        {lodge.name} - {lodge.location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                
+                <RadioGroup value={partnerSelection} onValueChange={(val) => setPartnerSelection(val as "auto" | "manual")}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="auto" id="auto" />
+                    <Label htmlFor="auto" className="font-normal cursor-pointer">Auto Allocate</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="manual" id="manual" />
+                    <Label htmlFor="manual" className="font-normal cursor-pointer">I will select</Label>
+                  </div>
+                </RadioGroup>
+
+                {partnerSelection === "manual" && (
+                  <div className="space-y-2 pl-6">
+                    <Label className="text-sm text-muted-foreground">Choose a lodge for your trees</Label>
+                    <Select value={selectedLodge} onValueChange={setSelectedLodge}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a lodge" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {lodges.map((lodge) => (
+                          <SelectItem key={lodge.id} value={lodge.id}>
+                            {lodge.name} - {lodge.location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* Dedicate Trees */}
