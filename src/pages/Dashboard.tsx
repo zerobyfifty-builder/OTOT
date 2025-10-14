@@ -16,6 +16,10 @@ import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
 import reduceFootprintImg from '@/assets/climate-reduce-footprint.jpg';
 import carbonOffsetsImg from '@/assets/climate-carbon-offsets.jpg';
 import offsetTravelImg from '@/assets/climate-offset-travel.jpg';
+import pledgeDownloadIcon from '@/assets/pledge-download-certificate.png';
+import pledgeShareIcon from '@/assets/pledge-share.png';
+import pledgeInviteIcon from '@/assets/pledge-invite.png';
+import pledgeRetakeIcon from '@/assets/pledge-retake.png';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -198,45 +202,51 @@ export const Dashboard: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold mb-4">My Responsible Traveler Pledge</h2>
-                    <p className="text-muted-foreground mb-6">
+                    <h2 className="text-3xl font-bold mb-3">My Responsible Traveler Pledge</h2>
+                    <p className="text-muted-foreground mb-8 text-lg">
                       Thank you for committing to responsible tourism! Share your pledge with others and inspire more travelers to make a difference.
                     </p>
-                    <div className="flex flex-wrap gap-3">
-                      <Button 
-                        size="lg"
-                        variant="default"
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div 
                         onClick={() => navigate('/certificates')}
-                        className="flex items-center gap-2"
+                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
                       >
-                        <Download className="h-4 w-4" />
-                        Download Certificate
-                      </Button>
-                      <Button 
-                        size="lg"
-                        variant="outline"
+                        <img src={pledgeDownloadIcon} alt="Download Certificate" className="w-16 h-16 mb-4" />
+                        <p className="text-lg font-semibold text-center">Download Certificate</p>
+                      </div>
+                      
+                      <div 
                         onClick={() => {
                           const message = "I just took the Responsible Traveler Pledge! Join me in making a positive impact on Kenya's environment and communities. 🌍🌱";
                           const url = window.location.origin + '/pledge';
                           navigator.clipboard.writeText(`${message}\n${url}`);
                           toast({ title: "Copied!", description: "Share text copied to clipboard" });
                         }}
-                        className="flex items-center gap-2"
+                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
                       >
-                        Share My Pledge
-                      </Button>
-                      <Button 
-                        size="lg"
-                        variant="secondary"
+                        <img src={pledgeShareIcon} alt="Share My Pledge" className="w-16 h-16 mb-4" />
+                        <p className="text-lg font-semibold text-center">Share My Pledge</p>
+                      </div>
+                      
+                      <div 
                         onClick={() => {
                           const url = window.location.origin + '/pledge';
                           navigator.clipboard.writeText(url);
                           toast({ title: "Link Copied!", description: "Invite link copied to clipboard. Share it with your friends!" });
                         }}
-                        className="flex items-center gap-2"
+                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
                       >
-                        Invite Others to Pledge
-                      </Button>
+                        <img src={pledgeInviteIcon} alt="Invite Others to Pledge" className="w-16 h-16 mb-4" />
+                        <p className="text-lg font-semibold text-center">Invite Others to Pledge</p>
+                      </div>
+                      
+                      <div 
+                        onClick={() => navigate('/pledge')}
+                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
+                      >
+                        <img src={pledgeRetakeIcon} alt="Re-take Pledge" className="w-16 h-16 mb-4" />
+                        <p className="text-lg font-semibold text-center">Re-take Pledge</p>
+                      </div>
                     </div>
                   </>
                 )}
