@@ -38,12 +38,12 @@ export const InstitutionalDashboard = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["institutionalStats"],
     queryFn: async () => {
-      // Get all trees (including planted ones)
+      // Get all trees with their amounts
       const { data: allTreesData, count: totalTrees } = await supabase
         .from("trees")
-        .select("*", { count: "exact" });
+        .select("status, amount_paid", { count: "exact" });
 
-      // Get tourists by role - find role_id for tourist role
+      // Get tourists by role
       const { data: roles } = await supabase
         .from("roles")
         .select("id")
@@ -69,23 +69,17 @@ export const InstitutionalDashboard = () => {
       const accommodationCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.accommodation_co2) || 0), 0) || 0;
       const totalCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.total_co2) || 0), 0) || 0;
 
-      // Get planted trees count
-      const { count: plantedTrees } = await supabase
-        .from("trees")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "Planted");
+      // Count planted trees
+      const plantedTrees = allTreesData?.filter(tree => tree.status === "Planted").length || 0;
 
-      // Calculate actual revenue from trees
+      // Calculate revenue from all trees
       const totalRevenue = allTreesData?.reduce((sum, tree) => sum + (Number(tree.amount_paid) || 0), 0) || 0;
-      const plantedTreesRevenue = allTreesData
-        ?.filter(tree => tree.status === "Planted")
-        .reduce((sum, tree) => sum + (Number(tree.amount_paid) || 0), 0) || 0;
 
       // Calculate trees needed (1 tree offsets ~25kg CO2)
       const treesNeeded = Math.ceil(totalCO2 / 25);
 
-      // CO2 offset committed by planted trees (25kg per tree)
-      const co2OffsetCommitted = (plantedTrees || 0) * 25;
+      // CO2 offset by planted trees (25kg per tree)
+      const co2OffsetCommitted = plantedTrees * 25;
 
       return {
         totalTrees: totalTrees || 0,
@@ -96,12 +90,11 @@ export const InstitutionalDashboard = () => {
         flightCO2,
         accommodationCO2,
         treesNeeded,
-        plantedTrees: plantedTrees || 0,
-        potentialRevenue: totalRevenue,
-        committedRevenue: plantedTreesRevenue,
+        plantedTrees: plantedTrees,
+        totalRevenue: totalRevenue,
       };
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
   useEffect(() => {
@@ -110,17 +103,6 @@ export const InstitutionalDashboard = () => {
     }
   }, [userProfile]);
 
-  const co2OffsetPercentage = stats?.totalCO2 
-    ? Math.min(100, Math.round((stats.totalCO2Offset / stats.totalCO2) * 100))
-    : 0;
-
-  const treesPlantedPercentage = stats?.treesNeeded 
-    ? Math.min(100, Math.round((stats.plantedTrees / stats.treesNeeded) * 100))
-    : 0;
-
-  const revenuePercentage = stats?.potentialRevenue 
-    ? Math.min(100, Math.round((stats.committedRevenue / stats.potentialRevenue) * 100))
-    : 0;
 
   return (
     <div className="p-8 space-y-6">
@@ -146,13 +128,13 @@ export const InstitutionalDashboard = () => {
           <>
             <InstitutionalStatCard
               title="Total Trees"
-              value={stats?.plantedTrees || 0}
+              value={stats?.totalTrees || 0}
               icon={TreePine}
-              description={`${formatNumber(stats?.plantedTrees || 0)} trees planted`}
+              description={`${formatNumber(stats?.totalTrees || 0)} trees in the system`}
               trend={{ value: 8.3, isPositive: true }}
               breakdown={[
-                { label: "Total Planted", value: formatNumber(stats?.plantedTrees || 0) },
                 { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "Planted Trees", value: formatNumber(stats?.plantedTrees || 0) },
               ]}
             />
 
@@ -164,18 +146,19 @@ export const InstitutionalDashboard = () => {
               breakdown={[
                 { label: "Total Emissions", value: `${formatNumber(stats?.totalCO2 || 0)} kg` },
                 { label: "Offset Committed", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
+                { label: "Per Tree", value: "25 kg" },
               ]}
             />
 
             <InstitutionalStatCard
               title="Revenue"
-              value={`$${formatNumber(stats?.committedRevenue || 0)}`}
+              value={`$${formatNumber(stats?.totalRevenue || 0)}`}
               icon={DollarSign}
-              description={`Revenue from planted trees`}
+              description={`Total revenue from all trees`}
               trend={{ value: 15.7, isPositive: true }}
               breakdown={[
-                { label: "Total Revenue", value: `$${formatNumber(stats?.potentialRevenue || 0)}` },
-                { label: "From Planted", value: `$${formatNumber(stats?.committedRevenue || 0)}` },
+                { label: "Total Revenue", value: `$${formatNumber(stats?.totalRevenue || 0)}` },
+                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
               ]}
             />
 
@@ -190,18 +173,6 @@ export const InstitutionalDashboard = () => {
                 { label: "Germany", value: "12" },
                 { label: "Spain", value: "8" },
                 { label: "France", value: "6" },
-              ]}
-            />
-
-            <InstitutionalStatCard
-              title="OTOT Activity"
-              value={`${formatNumber((stats?.totalTourists || 0) + (stats?.plantedTrees || 0))}`}
-              icon={Users}
-              description="Platform engagement metrics"
-              breakdown={[
-                { label: "Tourists", value: formatNumber(stats?.totalTourists || 0) },
-                { label: "Partners", value: "5" },
-                { label: "Planting", value: formatNumber(stats?.plantedTrees || 0) },
               ]}
             />
           </>
