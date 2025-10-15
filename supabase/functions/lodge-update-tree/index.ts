@@ -119,6 +119,9 @@ serve(async (req) => {
       );
     }
 
+    // Valid status values from the enum
+    const validStatuses = ['Waiting to be Assigned', 'Assigned', 'Sapling Planted', 'Being Mapped', 'Planted'];
+    
     // Update the tree
     const updateData: any = {};
     if (treeType !== undefined) updateData.tree_type = treeType;
@@ -128,7 +131,15 @@ serve(async (req) => {
     if (locationName !== undefined) updateData.location_name = locationName;
     if (growthNotes !== undefined) updateData.growth_notes = growthNotes;
     if (images !== undefined) updateData.images = images;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      if (!validStatuses.includes(status)) {
+        return new Response(
+          JSON.stringify({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      updateData.status = status;
+    }
 
     const { data: updatedTree, error: updateError } = await supabase
       .from('trees')

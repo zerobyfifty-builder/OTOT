@@ -108,10 +108,12 @@ export default function TreesAll() {
     switch (status) {
       case "Planted":
         return "default";
-      case "Growing":
+      case "Sapling Planted":
         return "secondary";
-      case "Mature":
+      case "Being Mapped":
         return "outline";
+      case "Assigned":
+        return "secondary";
       default:
         return "secondary";
     }
@@ -208,9 +210,9 @@ export default function TreesAll() {
                   Waiting Assignment
                 </SelectItem>
                 <SelectItem value="Assigned">Assigned</SelectItem>
+                <SelectItem value="Sapling Planted">Sapling Planted</SelectItem>
+                <SelectItem value="Being Mapped">Being Mapped</SelectItem>
                 <SelectItem value="Planted">Planted</SelectItem>
-                <SelectItem value="Growing">Growing</SelectItem>
-                <SelectItem value="Mature">Mature</SelectItem>
               </SelectContent>
             </Select>
             <Select
