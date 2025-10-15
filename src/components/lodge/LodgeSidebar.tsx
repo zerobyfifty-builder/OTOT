@@ -64,7 +64,7 @@ export function LodgeSidebar() {
     try {
       await signOut();
       toast.success('Signed out successfully');
-      navigate('/lodge/login');
+      navigate('/auth/login');
     } catch (error) {
       toast.error('Failed to sign out');
     }
