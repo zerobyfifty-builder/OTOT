@@ -61,6 +61,7 @@ import PlantationPartners from "@/pages/institutional/PlantationPartners";
 import RecentTrips from "@/pages/institutional/RecentTrips";
 import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
+import InstitutionalReports from "@/pages/institutional/Reports";
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
 import NotFound from "./pages/NotFound";
 
@@ -231,6 +232,13 @@ const App = () => (
               <InstitutionalRoute>
                 <InstitutionalLayout>
                   <AvailableModules />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/reports" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalReports />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
