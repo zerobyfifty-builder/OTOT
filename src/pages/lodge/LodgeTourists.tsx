@@ -193,21 +193,26 @@ export const LodgeTourists = () => {
                         </TableCell>
                         <TableCell>{getStatusBadge(tree.status)}</TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewDetails(tree)}>
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/lodge/plant-tree/${tree.id}`)}>
-                                {tree.status === 'Waiting to be Assigned' ? 'Plant Tree' : 'Update'}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => navigate(`/lodge/plant-tree/${tree.id}`)}
+                            >
+                              {tree.status === 'Waiting to be Assigned' ? 'Plant Tree' : 'Update'}
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(tree)}>
+                                  View Details
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
