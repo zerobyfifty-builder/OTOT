@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, TreePine, TrendingUp, BarChart3, LogOut, Plane, Building } from "lucide-react";
+import { Users, TreePine, TrendingUp, BarChart3, Plane, Building, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { TripsTable } from "@/components/institutional/TripsTable";
-import { TreesTable } from "@/components/institutional/TreesTable";
 import { formatNumber } from "@/lib/utils";
+import { InstitutionalStatCard } from "@/components/institutional/InstitutionalStatCard";
 
 export const InstitutionalDashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
 
   // Fetch organization and user info
@@ -38,27 +32,6 @@ export const InstitutionalDashboard = () => {
       return data;
     },
     enabled: !!user?.id,
-  });
-
-  // Fetch organization modules
-  const { data: modules } = useQuery({
-    queryKey: ["organizationModules", userProfile?.organization_id],
-    queryFn: async () => {
-      if (!userProfile?.organization_id) return [];
-      
-      const { data, error } = await supabase
-        .from("organization_modules")
-        .select(`
-          *,
-          modules!inner(*)
-        `)
-        .eq("organization_id", userProfile.organization_id)
-        .eq("is_active", true);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userProfile?.organization_id,
   });
 
   // Fetch statistics
@@ -96,78 +69,35 @@ export const InstitutionalDashboard = () => {
       const accommodationCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.accommodation_co2) || 0), 0) || 0;
       const totalCO2 = co2Data?.reduce((sum, trip) => sum + (Number(trip.total_co2) || 0), 0) || 0;
 
+      // Get planted trees count
+      const { count: plantedTrees } = await supabase
+        .from("trees")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "Planted");
+
+      // Calculate trees needed (1 tree offsets ~25kg CO2)
+      const treesNeeded = Math.ceil(totalCO2 / 25);
+
+      // Calculate revenue (assuming $10 per tree)
+      const potentialRevenue = treesNeeded * 10;
+      const committedRevenue = (plantedTrees || 0) * 10;
+
       return {
         totalTrees: totalTrees || 0,
         totalTourists: totalTourists || 0,
         totalTrips: totalTrips || 0,
-        totalCO2Offset: totalCO2,
+        totalCO2: totalCO2,
+        totalCO2Offset: (plantedTrees || 0) * 25, // CO2 offset by planted trees
         flightCO2,
         accommodationCO2,
+        treesNeeded,
+        plantedTrees: plantedTrees || 0,
+        potentialRevenue,
+        committedRevenue,
       };
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
-
-  // Get recent activity
-  const { data: recentTrees, isLoading: treesLoading } = useQuery({
-    queryKey: ["recentTrees"],
-    queryFn: async () => {
-      const { data: trees, error } = await supabase
-        .from("trees")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      if (!trees) return [];
-
-      // Fetch user emails for these trees
-      const userIds = [...new Set(trees.map(t => t.user_id))];
-      const { data: users } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .in("user_id", userIds);
-
-      return trees.map(tree => ({
-        ...tree,
-        user_email: users?.find(u => u.user_id === tree.user_id)?.email || "Unknown"
-      }));
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  const { data: recentTrips, isLoading: tripsLoading } = useQuery({
-    queryKey: ["recentTrips"],
-    queryFn: async () => {
-      const { data: trips, error } = await supabase
-        .from("trips")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      if (!trips) return [];
-
-      // Fetch user emails for these trips
-      const userIds = [...new Set(trips.map(t => t.user_id))];
-      const { data: users } = await supabase
-        .from("users")
-        .select("user_id, email")
-        .in("user_id", userIds);
-
-      return trips.map(trip => ({
-        ...trip,
-        user_email: users?.find(u => u.user_id === trip.user_id)?.email || "Unknown"
-      }));
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  const handleLogout = async () => {
-    await signOut();
-    toast.success("Logged out successfully");
-    navigate("/auth/login");
-  };
 
   useEffect(() => {
     if (userProfile) {
@@ -175,221 +105,156 @@ export const InstitutionalDashboard = () => {
     }
   }, [userProfile]);
 
+  const co2OffsetPercentage = stats?.totalCO2 
+    ? Math.min(100, Math.round((stats.totalCO2Offset / stats.totalCO2) * 100))
+    : 0;
+
+  const treesPlantedPercentage = stats?.treesNeeded 
+    ? Math.min(100, Math.round((stats.plantedTrees / stats.treesNeeded) * 100))
+    : 0;
+
+  const revenuePercentage = stats?.potentialRevenue 
+    ? Math.min(100, Math.round((stats.committedRevenue / stats.potentialRevenue) * 100))
+    : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Building className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">{organizationInfo?.name || "Institutional Partner"}</h1>
-              <p className="text-sm text-muted-foreground">{organizationInfo?.category} Partnership</p>
-            </div>
-          </div>
-          <Button onClick={handleLogout} variant="outline" size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
+    <div className="p-8 space-y-6">
+      {/* Modern Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsLoading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-48" />
+            ))}
+          </>
+        ) : (
+          <>
+            <InstitutionalStatCard
+              title="Total Trees"
+              value={stats?.totalTrees || 0}
+              icon={TreePine}
+              description={`${formatNumber(stats?.totalTrees || 0)} trees planted`}
+              trend={{ value: 8.3, isPositive: true }}
+              progress={{
+                label: "Planted vs Needed",
+                current: stats?.plantedTrees || 0,
+                total: stats?.treesNeeded || 1,
+                percentage: treesPlantedPercentage,
+              }}
+              breakdown={[
+                { label: "Waiting to be Assigned", value: ((stats?.totalTrees || 0) - (stats?.plantedTrees || 0)) },
+              ]}
+            />
+
+            <InstitutionalStatCard
+              title="CO₂ Offset"
+              value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
+              icon={TrendingUp}
+              description="Carbon dioxide offset"
+              progress={{
+                label: "Offset vs Total Emission",
+                current: stats?.totalCO2Offset || 0,
+                total: stats?.totalCO2 || 1,
+                percentage: co2OffsetPercentage,
+              }}
+            />
+
+            <InstitutionalStatCard
+              title="Revenue"
+              value={`$${formatNumber(stats?.committedRevenue || 0)}`}
+              icon={DollarSign}
+              description="$0 this month"
+              trend={{ value: 15.7, isPositive: true }}
+              progress={{
+                label: "Committed vs Potential",
+                current: stats?.committedRevenue || 0,
+                total: stats?.potentialRevenue || 1,
+                percentage: revenuePercentage,
+              }}
+            />
+
+            <InstitutionalStatCard
+              title="Active Sessions"
+              value={stats?.totalTourists || 0}
+              icon={Users}
+              description={`Peak today: ${stats?.totalTourists || 0}`}
+              breakdown={[
+                { label: "Tourists", value: stats?.totalTourists || 0 },
+                { label: "Partners", value: 5 },
+                { label: "Admins", value: 2 },
+              ]}
+            />
+          </>
+        )}
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Trees Planted</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <Skeleton className="h-10 w-20" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  <TreePine className="w-5 h-5 text-primary" />
-                  <span className="text-3xl font-bold">{stats?.totalTrees || 0}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Tourists</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <Skeleton className="h-10 w-20" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  <span className="text-3xl font-bold">{stats?.totalTourists || 0}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Trips</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <Skeleton className="h-10 w-20" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Plane className="w-5 h-5 text-primary" />
-                  <span className="text-3xl font-bold">{stats?.totalTrips || 0}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">CO₂ Offset (kg)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {statsLoading ? (
-                <Skeleton className="h-10 w-20" />
-              ) : (
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <span className="text-3xl font-bold">{formatNumber(stats?.totalCO2Offset || 0)}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="trips">Recent Trips</TabsTrigger>
-            <TabsTrigger value="trees">Recent Trees</TabsTrigger>
-            <TabsTrigger value="modules">Available Modules</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>CO₂ Emissions Breakdown</CardTitle>
-                  <CardDescription>Distribution of carbon emissions by source</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {statsLoading ? (
-                    <Skeleton className="h-64 w-full" />
-                  ) : stats && (stats.flightCO2 > 0 || stats.accommodationCO2 > 0) ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border rounded-lg bg-primary/5">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Flight Emissions</p>
-                          <p className="text-2xl font-bold">{formatNumber(stats.flightCO2)} kg</p>
-                        </div>
-                        <Plane className="w-8 h-8 text-primary" />
-                      </div>
-                      <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/5">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Accommodation Emissions</p>
-                          <p className="text-2xl font-bold">{formatNumber(stats.accommodationCO2)} kg</p>
-                        </div>
-                        <Building className="w-8 h-8 text-secondary" />
-                      </div>
-                      <div className="flex items-center justify-between p-4 border rounded-lg bg-accent/5">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total Emissions</p>
-                          <p className="text-2xl font-bold">{formatNumber(stats.totalCO2Offset)} kg</p>
-                        </div>
-                        <TrendingUp className="w-8 h-8 text-accent" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>No emissions data yet</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Activity</CardTitle>
-                  <CardDescription>Real-time insights into conservation and tourism activities</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">Active Conservation Projects</p>
-                        <p className="text-sm text-muted-foreground">Trees being planted and tracked</p>
-                      </div>
-                      <TreePine className="w-8 h-8 text-primary" />
-                    </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">Carbon Offsetting Program</p>
-                        <p className="text-sm text-muted-foreground">Tourist carbon footprint tracking</p>
-                      </div>
-                      <TrendingUp className="w-8 h-8 text-primary" />
-                    </div>
+      {/* Overview Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>CO₂ Emissions Breakdown</CardTitle>
+            <CardDescription>Distribution of carbon emissions by source</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {statsLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : stats && (stats.flightCO2 > 0 || stats.accommodationCO2 > 0) ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-primary/5">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Flight Emissions</p>
+                    <p className="text-2xl font-bold">{formatNumber(stats.flightCO2)} kg</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <Plane className="w-8 h-8 text-primary" />
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/5">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Accommodation Emissions</p>
+                    <p className="text-2xl font-bold">{formatNumber(stats.accommodationCO2)} kg</p>
+                  </div>
+                  <Building className="w-8 h-8 text-secondary" />
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-accent/5">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Emissions</p>
+                    <p className="text-2xl font-bold">{formatNumber(stats.totalCO2 || 0)} kg</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-accent" />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <BarChart3 className="w-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No emissions data yet</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Platform Activity</CardTitle>
+            <CardDescription>Real-time insights into conservation efforts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">Active Conservation Projects</p>
+                  <p className="text-sm text-muted-foreground">Trees being planted and tracked</p>
+                </div>
+                <TreePine className="w-8 h-8 text-primary" />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">Carbon Offsetting Program</p>
+                  <p className="text-sm text-muted-foreground">Tourist carbon footprint tracking</p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-primary" />
+              </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="trips">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Trips</CardTitle>
-                <CardDescription>Latest tourist trips and carbon calculations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TripsTable trips={recentTrips || []} isLoading={tripsLoading} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="trees">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Tree Plantings</CardTitle>
-                <CardDescription>Latest tree planting activities</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TreesTable trees={recentTrees || []} isLoading={treesLoading} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="modules">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {modules?.map((module) => (
-                <Card key={module.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{module.modules.display_name}</CardTitle>
-                    <CardDescription>{module.modules.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Permissions:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {(module.permissions as string[])?.map((perm) => (
-                          <span key={perm} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">
-                            {perm}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

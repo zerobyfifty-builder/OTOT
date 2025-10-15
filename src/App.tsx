@@ -57,6 +57,11 @@ import { LodgeNotifications } from "@/pages/lodge/LodgeNotifications";
 import { LodgeHelp } from "@/pages/lodge/LodgeHelp";
 import { PlantTree } from "@/pages/lodge/PlantTree";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
+import PlantationPartners from "@/pages/institutional/PlantationPartners";
+import RecentTrips from "@/pages/institutional/RecentTrips";
+import RecentTrees from "@/pages/institutional/RecentTrees";
+import AvailableModules from "@/pages/institutional/AvailableModules";
+import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +92,24 @@ const LodgeLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
       <LodgeSidebar />
+      <main className="flex-1 overflow-auto bg-background">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
+const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
+  children: React.ReactNode;
+  organizationName?: string;
+  organizationCategory?: string;
+}) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <InstitutionalSidebar 
+        organizationName={organizationName}
+        organizationCategory={organizationCategory}
+      />
       <main className="flex-1 overflow-auto bg-background">
         {children}
       </main>
@@ -178,7 +201,37 @@ const App = () => (
             {/* Institutional Partner routes */}
             <Route path="/institutional/dashboard" element={
               <InstitutionalRoute>
-                <InstitutionalDashboard />
+                <InstitutionalLayout>
+                  <InstitutionalDashboard />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/partners" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <PlantationPartners />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/trips" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <RecentTrips />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/trees" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <RecentTrees />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/modules" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <AvailableModules />
+                </InstitutionalLayout>
               </InstitutionalRoute>
             } />
             
