@@ -16,32 +16,66 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get lodge session token from header
+    let lodgeId: string;
+
+    // Try lodge session token first
     const sessionToken = req.headers.get('x-lodge-session');
     
-    if (!sessionToken) {
-      return new Response(
-        JSON.stringify({ error: 'Lodge session token required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (sessionToken) {
+      // Validate lodge session
+      const { data: session, error: sessionError } = await supabase
+        .from('lodge_sessions')
+        .select('lodge_id, expires_at')
+        .eq('session_token', sessionToken)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (sessionError || !session) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid or expired lodge session' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      lodgeId = session.lodge_id;
+    } else {
+      // Fall back to Supabase Auth JWT token
+      const authHeader = req.headers.get('authorization');
+      
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify JWT and get user
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get user's organization_id (which is the lodge_id)
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userError || !userData?.organization_id) {
+        return new Response(
+          JSON.stringify({ error: 'User not associated with a lodge' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      lodgeId = userData.organization_id;
     }
-
-    // Validate lodge session
-    const { data: session, error: sessionError } = await supabase
-      .from('lodge_sessions')
-      .select('lodge_id, expires_at')
-      .eq('session_token', sessionToken)
-      .gt('expires_at', new Date().toISOString())
-      .single();
-
-    if (sessionError || !session) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid or expired lodge session' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const lodgeId = session.lodge_id;
 
     // Get request body
     const body = await req.json();
@@ -119,7 +153,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

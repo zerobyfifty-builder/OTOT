@@ -140,12 +140,24 @@ export const PlantTree = () => {
       const existingImages = tree.images ? (Array.isArray(tree.images) ? tree.images : [tree.images]) : [];
       const updatedImages = imageUrl ? [...existingImages, imageUrl] : existingImages;
 
-      // Get lodge session token or use organization ID
-      const sessionToken = localStorage.getItem('lodge_session_token');
-      const lodgeId = userOrg || lodge?.id;
+      // Get session from supabase auth
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!sessionToken && !lodgeId) {
+      if (!session) {
         throw new Error('Authentication required. Please log in again.');
+      }
+
+      // Build headers with auth token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllemhzc2Z6Yml3bm9maHBqYWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMzk4NDEsImV4cCI6MjA3NDcxNTg0MX0.lZ6mVrCKrSxza6dsbMS_2Yq5hY-trUAb-hzZGcdrcD8',
+        'authorization': `Bearer ${session.access_token}`,
+      };
+
+      // Add lodge session token if available
+      const sessionToken = localStorage.getItem('lodge_session_token');
+      if (sessionToken) {
+        headers['x-lodge-session'] = sessionToken;
       }
 
       // Call edge function to update tree with proper authorization
@@ -153,11 +165,7 @@ export const PlantTree = () => {
         `https://iezhssfzbiwnofhpjahv.supabase.co/functions/v1/lodge-update-tree`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-lodge-session': sessionToken,
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllemhzc2Z6Yml3bm9maHBqYWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMzk4NDEsImV4cCI6MjA3NDcxNTg0MX0.lZ6mVrCKrSxza6dsbMS_2Yq5hY-trUAb-hzZGcdrcD8',
-          },
+          headers,
           body: JSON.stringify({
             treeId: treeId,
             treeType: treeType,
