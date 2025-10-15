@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Leaf, Info, Heart, MapPin, Download } from "lucide-react";
+import { Leaf, Info, Heart, MapPin, Download, Share2, Facebook, Twitter, Linkedin, Instagram, Copy } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
-import { SocialShare } from "@/components/certificates/SocialShare";
 
 interface Lodge {
   id: string;
@@ -329,48 +328,148 @@ export const TreePurchase = () => {
   }
 
   if (showSuccessCard) {
+    const message = `I planted ${getTreeCount()} ${getTreeCount() === 1 ? 'tree' : 'trees'} in Kenya through One Tourist One Tree! 🌳 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya`;
+    const shareUrl = window.location.origin;
+
+    const shareOnFacebook = () => {
+      const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(message)}`;
+      window.open(url, '_blank', 'width=600,height=400');
+    };
+
+    const shareOnTwitter = () => {
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(shareUrl)}`;
+      window.open(url, '_blank', 'width=600,height=400');
+    };
+
+    const shareOnLinkedIn = () => {
+      const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+      window.open(url, '_blank', 'width=600,height=400');
+    };
+
+    const copyInstagramMessage = () => {
+      navigator.clipboard.writeText(message);
+      toast({
+        title: "Message copied!",
+        description: "Paste it on Instagram with your certificate screenshot.",
+      });
+    };
+
+    const copyLink = () => {
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link copied!",
+        description: "Share this link with your friends.",
+      });
+    };
+
     return (
       <div className="min-h-screen bg-background">
-        <div className="container max-w-3xl py-8">
-          <Card className="border-primary/20 bg-gradient-primary text-white">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl mb-4">🎉 Thank You!</CardTitle>
-              <CardDescription className="text-white/90 text-lg">
-                You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-white/10 rounded-lg p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Trees Planted:</span>
-                  <span className="text-2xl font-bold">{getTreeCount()}</span>
+        <div className="container max-w-7xl py-12 px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Thank You Card */}
+            <Card className="bg-primary text-white border-0 shadow-lg">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-4xl font-bold mb-2 flex items-center justify-center gap-2">
+                  🎉 Thank You!
+                </CardTitle>
+                <CardDescription className="text-white/90 text-lg">
+                  You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-between text-lg">
+                    <span className="text-white/90">Trees Planted:</span>
+                    <span className="text-5xl font-bold">{getTreeCount()}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-lg">
+                    <span className="text-white/90">CO₂ Offset:</span>
+                    <span className="text-3xl font-bold">{totalCO2.toFixed(2)} kg</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">CO₂ Offset:</span>
-                  <span className="text-2xl font-bold">{totalCO2.toFixed(2)} kg</span>
-                </div>
-              </div>
 
-              <SocialShare type="tree" numTrees={getTreeCount()} />
-
-              <div className="flex gap-3">
-                <Button 
-                  variant="secondary" 
-                  className="flex-1"
-                  onClick={() => navigate('/my-trees')}
-                >
-                  View My Trees
-                </Button>
                 <Button 
                   variant="outline" 
-                  className="flex-1 bg-white/10 hover:bg-white/20 text-white border-white/20"
-                  onClick={() => navigate('/dashboard')}
+                  size="lg"
+                  className="w-full bg-white text-primary hover:bg-white/90 hover:text-primary border-0 text-lg py-6"
+                  onClick={() => navigate('/my-trees')}
                 >
-                  Back to Dashboard
+                  View my Trees
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Share Your Impact Card */}
+            <Card className="bg-primary text-foreground border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+                  <Share2 className="h-8 w-8 text-foreground" />
+                  Share Your Impact
+                </CardTitle>
+                <CardDescription className="text-foreground/70 text-base">
+                  Inspire others to take action for sustainable tourism
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="bg-primary/60 rounded-lg p-4">
+                  <p className="text-sm text-foreground/70 mb-2">Share message:</p>
+                  <p className="text-sm font-medium text-foreground">{message}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 bg-white hover:bg-white/90 text-foreground border-0"
+                    onClick={shareOnFacebook}
+                  >
+                    <Facebook className="h-5 w-5" />
+                    Facebook
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 bg-white hover:bg-white/90 text-foreground border-0"
+                    onClick={shareOnTwitter}
+                  >
+                    <Twitter className="h-5 w-5" />
+                    Twitter
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 bg-white hover:bg-white/90 text-foreground border-0"
+                    onClick={shareOnLinkedIn}
+                  >
+                    <Linkedin className="h-5 w-5" />
+                    LinkedIn
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 bg-white hover:bg-white/90 text-foreground border-0"
+                    onClick={copyInstagramMessage}
+                  >
+                    <Instagram className="h-5 w-5" />
+                    Instagram
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full col-span-2 gap-2 bg-white hover:bg-white/90 text-foreground border-0"
+                    onClick={copyLink}
+                  >
+                    <Copy className="h-5 w-5" />
+                    Copy Link
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );
