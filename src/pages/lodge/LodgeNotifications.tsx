@@ -13,20 +13,33 @@ export const LodgeNotifications = () => {
   const { lodge } = useLodgeAuth();
   const queryClient = useQueryClient();
 
-  const { data: notifications, isLoading } = useQuery({
+  const { data: notifications, isLoading, error: queryError } = useQuery({
     queryKey: ['lodge-notifications-all', lodge?.id],
     queryFn: async () => {
+      if (!lodge?.id) {
+        console.error('Lodge ID is missing');
+        return [];
+      }
+      
+      console.log('Fetching notifications for lodge:', lodge.id);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('recipient_id', lodge?.id)
+        .eq('recipient_id', lodge.id)
         .eq('recipient_type', 'lodge')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+      }
+      
+      console.log('Fetched notifications:', data?.length);
+      return data || [];
     },
-    enabled: !!lodge,
+    enabled: !!lodge?.id,
+    refetchInterval: false,
+    staleTime: 30000,
   });
 
   const markAsReadMutation = useMutation({
@@ -73,6 +86,26 @@ export const LodgeNotifications = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-destructive">
+          Error loading notifications: {queryError.message}
+        </div>
+      </div>
+    );
+  }
+
+  if (!lodge) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">
+          Lodge information not available
+        </div>
       </div>
     );
   }
