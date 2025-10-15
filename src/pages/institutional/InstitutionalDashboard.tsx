@@ -128,7 +128,7 @@ export const InstitutionalDashboard = () => {
           {organizationInfo?.name || 'Kenya Tourism Board'}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {organizationInfo?.category || 'Institutional Partner'}
+          Institutional Partner
         </p>
       </div>
 
