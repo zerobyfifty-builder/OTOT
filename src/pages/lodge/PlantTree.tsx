@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLodgeAuth } from "@/contexts/LodgeAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,8 +16,23 @@ export const PlantTree = () => {
   const { treeId } = useParams();
   const navigate = useNavigate();
   const { lodge } = useLodgeAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Get organization_id from authenticated user
+  const { data: userOrg } = useQuery({
+    queryKey: ['user-organization', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user?.id)
+        .single();
+      return data?.organization_id;
+    },
+    enabled: !!user,
+  });
 
   const [treeType, setTreeType] = useState("");
   const [plantDate, setPlantDate] = useState(new Date().toISOString().split('T')[0]);
@@ -124,11 +140,12 @@ export const PlantTree = () => {
       const existingImages = tree.images ? (Array.isArray(tree.images) ? tree.images : [tree.images]) : [];
       const updatedImages = imageUrl ? [...existingImages, imageUrl] : existingImages;
 
-      // Get lodge session token
+      // Get lodge session token or use organization ID
       const sessionToken = localStorage.getItem('lodge_session_token');
+      const lodgeId = userOrg || lodge?.id;
       
-      if (!sessionToken) {
-        throw new Error('Lodge session not found. Please log in again.');
+      if (!sessionToken && !lodgeId) {
+        throw new Error('Authentication required. Please log in again.');
       }
 
       // Call edge function to update tree with proper authorization

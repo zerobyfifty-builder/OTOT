@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useLodgeAuth } from "@/contexts/LodgeAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,21 +12,38 @@ import { toast } from "sonner";
 export const LodgeNotifications = () => {
   const navigate = useNavigate();
   const { lodge } = useLodgeAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: notifications, isLoading, error: queryError } = useQuery({
-    queryKey: ['lodge-notifications-all', lodge?.id],
+  // Get organization_id from authenticated user
+  const { data: userOrg } = useQuery({
+    queryKey: ['user-organization', user?.id],
     queryFn: async () => {
-      if (!lodge?.id) {
+      const { data } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user?.id)
+        .single();
+      return data?.organization_id;
+    },
+    enabled: !!user,
+  });
+
+  const lodgeId = userOrg || lodge?.id;
+
+  const { data: notifications, isLoading, error: queryError } = useQuery({
+    queryKey: ['lodge-notifications-all', lodgeId],
+    queryFn: async () => {
+      if (!lodgeId) {
         console.error('Lodge ID is missing');
         return [];
       }
       
-      console.log('Fetching notifications for lodge:', lodge.id);
+      console.log('Fetching notifications for lodge:', lodgeId);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('recipient_id', lodge.id)
+        .eq('recipient_id', lodgeId)
         .eq('recipient_type', 'lodge')
         .order('created_at', { ascending: false });
       
@@ -37,7 +55,7 @@ export const LodgeNotifications = () => {
       console.log('Fetched notifications:', data?.length);
       return data || [];
     },
-    enabled: !!lodge?.id,
+    enabled: !!lodgeId,
     refetchInterval: false,
     staleTime: 30000,
   });
@@ -54,6 +72,7 @@ export const LodgeNotifications = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lodge-notifications-all'] });
       queryClient.invalidateQueries({ queryKey: ['lodge-unread-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['lodge-notifications'] });
       toast.success('Notification marked as read');
     },
     onError: () => {
@@ -66,7 +85,7 @@ export const LodgeNotifications = () => {
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('recipient_id', lodge?.id)
+        .eq('recipient_id', lodgeId)
         .eq('recipient_type', 'lodge')
         .eq('is_read', false);
       
@@ -75,6 +94,7 @@ export const LodgeNotifications = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lodge-notifications-all'] });
       queryClient.invalidateQueries({ queryKey: ['lodge-unread-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['lodge-notifications'] });
       toast.success('All notifications marked as read');
     },
     onError: () => {
