@@ -91,20 +91,12 @@ export const LodgeNotifications = () => {
   }
 
   if (queryError) {
+    console.error('Query error details:', queryError);
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-destructive">
-          Error loading notifications: {queryError.message}
-        </div>
-      </div>
-    );
-  }
-
-  if (!lodge) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">
-          Lodge information not available
+        <div className="text-center">
+          <div className="text-destructive mb-2">Error loading notifications</div>
+          <div className="text-sm text-muted-foreground">{queryError.message}</div>
         </div>
       </div>
     );

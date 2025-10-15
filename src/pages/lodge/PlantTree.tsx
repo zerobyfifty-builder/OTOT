@@ -124,21 +124,44 @@ export const PlantTree = () => {
       const existingImages = tree.images ? (Array.isArray(tree.images) ? tree.images : [tree.images]) : [];
       const updatedImages = imageUrl ? [...existingImages, imageUrl] : existingImages;
 
-      const { error } = await supabase
-        .from('trees')
-        .update({
-          tree_type: treeType,
-          plant_date: plantDate,
-          latitude: latitude ? parseFloat(latitude) : null,
-          longitude: longitude ? parseFloat(longitude) : null,
-          location_name: locationName,
-          growth_notes: growthNotes,
-          status: 'Planted',
-          images: updatedImages,
-        })
-        .eq('id', treeId);
+      // Get lodge session token
+      const sessionToken = localStorage.getItem('lodge_session_token');
+      
+      if (!sessionToken) {
+        throw new Error('Lodge session not found. Please log in again.');
+      }
 
-      if (error) throw error;
+      // Call edge function to update tree with proper authorization
+      const response = await fetch(
+        `https://iezhssfzbiwnofhpjahv.supabase.co/functions/v1/lodge-update-tree`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-lodge-session': sessionToken,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllemhzc2Z6Yml3bm9maHBqYWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMzk4NDEsImV4cCI6MjA3NDcxNTg0MX0.lZ6mVrCKrSxza6dsbMS_2Yq5hY-trUAb-hzZGcdrcD8',
+          },
+          body: JSON.stringify({
+            treeId: treeId,
+            treeType: treeType,
+            plantDate: plantDate,
+            latitude: latitude ? parseFloat(latitude) : null,
+            longitude: longitude ? parseFloat(longitude) : null,
+            locationName: locationName,
+            growthNotes: growthNotes,
+            status: 'Planted',
+            images: updatedImages,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update tree');
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tree', treeId] });
