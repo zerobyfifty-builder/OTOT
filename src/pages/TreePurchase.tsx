@@ -367,31 +367,31 @@ export const TreePurchase = () => {
         <div className="container max-w-7xl py-12 px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Thank You Card */}
-            <Card className="bg-primary text-white border-0 shadow-lg">
+            <Card className="bg-slate-50 border-0 shadow-lg">
               <CardHeader className="text-center pb-4">
-                <CardTitle className="text-4xl font-bold mb-2 flex items-center justify-center gap-2">
+                <CardTitle className="text-4xl font-bold mb-2 flex items-center justify-center gap-2 text-foreground">
                   🎉 Thank You!
                 </CardTitle>
-                <CardDescription className="text-white/90 text-lg">
+                <CardDescription className="text-muted-foreground text-lg">
                   You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4 py-4">
                   <div className="flex items-center justify-between text-lg">
-                    <span className="text-white/90">Trees Planted:</span>
-                    <span className="text-5xl font-bold">{getTreeCount()}</span>
+                    <span className="text-muted-foreground">Trees Planted:</span>
+                    <span className="text-5xl font-bold text-primary">{getTreeCount()}</span>
                   </div>
                   <div className="flex items-center justify-between text-lg">
-                    <span className="text-white/90">CO₂ Offset:</span>
-                    <span className="text-3xl font-bold">{totalCO2.toFixed(2)} kg</span>
+                    <span className="text-muted-foreground">CO₂ Offset:</span>
+                    <span className="text-3xl font-bold text-primary">{totalCO2.toFixed(2)} kg</span>
                   </div>
                 </div>
 
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="lg"
-                  className="w-full bg-white text-primary hover:bg-white/90 hover:text-primary border-0 text-lg py-6"
+                  className="w-full text-lg py-6"
                   onClick={() => navigate('/my-trees')}
                 >
                   View my Trees
