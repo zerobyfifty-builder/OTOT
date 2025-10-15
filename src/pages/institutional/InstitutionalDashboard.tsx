@@ -81,13 +81,16 @@ export const InstitutionalDashboard = () => {
       // Calculate revenue (assuming $10 per tree)
       const potentialRevenue = treesNeeded * 10;
       const committedRevenue = (plantedTrees || 0) * 10;
+      
+      // CO2 offset committed by planted trees
+      const co2OffsetCommitted = (plantedTrees || 0) * 25;
 
       return {
         totalTrees: totalTrees || 0,
         totalTourists: totalTourists || 0,
         totalTrips: totalTrips || 0,
         totalCO2: totalCO2,
-        totalCO2Offset: (plantedTrees || 0) * 25, // CO2 offset by planted trees
+        totalCO2Offset: co2OffsetCommitted, // CO2 offset by planted trees
         flightCO2,
         accommodationCO2,
         treesNeeded,
@@ -131,9 +134,9 @@ export const InstitutionalDashboard = () => {
           <>
             <InstitutionalStatCard
               title="Total Trees"
-              value={stats?.totalTrees || 0}
+              value={stats?.plantedTrees || 0}
               icon={TreePine}
-              description={`${formatNumber(stats?.totalTrees || 0)} trees planted`}
+              description={`${formatNumber(stats?.plantedTrees || 0)} of ${formatNumber(stats?.treesNeeded || 0)} trees planted`}
               trend={{ value: 8.3, isPositive: true }}
               progress={{
                 label: "Planted vs Needed",
@@ -142,7 +145,8 @@ export const InstitutionalDashboard = () => {
                 percentage: treesPlantedPercentage,
               }}
               breakdown={[
-                { label: "Waiting to be Assigned", value: ((stats?.totalTrees || 0) - (stats?.plantedTrees || 0)) },
+                { label: "Trees Needed", value: formatNumber(stats?.treesNeeded || 0) },
+                { label: "Waiting to be Assigned", value: formatNumber((stats?.treesNeeded || 0) - (stats?.plantedTrees || 0)) },
               ]}
             />
 
@@ -150,20 +154,24 @@ export const InstitutionalDashboard = () => {
               title="CO₂ Offset"
               value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
               icon={TrendingUp}
-              description="Carbon dioxide offset"
+              description={`${formatNumber(stats?.totalCO2Offset || 0)} of ${formatNumber(stats?.totalCO2 || 0)} kg offset`}
               progress={{
                 label: "Offset vs Total Emission",
                 current: stats?.totalCO2Offset || 0,
                 total: stats?.totalCO2 || 1,
                 percentage: co2OffsetPercentage,
               }}
+              breakdown={[
+                { label: "Total Emissions", value: `${formatNumber(stats?.totalCO2 || 0)} kg` },
+                { label: "Offset Committed", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
+              ]}
             />
 
             <InstitutionalStatCard
               title="Revenue"
               value={`$${formatNumber(stats?.committedRevenue || 0)}`}
               icon={DollarSign}
-              description="$0 this month"
+              description={`$${formatNumber(stats?.committedRevenue || 0)} of $${formatNumber(stats?.potentialRevenue || 0)} committed`}
               trend={{ value: 15.7, isPositive: true }}
               progress={{
                 label: "Committed vs Potential",
@@ -171,17 +179,21 @@ export const InstitutionalDashboard = () => {
                 total: stats?.potentialRevenue || 1,
                 percentage: revenuePercentage,
               }}
+              breakdown={[
+                { label: "Potential Revenue", value: `$${formatNumber(stats?.potentialRevenue || 0)}` },
+                { label: "Remaining", value: `$${formatNumber((stats?.potentialRevenue || 0) - (stats?.committedRevenue || 0))}` },
+              ]}
             />
 
             <InstitutionalStatCard
-              title="Active Sessions"
-              value={stats?.totalTourists || 0}
+              title="OTOT Activity"
+              value={`${formatNumber((stats?.totalTourists || 0) + (stats?.plantedTrees || 0))}`}
               icon={Users}
-              description={`Peak today: ${stats?.totalTourists || 0}`}
+              description="Platform engagement metrics"
               breakdown={[
-                { label: "Tourists", value: stats?.totalTourists || 0 },
-                { label: "Partners", value: 5 },
-                { label: "Admins", value: 2 },
+                { label: "Tourists", value: formatNumber(stats?.totalTourists || 0) },
+                { label: "Partners", value: "5" },
+                { label: "Planting", value: formatNumber(stats?.plantedTrees || 0) },
               ]}
             />
           </>

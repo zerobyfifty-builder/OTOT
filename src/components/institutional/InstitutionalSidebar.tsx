@@ -66,12 +66,12 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
 
   return (
     <Sidebar 
-      className={`group/sidebar bg-muted ${collapsed ? 'w-20' : 'w-64'}`} 
+      className={`group/sidebar bg-gray-100 border-r border-gray-200 ${collapsed ? 'w-20' : 'w-64'}`} 
       collapsible="icon"
     >
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
-        <div className={`p-4 border-b border-border flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`p-4 border-b border-gray-200 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           {/* Expanded state: icon + text */}
           {!collapsed && (
             <>
@@ -81,13 +81,13 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                   alt="OTOT" 
                   className="h-10 w-10"
                 />
-                <span className="text-xl font-bold text-foreground">OTOT</span>
+                <span className="text-xl font-bold text-gray-900">OTOT</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="h-8 w-8 text-foreground hover:bg-accent"
+                className="h-8 w-8 text-gray-700 hover:bg-gray-200"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -100,7 +100,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               className="relative group/logo w-full flex items-center justify-center py-2 cursor-pointer"
               onClick={toggleSidebar}
             >
-              <div className="h-14 w-14 rounded-full bg-background flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
+              <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
                 <img 
                   src={ototTreeIcon} 
                   alt="OTOT" 
@@ -109,8 +109,8 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               </div>
               
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-14 w-14 flex items-center justify-center bg-accent rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
-                  <ChevronRight className="h-5 w-5 text-foreground" />
+                <div className="h-14 w-14 flex items-center justify-center bg-gray-200 rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
+                  <ChevronRight className="h-5 w-5 text-gray-900" />
                 </div>
               </div>
             </div>
@@ -131,7 +131,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-primary text-primary-foreground font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-foreground hover:bg-accent hover:text-accent-foreground'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-200'
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -151,7 +151,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-200 transition-colors ${
                 collapsed ? 'justify-center' : 'justify-start'
               }`}
             >
@@ -162,10 +162,10 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               </Avatar>
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
-                  <span className="text-sm font-medium truncate w-full text-foreground">
+                  <span className="text-sm font-medium truncate w-full text-gray-900">
                     {organizationName || 'Organization'}
                   </span>
-                  <span className="text-xs text-muted-foreground truncate w-full">
+                  <span className="text-xs text-gray-600 truncate w-full">
                     {organizationCategory || 'Institutional Partner'}
                   </span>
                 </div>
