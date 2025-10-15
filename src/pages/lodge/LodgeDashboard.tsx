@@ -197,49 +197,6 @@ export const LodgeDashboard = () => {
           </Card>
         </div>
 
-        {/* Notifications Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notifications ({notifications?.length || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!notifications || notifications.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No new notifications</p>
-            ) : (
-              <div className="space-y-3">
-                {notifications.map((notification) => (
-                  <div 
-                    key={notification.id} 
-                    className={`p-4 rounded-lg border ${
-                      notification.priority === 'high' || notification.priority === 'urgent' 
-                        ? 'bg-orange-50 border-orange-200' 
-                        : 'bg-blue-50 border-blue-200'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-sm">{notification.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(notification.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                      {notification.action_url && (
-                        <Button size="sm" variant="outline" onClick={() => navigate(notification.action_url!)}>
-                          View
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Quick Actions Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/lodge/tourists")}>
@@ -281,6 +238,56 @@ export const LodgeDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Notifications Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Recent Notifications ({notifications?.length || 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!notifications || notifications.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No new notifications</p>
+            ) : (
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div 
+                    key={notification.id} 
+                    className={`p-4 rounded-lg border ${
+                      notification.priority === 'high' || notification.priority === 'urgent' 
+                        ? 'bg-orange-50 border-orange-200' 
+                        : 'bg-blue-50 border-blue-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm">{notification.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {notification.action_url && (
+                        <Button size="sm" variant="outline" onClick={() => navigate(notification.action_url!)}>
+                          View
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4"
+                  onClick={() => navigate('/lodge/notifications')}
+                >
+                  View All Notifications
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

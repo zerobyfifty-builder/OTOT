@@ -50,6 +50,7 @@ export function LodgeSidebar() {
       const { count, error } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', lodge?.id)
         .eq('recipient_type', 'lodge')
         .eq('is_read', false);
       

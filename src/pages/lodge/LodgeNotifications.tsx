@@ -19,6 +19,7 @@ export const LodgeNotifications = () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
+        .eq('recipient_id', lodge?.id)
         .eq('recipient_type', 'lodge')
         .order('created_at', { ascending: false });
       
@@ -52,6 +53,7 @@ export const LodgeNotifications = () => {
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('recipient_id', lodge?.id)
         .eq('recipient_type', 'lodge')
         .eq('is_read', false);
       
