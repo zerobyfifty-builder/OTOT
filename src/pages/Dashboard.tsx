@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   TreePine, 
   Plane, 
   BarChart3,
   Download,
-  Sprout
+  Sprout,
+  Share2,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Copy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from '@/components/dashboard/StatsCard';
@@ -24,11 +30,21 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { generatePledgeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
 
   // Redirect institutional partners to their dashboard
   useEffect(() => {
@@ -66,6 +82,69 @@ export const Dashboard: React.FC = () => {
     if (!user?.email) return 'Guest';
     const emailName = user.email.split('@')[0];
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  };
+
+  // Handle certificate download
+  const handleDownloadCertificate = async () => {
+    if (!user) return;
+    
+    setIsDownloadingCertificate(true);
+    try {
+      const userName = getUserName();
+      const { data: userData } = await supabase
+        .from('users')
+        .select('otot_id')
+        .eq('user_id', user.id)
+        .single();
+
+      const blob = await generatePledgeCertificate({
+        userName,
+        userId: user.id,
+        ototId: userData?.otot_id,
+      });
+
+      downloadCertificate(blob, `pledge-certificate-${userName}.pdf`);
+      
+      toast({
+        title: "Certificate Downloaded",
+        description: "Your pledge certificate has been downloaded successfully!",
+      });
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error downloading your certificate. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+
+  // Share functions
+  const shareMessage = "I just took the Responsible Traveler Pledge with One Tourist One Tree! 🌍 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya";
+  const shareUrl = `${window.location.origin}/pledge`;
+
+  const shareOnFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareMessage)}`, '_blank');
+  };
+
+  const shareOnTwitter = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+  };
+
+  const shareOnLinkedIn = () => {
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+  };
+
+  const copyInstagramMessage = () => {
+    navigator.clipboard.writeText(shareMessage);
+    toast({ title: "Copied!", description: "Message copied! Paste it on Instagram." });
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(`${shareMessage}\n${shareUrl}`);
+    toast({ title: "Copied!", description: "Message and link copied to clipboard!" });
   };
 
   // Fetch user stats and pledge status
@@ -208,20 +287,26 @@ export const Dashboard: React.FC = () => {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div 
-                        onClick={() => navigate('/certificates')}
-                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
+                        onClick={handleDownloadCertificate}
+                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg disabled:opacity-50"
                       >
-                        <img src={pledgeDownloadIcon} alt="Download Certificate" className="w-16 h-16 mb-4" />
-                        <p className="text-lg font-semibold text-center">Download Certificate</p>
+                        {isDownloadingCertificate ? (
+                          <>
+                            <div className="w-16 h-16 mb-4 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                            <p className="text-lg font-semibold text-center">Downloading...</p>
+                          </>
+                        ) : (
+                          <>
+                            <img src={pledgeDownloadIcon} alt="Download Certificate" className="w-16 h-16 mb-4" />
+                            <p className="text-lg font-semibold text-center">Download Certificate</p>
+                          </>
+                        )}
                       </div>
                       
                       <div 
-                        onClick={() => {
-                          const message = "I just took the Responsible Traveler Pledge! Join me in making a positive impact on Kenya's environment and communities. 🌍🌱";
-                          const url = window.location.origin + '/pledge';
-                          navigator.clipboard.writeText(`${message}\n${url}`);
-                          toast({ title: "Copied!", description: "Share text copied to clipboard" });
-                        }}
+                        onClick={() => setIsShareDialogOpen(true)}
                         className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
                       >
                         <img src={pledgeShareIcon} alt="Share My Pledge" className="w-16 h-16 mb-4" />
@@ -290,6 +375,82 @@ export const Dashboard: React.FC = () => {
         </section>
 
       </div>
+
+      {/* Share Pledge Dialog */}
+      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+        <DialogContent className="bg-primary max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-bold flex items-center gap-3 text-foreground">
+              <Share2 className="h-8 w-8" />
+              Share Your Impact
+            </DialogTitle>
+            <DialogDescription className="text-lg text-foreground/80">
+              Inspire others to take action for sustainable tourism
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
+            <div className="space-y-3">
+              <p className="font-semibold text-foreground">Share message:</p>
+              <p className="text-foreground/90 bg-background/10 p-4 rounded-lg">
+                {shareMessage}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="h-14 text-base"
+                onClick={shareOnFacebook}
+              >
+                <Facebook className="mr-2 h-5 w-5" />
+                Facebook
+              </Button>
+              
+              <Button
+                variant="secondary"
+                size="lg"
+                className="h-14 text-base"
+                onClick={shareOnTwitter}
+              >
+                <Twitter className="mr-2 h-5 w-5" />
+                Twitter
+              </Button>
+              
+              <Button
+                variant="secondary"
+                size="lg"
+                className="h-14 text-base"
+                onClick={shareOnLinkedIn}
+              >
+                <Linkedin className="mr-2 h-5 w-5" />
+                LinkedIn
+              </Button>
+              
+              <Button
+                variant="secondary"
+                size="lg"
+                className="h-14 text-base"
+                onClick={copyInstagramMessage}
+              >
+                <Instagram className="mr-2 h-5 w-5" />
+                Instagram
+              </Button>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full h-14 text-base"
+              onClick={copyLink}
+            >
+              <Copy className="mr-2 h-5 w-5" />
+              Copy Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

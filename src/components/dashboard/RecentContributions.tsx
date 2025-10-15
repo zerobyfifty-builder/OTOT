@@ -17,7 +17,7 @@ export const RecentContributions: React.FC = () => {
       
       const { data, error } = await supabase
         .from('trees')
-        .select('id, num_trees, created_at, purchase_type')
+        .select('id, num_trees, created_at, purchase_type, amount_paid')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(3);
@@ -81,11 +81,12 @@ export const RecentContributions: React.FC = () => {
                     key={tree.id} 
                     className="flex items-center justify-between py-3 border-b last:border-0 gap-4"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 shrink-0">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="flex flex-col items-center justify-center min-w-[60px] h-12 rounded-full bg-primary/10 shrink-0 px-2">
                         <span className="text-lg font-bold text-primary">{tree.num_trees}</span>
+                        <span className="text-xs text-primary">trees</span>
                       </div>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col flex-1">
                         <span className="text-foreground font-medium">
                           {tree.purchase_type === 'Subscription' ? 'Subscription' : 'One-time'}
                         </span>
@@ -94,9 +95,14 @@ export const RecentContributions: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="text-muted-foreground text-sm shrink-0">
-                      {format(new Date(tree.created_at), 'dd/MM/yyyy')}
-                    </span>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-foreground font-semibold">
+                        ${tree.amount_paid ? Number(tree.amount_paid).toFixed(2) : '0.00'}
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        {format(new Date(tree.created_at), 'dd/MM/yyyy')}
+                      </span>
+                    </div>
                   </div>
                 );
               })}
