@@ -122,6 +122,16 @@ export const InstitutionalDashboard = () => {
 
   return (
     <div className="p-8 space-y-6">
+      {/* Header Section */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">
+          {organizationInfo?.name || 'Kenya Tourism Board'}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {organizationInfo?.category || 'Institutional Partner'}
+        </p>
+      </div>
+
       {/* Modern Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsLoading ? (
