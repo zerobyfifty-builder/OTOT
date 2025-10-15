@@ -78,8 +78,8 @@ export const InstitutionalDashboard = () => {
       // Calculate trees needed (1 tree offsets ~25kg CO2)
       const treesNeeded = Math.ceil(totalCO2 / 25);
 
-      // CO2 offset by planted trees (25kg per tree)
-      const co2OffsetCommitted = plantedTrees * 25;
+      // CO2 offset by all trees (25kg per tree)
+      const co2OffsetCommitted = (totalTrees || 0) * 25;
 
       return {
         totalTrees: totalTrees || 0,
@@ -142,11 +142,11 @@ export const InstitutionalDashboard = () => {
               title="CO₂ Offset"
               value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
               icon={TrendingUp}
-              description={`Carbon offset by ${stats?.plantedTrees || 0} planted trees`}
+              description={`Carbon offset by ${stats?.totalTrees || 0} trees`}
               breakdown={[
-                { label: "Total Emissions", value: `${formatNumber(stats?.totalCO2 || 0)} kg` },
-                { label: "Offset Committed", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
-                { label: "Per Tree", value: "25 kg" },
+                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "CO₂ per Tree", value: "25 kg" },
+                { label: "Total Offset", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
               ]}
             />
 
