@@ -39,6 +39,7 @@ export const PlantTree = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [locationName, setLocationName] = useState("");
+  const [treeCarerId, setTreeCarerId] = useState("");
   const [growthNotes, setGrowthNotes] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -59,6 +60,20 @@ export const PlantTree = () => {
     enabled: !!treeId,
   });
 
+  const { data: treeCarers } = useQuery({
+    queryKey: ['tree-carers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tree_carers')
+        .select('*')
+        .eq('status', 'Active')
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (tree) {
       setTreeType(tree.tree_type || "");
@@ -66,6 +81,7 @@ export const PlantTree = () => {
       setLatitude(tree.latitude?.toString() || "");
       setLongitude(tree.longitude?.toString() || "");
       setLocationName(tree.location_name || "");
+      setTreeCarerId(tree.tree_carer_id || "");
       setGrowthNotes(tree.growth_notes || "");
     }
   }, [tree]);
@@ -173,6 +189,7 @@ export const PlantTree = () => {
             latitude: latitude ? parseFloat(latitude) : null,
             longitude: longitude ? parseFloat(longitude) : null,
             locationName: locationName,
+            treeCarerId: treeCarerId || null,
             growthNotes: growthNotes,
             status: 'Planted',
             images: updatedImages,
@@ -286,6 +303,23 @@ export const PlantTree = () => {
                   onChange={(e) => setLocationName(e.target.value)}
                   placeholder="e.g., Near main entrance"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="treeCarer">Tree Carer</Label>
+                <select
+                  id="treeCarer"
+                  value={treeCarerId}
+                  onChange={(e) => setTreeCarerId(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                >
+                  <option value="">Select a tree carer</option>
+                  {treeCarers?.map((carer) => (
+                    <option key={carer.id} value={carer.id}>
+                      {carer.name} - {carer.county}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">

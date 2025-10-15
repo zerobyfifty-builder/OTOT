@@ -865,6 +865,59 @@ export type Database = {
         }
         Relationships: []
       }
+      tree_carers: {
+        Row: {
+          age: number | null
+          associated_partner_id: string | null
+          conservancy: string | null
+          county: string | null
+          created_at: string | null
+          gender: string
+          id: string
+          marital_status: string | null
+          name: string
+          number_of_kids: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          age?: number | null
+          associated_partner_id?: string | null
+          conservancy?: string | null
+          county?: string | null
+          created_at?: string | null
+          gender: string
+          id?: string
+          marital_status?: string | null
+          name: string
+          number_of_kids?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          age?: number | null
+          associated_partner_id?: string | null
+          conservancy?: string | null
+          county?: string | null
+          created_at?: string | null
+          gender?: string
+          id?: string
+          marital_status?: string | null
+          name?: string
+          number_of_kids?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_carers_associated_partner_id_fkey"
+            columns: ["associated_partner_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trees: {
         Row: {
           amount_paid: number
@@ -884,6 +937,7 @@ export type Database = {
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
           status: Database["public"]["Enums"]["tree_status_type"]
+          tree_carer_id: string | null
           tree_type: string | null
           trip_id: string | null
           updated_at: string
@@ -907,6 +961,7 @@ export type Database = {
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
           status?: Database["public"]["Enums"]["tree_status_type"]
+          tree_carer_id?: string | null
           tree_type?: string | null
           trip_id?: string | null
           updated_at?: string
@@ -930,6 +985,7 @@ export type Database = {
             | null
           purchase_type?: Database["public"]["Enums"]["purchase_type"]
           status?: Database["public"]["Enums"]["tree_status_type"]
+          tree_carer_id?: string | null
           tree_type?: string | null
           trip_id?: string | null
           updated_at?: string
@@ -941,6 +997,13 @@ export type Database = {
             columns: ["lodge_id"]
             isOneToOne: false
             referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_tree_carer_id_fkey"
+            columns: ["tree_carer_id"]
+            isOneToOne: false
+            referencedRelation: "tree_carers"
             referencedColumns: ["id"]
           },
           {

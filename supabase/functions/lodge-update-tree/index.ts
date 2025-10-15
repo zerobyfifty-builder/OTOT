@@ -86,6 +86,7 @@ serve(async (req) => {
       latitude,
       longitude,
       locationName,
+      treeCarerId,
       growthNotes,
       images,
       status
@@ -129,6 +130,7 @@ serve(async (req) => {
     if (latitude !== undefined) updateData.latitude = latitude;
     if (longitude !== undefined) updateData.longitude = longitude;
     if (locationName !== undefined) updateData.location_name = locationName;
+    if (treeCarerId !== undefined) updateData.tree_carer_id = treeCarerId;
     if (growthNotes !== undefined) updateData.growth_notes = growthNotes;
     if (images !== undefined) updateData.images = images;
     if (status !== undefined) {
