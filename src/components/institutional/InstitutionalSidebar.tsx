@@ -66,12 +66,12 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
 
   return (
     <Sidebar 
-      className={`group/sidebar bg-gray-100 border-r border-gray-200 ${collapsed ? 'w-20' : 'w-64'}`} 
+      className={`group/sidebar bg-gray-50 border-r border-gray-300 ${collapsed ? 'w-20' : 'w-64'}`} 
       collapsible="icon"
     >
       <SidebarContent>
         {/* Logo Section with Collapse Button */}
-        <div className={`p-4 border-b border-gray-200 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`p-4 border-b border-gray-300 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           {/* Expanded state: icon + text */}
           {!collapsed && (
             <>
@@ -81,13 +81,13 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                   alt="OTOT" 
                   className="h-10 w-10"
                 />
-                <span className="text-xl font-bold text-gray-900">OTOT</span>
+                <span className="text-xl font-bold text-black">OTOT</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleSidebar}
-                className="h-8 w-8 text-gray-700 hover:bg-gray-200"
+                className="h-8 w-8 text-black hover:bg-gray-200"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -110,7 +110,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-14 w-14 flex items-center justify-center bg-gray-200 rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
-                  <ChevronRight className="h-5 w-5 text-gray-900" />
+                  <ChevronRight className="h-5 w-5 text-black" />
                 </div>
               </div>
             </div>
@@ -131,7 +131,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-primary text-primary-foreground font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-200'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-black hover:bg-gray-200 font-medium'
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -162,20 +162,20 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               </Avatar>
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
-                  <span className="text-sm font-medium truncate w-full text-gray-900">
+                  <span className="text-sm font-medium truncate w-full text-black">
                     {organizationName || 'Organization'}
                   </span>
-                  <span className="text-xs text-gray-600 truncate w-full">
+                  <span className="text-xs text-gray-700 truncate w-full">
                     {organizationCategory || 'Institutional Partner'}
                   </span>
                 </div>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 bg-white">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{organizationName || 'Organization'}</p>
-              <p className="text-xs text-muted-foreground truncate">{organizationCategory || 'Institutional Partner'}</p>
+              <p className="text-sm font-medium text-black">{organizationName || 'Organization'}</p>
+              <p className="text-xs text-gray-600 truncate">{organizationCategory || 'Institutional Partner'}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
