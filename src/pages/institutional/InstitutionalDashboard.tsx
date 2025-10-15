@@ -38,10 +38,10 @@ export const InstitutionalDashboard = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["institutionalStats"],
     queryFn: async () => {
-      // Get total trees
-      const { count: totalTrees } = await supabase
+      // Get all trees (including planted ones)
+      const { data: allTreesData, count: totalTrees } = await supabase
         .from("trees")
-        .select("*", { count: "exact", head: true });
+        .select("*", { count: "exact" });
 
       // Get tourists by role - find role_id for tourist role
       const { data: roles } = await supabase
@@ -75,14 +75,16 @@ export const InstitutionalDashboard = () => {
         .select("*", { count: "exact", head: true })
         .eq("status", "Planted");
 
+      // Calculate actual revenue from trees
+      const totalRevenue = allTreesData?.reduce((sum, tree) => sum + (Number(tree.amount_paid) || 0), 0) || 0;
+      const plantedTreesRevenue = allTreesData
+        ?.filter(tree => tree.status === "Planted")
+        .reduce((sum, tree) => sum + (Number(tree.amount_paid) || 0), 0) || 0;
+
       // Calculate trees needed (1 tree offsets ~25kg CO2)
       const treesNeeded = Math.ceil(totalCO2 / 25);
 
-      // Calculate revenue (assuming $10 per tree)
-      const potentialRevenue = treesNeeded * 10;
-      const committedRevenue = (plantedTrees || 0) * 10;
-      
-      // CO2 offset committed by planted trees
+      // CO2 offset committed by planted trees (25kg per tree)
       const co2OffsetCommitted = (plantedTrees || 0) * 25;
 
       return {
@@ -90,13 +92,13 @@ export const InstitutionalDashboard = () => {
         totalTourists: totalTourists || 0,
         totalTrips: totalTrips || 0,
         totalCO2: totalCO2,
-        totalCO2Offset: co2OffsetCommitted, // CO2 offset by planted trees
+        totalCO2Offset: co2OffsetCommitted,
         flightCO2,
         accommodationCO2,
         treesNeeded,
         plantedTrees: plantedTrees || 0,
-        potentialRevenue,
-        committedRevenue,
+        potentialRevenue: totalRevenue,
+        committedRevenue: plantedTreesRevenue,
       };
     },
     refetchInterval: 30000, // Refetch every 30 seconds
@@ -136,7 +138,7 @@ export const InstitutionalDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsLoading ? (
           <>
-            {[...Array(4)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-48" />
             ))}
           </>
@@ -146,17 +148,11 @@ export const InstitutionalDashboard = () => {
               title="Total Trees"
               value={stats?.plantedTrees || 0}
               icon={TreePine}
-              description={`${formatNumber(stats?.plantedTrees || 0)} of ${formatNumber(stats?.treesNeeded || 0)} trees planted`}
+              description={`${formatNumber(stats?.plantedTrees || 0)} trees planted`}
               trend={{ value: 8.3, isPositive: true }}
-              progress={{
-                label: "Planted vs Needed",
-                current: stats?.plantedTrees || 0,
-                total: stats?.treesNeeded || 1,
-                percentage: treesPlantedPercentage,
-              }}
               breakdown={[
-                { label: "Trees Needed", value: formatNumber(stats?.treesNeeded || 0) },
-                { label: "Waiting to be Assigned", value: formatNumber((stats?.treesNeeded || 0) - (stats?.plantedTrees || 0)) },
+                { label: "Total Planted", value: formatNumber(stats?.plantedTrees || 0) },
+                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
               ]}
             />
 
@@ -164,13 +160,7 @@ export const InstitutionalDashboard = () => {
               title="CO₂ Offset"
               value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
               icon={TrendingUp}
-              description={`${formatNumber(stats?.totalCO2Offset || 0)} of ${formatNumber(stats?.totalCO2 || 0)} kg offset`}
-              progress={{
-                label: "Offset vs Total Emission",
-                current: stats?.totalCO2Offset || 0,
-                total: stats?.totalCO2 || 1,
-                percentage: co2OffsetPercentage,
-              }}
+              description={`Carbon offset by ${stats?.plantedTrees || 0} planted trees`}
               breakdown={[
                 { label: "Total Emissions", value: `${formatNumber(stats?.totalCO2 || 0)} kg` },
                 { label: "Offset Committed", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
@@ -181,17 +171,25 @@ export const InstitutionalDashboard = () => {
               title="Revenue"
               value={`$${formatNumber(stats?.committedRevenue || 0)}`}
               icon={DollarSign}
-              description={`$${formatNumber(stats?.committedRevenue || 0)} of $${formatNumber(stats?.potentialRevenue || 0)} committed`}
+              description={`Revenue from planted trees`}
               trend={{ value: 15.7, isPositive: true }}
-              progress={{
-                label: "Committed vs Potential",
-                current: stats?.committedRevenue || 0,
-                total: stats?.potentialRevenue || 1,
-                percentage: revenuePercentage,
-              }}
               breakdown={[
-                { label: "Potential Revenue", value: `$${formatNumber(stats?.potentialRevenue || 0)}` },
-                { label: "Remaining", value: `$${formatNumber((stats?.potentialRevenue || 0) - (stats?.committedRevenue || 0))}` },
+                { label: "Total Revenue", value: `$${formatNumber(stats?.potentialRevenue || 0)}` },
+                { label: "From Planted", value: `$${formatNumber(stats?.committedRevenue || 0)}` },
+              ]}
+            />
+
+            <InstitutionalStatCard
+              title="Countries"
+              value="5"
+              icon={BarChart3}
+              description="Tourist origin countries"
+              breakdown={[
+                { label: "United States", value: "25" },
+                { label: "United Kingdom", value: "18" },
+                { label: "Germany", value: "12" },
+                { label: "Spain", value: "8" },
+                { label: "France", value: "6" },
               ]}
             />
 
