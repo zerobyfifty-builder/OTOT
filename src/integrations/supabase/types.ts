@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           action_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           new_value: Json | null
           old_value: Json | null
@@ -33,7 +33,7 @@ export type Database = {
         Insert: {
           action_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_value?: Json | null
           old_value?: Json | null
@@ -48,7 +48,7 @@ export type Database = {
         Update: {
           action_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_value?: Json | null
           old_value?: Json | null
@@ -216,7 +216,7 @@ export type Database = {
           duration_ms: number | null
           endpoint: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           method: string
           organization_id: string
           request_body: Json | null
@@ -229,7 +229,7 @@ export type Database = {
           duration_ms?: number | null
           endpoint: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           method: string
           organization_id: string
           request_body?: Json | null
@@ -242,7 +242,7 @@ export type Database = {
           duration_ms?: number | null
           endpoint?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           method?: string
           organization_id?: string
           request_body?: Json | null
@@ -1179,18 +1179,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_expired_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      get_user_organization: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_role: {
-        Args: { input_user_id: string }
-        Returns: string
-      }
+      cleanup_expired_tokens: { Args: never; Returns: undefined }
+      get_user_organization: { Args: { user_id: string }; Returns: string }
+      get_user_role: { Args: { input_user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1198,18 +1189,12 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_institutional_partner: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_institutional_partner: { Args: { user_id: string }; Returns: boolean }
       is_lodge_session_valid: {
         Args: { _lodge_id: string; _session_token: string }
         Returns: boolean
       }
-      is_super_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_super_admin: { Args: { user_id: string }; Returns: boolean }
       users_in_same_org: {
         Args: { user1_id: string; user2_id: string }
         Returns: boolean
