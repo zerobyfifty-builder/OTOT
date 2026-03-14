@@ -135,9 +135,14 @@ export default function PledgeC() {
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pb-12 pt-4 min-h-[calc(100vh-80px)]">
         {!showCompletion ? (
           <>
-            <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-6 drop-shadow-lg">
-              Take Your Responsible Traveller Pledge Today!
-            </h1>
+            <div className="text-center mb-6 drop-shadow-lg">
+              <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                Protect the Kenya You Love!
+              </h1>
+              <p className="text-white/90 text-xl md:text-2xl lg:text-3xl font-semibold mt-2">
+                Take the Responsible Traveller Pledge Today!
+              </p>
+            </div>
 
             <div className="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 space-y-5">
               <p className="text-white/80 text-center text-sm md:text-base">
