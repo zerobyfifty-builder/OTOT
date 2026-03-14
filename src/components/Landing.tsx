@@ -86,20 +86,30 @@ const Landing = () => {
       {/* Stats Section */}
       <section className="py-12 border-t border-border">
         <div className="container mx-auto max-w-5xl px-4">
-          <div className="grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-primary">50,000+</div>
-              <div className="text-sm text-muted-foreground mt-1">Trees Planted</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-primary">10,000+</div>
-              <div className="text-sm text-muted-foreground mt-1">Responsible Travelers</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-primary">1,100</div>
-              <div className="text-sm text-muted-foreground mt-1">Tons CO₂ Offset</div>
-            </div>
-          </div>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            {[
+              { value: "50,000+", label: "Trees Planted" },
+              { value: "10,000+", label: "Responsible Travelers" },
+              { value: "1,100", label: "Tons CO₂ Offset" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+              >
+                <div className="text-3xl md:text-4xl font-bold text-primary">{stat.value}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
