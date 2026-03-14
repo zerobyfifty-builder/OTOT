@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validateDeepLink } from '@/utils/magicLinkAuth';
 import ototLogo from '@/assets/otot-logo.png';
 import refreshIcon from '@/assets/refresh-icon.png';
+import confetti from 'canvas-confetti';
 
 const pledgeItems = [
   { number: 1, text: "Respect nature by following marked paths and protecting natural surroundings" },
@@ -55,6 +56,14 @@ export default function PledgeC() {
 
   const handleCommit = () => {
     setShowCompletion(true);
+    // Fire confetti bursts
+    const end = Date.now() + 1500;
+    const colors = ['#22c55e', '#facc15', '#3b82f6', '#f97316'];
+    (function frame() {
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
     setTimeout(() => {
       completionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
