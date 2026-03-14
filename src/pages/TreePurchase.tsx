@@ -30,20 +30,20 @@ export const TreePurchase = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  
+
   const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
   const [treesPlanted, setTreesPlanted] = useState(0);
-  
+
   // Default to "custom" (flexible) option
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("custom");
-  
+
   // Calculate min and max months based on trees needed
   const getMonthlyBounds = () => {
     const minMonths = Math.ceil(treesNeeded / 12);
     const maxMonths = Math.min(treesNeeded, 12);
     return { minMonths, maxMonths };
   };
-  
+
   const { minMonths, maxMonths } = getMonthlyBounds();
   const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
   // Default to all trees (treesNeeded)
@@ -95,16 +95,16 @@ export const TreePurchase = () => {
 
   const fetchTreesPlanted = async () => {
     if (!tripId || !user) return;
-    
+
     try {
-      const { data, error } = await supabase
-        .from("trees")
-        .select("num_trees")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id);
+      const { data, error } = await supabase.
+      from("trees").
+      select("num_trees").
+      eq("trip_id", tripId).
+      eq("user_id", user.id);
 
       if (error) throw error;
-      
+
       const total = data?.reduce((sum, tree) => sum + tree.num_trees, 0) || 0;
       setTreesPlanted(total);
     } catch (error) {
@@ -114,11 +114,11 @@ export const TreePurchase = () => {
 
   const fetchLodges = async () => {
     try {
-      const { data, error } = await supabase
-        .from("lodges")
-        .select("id, name, location")
-        .eq("is_active", true)
-        .order("name");
+      const { data, error } = await supabase.
+      from("lodges").
+      select("id, name, location").
+      eq("is_active", true).
+      order("name");
 
       if (error) throw error;
       setLodges(data || []);
@@ -132,7 +132,7 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
       case "subscription":
-        return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+        return treesNeeded * PRICE_PER_TREE / subscriptionMonths;
       case "custom":
         return customTreeCount * PRICE_PER_TREE;
       default:
@@ -141,7 +141,7 @@ export const TreePurchase = () => {
   };
 
   const calculateMonthlyPrice = () => {
-    return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+    return treesNeeded * PRICE_PER_TREE / subscriptionMonths;
   };
 
   const getTreeCount = () => {
@@ -171,7 +171,7 @@ export const TreePurchase = () => {
 
   const getTreeCreditPercentage = () => {
     const totalProgress = treesPlanted + getTreesCommitted();
-    return Math.round((totalProgress / treesNeeded) * 100);
+    return Math.round(totalProgress / treesNeeded * 100);
   };
 
   const getTreeDebtPercentage = () => {
@@ -218,7 +218,7 @@ export const TreePurchase = () => {
       toast({
         title: "Required Fields",
         description: "Please enter the recipient's name and email.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -226,7 +226,7 @@ export const TreePurchase = () => {
     setShowDedicationModal(false);
     toast({
       title: "Dedication Saved",
-      description: `Trees will be dedicated to ${dedicationName}.`,
+      description: `Trees will be dedicated to ${dedicationName}.`
     });
   };
 
@@ -244,27 +244,27 @@ export const TreePurchase = () => {
       toast({
         title: "Authentication Required",
         description: "Please log in to purchase trees.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
 
     setIsProcessing(true);
-    
+
     try {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('email, otot_id')
-        .eq('user_id', user.id)
-        .single();
+      const { data: userData } = await supabase.
+      from('users').
+      select('email, otot_id').
+      eq('user_id', user.id).
+      single();
 
       if (!userData?.otot_id) {
         const ototId = `OTOT-${Date.now()}-${user.id.substring(0, 8)}`;
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ otot_id: ototId })
-          .eq('user_id', user.id);
-        
+        const { error: updateError } = await supabase.
+        from('users').
+        update({ otot_id: ototId }).
+        eq('user_id', user.id);
+
         if (updateError) {
           console.error('Error updating OTOT ID:', updateError);
           throw new Error('Failed to generate user ID. Please try again.');
@@ -281,7 +281,7 @@ export const TreePurchase = () => {
       const treeRecords = [];
       for (let i = 0; i < treeCount; i++) {
         const uniqueTreeId = `TREE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        
+
         treeRecords.push({
           user_id: user.id,
           otot_id: uniqueTreeId,
@@ -291,14 +291,14 @@ export const TreePurchase = () => {
           status: "Waiting to be Assigned",
           lodge_id: null,
           location_name: locationName,
-          trip_id: tripId || null,
+          trip_id: tripId || null
         });
       }
 
-      const { data: insertedTrees, error: treeError } = await supabase
-        .from('trees')
-        .insert(treeRecords)
-        .select();
+      const { data: insertedTrees, error: treeError } = await supabase.
+      from('trees').
+      insert(treeRecords).
+      select();
 
       if (treeError) {
         console.error('Error saving trees to database:', treeError);
@@ -312,9 +312,9 @@ export const TreePurchase = () => {
       console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
 
       // Generate certificate - use dedication name if dedicated
-      const certificateRecipient = isDedicated && dedicationName 
-        ? dedicationName 
-        : userData?.email || 'Environmental Supporter';
+      const certificateRecipient = isDedicated && dedicationName ?
+      dedicationName :
+      userData?.email || 'Environmental Supporter';
 
       const certificateBlob = await generateTreeCertificate({
         userName: certificateRecipient,
@@ -322,7 +322,7 @@ export const TreePurchase = () => {
         numTrees: treeCount,
         co2Offset: totalCO2,
         ototId: userData.otot_id,
-        location: locationName,
+        location: locationName
       });
 
       downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
@@ -334,12 +334,12 @@ export const TreePurchase = () => {
       }
 
       sessionStorage.removeItem('carbon_calculator_flow_active');
-      
+
       setShowSuccessCard(true);
-      
+
       toast({
         title: "Success!",
-        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}. Certificate downloaded.`,
+        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}. Certificate downloaded.`
       });
 
     } catch (error: any) {
@@ -347,7 +347,7 @@ export const TreePurchase = () => {
       toast({
         title: "Purchase Failed",
         description: error.message || "Failed to complete purchase. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
@@ -370,8 +370,8 @@ export const TreePurchase = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   if (showSuccessCard) {
@@ -397,7 +397,7 @@ export const TreePurchase = () => {
       navigator.clipboard.writeText(message);
       toast({
         title: "Message copied!",
-        description: "Paste it on Instagram with your certificate screenshot.",
+        description: "Paste it on Instagram with your certificate screenshot."
       });
     };
 
@@ -405,7 +405,7 @@ export const TreePurchase = () => {
       navigator.clipboard.writeText(shareUrl);
       toast({
         title: "Link copied!",
-        description: "Share this link with your friends.",
+        description: "Share this link with your friends."
       });
     };
 
@@ -434,12 +434,12 @@ export const TreePurchase = () => {
                   </div>
                 </div>
 
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   size="lg"
                   className="w-full text-lg py-6"
-                  onClick={() => navigate('/my-trees')}
-                >
+                  onClick={() => navigate('/my-trees')}>
+                  
                   View my Trees
                 </Button>
               </CardContent>
@@ -482,8 +482,8 @@ export const TreePurchase = () => {
             </Card>
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -548,10 +548,10 @@ export const TreePurchase = () => {
                     <span className="text-muted-foreground">Tree Debt: {getTreeDebtPercentage()}%</span>
                   </div>
                   <div className="relative w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
-                      style={{ width: `${getTreeCreditPercentage()}%` }}
-                    />
+                      style={{ width: `${getTreeCreditPercentage()}%` }} />
+                    
                   </div>
                 </div>
               </CardContent>
@@ -566,17 +566,17 @@ export const TreePurchase = () => {
               {/* Option 1: Flexible Tree Planting - Default & most prominent */}
               <Card
                 className={`transition-all duration-300 hover:shadow-lg ${
-                  selectedOption === "custom"
-                    ? "ring-2 ring-primary shadow-lg scale-105"
-                    : ""
-                }`}
-              >
+                selectedOption === "custom" ?
+                "ring-2 ring-primary shadow-lg scale-105" :
+                ""}`
+                }>
+                
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-primary" />
                   </div>
-                  <CardTitle className="text-xl">Flexible Tree Planting</CardTitle>
-                  <CardDescription>Choose your own tree quantity</CardDescription>
+                  <CardTitle className="text-xl">Plant One Time</CardTitle>
+                  <CardDescription>Choose your tree quantity</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
@@ -588,25 +588,25 @@ export const TreePurchase = () => {
                     </p>
                   </div>
                   
-                  {selectedOption === "custom" && (
-                    <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+                  {selectedOption === "custom" &&
+                  <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
                       <div className="space-y-2">
                         <Label>Number of Trees: {customTreeCount}</Label>
                         <Slider
-                          value={[customTreeCount]}
-                          onValueChange={(value) => setCustomTreeCount(value[0])}
-                          min={1}
-                          max={Math.max(1, treesNeeded - treesPlanted)}
-                          step={1}
-                          className="w-full"
-                        />
+                        value={[customTreeCount]}
+                        onValueChange={(value) => setCustomTreeCount(value[0])}
+                        min={1}
+                        max={Math.max(1, treesNeeded - treesPlanted)}
+                        step={1}
+                        className="w-full" />
+                      
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>1 Tree</span>
                           <span>{Math.max(1, treesNeeded - treesPlanted)} Trees</span>
                         </div>
                       </div>
                     </div>
-                  )}
+                  }
                   
                   <Button
                     variant={selectedOption === "custom" ? "default" : "outline"}
@@ -614,8 +614,8 @@ export const TreePurchase = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOptionChange("custom");
-                    }}
-                  >
+                    }}>
+                    
                     {selectedOption === "custom" ? "Selected" : "Select"}
                   </Button>
                 </CardContent>
@@ -624,16 +624,16 @@ export const TreePurchase = () => {
               {/* Option 2: Monthly Subscription */}
               <Card
                 className={`transition-all duration-300 hover:shadow-lg ${
-                  selectedOption === "subscription"
-                    ? "ring-2 ring-primary shadow-lg"
-                    : ""
-                }`}
-              >
+                selectedOption === "subscription" ?
+                "ring-2 ring-primary shadow-lg" :
+                ""}`
+                }>
+                
                 <CardHeader className="text-center pb-4">
                   <div className="mx-auto w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-accent" />
                   </div>
-                  <CardTitle className="text-xl">Monthly Tree Planting</CardTitle>
+                  <CardTitle className="text-xl">Plant Monthly</CardTitle>
                   <CardDescription>Complete payment within 1 year</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
@@ -650,26 +650,26 @@ export const TreePurchase = () => {
                       </p>
                     </div>
                     
-                    {selectedOption === "subscription" && (
-                      <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                    {selectedOption === "subscription" &&
+                    <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Select Duration (Months)</Label>
                           <span className="text-sm font-semibold">{subscriptionMonths} {subscriptionMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                         <Slider
-                          min={minMonths}
-                          max={maxMonths}
-                          step={1}
-                          value={[subscriptionMonths]}
-                          onValueChange={(vals) => setSubscriptionMonths(vals[0])}
-                          className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2"
-                        />
+                        min={minMonths}
+                        max={maxMonths}
+                        step={1}
+                        value={[subscriptionMonths]}
+                        onValueChange={(vals) => setSubscriptionMonths(vals[0])}
+                        className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2" />
+                      
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{minMonths} {minMonths === 1 ? 'Month' : 'Months'}</span>
                           <span>{maxMonths} {maxMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                       </div>
-                    )}
+                    }
                   </div>
                   <Button
                     variant={selectedOption === "subscription" ? "default" : "outline"}
@@ -677,8 +677,8 @@ export const TreePurchase = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOptionChange("subscription");
-                    }}
-                  >
+                    }}>
+                    
                     {selectedOption === "subscription" ? "Selected" : "Select"}
                   </Button>
                 </CardContent>
@@ -710,94 +710,101 @@ export const TreePurchase = () => {
             </div>
           </div>
 
-          {/* Additional Options - Three Card Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {/* Card 1: Planted by */}
-            <Card className="border-border/50 hover:shadow-md transition-shadow">
-              <CardContent className="pt-6 text-center space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Trees className="h-6 w-6 text-primary" />
+          {/* Additional Options */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-xl">Additional Options</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Plantation Partner - Static KFS */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-base font-semibold">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Plantation Partner
+                </Label>
+                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Trees className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Kenya Forest Service (KFS)</p>
+                    <p className="text-sm text-muted-foreground">Government forestry agency</p>
+                  </div>
                 </div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted by</p>
-                <h3 className="text-lg font-bold text-foreground">Kenya Forest Service</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Official government forestry agency responsible for conservation and reforestation across Kenya.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Card 2: Planted here */}
-            <Card className="border-border/50 hover:shadow-md transition-shadow overflow-hidden">
-              <img 
-                src={kfsPlantingSite} 
-                alt="Aberdare Forest Reserve reforestation site" 
-                className="w-full h-32 object-cover"
-              />
-              <CardContent className="pt-4 text-center space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
-                <h3 className="text-lg font-bold text-foreground">Aberdare Forest Reserve</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  One of Kenya's vital water towers — home to indigenous Cedar, Camphor & African Olive species.
-                </p>
-                <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground pt-1">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> Central Kenya
-                  </span>
-                  <span>2,000–4,000m</span>
+              {/* Your Trees will be planted here */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-base font-semibold">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Your Trees Will Be Planted Here
+                </Label>
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <img
+                    src={kfsPlantingSite}
+                    alt="KFS Reforestation site in the Kenyan highlands"
+                    className="w-full h-48 object-cover" />
+                  
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-semibold text-foreground text-lg">Aberdare Forest Reserve, Kenya</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Your trees will be planted in the Aberdare Forest Reserve, one of Kenya's most important water towers. 
+                      Managed by the Kenya Forest Service (KFS), this reforestation project focuses on planting indigenous 
+                      tree species such as Cedar, Camphor, and African Olive. The reserve is home to diverse wildlife and 
+                      plays a critical role in water catchment for millions of Kenyans. Each tree you plant contributes to 
+                      restoring this vital ecosystem.
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> Central Kenya
+                      </span>
+                      <span>Elevation: 2,000–4,000m</span>
+                      <span>Indigenous species</span>
+                    </div>
+                  </div>
                 </div>
-                <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
-                  Know more →
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Card 3: Dedicated to */}
-            <Card 
-              className={`border-border/50 hover:shadow-md transition-shadow cursor-pointer ${isDedicated ? 'ring-2 ring-primary/30' : ''}`}
-              onClick={() => {
-                if (!isDedicated) {
-                  setShowDedicationModal(true);
-                }
-              }}
-            >
-              <CardContent className="pt-6 text-center space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                  <Heart className={`h-6 w-6 ${isDedicated ? 'text-destructive fill-destructive' : 'text-destructive'}`} />
+              {/* Dedicate Trees */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="dedicate"
+                    checked={isDedicated}
+                    onCheckedChange={(checked) => handleDedicationCheckChange(checked as boolean)} />
+                  
+                  <Label
+                    htmlFor="dedicate"
+                    className="flex items-center gap-2 cursor-pointer">
+                    
+                    <Heart className="h-4 w-4 text-destructive" />
+                    Dedicate trees to someone special
+                  </Label>
                 </div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Dedicated to</p>
                 
-                {isDedicated ? (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-foreground">{dedicationName}</h3>
-                    <p className="text-sm text-muted-foreground">
+                {isDedicated &&
+                <div className="pl-6 p-3 bg-muted/50 rounded-lg space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      Dedicated to: <span className="text-primary">{dedicationName}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
                       Certificate will be emailed to {dedicationEmail}
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDedicationModal(true);
-                      }}
-                    >
-                      Edit
+                    <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-7 px-2 mt-1"
+                    onClick={() => setShowDedicationModal(true)}>
+                    
+                      Edit dedication
                     </Button>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-muted-foreground">Someone special?</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Dedicate your trees as a gift. They'll receive a personalised certificate.
-                    </p>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      Add dedication
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                }
+              </div>
+
+
+            </CardContent>
+          </Card>
 
           {/* Purchase Summary and Checkout */}
           <Card className="bg-primary/5 border-primary/20">
@@ -816,9 +823,9 @@ export const TreePurchase = () => {
                   <p className="text-4xl font-bold text-primary">
                     ${calculatePrice().toFixed(2)}
                   </p>
-                  {selectedOption === "subscription" && (
-                    <p className="text-sm text-muted-foreground">per month</p>
-                  )}
+                  {selectedOption === "subscription" &&
+                  <p className="text-sm text-muted-foreground">per month</p>
+                  }
                 </div>
               </div>
 
@@ -826,8 +833,8 @@ export const TreePurchase = () => {
                 size="lg"
                 className="w-full text-lg"
                 onClick={handlePurchase}
-                disabled={isProcessing}
-              >
+                disabled={isProcessing}>
+                
                 {isProcessing ? "Processing..." : "Proceed to Payment"}
               </Button>
 
@@ -858,8 +865,8 @@ export const TreePurchase = () => {
                 id="ded-name"
                 placeholder="Enter their full name"
                 value={dedicationName}
-                onChange={(e) => setDedicationName(e.target.value)}
-              />
+                onChange={(e) => setDedicationName(e.target.value)} />
+              
             </div>
             <div className="space-y-2">
               <Label htmlFor="ded-email">Recipient's Email *</Label>
@@ -868,8 +875,8 @@ export const TreePurchase = () => {
                 type="email"
                 placeholder="Enter their email address"
                 value={dedicationEmail}
-                onChange={(e) => setDedicationEmail(e.target.value)}
-              />
+                onChange={(e) => setDedicationEmail(e.target.value)} />
+              
             </div>
             <div className="space-y-2">
               <Label htmlFor="ded-message">Personal Message (Optional)</Label>
@@ -878,8 +885,8 @@ export const TreePurchase = () => {
                 placeholder="Write a heartfelt message..."
                 value={dedicationMessage}
                 onChange={(e) => setDedicationMessage(e.target.value)}
-                className="min-h-[80px] resize-y"
-              />
+                className="min-h-[80px] resize-y" />
+              
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -892,8 +899,8 @@ export const TreePurchase = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </TooltipProvider>
-  );
+    </TooltipProvider>);
+
 };
 
 export default TreePurchase;
