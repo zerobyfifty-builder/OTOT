@@ -142,20 +142,20 @@ export const MyTrees = () => {
       <div className="container max-w-7xl py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold text-foreground mb-2">My Trees</h1>
               <p className="text-muted-foreground">
                 Track your reforestation journey and environmental impact
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
-              <Button onClick={() => navigate("/carbon-calculator")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Plant More Trees
-              </Button>
-            </div>
+            <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
+          </div>
+          <div className="flex justify-end mb-6">
+            <Button onClick={() => navigate("/carbon-calculator")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Plant More Trees
+            </Button>
           </div>
 
           {/* Summary Statistics */}
