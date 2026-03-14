@@ -348,6 +348,19 @@ export const MyTrips = () => {
               </Button>
             </CardContent>
           </Card> : <>
+            {/* Active filter indicator */}
+            {statusFilter !== "all" && (
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Showing <span className="font-medium text-foreground">{filteredTrips.length}</span> of {trips.length} trips
+                </p>
+                <Button variant="ghost" size="sm" onClick={() => setStatusFilter("all")} className="text-primary hover:text-primary">
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Clear filter
+                </Button>
+              </div>
+            )}
+
             {/* Desktop Table View */}
             <div className="hidden lg:block">
               <Card>
