@@ -215,6 +215,18 @@ export const MyTrees = () => {
                     <p className="text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                    <span>{totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0}% offset</span>
+                    <span>{co2AlreadyOffset} / {totalCO2ToOffset.toFixed(0)} kg</span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-accent transition-all duration-500"
+                      style={{ width: `${totalCO2ToOffset > 0 ? Math.min(100, (co2AlreadyOffset / totalCO2ToOffset) * 100) : 0}%` }}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
