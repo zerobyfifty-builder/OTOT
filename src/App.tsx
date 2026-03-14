@@ -22,6 +22,7 @@ import VerifyEmail from "@/pages/auth/VerifyEmail";
 import MagicLink from "@/pages/auth/MagicLink";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Pledge from "@/pages/Pledge";
+import PledgeB from "@/pages/PledgeB";
 import CO2Calculator from "@/pages/CO2Calculator";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
@@ -136,6 +137,7 @@ const App = () => (
             <Route path="/auth/magic" element={<MagicLink />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/pledge" element={<Pledge />} />
+            <Route path="/pledgeb" element={<PledgeB />} />
             <Route path="/co2calculator" element={<CO2Calculator />} />
             
             {/* Protected routes with sidebar */}
