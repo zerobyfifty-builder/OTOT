@@ -101,7 +101,8 @@ export default function PledgeB() {
     }
   };
 
-  const hoveredItem = hoveredPledge !== null ? pledgeItems.find(p => p.number === hoveredPledge) : null;
+  const displayedPledge = hoveredPledge ?? tappedPledge;
+  const hoveredItem = displayedPledge !== null ? pledgeItems.find(p => p.number === displayedPledge) : null;
 
   const renderCircle = (item: typeof pledgeItems[0]) => {
     const accepted = acceptedPledges.has(item.number);
