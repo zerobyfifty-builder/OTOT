@@ -431,20 +431,16 @@ export const MyTrips = () => {
 
                               {/* Travel Dates */}
                               <td className="px-6 py-6">
-                                <div className="flex items-start gap-3">
-                                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                  <div className="text-sm">
-                                    <div className="font-medium text-foreground">{dateText}</div>
-                                    <div className="text-xs text-muted-foreground">{daysText}</div>
-                                  </div>
+                                <div className="text-sm">
+                                  <div className="font-medium text-foreground">{dateText}</div>
+                                  <div className="text-xs text-muted-foreground">{daysText}</div>
                                 </div>
                               </td>
 
                               {/* Trip Details */}
                               <td className="px-6 py-6">
                                 <div className="space-y-1">
-                                  <div className="font-medium flex items-center gap-2 text-foreground">
-                                    <Plane className="h-4 w-4 text-primary" />
+                                  <div className="font-medium text-foreground">
                                     {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
