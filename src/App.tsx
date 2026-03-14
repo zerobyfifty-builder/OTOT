@@ -139,6 +139,7 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/pledge" element={<Pledge />} />
             <Route path="/pledgeb" element={<PledgeB />} />
+            <Route path="/pledgec" element={<PledgeC />} />
             <Route path="/co2calculator" element={<CO2Calculator />} />
             
             {/* Protected routes with sidebar */}
