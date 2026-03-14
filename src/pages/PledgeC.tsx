@@ -111,7 +111,7 @@ export default function PledgeC() {
 
       {/* Header */}
       <div className="relative z-20 p-4 flex justify-between items-center">
-        <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <a href="https://mvp.the1campaign.com/" className="cursor-pointer hover:opacity-80 transition-opacity">
           <img src={ototLogo} alt="OTOT Logo" className="h-12 w-auto" />
         </a>
         <TooltipProvider>
