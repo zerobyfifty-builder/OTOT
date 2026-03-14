@@ -3,19 +3,7 @@ import { Card } from "@/components/ui/card";
 import { TreePine, Plane, Heart, Award, Users, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
-
 const Landing = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirect authenticated users to dashboard
-    if (!loading && user) {
-      navigate('/dashboard');
-    }
-  }, [user, loading, navigate]);
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
