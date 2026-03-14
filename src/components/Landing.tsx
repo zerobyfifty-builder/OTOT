@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TreePine, Plane, Heart, Award, Users, Globe, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import ktbLogo from "@/assets/ktb-logo.png";
 
 const Landing = () => {
