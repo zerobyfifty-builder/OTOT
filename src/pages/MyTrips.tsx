@@ -530,12 +530,9 @@ export const MyTrips = () => {
                                           Delete Trip
                                         </DropdownMenuItem>
                                       ) : (
-                                        <DropdownMenuItem disabled className="text-muted-foreground opacity-60">
+                                        <DropdownMenuItem disabled className="text-muted-foreground opacity-60" title="Trees planted — cannot delete">
                                           <Trash2 className="h-4 w-4 mr-2" />
-                                          <span className="flex flex-col">
-                                            <span>Delete Trip</span>
-                                            <span className="text-xs font-normal">Trees planted — cannot delete</span>
-                                          </span>
+                                          Delete Trip
                                         </DropdownMenuItem>
                                       )}
                                     </DropdownMenuContent>
@@ -664,12 +661,9 @@ export const MyTrips = () => {
                                 Delete Trip
                               </DropdownMenuItem>
                             ) : (
-                              <DropdownMenuItem disabled className="text-muted-foreground opacity-60">
+                              <DropdownMenuItem disabled className="text-muted-foreground opacity-60" title="Trees planted — cannot delete">
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                <span className="flex flex-col">
-                                  <span>Delete Trip</span>
-                                  <span className="text-xs font-normal">Trees planted — cannot delete</span>
-                                </span>
+                                Delete Trip
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
