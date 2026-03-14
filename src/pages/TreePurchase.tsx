@@ -802,6 +802,7 @@ export const TreePurchase = () => {
                 )}
               </div>
 
+
               {/* Why $30 Info */}
               <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
                 <Tooltip>
