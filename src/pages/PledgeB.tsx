@@ -12,17 +12,17 @@ import refreshIcon from '@/assets/refresh-icon.png';
 import { Check } from 'lucide-react';
 
 const pledgeItems = [
-  { number: 1, text: "Respect nature by following marked paths and protecting natural surroundings" },
-  { number: 2, text: "Leave no waste behind by disposing of trash properly and keeping natural areas clean" },
-  { number: 3, text: "Support reforestation to fight climate change through tree planting" },
-  { number: 4, text: "Reduce my carbon footprint by choosing eco-friendly travel options" },
-  { number: 5, text: "Respect wildlife by observing animals without disturbing their habitats" },
-  { number: 6, text: "Respect local cultures by honoring traditions and supporting communities" },
-  { number: 7, text: "Use resources wisely by conserving water and minimizing waste" },
-  { number: 8, text: "Camp responsibly in designated areas with eco-friendly practices" },
-  { number: 9, text: "Learn and share about Kenya's conservation efforts" },
-  { number: 10, text: "Care for our global environment through responsible tourism" },
-];
+{ number: 1, text: "Respect nature by following marked paths and protecting natural surroundings" },
+{ number: 2, text: "Leave no waste behind by disposing of trash properly and keeping natural areas clean" },
+{ number: 3, text: "Support reforestation to fight climate change through tree planting" },
+{ number: 4, text: "Reduce my carbon footprint by choosing eco-friendly travel options" },
+{ number: 5, text: "Respect wildlife by observing animals without disturbing their habitats" },
+{ number: 6, text: "Respect local cultures by honoring traditions and supporting communities" },
+{ number: 7, text: "Use resources wisely by conserving water and minimizing waste" },
+{ number: 8, text: "Camp responsibly in designated areas with eco-friendly practices" },
+{ number: 9, text: "Learn and share about Kenya's conservation efforts" },
+{ number: 10, text: "Care for our global environment through responsible tourism" }];
+
 
 export default function PledgeB() {
   const [searchParams] = useSearchParams();
@@ -40,7 +40,7 @@ export default function PledgeB() {
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
-      validateDeepLink(token).then(result => {
+      validateDeepLink(token).then((result) => {
         if (result.pledgeContext) {
           setPledgeContext(result.pledgeContext);
           toast({ title: "Welcome!", description: "You can browse the pledge and take action." });
@@ -55,8 +55,8 @@ export default function PledgeB() {
 
   const togglePledge = (num: number) => {
     const next = new Set(acceptedPledges);
-    if (next.has(num)) next.delete(num);
-    else next.add(num);
+    if (next.has(num)) next.delete(num);else
+    next.add(num);
     setAcceptedPledges(next);
   };
 
@@ -76,7 +76,7 @@ export default function PledgeB() {
       setPledgeContext({
         numTrees: action === 'plant' ? 1 : 0,
         redirectUrl: action === 'certificate' ? '/dashboard' : '/carbon-calculator',
-        pledgeCompleted: true,
+        pledgeCompleted: true
       });
       setSignupAction(action);
       setShowEmailCapture(true);
@@ -84,10 +84,10 @@ export default function PledgeB() {
     }
 
     try {
-      await supabase
-        .from('users')
-        .update({ pledge_status: true, pledge_date: new Date().toISOString() })
-        .eq('user_id', user.id);
+      await supabase.
+      from('users').
+      update({ pledge_status: true, pledge_date: new Date().toISOString() }).
+      eq('user_id', user.id);
 
       if (action === 'certificate') {
         toast({ title: "Pledge complete!", description: "Navigating to your dashboard to download certificate..." });
@@ -102,7 +102,7 @@ export default function PledgeB() {
   };
 
   const displayedPledge = hoveredPledge ?? tappedPledge;
-  const hoveredItem = displayedPledge !== null ? pledgeItems.find(p => p.number === displayedPledge) : null;
+  const hoveredItem = displayedPledge !== null ? pledgeItems.find((p) => p.number === displayedPledge) : null;
 
   const renderCircle = (item: typeof pledgeItems[0]) => {
     const accepted = acceptedPledges.has(item.number);
@@ -116,19 +116,19 @@ export default function PledgeB() {
         onMouseEnter={() => setHoveredPledge(item.number)}
         onMouseLeave={() => setHoveredPledge(null)}
         className={`relative flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-110 ${
-          accepted
-            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/40'
-            : 'bg-white text-foreground hover:bg-white/90 shadow-md'
-        }`}
-        aria-label={`Pledge ${item.number}: ${item.text}`}
-      >
-        {accepted ? (
-          <Check className="h-6 w-6 md:h-7 md:w-7" strokeWidth={3} />
-        ) : (
-          item.number
-        )}
-      </button>
-    );
+        accepted ?
+        'bg-primary text-primary-foreground shadow-lg shadow-primary/40' :
+        'bg-white text-foreground hover:bg-white/90 shadow-md'}`
+        }
+        aria-label={`Pledge ${item.number}: ${item.text}`}>
+        
+        {accepted ?
+        <Check className="h-6 w-6 md:h-7 md:w-7" strokeWidth={3} /> :
+
+        item.number
+        }
+      </button>);
+
   };
 
   const row1 = pledgeItems.slice(0, 5);
@@ -139,8 +139,8 @@ export default function PledgeB() {
       {/* Background */}
       <div
         className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(/pledge/pledge-10.webp)` }}
-      >
+        style={{ backgroundImage: `url(/pledge/pledge-10.webp)` }}>
+        
         <div className="absolute inset-0 bg-black/55" />
       </div>
 
@@ -156,8 +156,8 @@ export default function PledgeB() {
                 variant="ghost"
                 size="icon"
                 onClick={handleRestart}
-                className="text-white hover:bg-white/20 backdrop-blur-sm h-10 w-10"
-              >
+                className="text-white hover:bg-white/20 backdrop-blur-sm h-10 w-10">
+                
                 <img src={refreshIcon} alt="Restart" className="h-6 w-6 invert" />
               </Button>
             </TooltipTrigger>
@@ -168,8 +168,8 @@ export default function PledgeB() {
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pb-12 pt-4 min-h-[calc(100vh-80px)]">
-        {!showCompletion ? (
-          <>
+        {!showCompletion ?
+        <>
             {/* Page Heading */}
             <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-6 drop-shadow-lg">
               Take Your Responsible Traveller Pledge Today!
@@ -177,9 +177,9 @@ export default function PledgeB() {
 
             {/* Glass Card */}
             <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-4">
-              <p className="text-white/80 text-center text-sm md:text-base">
-                Please accept all 10 principles to complete your pledge
-              </p>
+              <p className="text-white/80 text-center text-sm md:text-base">Please accept all 10 principles
+
+            </p>
 
               {/* Row 1: Pledges 1-5 */}
               <div className="flex justify-center gap-4">
@@ -188,16 +188,16 @@ export default function PledgeB() {
 
               {/* Hover content area between rows */}
               <div className="min-h-[72px] flex items-center justify-center px-4">
-                {hoveredItem ? (
-                  <p className="text-white text-center text-sm md:text-base animate-in fade-in-0 duration-200">
+                {hoveredItem ?
+              <p className="text-white text-center text-sm md:text-base animate-in fade-in-0 duration-200">
                     <span className="font-semibold text-primary">{hoveredItem.number}.</span>{' '}
                     {hoveredItem.text}
-                  </p>
-                ) : (
-                  <p className="text-white/40 text-center text-sm italic">
+                  </p> :
+
+              <p className="text-white/40 text-center text-sm italic">
                     Hover over a number to see the pledge
                   </p>
-                )}
+              }
               </div>
 
               {/* Row 2: Pledges 6-10 */}
@@ -212,11 +212,11 @@ export default function PledgeB() {
 
               {/* I Commit button */}
               <Button
-                onClick={handleCommit}
-                disabled={!allAccepted}
-                className="w-full h-14 text-lg font-semibold rounded-full transition-all duration-300"
-                size="lg"
-              >
+              onClick={handleCommit}
+              disabled={!allAccepted}
+              className="w-full h-14 text-lg font-semibold rounded-full transition-all duration-300"
+              size="lg">
+              
                 I Commit
               </Button>
             </div>
@@ -231,9 +231,9 @@ export default function PledgeB() {
                 <span>🌎 50+ Countries</span>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8 text-center">
+          </> :
+
+        <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8 text-center">
             <h1 className="text-white text-4xl md:text-5xl font-bold drop-shadow-lg">
               Thank You for Taking the Pledge!
             </h1>
@@ -242,18 +242,18 @@ export default function PledgeB() {
             </p>
             <div className="flex flex-col gap-4 items-center">
               <Button
-                size="lg"
-                className="w-full min-w-[280px] text-lg h-14 rounded-full"
-                onClick={() => handleCTAClick('certificate')}
-              >
+              size="lg"
+              className="w-full min-w-[280px] text-lg h-14 rounded-full"
+              onClick={() => handleCTAClick('certificate')}>
+              
                 Download My Certificate
               </Button>
               <Button
-                size="lg"
-                variant="secondary"
-                className="w-full min-w-[280px] text-lg h-14 rounded-full"
-                onClick={() => handleCTAClick('plant')}
-              >
+              size="lg"
+              variant="secondary"
+              className="w-full min-w-[280px] text-lg h-14 rounded-full"
+              onClick={() => handleCTAClick('plant')}>
+              
                 Plant Trees Now
               </Button>
             </div>
@@ -265,7 +265,7 @@ export default function PledgeB() {
               </div>
             </div>
           </div>
-        )}
+        }
       </div>
 
       <EmailCaptureModal
@@ -274,8 +274,8 @@ export default function PledgeB() {
         pledgeContext={pledgeContext}
         onEmailSubmitted={() => {
           toast({ title: "Check your email!", description: "We've sent you a magic link to continue." });
-        }}
-      />
-    </div>
-  );
+        }} />
+      
+    </div>);
+
 }
