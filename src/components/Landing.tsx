@@ -1,71 +1,97 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TreePine, Plane, Heart, Award, Users, Globe } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { Logo } from "@/components/Logo";
+import { TreePine, Plane, Heart, Award, Users, Globe, Play } from "lucide-react";
+import { Link } from "react-router-dom";
+import ktbLogo from "@/assets/ktb-logo.png";
+
 const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Logo size="md" />
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-14 object-contain" />
           <nav className="hidden md:flex space-x-6">
-            <a href="#about" className="text-black hover:text-primary transition-colors">About</a>
-            <a href="#how-it-works" className="text-black hover:text-primary transition-colors">How It Works</a>
-            <a href="#impact" className="text-black hover:text-primary transition-colors">Impact</a>
+            <a href="#about" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">About</a>
+            <a href="#how-it-works" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">How It Works</a>
+            <a href="#impact" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">Impact</a>
           </nav>
-          <div className="space-x-3">
+          <div className="flex items-center gap-3">
             <Link to="/auth/login">
-              <Button variant="outline" size="sm" className="border-2 border-primary text-black hover:bg-primary hover:text-black">Sign In</Button>
+              <Button variant="ghost" size="sm">Sign In</Button>
             </Link>
             <Link to="/auth/signup">
-              <Button size="sm" className="bg-primary text-black hover:bg-primary/90">Get Started</Button>
+              <Button size="sm">Get Started</Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
-          <div className="mb-8">
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              One Tourist<br />
-              <span className="text-primary">One Tree</span>
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              Transform your Kenya adventure into a lasting legacy. Calculate your carbon footprint, 
-              take the Responsible Traveler Pledge, and plant trees to offset your impact.
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Link to="/pledge">
-              <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
-                Take the Pledge
-              </Button>
-            </Link>
-            <Link to="/auth/signup">
-              <Button variant="outline" size="lg" className="border-2 border-primary text-black hover:bg-primary hover:text-black px-8 py-3">
-                Calculate My Impact
-              </Button>
-            </Link>
-          </div>
+      <section className="py-16 md:py-24 px-4 overflow-hidden">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left - Content */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                  <TreePine className="h-4 w-4" />
+                  Kenya's Sustainable Tourism Initiative
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] tracking-tight">
+                  One Tourist<br />
+                  <span className="text-primary">One Tree</span>
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+                  Transform your Kenya adventure into a lasting legacy. Calculate your carbon footprint, 
+                  take the Responsible Traveler Pledge, and plant trees to offset your impact.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/pledge">
+                  <Button size="lg" className="px-8 py-3 text-base">
+                    Take the Pledge
+                  </Button>
+                </Link>
+                <Link to="/auth/signup">
+                  <Button variant="outline" size="lg" className="px-8 py-3 text-base">
+                    Calculate My Impact
+                  </Button>
+                </Link>
+              </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">50,000+</div>
-              <div className="text-muted-foreground">Trees Planted</div>
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-6 pt-4 border-t border-border">
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-foreground">50k+</div>
+                  <div className="text-sm text-muted-foreground">Trees Planted</div>
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-foreground">10k+</div>
+                  <div className="text-sm text-muted-foreground">Travelers</div>
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-foreground">1.1k</div>
+                  <div className="text-sm text-muted-foreground">Tons CO₂ Offset</div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">10,000+</div>
-              <div className="text-muted-foreground">Responsible Travelers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">1,100</div>
-              <div className="text-muted-foreground">Tons CO₂ Offset</div>
+
+            {/* Right - Video */}
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-foreground/5">
+                <iframe
+                  src="https://www.youtube.com/embed/wcx86Nv1LXw?rel=0"
+                  title="One Tourist One Tree"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+              </div>
+              {/* Decorative elements */}
+              <div className="absolute -z-10 -top-4 -right-4 w-full h-full rounded-2xl bg-primary/20" />
+              <div className="absolute -z-20 -top-8 -right-8 w-full h-full rounded-2xl bg-primary/10" />
             </div>
           </div>
         </div>
@@ -193,7 +219,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="mb-4">
-                <Logo size="sm" />
+                <img src={ktbLogo} alt="Kenya Tourism Board" className="h-10 object-contain" />
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 Kenya's sustainable tourism initiative connecting responsible travelers with reforestation efforts.
