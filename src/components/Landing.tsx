@@ -10,7 +10,7 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-14 object-contain" />
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-20 object-contain" />
           <nav className="hidden md:flex space-x-6">
             <a href="#about" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">About</a>
             <a href="#how-it-works" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">How It Works</a>
@@ -61,21 +61,6 @@ const Landing = () => {
                 </Link>
               </div>
 
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-6 pt-4 border-t border-border">
-                <div>
-                  <div className="text-2xl md:text-3xl font-bold text-foreground">50k+</div>
-                  <div className="text-sm text-muted-foreground">Trees Planted</div>
-                </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-bold text-foreground">10k+</div>
-                  <div className="text-sm text-muted-foreground">Travelers</div>
-                </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-bold text-foreground">1.1k</div>
-                  <div className="text-sm text-muted-foreground">Tons CO₂ Offset</div>
-                </div>
-              </div>
             </div>
 
             {/* Right - Video */}
@@ -92,6 +77,26 @@ const Landing = () => {
               {/* Decorative elements */}
               <div className="absolute -z-10 -top-4 -right-4 w-full h-full rounded-2xl bg-primary/20" />
               <div className="absolute -z-20 -top-8 -right-8 w-full h-full rounded-2xl bg-primary/10" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-12 border-t border-border">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="grid grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">50,000+</div>
+              <div className="text-sm text-muted-foreground mt-1">Trees Planted</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">10,000+</div>
+              <div className="text-sm text-muted-foreground mt-1">Responsible Travelers</div>
+            </div>
+            <div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">1,100</div>
+              <div className="text-sm text-muted-foreground mt-1">Tons CO₂ Offset</div>
             </div>
           </div>
         </div>
