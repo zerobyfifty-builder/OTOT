@@ -144,6 +144,13 @@ const App = () => (
             <Route path="/co2calculator" element={<CO2Calculator />} />
             
             {/* Protected routes with sidebar */}
+            <Route path="/home" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Dashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardLayout>
