@@ -553,7 +553,7 @@ export const MyTrips = () => {
 
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
-              {trips.map(trip => {
+              {filteredTrips.map(trip => {
             const nights = calculateNights(trip.from_date, trip.to_date);
             return <Card key={trip.id}>
                     <CardHeader className="pb-3">
