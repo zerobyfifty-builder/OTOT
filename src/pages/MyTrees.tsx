@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Leaf, Plus, Sprout, ExternalLink, Eye } from "lucide-react";
+import { Leaf, Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TreeMap } from "@/components/trees/TreeMap";
 import { TreeDetailPanel } from "@/components/trees/TreeDetailPanel";
 import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
 import { Database } from "@/integrations/supabase/types";
