@@ -803,29 +803,6 @@ export const TreePurchase = () => {
               </div>
 
 
-              {/* Why $30 Info */}
-              <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-5 w-5 text-primary cursor-help mt-0.5" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-sm">
-                    <p className="font-semibold mb-2">Why $30 per tree?</p>
-                    <ul className="text-sm space-y-1">
-                      <li>• Seedling and planting: $10</li>
-                      <li>• Land preparation: $5</li>
-                      <li>• Maintenance (5 years): $10</li>
-                      <li>• Monitoring and reporting: $5</li>
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">Why $30 per tree?</p>
-                  <p className="text-sm text-muted-foreground">
-                    Your contribution covers planting, maintenance, and monitoring for 5 years. Hover over the icon for details.
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
