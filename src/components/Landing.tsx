@@ -116,38 +116,38 @@ const Landing = () => {
       {/* How It Works */}
       <section id="how-it-works" className="py-20 bg-secondary">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16">How It Works</h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="text-4xl font-bold text-center text-foreground mb-16"
+          >
+            How It Works
+          </motion.h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">1. Take the Pledge</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Commit to responsible tourism with our 10-point Responsible Traveler Pledge and receive your digital certificate.
-              </p>
-            </Card>
-
-            <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plane className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">2. Calculate Impact</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Use our carbon calculator to measure your flight and accommodation emissions during your Kenya visit.
-              </p>
-            </Card>
-
-            <Card className="p-8 text-center bg-card border-border shadow-lg">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TreePine className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">3. Plant Trees</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Offset your carbon footprint by planting trees in Kenya's forests and track their growth with GPS coordinates.
-              </p>
-            </Card>
+            {[
+              { icon: <Award className="h-8 w-8 text-primary" />, title: "1. Take the Pledge", desc: "Commit to responsible tourism with our 10-point Responsible Traveler Pledge and receive your digital certificate." },
+              { icon: <Plane className="h-8 w-8 text-primary" />, title: "2. Calculate Impact", desc: "Use our carbon calculator to measure your flight and accommodation emissions during your Kenya visit." },
+              { icon: <TreePine className="h-8 w-8 text-primary" />, title: "3. Plant Trees", desc: "Offset your carbon footprint by planting trees in Kenya's forests and track their growth with GPS coordinates." },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                <Card className="p-8 text-center bg-card border-border shadow-lg h-full">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -155,56 +155,40 @@ const Landing = () => {
       {/* Features */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-foreground mb-16">Why Choose OTOT?</h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="text-4xl font-bold text-center text-foreground mb-16"
+          >
+            Why Choose OTOT?
+          </motion.h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Globe className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Real Impact</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Every tree is planted by local communities in Kenya's forests with GPS tracking and photo verification for complete transparency.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Community Partnership</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Partner with local lodges and communities to ensure sustainable reforestation that benefits both environment and livelihoods.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Heart className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Simple & Affordable</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Starting at just $1 minimum donation or $30 for a fully tracked tree. Make a meaningful impact without breaking the bank.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                <Award className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">Certified Impact</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Receive official certificates for your pledge and tree planting contributions that you can share on social media.
-                </p>
-              </div>
-            </div>
+            {[
+              { icon: <Globe className="h-6 w-6 text-primary" />, title: "Real Impact", desc: "Every tree is planted by local communities in Kenya's forests with GPS tracking and photo verification for complete transparency." },
+              { icon: <Users className="h-6 w-6 text-primary" />, title: "Community Partnership", desc: "Partner with local lodges and communities to ensure sustainable reforestation that benefits both environment and livelihoods." },
+              { icon: <Heart className="h-6 w-6 text-primary" />, title: "Simple & Affordable", desc: "Starting at just $1 minimum donation or $30 for a fully tracked tree. Make a meaningful impact without breaking the bank." },
+              { icon: <Award className="h-6 w-6 text-primary" />, title: "Certified Impact", desc: "Receive official certificates for your pledge and tree planting contributions that you can share on social media." },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                viewport={{ once: true, amount: 0.3 }}
+                className="flex items-start space-x-4"
+              >
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-foreground">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
