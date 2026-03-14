@@ -196,9 +196,9 @@ export default function PledgeC() {
               You're now a Responsible Traveler. Take the next step and offset your carbon footprint by planting trees in Kenya.
             </p>
             <div className="flex flex-col gap-4 items-center">
-              <Button
+                <Button
                 size="lg"
-                className="w-full min-w-[280px] text-lg h-14 rounded-full"
+                className="w-full max-w-[320px] text-base md:text-lg h-12 md:h-14 rounded-full"
                 onClick={() => handleCTAClick('certificate')}
               >
                 Download My Certificate
@@ -206,7 +206,7 @@ export default function PledgeC() {
               <Button
                 size="lg"
                 variant="secondary"
-                className="w-full min-w-[280px] text-lg h-14 rounded-full"
+                className="w-full max-w-[320px] text-base md:text-lg h-12 md:h-14 rounded-full"
                 onClick={() => handleCTAClick('plant')}
               >
                 Plant Trees Now
