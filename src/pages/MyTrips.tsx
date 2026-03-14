@@ -260,48 +260,72 @@ export const MyTrips = () => {
           const notOffset = trips.filter(t => t.treesPlanted === 0).length;
           return (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Card>
-                <CardContent className="pt-6 pb-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Plane className="h-5 w-5 text-primary" />
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === "all" ? "ring-2 ring-primary" : ""}`}
+                onClick={() => setStatusFilter("all")}
+              >
+                <CardContent className="pt-6 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Plane className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{totalTrips}</p>
+                      <p className="text-xs text-muted-foreground">Total Trips</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{totalTrips}</p>
-                    <p className="text-xs text-muted-foreground">Total Trips</p>
-                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="pt-6 pb-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === "fully" ? "ring-2 ring-green-600" : ""}`}
+                onClick={() => setStatusFilter("fully")}
+              >
+                <CardContent className="pt-6 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{fullyOffset}</p>
+                      <p className="text-xs text-muted-foreground">Fully Offset</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{fullyOffset}</p>
-                    <p className="text-xs text-muted-foreground">Fully Offset</p>
-                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="pt-6 pb-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === "partially" ? "ring-2 ring-amber-500" : ""}`}
+                onClick={() => setStatusFilter("partially")}
+              >
+                <CardContent className="pt-6 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <AlertCircle className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{partiallyOffset}</p>
+                      <p className="text-xs text-muted-foreground">Partially Offset</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{partiallyOffset}</p>
-                    <p className="text-xs text-muted-foreground">Partially Offset</p>
-                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="pt-6 pb-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-                    <XCircle className="h-5 w-5 text-destructive" />
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === "not" ? "ring-2 ring-destructive" : ""}`}
+                onClick={() => setStatusFilter("not")}
+              >
+                <CardContent className="pt-6 pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{notOffset}</p>
+                      <p className="text-xs text-muted-foreground">Not Offset</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{notOffset}</p>
-                    <p className="text-xs text-muted-foreground">Not Offset</p>
-                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 </CardContent>
               </Card>
             </div>
