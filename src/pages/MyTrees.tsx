@@ -111,9 +111,11 @@ export const MyTrees = () => {
   const paginatedTrees = trees.slice(startIndex, startIndex + itemsPerPage);
 
   const calculateTotals = () => {
-    const plantedTrees = trees.filter(t => t.status === "Planted" || t.status === "Sapling Planted").reduce((sum, t) => sum + t.num_trees, 0);
+    // Planted = all trees purchased (paid for), regardless of planting status
+    const plantedTrees = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
     const tripsList = Object.values(trips);
     const totalCO2ToOffset = tripsList.reduce((sum, trip) => sum + Number(trip.total_co2 || 0), 0);
+    // CO2 offset: 22kg per planted tree per year
     const co2AlreadyOffset = plantedTrees * 22;
     const treesNeeded = tripsList.reduce((sum, trip) => sum + (trip.trees_needed || 0), 0);
     const treesRemaining = Math.max(0, treesNeeded - plantedTrees);
