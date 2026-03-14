@@ -710,101 +710,94 @@ export const TreePurchase = () => {
             </div>
           </div>
 
-          {/* Additional Options */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-xl">Additional Options</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Plantation Partner - Static KFS */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-base font-semibold">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Plantation Partner
-                </Label>
-                <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Trees className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Kenya Forest Service (KFS)</p>
-                    <p className="text-sm text-muted-foreground">Government forestry agency</p>
-                  </div>
+          {/* Additional Options - Three Card Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* Card 1: Planted by */}
+            <Card className="border-border/50 hover:shadow-md transition-shadow">
+              <CardContent className="pt-6 text-center space-y-3">
+                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Trees className="h-6 w-6 text-primary" />
                 </div>
-              </div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted by</p>
+                <h3 className="text-lg font-bold text-foreground">Kenya Forest Service</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Official government forestry agency responsible for conservation and reforestation across Kenya.
+                </p>
+              </CardContent>
+            </Card>
 
-              {/* Your Trees will be planted here */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-base font-semibold">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  Your Trees Will Be Planted Here
-                </Label>
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <img 
-                    src={kfsPlantingSite} 
-                    alt="KFS Reforestation site in the Kenyan highlands" 
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4 space-y-2">
-                    <h4 className="font-semibold text-foreground text-lg">Aberdare Forest Reserve, Kenya</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Your trees will be planted in the Aberdare Forest Reserve, one of Kenya's most important water towers. 
-                      Managed by the Kenya Forest Service (KFS), this reforestation project focuses on planting indigenous 
-                      tree species such as Cedar, Camphor, and African Olive. The reserve is home to diverse wildlife and 
-                      plays a critical role in water catchment for millions of Kenyans. Each tree you plant contributes to 
-                      restoring this vital ecosystem.
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> Central Kenya
-                      </span>
-                      <span>Elevation: 2,000–4,000m</span>
-                      <span>Indigenous species</span>
-                    </div>
-                  </div>
+            {/* Card 2: Planted here */}
+            <Card className="border-border/50 hover:shadow-md transition-shadow overflow-hidden">
+              <img 
+                src={kfsPlantingSite} 
+                alt="Aberdare Forest Reserve reforestation site" 
+                className="w-full h-32 object-cover"
+              />
+              <CardContent className="pt-4 text-center space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
+                <h3 className="text-lg font-bold text-foreground">Aberdare Forest Reserve</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  One of Kenya's vital water towers — home to indigenous Cedar, Camphor & African Olive species.
+                </p>
+                <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground pt-1">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Central Kenya
+                  </span>
+                  <span>2,000–4,000m</span>
                 </div>
-              </div>
+                <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
+                  Know more →
+                </Button>
+              </CardContent>
+            </Card>
 
-              {/* Dedicate Trees */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="dedicate"
-                    checked={isDedicated}
-                    onCheckedChange={(checked) => handleDedicationCheckChange(checked as boolean)}
-                  />
-                  <Label
-                    htmlFor="dedicate"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Heart className="h-4 w-4 text-destructive" />
-                    Dedicate trees to someone special
-                  </Label>
+            {/* Card 3: Dedicated to */}
+            <Card 
+              className={`border-border/50 hover:shadow-md transition-shadow cursor-pointer ${isDedicated ? 'ring-2 ring-primary/30' : ''}`}
+              onClick={() => {
+                if (!isDedicated) {
+                  setShowDedicationModal(true);
+                }
+              }}
+            >
+              <CardContent className="pt-6 text-center space-y-3">
+                <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <Heart className={`h-6 w-6 ${isDedicated ? 'text-destructive fill-destructive' : 'text-destructive'}`} />
                 </div>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Dedicated to</p>
                 
-                {isDedicated && (
-                  <div className="pl-6 p-3 bg-muted/50 rounded-lg space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                      Dedicated to: <span className="text-primary">{dedicationName}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                {isDedicated ? (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-foreground">{dedicationName}</h3>
+                    <p className="text-sm text-muted-foreground">
                       Certificate will be emailed to {dedicationEmail}
                     </p>
                     <Button 
-                      variant="ghost" 
+                      variant="outline" 
                       size="sm" 
-                      className="text-xs h-7 px-2 mt-1"
-                      onClick={() => setShowDedicationModal(true)}
+                      className="text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDedicationModal(true);
+                      }}
                     >
-                      Edit dedication
+                      Edit
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-muted-foreground">Someone special?</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Dedicate your trees as a gift. They'll receive a personalised certificate.
+                    </p>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      Add dedication
                     </Button>
                   </div>
                 )}
-              </div>
-
-
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Purchase Summary and Checkout */}
           <Card className="bg-primary/5 border-primary/20">
