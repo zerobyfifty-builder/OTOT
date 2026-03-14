@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validateDeepLink } from '@/utils/magicLinkAuth';
 import ototLogo from '@/assets/otot-logo.png';
 import refreshIcon from '@/assets/refresh-icon.png';
+import confetti from 'canvas-confetti';
 
 const pledgeItems = [
   { number: 1, text: "Respect nature by following marked paths and protecting natural surroundings" },
