@@ -216,6 +216,7 @@ export const MyImpact = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-border">
+                      <th className="p-3 text-left font-semibold text-foreground"></th>
                       <th className="p-3 text-left font-semibold text-foreground">2025</th>
                       <th className="p-3 text-left font-semibold text-foreground">2026 to date</th>
                     </tr>
@@ -223,10 +224,12 @@ export const MyImpact = () => {
                   <tbody>
                     <tr className="border-b border-border">
                       <td className="p-3 font-semibold text-foreground">Number of trees</td>
+                      <td className="p-3 text-muted-foreground">-</td>
                       <td className="p-3 text-foreground">{stats.totalTrees.toLocaleString()}</td>
                     </tr>
                     <tr className="border-b border-border">
                       <td className="p-3 font-semibold text-foreground">CO₂ sequestered (Kg)</td>
+                      <td className="p-3 text-muted-foreground">-</td>
                       <td className="p-3 text-foreground">{(stats.carbonToDate * 1000).toLocaleString()}</td>
                     </tr>
                   </tbody>
