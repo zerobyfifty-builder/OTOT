@@ -562,8 +562,8 @@ export const TreePurchase = () => {
           <div className="space-y-6 mb-8">
             <h2 className="text-2xl font-semibold text-foreground">Choose Your Option</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Option 1: Flexible Tree Planting (was Option 3) - Now default & most prominent */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Option 1: Flexible Tree Planting - Default & most prominent */}
               <Card
                 className={`transition-all duration-300 hover:shadow-lg ${
                   selectedOption === "custom"
@@ -683,43 +683,30 @@ export const TreePurchase = () => {
                   </Button>
                 </CardContent>
               </Card>
+            </div>
 
-              {/* Option 3: One-time Purchase */}
-              <Card
-                className={`transition-all duration-300 hover:shadow-lg ${
-                  selectedOption === "onetime"
-                    ? "ring-2 ring-primary shadow-lg"
-                    : ""
-                }`}
-              >
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
-                    <Leaf className="h-8 w-8 text-accent" />
-                  </div>
-                  <CardTitle className="text-xl">Plant All Trees Now</CardTitle>
-                  <CardDescription>Make a one-time contribution</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center space-y-4">
-                  <div className="py-4">
-                    <p className="text-3xl font-bold text-foreground">
-                      ${(treesNeeded * PRICE_PER_TREE).toFixed(2)}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Plant {treesNeeded} {treesNeeded === 1 ? "tree" : "trees"} now
-                    </p>
-                  </div>
-                  <Button
-                    variant={selectedOption === "onetime" ? "default" : "outline"}
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOptionChange("onetime");
-                    }}
-                  >
-                    {selectedOption === "onetime" ? "Selected" : "Select"}
-                  </Button>
-                </CardContent>
-              </Card>
+            {/* Why $30 Info - moved below option boxes */}
+            <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-5 w-5 text-primary cursor-help mt-0.5" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p className="font-semibold mb-2">Why $30 per tree?</p>
+                  <ul className="text-sm space-y-1">
+                    <li>• Seedling and planting: $10</li>
+                    <li>• Land preparation: $5</li>
+                    <li>• Maintenance (5 years): $10</li>
+                    <li>• Monitoring and reporting: $5</li>
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Why $30 per tree?</p>
+                <p className="text-sm text-muted-foreground">
+                  Your contribution covers planting, maintenance, and monitoring for 5 years. Hover over the icon for details.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -815,29 +802,7 @@ export const TreePurchase = () => {
                 )}
               </div>
 
-              {/* Why $30 Info */}
-              <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-5 w-5 text-primary cursor-help mt-0.5" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-sm">
-                    <p className="font-semibold mb-2">Why $30 per tree?</p>
-                    <ul className="text-sm space-y-1">
-                      <li>• Seedling and planting: $10</li>
-                      <li>• Land preparation: $5</li>
-                      <li>• Maintenance (5 years): $10</li>
-                      <li>• Monitoring and reporting: $5</li>
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">Why $30 per tree?</p>
-                  <p className="text-sm text-muted-foreground">
-                    Your contribution covers planting, maintenance, and monitoring for 5 years. Hover over the icon for details.
-                  </p>
-                </div>
-              </div>
+
             </CardContent>
           </Card>
 
