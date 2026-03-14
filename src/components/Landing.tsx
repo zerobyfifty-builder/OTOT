@@ -10,7 +10,7 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-14 object-contain" />
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-20 object-contain" />
           <nav className="hidden md:flex space-x-6">
             <a href="#about" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">About</a>
             <a href="#how-it-works" className="text-foreground/70 hover:text-primary transition-colors text-sm font-medium">How It Works</a>
