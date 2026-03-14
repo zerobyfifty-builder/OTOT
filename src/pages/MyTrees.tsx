@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Leaf, Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, CheckCircle } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -111,18 +111,17 @@ export const MyTrees = () => {
   const paginatedTrees = trees.slice(startIndex, startIndex + itemsPerPage);
 
   const calculateTotals = () => {
-    const totalTrees = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
     const plantedTrees = trees.filter(t => t.status === "Planted" || t.status === "Sapling Planted").reduce((sum, t) => sum + t.num_trees, 0);
-    // Approximate: each trip has total_co2
     const tripsList = Object.values(trips);
     const totalCO2ToOffset = tripsList.reduce((sum, trip) => sum + Number(trip.total_co2 || 0), 0);
-    // CO2 offset: 22kg per planted tree per year
     const co2AlreadyOffset = plantedTrees * 22;
     const treesNeeded = tripsList.reduce((sum, trip) => sum + (trip.trees_needed || 0), 0);
-    return { totalTrees, plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded };
+    const treesRemaining = Math.max(0, treesNeeded - plantedTrees);
+    const co2Remaining = Math.max(0, totalCO2ToOffset - co2AlreadyOffset);
+    return { plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded, treesRemaining, co2Remaining };
   };
 
-  const { totalTrees, plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded } = calculateTotals();
+  const { plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded, treesRemaining, co2Remaining } = calculateTotals();
 
   if (isLoading) {
     return (
@@ -153,63 +152,53 @@ export const MyTrees = () => {
             </Button>
           </div>
 
-          {/* Summary Statistics - 2 cards with more data */}
+          {/* Summary Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
-                    <TreePine className="h-7 w-7 text-primary" />
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <TreePine className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Trees</p>
-                    <p className="text-3xl font-bold text-foreground">{totalTrees}</p>
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Trees Overview</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-primary/10">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Planted</p>
-                      <p className="text-lg font-semibold text-foreground">{plantedTrees}</p>
-                    </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-foreground">{treesNeeded}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Needed</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Sprout className="h-4 w-4 text-orange-500" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Trees Needed</p>
-                      <p className="text-lg font-semibold text-foreground">{treesNeeded}</p>
-                    </div>
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-green-600">{plantedTrees}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Planted</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-orange-500">{treesRemaining}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-accent/5 border-accent/20">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Cloud className="h-7 w-7 text-accent" />
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <Cloud className="h-5 w-5 text-accent" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total CO₂ to Offset</p>
-                    <p className="text-3xl font-bold text-foreground">{totalCO2ToOffset.toFixed(0)} kg</p>
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">CO₂ Impact</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-accent/10">
-                  <div className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-green-600" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Already Offset</p>
-                      <p className="text-lg font-semibold text-foreground">{co2AlreadyOffset} kg</p>
-                    </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-foreground">{totalCO2ToOffset.toFixed(0)}<span className="text-sm font-normal ml-1">kg</span></p>
+                    <p className="text-xs text-muted-foreground mt-1">To Offset</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Cloud className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Remaining</p>
-                      <p className="text-lg font-semibold text-foreground">{Math.max(0, totalCO2ToOffset - co2AlreadyOffset).toFixed(0)} kg</p>
-                    </div>
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-green-600">{co2AlreadyOffset}<span className="text-sm font-normal ml-1">kg</span></p>
+                    <p className="text-xs text-muted-foreground mt-1">Offset</p>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-background/60">
+                    <p className="text-2xl font-bold text-orange-500">{co2Remaining.toFixed(0)}<span className="text-sm font-normal ml-1">kg</span></p>
+                    <p className="text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
               </CardContent>
