@@ -216,10 +216,9 @@ export const MyImpact = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-border">
-                      <th className="p-3 text-left font-semibold text-foreground">← 2021</th>
-                      <th className="p-3 text-left font-semibold text-foreground">2022</th>
-                      <th className="p-3 text-left font-semibold text-foreground">2023</th>
-                      <th className="p-3 text-left font-semibold text-foreground">2024 to date</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2025</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2026</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2027 to date</th>
                     </tr>
                   </thead>
                   <tbody>
