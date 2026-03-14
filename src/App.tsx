@@ -23,6 +23,7 @@ import MagicLink from "@/pages/auth/MagicLink";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import Pledge from "@/pages/Pledge";
 import PledgeB from "@/pages/PledgeB";
+import PledgeC from "@/pages/PledgeC";
 import CO2Calculator from "@/pages/CO2Calculator";
 import { Dashboard } from "@/pages/Dashboard";
 import { Profile } from "@/pages/Profile";
