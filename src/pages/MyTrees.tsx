@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud } from "lucide-react";
+import ktbLogo from '@/assets/ktb-logo.png';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -148,10 +149,13 @@ export const MyTrees = () => {
                 Track your reforestation journey and environmental impact
               </p>
             </div>
-            <Button onClick={() => navigate("/carbon-calculator")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Plant More Trees
-            </Button>
+            <div className="flex items-center gap-4">
+              <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
+              <Button onClick={() => navigate("/carbon-calculator")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Plant More Trees
+              </Button>
+            </div>
           </div>
 
           {/* Summary Statistics */}

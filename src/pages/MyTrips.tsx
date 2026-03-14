@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical, CheckCircle2, AlertCircle, XCircle, ChevronRight } from "lucide-react";
+import ktbLogo from '@/assets/ktb-logo.png';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { airports } from "@/data/airports";
@@ -245,10 +246,13 @@ export const MyTrips = () => {
                 If your trip does not appear here, please add it manually.
               </p>
             </div>
-            <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Trip Manually
-            </Button>
+            <div className="flex items-center gap-4">
+              <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
+              <Button onClick={() => navigate("/carbon-calculator")} className="shrink-0">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Trip Manually
+              </Button>
+            </div>
           </div>
         </div>
 
