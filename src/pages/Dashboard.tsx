@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import ktbLogo from '@/assets/ktb-logo.png';
 import { 
   TreePine, 
   Plane, 
@@ -188,10 +189,11 @@ export const Dashboard: React.FC = () => {
     <div className="flex-1 overflow-auto">
       <div className="container mx-auto px-4 py-8 space-y-12">
         {/* Welcome Header */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">
             Welcome {getUserName()}!
           </h1>
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-12 object-contain" />
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}

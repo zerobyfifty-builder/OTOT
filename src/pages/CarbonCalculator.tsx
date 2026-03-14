@@ -20,6 +20,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { EmailCaptureModal } from "@/components/pledge/EmailCaptureModal";
 import { cn } from "@/lib/utils";
+import ktbLogo from '@/assets/ktb-logo.png';
 
 const flightSchema = z.object({
   originAirport: z.string().min(3, "Please select departure airport"),
@@ -390,9 +391,12 @@ export const CarbonCalculator = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl py-8 px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
-          <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
+            <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
+          </div>
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-12 object-contain" />
         </div>
 
         <Form {...form}>
