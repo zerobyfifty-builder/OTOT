@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmailCaptureModal } from '@/components/pledge/EmailCaptureModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,7 @@ const pledgeItems = [
 export default function PledgeB() {
   const [searchParams] = useSearchParams();
   const [acceptedPledges, setAcceptedPledges] = useState<Set<number>>(new Set());
+  const [hoveredPledge, setHoveredPledge] = useState<number | null>(null);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
   const [pledgeContext, setPledgeContext] = useState<any>(null);
@@ -34,7 +36,6 @@ export default function PledgeB() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Handle deep link tokens
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
@@ -61,6 +62,7 @@ export default function PledgeB() {
   const handleRestart = () => {
     setAcceptedPledges(new Set());
     setShowCompletion(false);
+    setHoveredPledge(null);
   };
 
   const handleCommit = () => {
@@ -98,6 +100,35 @@ export default function PledgeB() {
     }
   };
 
+  const hoveredItem = hoveredPledge !== null ? pledgeItems.find(p => p.number === hoveredPledge) : null;
+
+  const renderCircle = (item: typeof pledgeItems[0]) => {
+    const accepted = acceptedPledges.has(item.number);
+    return (
+      <button
+        key={item.number}
+        onClick={() => togglePledge(item.number)}
+        onMouseEnter={() => setHoveredPledge(item.number)}
+        onMouseLeave={() => setHoveredPledge(null)}
+        className={`relative flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-110 ${
+          accepted
+            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/40'
+            : 'bg-white text-foreground hover:bg-white/90 shadow-md'
+        }`}
+        aria-label={`Pledge ${item.number}: ${item.text}`}
+      >
+        {accepted ? (
+          <Check className="h-6 w-6 md:h-7 md:w-7" strokeWidth={3} />
+        ) : (
+          item.number
+        )}
+      </button>
+    );
+  };
+
+  const row1 = pledgeItems.slice(0, 5);
+  const row2 = pledgeItems.slice(5, 10);
+
   return (
     <div className="relative min-h-screen w-screen overflow-auto">
       {/* Background */}
@@ -134,47 +165,43 @@ export default function PledgeB() {
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pb-12 pt-4 min-h-[calc(100vh-80px)]">
         {!showCompletion ? (
           <>
-            {/* Glass Card */}
-            <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8">
-              <h2 className="text-white text-center text-xl md:text-2xl font-semibold leading-tight">
-                Please accept all 10 principles to complete your pledge
-              </h2>
+            {/* Page Heading */}
+            <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-6 drop-shadow-lg">
+              Take Your Responsible Traveller Pledge Today!
+            </h1>
 
-              {/* 5x2 Grid of numbered circles */}
-              <TooltipProvider delayDuration={200}>
-                <div className="grid grid-cols-5 gap-4 justify-items-center">
-                  {pledgeItems.map((item) => {
-                    const accepted = acceptedPledges.has(item.number);
-                    return (
-                      <Tooltip key={item.number}>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => togglePledge(item.number)}
-                            className={`relative flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-110 ${
-                              accepted
-                                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/40'
-                                : 'bg-white text-foreground hover:bg-white/90 shadow-md'
-                            }`}
-                            aria-label={`Pledge ${item.number}: ${item.text}`}
-                          >
-                            {accepted ? (
-                              <Check className="h-6 w-6 md:h-7 md:w-7" strokeWidth={3} />
-                            ) : (
-                              item.number
-                            )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-[250px] text-center">
-                          <p className="text-sm">{item.text}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </TooltipProvider>
+            {/* Glass Card */}
+            <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-4">
+              <p className="text-white/80 text-center text-sm md:text-base">
+                Please accept all 10 principles to complete your pledge
+              </p>
+
+              {/* Row 1: Pledges 1-5 */}
+              <div className="flex justify-center gap-4">
+                {row1.map(renderCircle)}
+              </div>
+
+              {/* Hover content area between rows */}
+              <div className="min-h-[72px] flex items-center justify-center px-4">
+                {hoveredItem ? (
+                  <p className="text-white text-center text-sm md:text-base animate-in fade-in-0 duration-200">
+                    <span className="font-semibold text-primary">{hoveredItem.number}.</span>{' '}
+                    {hoveredItem.text}
+                  </p>
+                ) : (
+                  <p className="text-white/40 text-center text-sm italic">
+                    Hover over a number to see the pledge
+                  </p>
+                )}
+              </div>
+
+              {/* Row 2: Pledges 6-10 */}
+              <div className="flex justify-center gap-4">
+                {row2.map(renderCircle)}
+              </div>
 
               {/* Progress text */}
-              <p className="text-white/70 text-center text-sm">
+              <p className="text-white/70 text-center text-sm pt-2">
                 {acceptedPledges.size} of 10 accepted
               </p>
 
@@ -201,7 +228,6 @@ export default function PledgeB() {
             </div>
           </>
         ) : (
-          /* Completion view */
           <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8 text-center">
             <h1 className="text-white text-4xl md:text-5xl font-bold drop-shadow-lg">
               Thank You for Taking the Pledge!
@@ -237,7 +263,6 @@ export default function PledgeB() {
         )}
       </div>
 
-      {/* Email Capture Modal */}
       <EmailCaptureModal
         open={showEmailCapture}
         onOpenChange={setShowEmailCapture}
