@@ -217,8 +217,7 @@ export const MyImpact = () => {
                   <thead>
                     <tr className="border-b-2 border-border">
                       <th className="p-3 text-left font-semibold text-foreground">2025</th>
-                      <th className="p-3 text-left font-semibold text-foreground">2026</th>
-                      <th className="p-3 text-left font-semibold text-foreground">2027 to date</th>
+                      <th className="p-3 text-left font-semibold text-foreground">2026 to date</th>
                     </tr>
                   </thead>
                   <tbody>
