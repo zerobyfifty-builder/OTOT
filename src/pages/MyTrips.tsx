@@ -246,10 +246,13 @@ export const MyTrips = () => {
                 If your trip does not appear here, please add it manually.
               </p>
             </div>
-            <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Trip Manually
-            </Button>
+            <div className="flex items-center gap-4">
+              <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
+              <Button onClick={() => navigate("/carbon-calculator")} className="shrink-0">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Trip Manually
+              </Button>
+            </div>
           </div>
         </div>
 
