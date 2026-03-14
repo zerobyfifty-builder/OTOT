@@ -261,9 +261,9 @@ export const MyTrees = () => {
                         <TableHead className="w-16">No.</TableHead>
                         <TableHead className="text-left">Trip ID</TableHead>
                         <TableHead className="text-left">TreeTracker</TableHead>
+                        <TableHead className="text-left">Forest</TableHead>
                         <TableHead className="text-left">County</TableHead>
                         <TableHead className="text-left">Planted By</TableHead>
-                        <TableHead className="text-left">Forest</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Payment Date</TableHead>
                         <TableHead>Source</TableHead>
@@ -272,9 +272,6 @@ export const MyTrees = () => {
                     </TableHeader>
                     <TableBody>
                       {paginatedTrees.map((tree, index) => {
-                        const counties = ['Narok', 'Kakamega', 'Bungoma', 'Kisumu', 'Nairobi'];
-                        const countyIndex = index % counties.length;
-                        
                         return (
                           <TableRow key={tree.id}>
                             <TableCell className="font-medium">
@@ -292,9 +289,9 @@ export const MyTrees = () => {
                                 <ExternalLink className="h-3 w-3" />
                               </button>
                             </TableCell>
-                            <TableCell className="text-left">{counties[countyIndex]}</TableCell>
-                            <TableCell className="text-left">Kenya Forest Service</TableCell>
                             <TableCell className="text-left">Mau</TableCell>
+                            <TableCell className="text-left">Nakuru</TableCell>
+                            <TableCell className="text-left">Kenya Forest Service</TableCell>
                             <TableCell>
                               <Badge className={STATUS_COLORS[tree.status]}>
                                 {tree.status === "Planted" ? "gifted" : tree.status}
