@@ -149,6 +149,8 @@ export const MyTrees = () => {
                 Track your reforestation journey and environmental impact
               </p>
             </div>
+            <div className="flex items-center gap-4">
+              <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
             <Button onClick={() => navigate("/carbon-calculator")}>
               <Plus className="h-4 w-4 mr-2" />
               Plant More Trees
