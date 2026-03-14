@@ -419,14 +419,12 @@ export const MyTrips = () => {
                                         <Leaf className="h-4 w-4 mr-2" />
                                         Tree Details
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleEditTrip(trip.id)}>
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Edit Trip
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        Delete Trip
-                                      </DropdownMenuItem>
+                                      {trip.treesPlanted === 0 && (
+                                        <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Delete Trip
+                                        </DropdownMenuItem>
+                                      )}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </div>
@@ -538,14 +536,12 @@ export const MyTrips = () => {
                               <Leaf className="h-4 w-4 mr-2" />
                               Tree Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditTrip(trip.id)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit Trip
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete Trip
-                            </DropdownMenuItem>
+                            {trip.treesPlanted === 0 && (
+                              <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Trip
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
