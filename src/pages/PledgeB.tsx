@@ -28,6 +28,7 @@ export default function PledgeB() {
   const [searchParams] = useSearchParams();
   const [acceptedPledges, setAcceptedPledges] = useState<Set<number>>(new Set());
   const [hoveredPledge, setHoveredPledge] = useState<number | null>(null);
+  const [tappedPledge, setTappedPledge] = useState<number | null>(null);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
   const [pledgeContext, setPledgeContext] = useState<any>(null);
@@ -100,14 +101,18 @@ export default function PledgeB() {
     }
   };
 
-  const hoveredItem = hoveredPledge !== null ? pledgeItems.find(p => p.number === hoveredPledge) : null;
+  const displayedPledge = hoveredPledge ?? tappedPledge;
+  const hoveredItem = displayedPledge !== null ? pledgeItems.find(p => p.number === displayedPledge) : null;
 
   const renderCircle = (item: typeof pledgeItems[0]) => {
     const accepted = acceptedPledges.has(item.number);
     return (
       <button
         key={item.number}
-        onClick={() => togglePledge(item.number)}
+        onClick={() => {
+          togglePledge(item.number);
+          setTappedPledge(item.number);
+        }}
         onMouseEnter={() => setHoveredPledge(item.number)}
         onMouseLeave={() => setHoveredPledge(null)}
         className={`relative flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-110 ${
