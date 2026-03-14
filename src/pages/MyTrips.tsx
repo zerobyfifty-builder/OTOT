@@ -386,7 +386,7 @@ export const MyTrips = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {trips.map(trip => {
+                        {filteredTrips.map(trip => {
                       const nights = calculateNights(trip.from_date, trip.to_date);
                       const {
                         dateText,
