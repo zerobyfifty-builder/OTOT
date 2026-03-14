@@ -42,6 +42,17 @@ export const MyTrips = () => {
   const [selectedTripForTrees, setSelectedTripForTrees] = useState<string | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
   const [isTreeDetailsOpen, setIsTreeDetailsOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
+
+  const getFilteredTrips = () => {
+    switch (statusFilter) {
+      case "fully": return trips.filter(t => t.treesPlanted >= t.trees_needed);
+      case "partially": return trips.filter(t => t.treesPlanted > 0 && t.treesPlanted < t.trees_needed);
+      case "not": return trips.filter(t => t.treesPlanted === 0);
+      default: return trips;
+    }
+  };
+  const filteredTrips = getFilteredTrips();
   useEffect(() => {
     fetchTrips();
   }, []);
