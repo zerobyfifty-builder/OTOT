@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical } from "lucide-react";
+import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { airports } from "@/data/airports";
@@ -240,6 +240,62 @@ export const MyTrips = () => {
             </Button>
           </div>
         </div>
+
+        {/* Trip Stats */}
+        {trips.length > 0 && (() => {
+          const totalTrips = trips.length;
+          const fullyOffset = trips.filter(t => t.treesPlanted >= t.trees_needed).length;
+          const partiallyOffset = trips.filter(t => t.treesPlanted > 0 && t.treesPlanted < t.trees_needed).length;
+          const notOffset = trips.filter(t => t.treesPlanted === 0).length;
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <Card>
+                <CardContent className="pt-6 pb-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Plane className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{totalTrips}</p>
+                    <p className="text-xs text-muted-foreground">Total Trips</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 pb-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{fullyOffset}</p>
+                    <p className="text-xs text-muted-foreground">Fully Offset</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 pb-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{partiallyOffset}</p>
+                    <p className="text-xs text-muted-foreground">Partially Offset</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 pb-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{notOffset}</p>
+                    <p className="text-xs text-muted-foreground">Not Offset</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
 
         {/* Empty State */}
         {trips.length === 0 ? <Card className="py-12">
