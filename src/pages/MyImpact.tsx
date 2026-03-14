@@ -117,7 +117,7 @@ export const MyImpact = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold text-foreground mb-2">My Impact</h1>
-        <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 object-contain" />
+        <img src={ktbLogo} alt="Kenya Tourism Board" className="h-20 object-contain" />
       </div>
 
       {/* Section 1: Share Impact & UN SDG Metrics */}
