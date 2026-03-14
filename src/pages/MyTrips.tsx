@@ -568,11 +568,11 @@ export const MyTrips = () => {
                         </div>
                         <div className="flex gap-2">
                           {trip.treesPlanted >= trip.trees_needed ? (
-                            <Badge className="bg-green-600 hover:bg-green-600 text-white">Fully Offset</Badge>
+                            <Badge className="bg-green-100 hover:bg-green-100 text-green-700 border-green-200">Fully Offset</Badge>
                           ) : trip.treesPlanted > 0 ? (
-                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">Partially Offset</Badge>
+                            <Badge className="bg-amber-100 hover:bg-amber-100 text-amber-700 border-amber-200">Partially Offset</Badge>
                           ) : (
-                            <Badge variant="destructive">Not Offset</Badge>
+                            <Badge className="bg-red-100 hover:bg-red-100 text-red-700 border-red-200">Not Offset</Badge>
                           )}
                           <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
                             {trip.entry_source}
