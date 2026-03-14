@@ -343,6 +343,9 @@ export const MyTrips = () => {
                             Trees Planted
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Actions
                           </th>
                         </tr>
@@ -448,6 +451,17 @@ export const MyTrips = () => {
                                 </div>
                               </td>
 
+                              {/* Status */}
+                              <td className="px-6 py-6">
+                                {trip.treesPlanted >= trip.trees_needed ? (
+                                  <Badge className="bg-green-600 hover:bg-green-600 text-white">Fully Offset</Badge>
+                                ) : trip.treesPlanted > 0 ? (
+                                  <Badge className="bg-amber-500 hover:bg-amber-500 text-white">Partially Offset</Badge>
+                                ) : (
+                                  <Badge variant="destructive">Not Offset</Badge>
+                                )}
+                              </td>
+
                               {/* Actions */}
                               <td className="px-6 py-6">
                                 <div className="flex items-center gap-2">
@@ -517,9 +531,18 @@ export const MyTrips = () => {
                             {format(new Date(trip.created_at), "dd MMM yyyy, h:mm a")}
                           </div>
                         </div>
-                        <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
-                          {trip.entry_source}
-                        </Badge>
+                        <div className="flex gap-2">
+                          {trip.treesPlanted >= trip.trees_needed ? (
+                            <Badge className="bg-green-600 hover:bg-green-600 text-white">Fully Offset</Badge>
+                          ) : trip.treesPlanted > 0 ? (
+                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">Partially Offset</Badge>
+                          ) : (
+                            <Badge variant="destructive">Not Offset</Badge>
+                          )}
+                          <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
+                            {trip.entry_source}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-lg">
