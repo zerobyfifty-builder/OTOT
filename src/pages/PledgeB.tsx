@@ -28,6 +28,7 @@ export default function PledgeB() {
   const [searchParams] = useSearchParams();
   const [acceptedPledges, setAcceptedPledges] = useState<Set<number>>(new Set());
   const [hoveredPledge, setHoveredPledge] = useState<number | null>(null);
+  const [tappedPledge, setTappedPledge] = useState<number | null>(null);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [signupAction, setSignupAction] = useState<'certificate' | 'plant'>('certificate');
   const [pledgeContext, setPledgeContext] = useState<any>(null);
