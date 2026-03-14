@@ -65,7 +65,7 @@ const Landing = () => {
             </div>
 
             {/* Right - Video */}
-            <div className="relative">
+            <div className="relative mt-8 lg:mt-0">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-foreground/5">
                 <iframe
                   src="https://www.youtube.com/embed/wcx86Nv1LXw?rel=0"
@@ -75,9 +75,9 @@ const Landing = () => {
                   className="absolute inset-0 w-full h-full"
                 />
               </div>
-              {/* Decorative elements */}
-              <div className="absolute -z-10 -top-4 -right-4 w-full h-full rounded-2xl bg-primary/20" />
-              <div className="absolute -z-20 -top-8 -right-8 w-full h-full rounded-2xl bg-primary/10" />
+              {/* Decorative elements - hidden on mobile for cleaner look */}
+              <div className="hidden md:block absolute -z-10 -top-4 -right-4 w-full h-full rounded-2xl bg-primary/20" />
+              <div className="hidden md:block absolute -z-20 -top-8 -right-8 w-full h-full rounded-2xl bg-primary/10" />
             </div>
           </div>
         </div>
