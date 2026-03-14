@@ -544,10 +544,18 @@ export const MyTrips = () => {
                               <Leaf className="h-4 w-4 mr-2" />
                               Tree Details
                             </DropdownMenuItem>
-                            {trip.treesPlanted === 0 && (
+                            {trip.treesPlanted === 0 ? (
                               <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete Trip
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem disabled className="text-muted-foreground opacity-60">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                <span className="flex flex-col">
+                                  <span>Delete Trip</span>
+                                  <span className="text-xs font-normal">Trees planted — cannot delete</span>
+                                </span>
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
