@@ -145,9 +145,9 @@ export default function PledgeC() {
             </div>
 
             <div className="w-full max-w-2xl bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8 space-y-5">
-              <p className="text-white/80 text-center text-sm md:text-base">
-                Read and commit to all 10 principles of responsible travel
-              </p>
+              <h2 className="text-center text-base md:text-lg font-bold tracking-wide uppercase text-primary">
+                Please Read and Commit to all 10 Principles
+              </h2>
 
               {/* All 10 pledges listed */}
               <ol className="space-y-3">
