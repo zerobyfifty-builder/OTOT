@@ -51,8 +51,13 @@ export default function PledgeC() {
     setShowCompletion(false);
   };
 
+  const completionRef = useRef<HTMLDivElement>(null);
+
   const handleCommit = () => {
     setShowCompletion(true);
+    setTimeout(() => {
+      completionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const handleCTAClick = async (action: 'certificate' | 'plant') => {
