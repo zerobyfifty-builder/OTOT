@@ -109,7 +109,10 @@ export default function PledgeB() {
     return (
       <button
         key={item.number}
-        onClick={() => togglePledge(item.number)}
+        onClick={() => {
+          togglePledge(item.number);
+          setTappedPledge(item.number);
+        }}
         onMouseEnter={() => setHoveredPledge(item.number)}
         onMouseLeave={() => setHoveredPledge(null)}
         className={`relative flex items-center justify-center h-14 w-14 md:h-16 md:w-16 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-110 ${
