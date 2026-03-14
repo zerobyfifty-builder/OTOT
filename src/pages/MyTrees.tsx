@@ -5,7 +5,7 @@ import { Leaf, Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, CheckCircle } f
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,8 +48,12 @@ export const MyTrees = () => {
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-
+  useEffect(() => {
+    fetchTrees();
+  }, []);
 
   const fetchTrees = async () => {
     setIsLoading(true);
@@ -75,7 +79,6 @@ export const MyTrees = () => {
       if (error) throw error;
       setTrees(data || []);
 
-      // Fetch associated trips with friendly_trip_id
       const tripIds = [...new Set(data?.map(t => t.trip_id).filter(Boolean) || [])];
       if (tripIds.length > 0) {
         const { data: tripsData } = await supabase
@@ -103,20 +106,23 @@ export const MyTrees = () => {
     }
   };
 
-  // Pagination
   const totalPages = Math.ceil(trees.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedTrees = trees.slice(startIndex, endIndex);
+  const paginatedTrees = trees.slice(startIndex, startIndex + itemsPerPage);
 
   const calculateTotals = () => {
     const totalTrees = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
-    // Approximate CO2 offset: 22kg per tree per year
-    const totalCO2 = totalTrees * 22;
-    return { totalTrees, totalCO2 };
+    const plantedTrees = trees.filter(t => t.status === "Planted" || t.status === "Sapling Planted").reduce((sum, t) => sum + t.num_trees, 0);
+    // Approximate: each trip has total_co2
+    const tripsList = Object.values(trips);
+    const totalCO2ToOffset = tripsList.reduce((sum, trip) => sum + Number(trip.total_co2 || 0), 0);
+    // CO2 offset: 22kg per planted tree per year
+    const co2AlreadyOffset = plantedTrees * 22;
+    const treesNeeded = tripsList.reduce((sum, trip) => sum + (trip.trees_needed || 0), 0);
+    return { totalTrees, plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded };
   };
 
-  const { totalTrees, totalCO2 } = calculateTotals();
+  const { totalTrees, plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded } = calculateTotals();
 
   if (isLoading) {
     return (
@@ -132,36 +138,6 @@ export const MyTrees = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl py-8">
-        {/* Mapbox Token Input */}
-        {showTokenInput && (
-          <Card className="mb-6 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="text-lg">Mapbox Configuration Required</CardTitle>
-              <CardDescription>
-                To view tree locations on the map, please enter your Mapbox public token.
-                Get your token from{" "}
-                <a
-                  href="https://mapbox.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
-                >
-                  mapbox.com
-                </a>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex gap-3">
-              <Input
-                placeholder="Enter Mapbox public token (pk.xxx)"
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleSaveMapboxToken}>Save Token</Button>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-6">
@@ -177,31 +153,63 @@ export const MyTrees = () => {
             </Button>
           </div>
 
-          {/* Summary Statistics */}
+          {/* Summary Statistics - 2 cards with more data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Leaf className="h-8 w-8 text-primary" />
+                  <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
+                    <TreePine className="h-7 w-7 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total Trees Planted</p>
-                    <p className="text-4xl font-bold text-foreground">{totalTrees}</p>
+                    <p className="text-sm text-muted-foreground">Total Trees</p>
+                    <p className="text-3xl font-bold text-foreground">{totalTrees}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-primary/10">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Planted</p>
+                      <p className="text-lg font-semibold text-foreground">{plantedTrees}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sprout className="h-4 w-4 text-orange-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Trees Needed</p>
+                      <p className="text-lg font-semibold text-foreground">{treesNeeded}</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-accent/5 border-accent/20">
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Leaf className="h-8 w-8 text-accent" />
+                  <div className="h-14 w-14 rounded-full bg-accent/20 flex items-center justify-center">
+                    <Cloud className="h-7 w-7 text-accent" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total CO₂ Offset (Annually)</p>
-                    <p className="text-4xl font-bold text-foreground">{totalCO2} kg</p>
+                    <p className="text-sm text-muted-foreground">Total CO₂ to Offset</p>
+                    <p className="text-3xl font-bold text-foreground">{totalCO2ToOffset.toFixed(0)} kg</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-accent/10">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Already Offset</p>
+                      <p className="text-lg font-semibold text-foreground">{co2AlreadyOffset} kg</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Cloud className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Remaining</p>
+                      <p className="text-lg font-semibold text-foreground">{Math.max(0, totalCO2ToOffset - co2AlreadyOffset).toFixed(0)} kg</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -228,17 +236,6 @@ export const MyTrees = () => {
           </Card>
         ) : (
           <>
-            {/* Interactive Map */}
-            {!showTokenInput && mapboxToken && (
-              <div className="mb-8">
-                <TreeMap
-                  trees={trees}
-                  mapboxToken={mapboxToken}
-                  onTreeClick={setSelectedTree}
-                />
-              </div>
-            )}
-
             {/* Trees Table */}
             <Card>
               <CardContent className="p-0">
@@ -250,20 +247,17 @@ export const MyTrees = () => {
                         <TableHead className="text-left">Trip ID</TableHead>
                         <TableHead className="text-left">TreeTracker</TableHead>
                         <TableHead className="text-left">County</TableHead>
-                        <TableHead className="text-left">Planter</TableHead>
-                        <TableHead className="text-left">Carer</TableHead>
+                        <TableHead className="text-left">Planted By</TableHead>
+                        <TableHead className="text-left">Forest</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Payment Date</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead>Trip</TableHead>
-                        <TableHead className="text-right">TreeChain</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedTrees.map((tree, index) => {
-                        // Demo data for counties and carers
                         const counties = ['Narok', 'Kakamega', 'Bungoma', 'Kisumu', 'Nairobi'];
-                        const carers = ['Agnes Wanjiru', 'Peter Otieno', 'Mary Wambui', 'James Kipchoge', 'Grace Akinyi'];
                         const countyIndex = index % counties.length;
                         
                         return (
@@ -284,13 +278,8 @@ export const MyTrees = () => {
                               </button>
                             </TableCell>
                             <TableCell className="text-left">{counties[countyIndex]}</TableCell>
-                            <TableCell className="text-left">
-                              {counties[countyIndex] === 'Narok' 
-                                ? 'Mara Ecolodge' 
-                                : ['Tree for Kenya', 'Tree Planting Society', 'RODI Kenya', 'Emaua'][countyIndex % 4]
-                              }
-                            </TableCell>
-                            <TableCell className="text-left">{carers[countyIndex]}</TableCell>
+                            <TableCell className="text-left">Kenya Forest Service</TableCell>
+                            <TableCell className="text-left">Mau</TableCell>
                             <TableCell>
                               <Badge className={STATUS_COLORS[tree.status]}>
                                 {tree.status === "Planted" ? "gifted" : tree.status}
@@ -308,7 +297,7 @@ export const MyTrees = () => {
                               {tree.trip_id && trips[tree.trip_id] ? (
                                 <button
                                   onClick={() => {
-                                    setSelectedTrip(trips[tree.trip_id]);
+                                    setSelectedTrip(trips[tree.trip_id!]);
                                     setIsTripSheetOpen(true);
                                   }}
                                   className="text-primary hover:text-primary/80"
@@ -318,11 +307,6 @@ export const MyTrees = () => {
                               ) : (
                                 <span className="text-muted-foreground text-sm">-</span>
                               )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <button className="text-primary hover:underline text-sm">
-                                view
-                              </button>
                             </TableCell>
                           </TableRow>
                         );
@@ -334,14 +318,6 @@ export const MyTrees = () => {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 p-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      ←
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -374,29 +350,6 @@ export const MyTrees = () => {
                     >
                       →
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      →
-                    </Button>
-                    <Select
-                      value={itemsPerPage.toString()}
-                      onValueChange={(value) => {
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <SelectTrigger className="w-16">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 )}
               </CardContent>
