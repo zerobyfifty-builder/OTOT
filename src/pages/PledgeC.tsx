@@ -174,7 +174,7 @@ export default function PledgeC() {
             </div>
           </>
         ) : (
-          <div className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8 text-center">
+          <div ref={completionRef} className="w-full max-w-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 space-y-8 text-center animate-scale-in">
             <h1 className="text-white text-4xl md:text-5xl font-bold drop-shadow-lg">
               Thank You for Taking the Pledge!
             </h1>
