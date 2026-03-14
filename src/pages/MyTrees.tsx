@@ -178,6 +178,18 @@ export const MyTrees = () => {
                     <p className="text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                    <span>{treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0}% planted</span>
+                    <span>{plantedTrees} / {treesNeeded}</span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      style={{ width: `${treesNeeded > 0 ? Math.min(100, (plantedTrees / treesNeeded) * 100) : 0}%` }}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
