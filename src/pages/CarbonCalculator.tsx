@@ -20,6 +20,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { EmailCaptureModal } from "@/components/pledge/EmailCaptureModal";
 import { cn } from "@/lib/utils";
+import ktbLogo from '@/assets/ktb-logo.png';
 
 const flightSchema = z.object({
   originAirport: z.string().min(3, "Please select departure airport"),
