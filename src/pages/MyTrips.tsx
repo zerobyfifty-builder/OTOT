@@ -343,6 +343,9 @@ export const MyTrips = () => {
                             Trees Planted
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
                             Actions
                           </th>
                         </tr>
