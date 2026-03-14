@@ -56,6 +56,14 @@ export default function PledgeC() {
 
   const handleCommit = () => {
     setShowCompletion(true);
+    // Fire confetti bursts
+    const end = Date.now() + 1500;
+    const colors = ['#22c55e', '#facc15', '#3b82f6', '#f97316'];
+    (function frame() {
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
     setTimeout(() => {
       completionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
