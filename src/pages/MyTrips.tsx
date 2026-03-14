@@ -451,6 +451,17 @@ export const MyTrips = () => {
                                 </div>
                               </td>
 
+                              {/* Status */}
+                              <td className="px-6 py-6">
+                                {trip.treesPlanted >= trip.trees_needed ? (
+                                  <Badge className="bg-green-600 hover:bg-green-600 text-white">Fully Offset</Badge>
+                                ) : trip.treesPlanted > 0 ? (
+                                  <Badge className="bg-amber-500 hover:bg-amber-500 text-white">Partially Offset</Badge>
+                                ) : (
+                                  <Badge variant="destructive">Not Offset</Badge>
+                                )}
+                              </td>
+
                               {/* Actions */}
                               <td className="px-6 py-6">
                                 <div className="flex items-center gap-2">
