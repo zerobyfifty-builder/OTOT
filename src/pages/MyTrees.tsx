@@ -48,37 +48,8 @@ export const MyTrees = () => {
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState("");
-  const [showTokenInput, setShowTokenInput] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetchTrees();
-    checkMapboxToken();
-  }, []);
 
-  const checkMapboxToken = async () => {
-    // In production, this would come from Supabase edge function secrets
-    // For now, we'll show an input for the user to enter their token
-    const storedToken = localStorage.getItem("mapbox_token");
-    if (storedToken) {
-      setMapboxToken(storedToken);
-    } else {
-      setShowTokenInput(true);
-    }
-  };
-
-  const handleSaveMapboxToken = () => {
-    if (mapboxToken) {
-      localStorage.setItem("mapbox_token", mapboxToken);
-      setShowTokenInput(false);
-      toast({
-        title: "Token Saved",
-        description: "Mapbox token has been saved successfully.",
-      });
-    }
-  };
 
   const fetchTrees = async () => {
     setIsLoading(true);
