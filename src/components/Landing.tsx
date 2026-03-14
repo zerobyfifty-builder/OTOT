@@ -219,7 +219,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="mb-4">
-                <Logo size="sm" />
+                <img src={ktbLogo} alt="Kenya Tourism Board" className="h-10 object-contain" />
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 Kenya's sustainable tourism initiative connecting responsible travelers with reforestation efforts.
