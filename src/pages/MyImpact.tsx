@@ -15,6 +15,7 @@ import acaciaImage from '@/assets/acacia-auriculiformis-new.png';
 import acrocarpusImage from '@/assets/acrocarpus-fraxinifolius-new.png';
 import albiziaImage from '@/assets/albizia-mugavu-new.png';
 import treesForKenyaLogo from '@/assets/trees-for-kenya-logo.jpeg';
+import ktbLogo from '@/assets/ktb-logo.png';
 import greenBeltLogo from '@/assets/green-belt-movement-logo.jpg';
 import tistLogo from '@/assets/tist-program-logo.webp';
 export const MyImpact = () => {
