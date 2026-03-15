@@ -29,8 +29,10 @@ export const AgentDashboard = () => {
       const totalAmountPaid = tickets?.reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
       const pendingReimbursement = tickets?.filter(t => t.ktb_payment_status === 'Payment Due')
         .reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
+      const paidReimbursement = tickets?.filter(t => t.ktb_payment_status === 'Paid')
+        .reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
 
-      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement, treesPlanted, treesNotPlanted };
+      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement, paidReimbursement, treesPlanted, treesNotPlanted };
     },
     enabled: !!agent,
   });
@@ -99,8 +101,16 @@ export const AgentDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">KTB Reimbursement</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">KES {stats?.pendingReimbursement?.toLocaleString() || 0}</div>
-              <p className="text-sm text-muted-foreground mt-1">{stats?.paymentDue || 0} payments due</p>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>Due:</span>
+                  <span className="font-semibold text-orange-600">KES {stats?.pendingReimbursement?.toLocaleString() || 0}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Paid:</span>
+                  <span className="font-semibold text-green-600">KES {stats?.paidReimbursement?.toLocaleString() || 0}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
