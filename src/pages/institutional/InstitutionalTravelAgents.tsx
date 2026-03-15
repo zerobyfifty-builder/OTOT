@@ -55,14 +55,14 @@ export default function InstitutionalTravelAgents() {
   const { data: agents = [], isLoading, refetch } = useQuery({
     queryKey: ['institutional-travel-agents', organizationId],
     queryFn: async () => {
-      if (!organizationId) return [];
+      if (!organizationId) return [] as TravelAgent[];
       const { data, error } = await supabase
-        .from('travel_agents')
+        .from('travel_agents' as any)
         .select('*')
         .eq('organization_id', organizationId)
         .order('name');
       if (error) throw error;
-      return data as TravelAgent[];
+      return (data || []) as TravelAgent[];
     },
     enabled: !!organizationId,
   });

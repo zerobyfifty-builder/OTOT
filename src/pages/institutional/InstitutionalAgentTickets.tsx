@@ -35,23 +35,23 @@ export default function InstitutionalAgentTickets() {
   const { data: tickets, isLoading } = useQuery({
     queryKey: ['institutional-agent-tickets', organizationId],
     queryFn: async () => {
-      if (!organizationId) return [];
+      if (!organizationId) return [] as any[];
       // Get agents belonging to this org
       const { data: agents, error: agentError } = await supabase
-        .from('travel_agents')
+        .from('travel_agents' as any)
         .select('id')
         .eq('organization_id', organizationId);
       if (agentError) throw agentError;
-      if (!agents || agents.length === 0) return [];
+      if (!agents || agents.length === 0) return [] as any[];
 
-      const agentIds = agents.map(a => a.id);
+      const agentIds = (agents as any[]).map((a: any) => a.id);
       const { data, error } = await supabase
         .from('agent_tickets')
         .select('*, travel_agents(name, business_name)')
         .in('agent_id', agentIds)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!organizationId,
   });
