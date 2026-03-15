@@ -49,7 +49,7 @@ export const AgentDashboard = () => {
             <h2 className="text-3xl font-bold">Welcome, {agent?.name}! ✈️</h2>
             <p className="text-muted-foreground mt-1">{agent?.business_name} — Government Travel Carbon Offset Portal</p>
           </div>
-          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
+          <img src={ktbLogo} alt="KTB" className="h-20 object-contain" />
         </div>
 
         {/* Stats Cards */}

@@ -46,7 +46,7 @@ export const AgentReimbursements = () => {
             <h1 className="text-3xl font-bold">KTB Reimbursements</h1>
             <p className="text-muted-foreground">Track offset payments pending reimbursement from KTB</p>
           </div>
-          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
+          <img src={ktbLogo} alt="KTB" className="h-20 object-contain" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
