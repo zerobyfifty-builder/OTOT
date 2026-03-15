@@ -35,21 +35,22 @@ export const AgentTickets = () => {
     enabled: !!agent,
   });
 
-  // Fetch the agent's organization (institutional partner) for billing address
-  const { data: organization } = useQuery({
-    queryKey: ['agent-organization', agent?.organization_id],
+  // Fetch the full agent record (with organization_id, contact_phone)
+  const { data: agentRecord } = useQuery({
+    queryKey: ['agent-full-record', agent?.id],
     queryFn: async () => {
-      if (!agent?.organization_id) return null;
       const { data, error } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('id', agent.organization_id)
+        .from('travel_agents')
+        .select('*, organizations(*)')
+        .eq('id', agent!.id)
         .single();
       if (error) throw error;
       return data;
     },
-    enabled: !!agent?.organization_id,
+    enabled: !!agent?.id,
   });
+
+  const organization = agentRecord?.organizations as any;
 
   const updateKtbStatus = useMutation({
     mutationFn: async (ticketId: string) => {
