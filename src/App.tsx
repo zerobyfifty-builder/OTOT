@@ -248,7 +248,7 @@ const App = () => (
             {/* Institutional Partner routes */}
             <Route path="/institutional/travel-agents" element={
               <InstitutionalRoute>
-                <InstitutionalLayout>
+                <InstitutionalLayout showKtbLogo={false}>
                   <InstitutionalTravelAgents />
                 </InstitutionalLayout>
               </InstitutionalRoute>
