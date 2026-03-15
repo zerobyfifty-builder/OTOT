@@ -33,9 +33,10 @@ export const AgentAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session?.user) {
-          await checkIfAgent(session.user);
+          // Use setTimeout to avoid blocking the auth state change callback
+          setTimeout(() => checkIfAgent(session.user), 0);
         } else {
           setAgent(null);
           setLoading(false);
@@ -44,9 +45,9 @@ export const AgentAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
 
     // Check existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        await checkIfAgent(session.user);
+        checkIfAgent(session.user);
       } else {
         setLoading(false);
       }
