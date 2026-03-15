@@ -99,7 +99,7 @@ const menuItems = [
   },
   {
     title: "Travel Agents",
-    icon: Activity,
+    icon: Plane,
     items: [
       { title: "All Agents", url: "/admin/travel-agents" },
       { title: "Agent Tickets", url: "/admin/travel-agents/tickets" },
