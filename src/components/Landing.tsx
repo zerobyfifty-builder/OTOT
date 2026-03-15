@@ -4,6 +4,10 @@ import { TreePine, Plane, Heart, Award, Users, Globe, Play } from "lucide-react"
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import ktbLogo from "@/assets/ktb-logo.png";
+import ktbSustainable from "@/assets/ktb-sustainable.png";
+import kenyaCoatOfArms from "@/assets/kenya-coat-of-arms.png";
+import kfsLogo from "@/assets/kfs-logo.png";
+import kefriLogo from "@/assets/kefri-logo.png";
 
 const Landing = () => {
   return (
