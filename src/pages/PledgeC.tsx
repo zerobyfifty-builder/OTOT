@@ -112,7 +112,7 @@ export default function PledgeC() {
 
       {/* Header */}
       <div className="relative z-20 p-4 flex justify-between items-center">
-        <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity bg-white/80 backdrop-blur-sm rounded-lg px-3 py-1.5">
           <img src={ktbLogo} alt="KTB Logo" className="h-14 w-auto" />
         </a>
         <TooltipProvider>
