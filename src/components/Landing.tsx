@@ -213,7 +213,7 @@ const Landing = () => {
             Backed by Kenya's leading conservation and government institutions
           </p>
           <motion.div
-            className="flex flex-wrap items-center justify-center gap-10 md:gap-16 max-w-4xl mx-auto"
+            className="flex flex-wrap items-center justify-center gap-14 md:gap-24 max-w-5xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
