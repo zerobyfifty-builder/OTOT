@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.reset-ktb-password]
 verify_jwt = false
+
+[functions.create-agent-user]
+verify_jwt = false
