@@ -17,7 +17,7 @@ export const AgentRoute: React.FC<AgentRouteProps> = ({ children }) => {
   }
 
   if (!agent) {
-    return <Navigate to="/agent/login" replace />;
+    return <Navigate to="/auth/login" replace />;
   }
 
   return <>{children}</>;

@@ -101,17 +101,36 @@ export default function InstitutionalTravelAgents() {
         if (error) throw error;
         toast({ title: 'Success', description: 'Travel agent updated successfully' });
       } else {
-        const { error } = await supabase.from('travel_agents').insert([{
+        // First create the travel_agents record
+        const { error: insertError } = await supabase.from('travel_agents').insert([{
           name: formData.name,
           business_name: formData.business_name,
           email: formData.email,
           username: formData.username || null,
-          password_hash: formData.password,
+          password_hash: '__supabase_auth__',
           contact_phone: formData.contact_phone || null,
           organization_id: organizationId,
         }]);
-        if (error) throw error;
-        toast({ title: 'Success', description: 'Travel agent created successfully. They can now log in with their credentials.' });
+        if (insertError) throw insertError;
+
+        // Then create the Supabase Auth user via edge function
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('create-agent-user', {
+          body: {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            business_name: formData.business_name,
+            contact_phone: formData.contact_phone || null,
+            organization_id: organizationId,
+          }
+        });
+
+        if (fnError) {
+          console.error('Edge function error:', fnError);
+          toast({ title: 'Warning', description: 'Agent record created but auth account setup failed. The agent may need a password reset.', variant: 'destructive' });
+        } else {
+          toast({ title: 'Success', description: 'Travel agent created successfully. They can log in at the main login page with their email and password.' });
+        }
       }
       setEditingAgent(null);
       setIsCreating(false);
