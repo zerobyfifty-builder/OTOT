@@ -237,6 +237,20 @@ const App = () => (
             } />
             
             {/* Institutional Partner routes */}
+            <Route path="/institutional/travel-agents" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalTravelAgents />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/travel-agents/tickets" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalAgentTickets />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
             <Route path="/institutional/dashboard" element={
               <InstitutionalRoute>
                 <InstitutionalLayout>
@@ -276,20 +290,6 @@ const App = () => (
               <InstitutionalRoute>
                 <InstitutionalLayout>
                   <InstitutionalReports />
-                </InstitutionalLayout>
-              </InstitutionalRoute>
-            } />
-            <Route path="/institutional/travel-agents" element={
-              <InstitutionalRoute>
-                <InstitutionalLayout>
-                  <InstitutionalTravelAgents />
-                </InstitutionalLayout>
-              </InstitutionalRoute>
-            } />
-            <Route path="/institutional/travel-agents/tickets" element={
-              <InstitutionalRoute>
-                <InstitutionalLayout>
-                  <InstitutionalAgentTickets />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
