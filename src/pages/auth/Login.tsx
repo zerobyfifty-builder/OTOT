@@ -97,8 +97,9 @@ export const Login: React.FC = () => {
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';
           const isBusinessPartner = userRole === 'business_partner';
+          const isTravelAgent = userRole === 'travel_agent';
           
-          console.log('[LOGIN] Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner, isBusinessPartner});
+          console.log('[LOGIN] Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner, isBusinessPartner, isTravelAgent});
           
           toast.success('Welcome back!');
           
@@ -111,6 +112,9 @@ export const Login: React.FC = () => {
           } else if (isBusinessPartner) {
             console.log('[LOGIN] Navigating to /lodge/dashboard');
             navigate('/lodge/dashboard', { replace: true });
+          } else if (isTravelAgent) {
+            console.log('[LOGIN] Navigating to /agent/dashboard');
+            navigate('/agent/dashboard', { replace: true });
           } else {
             console.log('[LOGIN] Navigating to /dashboard');
             navigate('/dashboard', { replace: true });
