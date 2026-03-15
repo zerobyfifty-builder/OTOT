@@ -163,6 +163,7 @@ const App = () => (
             <Route path="/auth/verify-email" element={<VerifyEmail />} />
             <Route path="/auth/magic" element={<MagicLink />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/pledge" element={<PledgeC />} />
             <Route path="/pledgea" element={<Pledge />} />
             <Route path="/pledgeb" element={<PledgeB />} />
