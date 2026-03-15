@@ -84,11 +84,11 @@ export const AgentDashboard = () => {
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Planted:</span>
-                  <span className="font-semibold text-green-600">{stats?.planted || 0}</span>
+                  <span className="font-semibold text-green-600">{stats?.treesPlanted || 0} trees</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Not Planted:</span>
-                  <span className="font-semibold text-orange-600">{stats?.notPlanted || 0}</span>
+                  <span className="font-semibold text-orange-600">{stats?.treesNotPlanted || 0} trees</span>
                 </div>
               </div>
             </CardContent>
