@@ -29,8 +29,10 @@ export const AgentDashboard = () => {
       const totalAmountPaid = tickets?.reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
       const pendingReimbursement = tickets?.filter(t => t.ktb_payment_status === 'Payment Due')
         .reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
+      const paidReimbursement = tickets?.filter(t => t.ktb_payment_status === 'Paid')
+        .reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
 
-      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement, treesPlanted, treesNotPlanted };
+      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement, paidReimbursement, treesPlanted, treesNotPlanted };
     },
     enabled: !!agent,
   });
