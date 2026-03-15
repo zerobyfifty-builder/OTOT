@@ -95,8 +95,8 @@ export const AgentTickets = () => {
     doc.setFont("helvetica", "normal");
     doc.text(agent?.name || "", 20, fromY + 7);
     doc.text(agent?.email || "", 20, fromY + 14);
-    if (agent?.contact_phone) {
-      doc.text(agent.contact_phone, 20, fromY + 21);
+    if (agentRecord?.contact_phone) {
+      doc.text(agentRecord.contact_phone, 20, fromY + 21);
     }
 
     // Bill To (Institutional Partner / KTB)
