@@ -105,7 +105,7 @@ export default function PledgeC() {
       {/* Background */}
       <div
         className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(/pledge/pledge-5.webp)` }}
+        style={{ backgroundImage: `url(${pledgeBg})` }}
       >
         <div className="absolute inset-0 bg-black/55" />
       </div>
