@@ -213,36 +213,33 @@ export default function InstitutionalTravelAgents() {
     }
   };
 
-  // Invoice generator (same as agent portal)
-  const generateInvoice = (ticket: any) => {
+  // Fetch organization details for invoice
+  const { data: orgDetails } = useQuery({
+    queryKey: ['org-details', organizationId],
+    queryFn: async () => {
+      if (!organizationId) return null;
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', organizationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organizationId,
+  });
+
+  // Invoice generator using shared utility
+  const handleGenerateInvoice = (ticket: any) => {
     const agentInfo = Array.isArray(ticket.travel_agents) ? ticket.travel_agents[0] : ticket.travel_agents;
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text("Carbon Offset Invoice", 20, 30);
-    doc.setFontSize(10);
-    doc.text(`Date: ${format(new Date(), "PPP")}`, 20, 45);
-    doc.text(`Agent: ${agentInfo?.name || 'N/A'} (${agentInfo?.business_name || 'N/A'})`, 20, 52);
-    doc.setFontSize(12);
-    doc.text("Ticket Details", 20, 68);
-    doc.setFontSize(10);
-    const details = [
-      `Staff Name: ${ticket.staff_name}`,
-      `Department: ${ticket.department}`,
-      `PNR: ${ticket.pnr_number}`,
-      `Ticket Number: ${ticket.ticket_number}`,
-      `LPO Number: ${ticket.lpo_number}`,
-      `Route: ${ticket.origin_airport} → ${ticket.destination_airport}`,
-      `Travel Class: ${ticket.travel_class}`,
-      `Travel Date: ${format(new Date(ticket.from_date), "PPP")}`,
-      `Total CO₂: ${Math.round(ticket.total_co2).toLocaleString()} kg`,
-      `Trees Needed: ${ticket.trees_needed}`,
-      `Amount: KES ${Number(ticket.offset_amount_paid).toLocaleString()}`,
-      `Tree Status: ${ticket.tree_status}`,
-      `KTB Payment: ${ticket.ktb_payment_status}`,
-    ];
-    details.forEach((line, i) => doc.text(line, 20, 78 + i * 7));
-    doc.save(`invoice-${ticket.ticket_number}.pdf`);
-    toast({ title: "Invoice Downloaded", description: `Invoice for ticket ${ticket.ticket_number} generated.` });
+    generateInvoice({
+      ticket,
+      agentName: agentInfo?.name,
+      agentBusinessName: agentInfo?.business_name,
+      agentEmail: undefined,
+      agentPhone: undefined,
+      organization: orgDetails,
+    });
   };
 
   // Ticket stats
