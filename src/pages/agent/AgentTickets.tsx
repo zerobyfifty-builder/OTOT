@@ -14,6 +14,7 @@ import jsPDF from "jspdf";
 export const AgentTickets = () => {
   const { agent } = useAgentAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: tickets, isLoading } = useQuery({
     queryKey: ['agent-tickets', agent?.id],
