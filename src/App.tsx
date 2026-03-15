@@ -67,6 +67,8 @@ import RecentTrips from "@/pages/institutional/RecentTrips";
 import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
+import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
+import InstitutionalAgentTickets from "@/pages/institutional/InstitutionalAgentTickets";
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
 import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
 import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
@@ -274,6 +276,20 @@ const App = () => (
               <InstitutionalRoute>
                 <InstitutionalLayout>
                   <InstitutionalReports />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/travel-agents" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalTravelAgents />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/travel-agents/tickets" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalAgentTickets />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />

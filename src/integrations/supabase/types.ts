@@ -1022,6 +1022,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          organization_id: string | null
           password_hash: string | null
           updated_at: string
           username: string | null
@@ -1034,6 +1035,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          organization_id?: string | null
           password_hash?: string | null
           updated_at?: string
           username?: string | null
@@ -1046,11 +1048,20 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string | null
           password_hash?: string | null
           updated_at?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "travel_agents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tree_carers: {
         Row: {
