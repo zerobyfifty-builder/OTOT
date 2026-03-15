@@ -27,6 +27,7 @@ export default function AuthCallback() {
 
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'institutional_partner';
+          const isTravelAgent = userRole === 'travel_agent';
           
           // Check if there's stored pledge context
           const pledgeContextStr = sessionStorage.getItem('pledge_context');
