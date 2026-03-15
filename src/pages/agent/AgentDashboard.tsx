@@ -46,8 +46,8 @@ export const AgentDashboard = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold">Welcome, {agent?.name}! ✈️</h2>
-            <p className="text-muted-foreground mt-1">{agent?.business_name} — Government Travel Carbon Offset Portal</p>
+            <h2 className="text-3xl font-bold">Welcome, {agent?.name}!</h2>
+            <p className="text-muted-foreground mt-1">Government Travel Carbon Offset Portal</p>
           </div>
           <img src={ktbLogo} alt="KTB" className="h-20 object-contain" />
         </div>
