@@ -360,6 +360,21 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
+            {/* Travel Agent admin routes */}
+            <Route path="/admin/travel-agents" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <TravelAgentsManagement />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/travel-agents/tickets" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AgentTicketsOverview />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
               <AdminRoute>
