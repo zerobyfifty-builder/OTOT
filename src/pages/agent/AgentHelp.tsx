@@ -11,7 +11,7 @@ export const AgentHelp = () => {
             <h1 className="text-3xl font-bold">Help & Support</h1>
             <p className="text-muted-foreground">Frequently asked questions about the Travel Agent Carbon Offset Portal</p>
           </div>
-          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
+          <img src={ktbLogo} alt="KTB" className="h-20 object-contain" />
         </div>
 
         <Card>
