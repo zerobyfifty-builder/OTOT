@@ -43,7 +43,7 @@ export function AgentSidebar() {
     try {
       await signOut();
       toast.success('Signed out successfully');
-      navigate('/agent/login');
+      navigate('/auth/login');
     } catch (error) {
       toast.error('Failed to sign out');
     }
