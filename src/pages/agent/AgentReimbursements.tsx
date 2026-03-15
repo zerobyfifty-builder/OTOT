@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
+import ktbLogo from "@/assets/ktb-logo.png";
 
 export const AgentReimbursements = () => {
   const { agent } = useAgentAuth();
