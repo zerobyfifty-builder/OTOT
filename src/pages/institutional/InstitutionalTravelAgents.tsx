@@ -249,7 +249,9 @@ export default function InstitutionalTravelAgents() {
   const totalTickets = tickets?.length || 0;
   const totalCO2 = tickets?.reduce((s, t) => s + Number(t.total_co2), 0) || 0;
   const paymentDue = tickets?.filter(t => t.ktb_payment_status === 'Payment Due').length || 0;
-  const notPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
+  const paymentDone = tickets?.filter(t => t.ktb_payment_status === 'Paid').length || 0;
+  const treesPlanted = tickets?.filter(t => t.tree_status === 'Planted').length || 0;
+  const treesToBePlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
 
   const isLoading = agentsLoading || ticketsLoading;
 
@@ -275,8 +277,28 @@ export default function InstitutionalTravelAgents() {
           <div className="grid sm:grid-cols-4 gap-4">
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Tickets</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold">{totalTickets}</p></CardContent></Card>
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total CO₂ Offset</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold">{(totalCO2 / 1000).toFixed(1)} t</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Payments Due</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-orange-600">{paymentDue}</p></CardContent></Card>
-            <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Trees Not Planted</CardTitle></CardHeader><CardContent><p className="text-3xl font-bold text-red-600">{notPlanted}</p></CardContent></Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Payments</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm text-muted-foreground">Done:</span>
+                  <span className="text-lg font-bold text-green-600">{paymentDone}</span>
+                  <span className="text-sm text-muted-foreground ml-2">Due:</span>
+                  <span className="text-lg font-bold text-orange-600">{paymentDue}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Trees</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm text-muted-foreground">Planted:</span>
+                  <span className="text-lg font-bold text-green-600">{treesPlanted}</span>
+                  <span className="text-sm text-muted-foreground ml-2">To Plant:</span>
+                  <span className="text-lg font-bold text-red-600">{treesToBePlanted}</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="rounded-md border">

@@ -128,11 +128,10 @@ const AgentLayout = ({ children }: { children: React.ReactNode }) => (
   </SidebarProvider>
 );
 
-const InstitutionalLayout = ({ children, organizationName, organizationCategory, showKtbLogo = true }: { 
+const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
   children: React.ReactNode;
   organizationName?: string;
   organizationCategory?: string;
-  showKtbLogo?: boolean;
 }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
@@ -141,11 +140,9 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory,
         organizationCategory={organizationCategory}
       />
       <main className="flex-1 overflow-auto bg-background relative">
-        {showKtbLogo && (
-          <div className="absolute top-4 right-6 z-10">
-            <img src={ktbLogo} alt="KTB" className="h-10 object-contain" />
-          </div>
-        )}
+        <div className="sticky top-0 right-0 z-10 flex justify-end p-4 pointer-events-none">
+          <img src={ktbLogo} alt="KTB" className="h-14 object-contain pointer-events-auto" />
+        </div>
         {children}
       </main>
     </div>
@@ -249,7 +246,7 @@ const App = () => (
             <Route path="/institutional/travel-agents/tickets" element={<Navigate to="/institutional/travel-agents" replace />} />
             <Route path="/institutional/travel-agents" element={
               <InstitutionalRoute>
-                <InstitutionalLayout showKtbLogo={false}>
+                <InstitutionalLayout>
                   <InstitutionalTravelAgents />
                 </InstitutionalLayout>
               </InstitutionalRoute>

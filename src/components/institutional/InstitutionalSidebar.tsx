@@ -28,8 +28,8 @@ const menuItems = [
   { title: 'Dashboard', url: '/institutional/dashboard', icon: Home },
   { title: 'Recent Trips', url: '/institutional/trips', icon: DollarSign },
   { title: 'Recent Trees', url: '/institutional/trees', icon: TreePine },
-  { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
   { title: 'Travel Agents', url: '/institutional/travel-agents', icon: Plane },
+  { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
   { title: 'Reports', url: '/institutional/reports', icon: FileText },
   { title: 'Available Modules', url: '/institutional/modules', icon: Home },
 ];
