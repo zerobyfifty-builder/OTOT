@@ -523,7 +523,7 @@ export default function InstitutionalTravelAgents() {
                 </div>
 
                 <div className="flex gap-2 pt-4">
-                  <Button variant="outline" className="flex-1" onClick={() => generateInvoice(selectedTicket)}>
+                  <Button variant="outline" className="flex-1" onClick={() => handleGenerateInvoice(selectedTicket)}>
                     <FileText className="mr-2 h-4 w-4" /> Download Invoice
                   </Button>
                 </div>
