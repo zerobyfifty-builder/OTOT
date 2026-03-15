@@ -70,6 +70,119 @@ export type Database = {
           },
         ]
       }
+      agent_tickets: {
+        Row: {
+          accommodation_co2: number
+          accommodation_type: string | null
+          agent_id: string
+          created_at: string
+          department: string
+          destination_airport: string
+          flight_co2: number
+          from_date: string
+          id: string
+          invoice_url: string | null
+          is_return: boolean
+          ktb_payment_date: string | null
+          ktb_payment_reference: string | null
+          ktb_payment_status: Database["public"]["Enums"]["agent_ktb_payment_status"]
+          lpo_number: string
+          num_travelers: number
+          offset_amount_paid: number
+          origin_airport: string
+          payment_date: string | null
+          payment_reference: string | null
+          pnr_number: string
+          receipt_url: string | null
+          staff_name: string
+          ticket_issue_date: string
+          ticket_number: string
+          to_date: string | null
+          total_co2: number
+          travel_class: string
+          tree_status: Database["public"]["Enums"]["agent_tree_status"]
+          trees_needed: number
+          trees_planted: number
+          updated_at: string
+        }
+        Insert: {
+          accommodation_co2?: number
+          accommodation_type?: string | null
+          agent_id: string
+          created_at?: string
+          department?: string
+          destination_airport: string
+          flight_co2?: number
+          from_date: string
+          id?: string
+          invoice_url?: string | null
+          is_return?: boolean
+          ktb_payment_date?: string | null
+          ktb_payment_reference?: string | null
+          ktb_payment_status?: Database["public"]["Enums"]["agent_ktb_payment_status"]
+          lpo_number: string
+          num_travelers?: number
+          offset_amount_paid?: number
+          origin_airport: string
+          payment_date?: string | null
+          payment_reference?: string | null
+          pnr_number: string
+          receipt_url?: string | null
+          staff_name: string
+          ticket_issue_date: string
+          ticket_number: string
+          to_date?: string | null
+          total_co2?: number
+          travel_class?: string
+          tree_status?: Database["public"]["Enums"]["agent_tree_status"]
+          trees_needed?: number
+          trees_planted?: number
+          updated_at?: string
+        }
+        Update: {
+          accommodation_co2?: number
+          accommodation_type?: string | null
+          agent_id?: string
+          created_at?: string
+          department?: string
+          destination_airport?: string
+          flight_co2?: number
+          from_date?: string
+          id?: string
+          invoice_url?: string | null
+          is_return?: boolean
+          ktb_payment_date?: string | null
+          ktb_payment_reference?: string | null
+          ktb_payment_status?: Database["public"]["Enums"]["agent_ktb_payment_status"]
+          lpo_number?: string
+          num_travelers?: number
+          offset_amount_paid?: number
+          origin_airport?: string
+          payment_date?: string | null
+          payment_reference?: string | null
+          pnr_number?: string
+          receipt_url?: string | null
+          staff_name?: string
+          ticket_issue_date?: string
+          ticket_number?: string
+          to_date?: string | null
+          total_co2?: number
+          travel_class?: string
+          tree_status?: Database["public"]["Enums"]["agent_tree_status"]
+          trees_needed?: number
+          trees_planted?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tickets_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "travel_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string | null
@@ -865,6 +978,80 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_agent_sessions: {
+        Row: {
+          agent_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          last_active_at: string
+          session_token: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_active_at?: string
+          session_token: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_active_at?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_agent_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "travel_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_agents: {
+        Row: {
+          business_name: string
+          contact_phone: string | null
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          password_hash: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          business_name: string
+          contact_phone?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          password_hash?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          business_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          password_hash?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       tree_carers: {
         Row: {
           age: number | null
@@ -1189,6 +1376,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_agent_session_valid: {
+        Args: { _agent_id: string; _session_token: string }
+        Returns: boolean
+      }
       is_institutional_partner: { Args: { user_id: string }; Returns: boolean }
       is_lodge_session_valid: {
         Args: { _lodge_id: string; _session_token: string }
@@ -1207,6 +1398,8 @@ export type Database = {
         | "Cruise Ship"
         | "Service Apartment"
         | "None"
+      agent_ktb_payment_status: "Payment Due" | "Paid"
+      agent_tree_status: "Not Planted" | "Planted"
       app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
       entry_source_type: "Manual" | "Integration"
@@ -1356,6 +1549,8 @@ export const Constants = {
         "Service Apartment",
         "None",
       ],
+      agent_ktb_payment_status: ["Payment Due", "Paid"],
+      agent_tree_status: ["Not Planted", "Planted"],
       app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
       entry_source_type: ["Manual", "Integration"],

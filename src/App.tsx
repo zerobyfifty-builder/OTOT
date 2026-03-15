@@ -5,15 +5,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
+import { AgentAuthProvider } from "@/contexts/AgentAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
 import { LodgeRoute } from "@/components/auth/LodgeRoute";
+import { AgentRoute } from "@/components/auth/AgentRoute";
 import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
+import { AgentSidebar } from "@/components/agent/AgentSidebar";
 import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
@@ -65,6 +68,14 @@ import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
+import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
+import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
+import { AgentLogin } from "@/pages/agent/AgentLogin";
+import { AgentDashboard } from "@/pages/agent/AgentDashboard";
+import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
+import { AgentTickets } from "@/pages/agent/AgentTickets";
+import { AgentReimbursements } from "@/pages/agent/AgentReimbursements";
+import { AgentHelp } from "@/pages/agent/AgentHelp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -102,6 +113,17 @@ const LodgeLayout = ({ children }: { children: React.ReactNode }) => (
   </SidebarProvider>
 );
 
+const AgentLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <AgentSidebar />
+      <main className="flex-1 overflow-auto bg-background">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
 const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
   children: React.ReactNode;
   organizationName?: string;
@@ -125,6 +147,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AgentAuthProvider>
       <LodgeAuthProvider>
         <AuthProvider>
           <BrowserRouter>
@@ -337,6 +360,21 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
+            {/* Travel Agent admin routes */}
+            <Route path="/admin/travel-agents" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <TravelAgentsManagement />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/travel-agents/tickets" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AgentTicketsOverview />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
               <AdminRoute>
@@ -453,12 +491,51 @@ const App = () => (
               </BusinessPartnerRoute>
             } />
             
+            {/* Travel Agent routes */}
+            <Route path="/agent/login" element={<AgentLogin />} />
+            <Route path="/agent/dashboard" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentDashboard />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/calculate" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentCalculateOffset />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/tickets" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentTickets />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/reimbursements" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentReimbursements />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/help" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentHelp />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            
             {/* 404 page */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
       </LodgeAuthProvider>
+      </AgentAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   ChevronDown,
   LogOut,
+  Plane,
 } from "lucide-react";
 import {
   Sidebar,
@@ -94,6 +95,14 @@ const menuItems = [
       { title: "All Trees", url: "/admin/trees" },
       { title: "By Status", url: "/admin/trees/status" },
       { title: "By Location", url: "/admin/trees/location" },
+    ],
+  },
+  {
+    title: "Travel Agents",
+    icon: Plane,
+    items: [
+      { title: "All Agents", url: "/admin/travel-agents" },
+      { title: "Agent Tickets", url: "/admin/travel-agents/tickets" },
     ],
   },
   {
