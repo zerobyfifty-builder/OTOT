@@ -348,7 +348,7 @@ export default function InstitutionalTravelAgents() {
                               <DropdownMenuItem onClick={() => setSelectedTicket(ticket)}>
                                 <Eye className="mr-2 h-4 w-4" /> View Ticket Info
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => generateInvoice(ticket)}>
+                              <DropdownMenuItem onClick={() => handleGenerateInvoice(ticket)}>
                                 <FileText className="mr-2 h-4 w-4" /> View Invoice
                               </DropdownMenuItem>
                               {ticket.ktb_payment_status === 'Payment Due' && (
