@@ -246,7 +246,7 @@ const App = () => (
             <Route path="/institutional/travel-agents/tickets" element={<Navigate to="/institutional/travel-agents" replace />} />
             <Route path="/institutional/travel-agents" element={
               <InstitutionalRoute>
-                <InstitutionalLayout showKtbLogo={false}>
+                <InstitutionalLayout>
                   <InstitutionalTravelAgents />
                 </InstitutionalLayout>
               </InstitutionalRoute>

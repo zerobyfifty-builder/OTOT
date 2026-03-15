@@ -249,7 +249,9 @@ export default function InstitutionalTravelAgents() {
   const totalTickets = tickets?.length || 0;
   const totalCO2 = tickets?.reduce((s, t) => s + Number(t.total_co2), 0) || 0;
   const paymentDue = tickets?.filter(t => t.ktb_payment_status === 'Payment Due').length || 0;
-  const notPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
+  const paymentDone = tickets?.filter(t => t.ktb_payment_status === 'Paid').length || 0;
+  const treesPlanted = tickets?.filter(t => t.tree_status === 'Planted').length || 0;
+  const treesToBePlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
 
   const isLoading = agentsLoading || ticketsLoading;
 
