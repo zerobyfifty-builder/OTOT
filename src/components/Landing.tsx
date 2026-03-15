@@ -197,7 +197,50 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Partners Section */}
+      <section className="py-16 bg-secondary">
+        <div className="container mx-auto px-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="text-3xl font-bold text-center text-foreground mb-4"
+          >
+            Our Partners
+          </motion.h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Backed by Kenya's leading conservation and government institutions
+          </p>
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-10 md:gap-16 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            {[
+              { src: ktbSustainable, alt: "KTB Sustainability Initiative" },
+              { src: kenyaCoatOfArms, alt: "Republic of Kenya" },
+              { src: kfsLogo, alt: "Kenya Forest Service" },
+              { src: kefriLogo, alt: "Kenya Forestry Research Institute" },
+            ].map((logo, i) => (
+              <motion.img
+                key={logo.alt}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-20 md:h-24 object-contain"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+
       <section className="py-20 bg-accent text-accent-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Make a Difference?</h2>
