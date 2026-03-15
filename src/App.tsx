@@ -279,6 +279,20 @@ const App = () => (
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
+            <Route path="/institutional/travel-agents" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalTravelAgents />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/travel-agents/tickets" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalAgentTickets />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
             
             {/* God Mode Admin routes */}
             <Route path="/admin" element={
