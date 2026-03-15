@@ -21,6 +21,7 @@ import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
+import { ResetPassword } from "@/pages/auth/ResetPassword";
 import VerifyEmail from "@/pages/auth/VerifyEmail";
 import MagicLink from "@/pages/auth/MagicLink";
 import AuthCallback from "@/pages/auth/AuthCallback";
@@ -162,6 +163,7 @@ const App = () => (
             <Route path="/auth/verify-email" element={<VerifyEmail />} />
             <Route path="/auth/magic" element={<MagicLink />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/pledge" element={<PledgeC />} />
             <Route path="/pledgea" element={<Pledge />} />
             <Route path="/pledgeb" element={<PledgeB />} />
