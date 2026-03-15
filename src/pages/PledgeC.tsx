@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateDeepLink } from '@/utils/magicLinkAuth';
-import ktbLogo from '@/assets/ktb-sustainable.png';
+import ktbLogo from '@/assets/ktb-logo.png';
 import pledgeBg from '@/assets/pledge-background.jpg';
 import refreshIcon from '@/assets/refresh-icon.png';
 import confetti from 'canvas-confetti';
