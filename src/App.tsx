@@ -147,6 +147,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AgentAuthProvider>
       <LodgeAuthProvider>
         <AuthProvider>
           <BrowserRouter>
