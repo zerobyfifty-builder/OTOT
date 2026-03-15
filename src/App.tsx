@@ -127,10 +127,11 @@ const AgentLayout = ({ children }: { children: React.ReactNode }) => (
   </SidebarProvider>
 );
 
-const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
+const InstitutionalLayout = ({ children, organizationName, organizationCategory, showKtbLogo = true }: { 
   children: React.ReactNode;
   organizationName?: string;
   organizationCategory?: string;
+  showKtbLogo?: boolean;
 }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
@@ -138,7 +139,12 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
         organizationName={organizationName}
         organizationCategory={organizationCategory}
       />
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-auto bg-background relative">
+        {showKtbLogo && (
+          <div className="absolute top-4 right-6 z-10">
+            <img src={ktbLogo} alt="KTB" className="h-10 object-contain" />
+          </div>
+        )}
         {children}
       </main>
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, TreePine, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane, Ticket } from 'lucide-react';
+import { Home, TreePine, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
