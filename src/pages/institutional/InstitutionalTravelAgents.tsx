@@ -56,8 +56,8 @@ export default function InstitutionalTravelAgents() {
     queryKey: ['institutional-travel-agents', organizationId],
     queryFn: async () => {
       if (!organizationId) return [] as TravelAgent[];
-      const { data, error } = await supabase
-        .from('travel_agents' as any)
+      const { data, error } = await (supabase as any)
+        .from('travel_agents')
         .select('*')
         .eq('organization_id', organizationId)
         .order('name');
