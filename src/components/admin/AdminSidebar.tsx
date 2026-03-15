@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   ChevronDown,
   LogOut,
+  Plane,
 } from "lucide-react";
 import {
   Sidebar,
