@@ -42,6 +42,8 @@ export default function AuthCallback() {
               navigate('/admin');
             } else if (isInstitutionalPartner) {
               navigate('/institutional/dashboard');
+            } else if (isTravelAgent) {
+              navigate('/agent/dashboard');
             } else {
               navigate('/dashboard');
             }
@@ -51,6 +53,8 @@ export default function AuthCallback() {
               navigate('/admin');
             } else if (isInstitutionalPartner) {
               navigate('/institutional/dashboard');
+            } else if (isTravelAgent) {
+              navigate('/agent/dashboard');
             } else {
               navigate('/dashboard');
             }
