@@ -68,6 +68,14 @@ import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
+import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
+import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
+import { AgentLogin } from "@/pages/agent/AgentLogin";
+import { AgentDashboard } from "@/pages/agent/AgentDashboard";
+import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
+import { AgentTickets } from "@/pages/agent/AgentTickets";
+import { AgentReimbursements } from "@/pages/agent/AgentReimbursements";
+import { AgentHelp } from "@/pages/agent/AgentHelp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

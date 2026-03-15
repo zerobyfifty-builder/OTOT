@@ -97,6 +97,14 @@ const menuItems = [
     ],
   },
   {
+    title: "Travel Agents",
+    icon: Activity,
+    items: [
+      { title: "All Agents", url: "/admin/travel-agents" },
+      { title: "Agent Tickets", url: "/admin/travel-agents/tickets" },
+    ],
+  },
+  {
     title: "Activity Monitor",
     url: "/admin/activity",
     icon: Activity,
