@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, TreePine, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane, Ticket } from 'lucide-react';
+import { Home, TreePine, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -30,7 +30,6 @@ const menuItems = [
   { title: 'Recent Trees', url: '/institutional/trees', icon: TreePine },
   { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
   { title: 'Travel Agents', url: '/institutional/travel-agents', icon: Plane },
-  { title: 'Agent Tickets', url: '/institutional/travel-agents/tickets', icon: Ticket },
   { title: 'Reports', url: '/institutional/reports', icon: FileText },
   { title: 'Available Modules', url: '/institutional/modules', icon: Home },
 ];

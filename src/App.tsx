@@ -17,6 +17,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
 import { AgentSidebar } from "@/components/agent/AgentSidebar";
+import ktbLogo from "@/assets/ktb-logo.png";
 import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
@@ -69,7 +70,7 @@ import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
-import InstitutionalAgentTickets from "@/pages/institutional/InstitutionalAgentTickets";
+
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
 import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
 import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
@@ -127,10 +128,11 @@ const AgentLayout = ({ children }: { children: React.ReactNode }) => (
   </SidebarProvider>
 );
 
-const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
+const InstitutionalLayout = ({ children, organizationName, organizationCategory, showKtbLogo = true }: { 
   children: React.ReactNode;
   organizationName?: string;
   organizationCategory?: string;
+  showKtbLogo?: boolean;
 }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
@@ -138,7 +140,12 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
         organizationName={organizationName}
         organizationCategory={organizationCategory}
       />
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-auto bg-background relative">
+        {showKtbLogo && (
+          <div className="absolute top-4 right-6 z-10">
+            <img src={ktbLogo} alt="KTB" className="h-10 object-contain" />
+          </div>
+        )}
         {children}
       </main>
     </div>
@@ -241,15 +248,8 @@ const App = () => (
             {/* Institutional Partner routes */}
             <Route path="/institutional/travel-agents" element={
               <InstitutionalRoute>
-                <InstitutionalLayout>
+                <InstitutionalLayout showKtbLogo={false}>
                   <InstitutionalTravelAgents />
-                </InstitutionalLayout>
-              </InstitutionalRoute>
-            } />
-            <Route path="/institutional/travel-agents/tickets" element={
-              <InstitutionalRoute>
-                <InstitutionalLayout>
-                  <InstitutionalAgentTickets />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
