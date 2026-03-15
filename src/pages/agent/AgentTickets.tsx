@@ -5,14 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, FileText, Download, Eye } from "lucide-react";
+import { MoreHorizontal, FileText, Download, Eye, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 
 export const AgentTickets = () => {
   const { agent } = useAgentAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: tickets, isLoading } = useQuery({
     queryKey: ['agent-tickets', agent?.id],
@@ -102,7 +104,7 @@ export const AgentTickets = () => {
             <h1 className="text-3xl font-bold">My Tickets</h1>
             <p className="text-muted-foreground">Track all booked tickets, offsets, and reimbursements</p>
           </div>
-          <Button onClick={() => window.location.href = '/agent/calculate'}>New Offset</Button>
+          <Button onClick={() => navigate('/agent/calculate')}><Plus className="mr-2 h-4 w-4" />New Ticket</Button>
         </div>
 
         <div className="rounded-md border">

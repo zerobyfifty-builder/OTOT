@@ -1,13 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ktbLogo from "@/assets/ktb-logo.png";
 
 export const AgentHelp = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Help & Support</h1>
-          <p className="text-muted-foreground">Frequently asked questions about the Travel Agent Carbon Offset Portal</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Help & Support</h1>
+            <p className="text-muted-foreground">Frequently asked questions about the Travel Agent Carbon Offset Portal</p>
+          </div>
+          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
         </div>
 
         <Card>

@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
+import ktbLogo from "@/assets/ktb-logo.png";
 
 export const AgentReimbursements = () => {
   const { agent } = useAgentAuth();
@@ -40,9 +41,12 @@ export const AgentReimbursements = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">KTB Reimbursements</h1>
-          <p className="text-muted-foreground">Track offset payments pending reimbursement from KTB</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">KTB Reimbursements</h1>
+            <p className="text-muted-foreground">Track offset payments pending reimbursement from KTB</p>
+          </div>
+          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
