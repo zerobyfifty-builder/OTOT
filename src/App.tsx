@@ -17,6 +17,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
 import { AgentSidebar } from "@/components/agent/AgentSidebar";
+import ktbLogo from "@/assets/ktb-logo.png";
 import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
