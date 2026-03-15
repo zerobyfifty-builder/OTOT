@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateDeepLink } from '@/utils/magicLinkAuth';
-import ototLogo from '@/assets/otot-logo.png';
+import ktbLogo from '@/assets/ktb-sustainable.png';
+import pledgeBg from '@/assets/pledge-background.jpg';
 import refreshIcon from '@/assets/refresh-icon.png';
 import confetti from 'canvas-confetti';
 
@@ -104,15 +105,15 @@ export default function PledgeC() {
       {/* Background */}
       <div
         className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(/pledge/pledge-5.webp)` }}
+        style={{ backgroundImage: `url(${pledgeBg})` }}
       >
         <div className="absolute inset-0 bg-black/55" />
       </div>
 
       {/* Header */}
       <div className="relative z-20 p-4 flex justify-between items-center">
-        <a href="https://mvp.the1campaign.com/" className="cursor-pointer hover:opacity-80 transition-opacity">
-          <img src={ototLogo} alt="OTOT Logo" className="h-12 w-auto" />
+        <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+          <img src={ktbLogo} alt="KTB Logo" className="h-14 w-auto" />
         </a>
         <TooltipProvider>
           <Tooltip>
