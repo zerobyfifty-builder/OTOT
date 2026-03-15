@@ -21,6 +21,8 @@ export const AgentDashboard = () => {
       const totalTickets = tickets?.length || 0;
       const notPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
       const planted = tickets?.filter(t => t.tree_status === 'Planted').length || 0;
+      const treesPlanted = tickets?.filter(t => t.tree_status === 'Planted').reduce((sum, t) => sum + t.trees_needed, 0) || 0;
+      const treesNotPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').reduce((sum, t) => sum + t.trees_needed, 0) || 0;
       const paymentDue = tickets?.filter(t => t.ktb_payment_status === 'Payment Due').length || 0;
       const totalCO2 = tickets?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
       const totalTreesNeeded = tickets?.reduce((sum, t) => sum + t.trees_needed, 0) || 0;
@@ -28,7 +30,7 @@ export const AgentDashboard = () => {
       const pendingReimbursement = tickets?.filter(t => t.ktb_payment_status === 'Payment Due')
         .reduce((sum, t) => sum + Number(t.offset_amount_paid), 0) || 0;
 
-      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement };
+      return { totalTickets, notPlanted, planted, paymentDue, totalCO2, totalTreesNeeded, totalAmountPaid, pendingReimbursement, treesPlanted, treesNotPlanted };
     },
     enabled: !!agent,
   });
@@ -82,11 +84,11 @@ export const AgentDashboard = () => {
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span>Planted:</span>
-                  <span className="font-semibold text-green-600">{stats?.planted || 0}</span>
+                  <span className="font-semibold text-green-600">{stats?.treesPlanted || 0} trees</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Not Planted:</span>
-                  <span className="font-semibold text-orange-600">{stats?.notPlanted || 0}</span>
+                  <span className="font-semibold text-orange-600">{stats?.treesNotPlanted || 0} trees</span>
                 </div>
               </div>
             </CardContent>
