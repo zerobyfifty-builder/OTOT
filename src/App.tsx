@@ -476,12 +476,51 @@ const App = () => (
               </BusinessPartnerRoute>
             } />
             
+            {/* Travel Agent routes */}
+            <Route path="/agent/login" element={<AgentLogin />} />
+            <Route path="/agent/dashboard" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentDashboard />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/calculate" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentCalculateOffset />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/tickets" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentTickets />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/reimbursements" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentReimbursements />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            <Route path="/agent/help" element={
+              <AgentRoute>
+                <AgentLayout>
+                  <AgentHelp />
+                </AgentLayout>
+              </AgentRoute>
+            } />
+            
             {/* 404 page */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
       </LodgeAuthProvider>
+      </AgentAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
