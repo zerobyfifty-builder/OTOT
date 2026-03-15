@@ -21,6 +21,8 @@ export const AgentDashboard = () => {
       const totalTickets = tickets?.length || 0;
       const notPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').length || 0;
       const planted = tickets?.filter(t => t.tree_status === 'Planted').length || 0;
+      const treesPlanted = tickets?.filter(t => t.tree_status === 'Planted').reduce((sum, t) => sum + t.trees_needed, 0) || 0;
+      const treesNotPlanted = tickets?.filter(t => t.tree_status === 'Not Planted').reduce((sum, t) => sum + t.trees_needed, 0) || 0;
       const paymentDue = tickets?.filter(t => t.ktb_payment_status === 'Payment Due').length || 0;
       const totalCO2 = tickets?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
       const totalTreesNeeded = tickets?.reduce((sum, t) => sum + t.trees_needed, 0) || 0;
