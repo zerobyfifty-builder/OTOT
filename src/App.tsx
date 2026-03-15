@@ -21,6 +21,7 @@ import Index from "./pages/Index";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
+import { ResetPassword } from "@/pages/auth/ResetPassword";
 import VerifyEmail from "@/pages/auth/VerifyEmail";
 import MagicLink from "@/pages/auth/MagicLink";
 import AuthCallback from "@/pages/auth/AuthCallback";
