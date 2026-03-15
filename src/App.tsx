@@ -113,6 +113,17 @@ const LodgeLayout = ({ children }: { children: React.ReactNode }) => (
   </SidebarProvider>
 );
 
+const AgentLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <AgentSidebar />
+      <main className="flex-1 overflow-auto bg-background">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
 const InstitutionalLayout = ({ children, organizationName, organizationCategory }: { 
   children: React.ReactNode;
   organizationName?: string;
