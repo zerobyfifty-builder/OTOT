@@ -246,13 +246,6 @@ const App = () => (
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
-            <Route path="/institutional/travel-agents/tickets" element={
-              <InstitutionalRoute>
-                <InstitutionalLayout>
-                  <InstitutionalAgentTickets />
-                </InstitutionalLayout>
-              </InstitutionalRoute>
-            } />
             <Route path="/institutional/dashboard" element={
               <InstitutionalRoute>
                 <InstitutionalLayout>
