@@ -15,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { Plus, Pencil, Ban, MoreHorizontal, Check, Eye, FileText, Download } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
+import { generateInvoice } from '@/utils/invoiceGenerator';
 
 interface TravelAgent {
   id: string;
