@@ -41,9 +41,12 @@ export const AgentReimbursements = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">KTB Reimbursements</h1>
-          <p className="text-muted-foreground">Track offset payments pending reimbursement from KTB</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">KTB Reimbursements</h1>
+            <p className="text-muted-foreground">Track offset payments pending reimbursement from KTB</p>
+          </div>
+          <img src={ktbLogo} alt="KTB" className="h-12 object-contain" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
