@@ -173,9 +173,17 @@ export const InstitutionalDashboard = () => {
   const tripsChartData = useMemo(() => {
     if (!stats?.tripsData) return [];
     const now = new Date();
-    const periodMap: Record<string, { trips: number; pax: number; revenue: number }> = {};
+    // Filter by date range if set
+    const filteredTrips = tripsDateRange.from
+      ? stats.tripsData.filter(trip => {
+          const date = new Date(trip.from_date || trip.created_at);
+          if (tripsDateRange.from && date < tripsDateRange.from) return false;
+          if (tripsDateRange.to && date > tripsDateRange.to) return false;
+          return true;
+        })
+      : stats.tripsData;
 
-    stats.tripsData.forEach(trip => {
+    filteredTrips.forEach(trip => {
       const date = new Date(trip.from_date || trip.created_at);
       let key: string;
       
