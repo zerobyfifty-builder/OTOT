@@ -259,20 +259,6 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
               <StatsCard
-                icon={TreePine}
-                title="Offset"
-                subtitle="your carbon footprint"
-                stats={[
-                  { label: 'Trees Planted', value: stats?.treesPlanted || 0, total: stats?.treesNeeded || 0, color: 'hsl(142, 70%, 45%)' },
-                  { label: 'Trees Needed', value: Math.max((stats?.treesNeeded || 0) - (stats?.treesPlanted || 0), 0), color: 'hsl(142, 70%, 70%)' },
-                ]}
-                buttonText="Plant a Tree"
-                buttonVariant="default"
-                href="/carbon-calculator"
-                colorVariant="green"
-              />
-              
-              <StatsCard
                 icon={Plane}
                 title="Calculate"
                 subtitle="your travel emissions"
@@ -285,6 +271,20 @@ export const Dashboard: React.FC = () => {
                 buttonVariant="outline"
                 href="/carbon-calculator"
                 colorVariant="lavender"
+              />
+              
+              <StatsCard
+                icon={TreePine}
+                title="Offset"
+                subtitle="your carbon footprint"
+                stats={[
+                  { label: 'Trees Planted', value: stats?.treesPlanted || 0, total: stats?.treesNeeded || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'Trees Needed', value: Math.max((stats?.treesNeeded || 0) - (stats?.treesPlanted || 0), 0), color: 'hsl(142, 70%, 70%)' },
+                ]}
+                buttonText="Plant a Tree"
+                buttonVariant="default"
+                href="/carbon-calculator"
+                colorVariant="green"
               />
               
               <StatsCard
