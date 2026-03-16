@@ -23,10 +23,7 @@ import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
 import reduceFootprintImg from '@/assets/climate-reduce-footprint.jpg';
 import carbonOffsetsImg from '@/assets/climate-carbon-offsets.jpg';
 import offsetTravelImg from '@/assets/climate-offset-travel.jpg';
-import pledgeDownloadIcon from '@/assets/pledge-download-certificate.png';
-import pledgeShareIcon from '@/assets/pledge-share.png';
-import pledgeInviteIcon from '@/assets/pledge-invite.png';
-import pledgeRetakeIcon from '@/assets/pledge-retake.png';
+import { Award, Users, RefreshCw, ExternalLink } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -328,57 +325,80 @@ export const Dashboard: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <h2 className="text-3xl font-bold mb-3">My Responsible Traveler Pledge</h2>
-                    <p className="text-muted-foreground mb-8 text-lg">
-                      Thank you for committing to responsible tourism! Share your pledge with others and inspire more travelers to make a difference.
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Award className="h-5 w-5 text-primary" />
+                      </div>
+                      <h2 className="text-xl font-bold text-foreground">My Responsible Traveler Pledge</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-5 ml-[52px]">
+                      Share your pledge and inspire more travelers to make a difference.
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div 
+                    <div className="space-y-2">
+                      <button
                         onClick={handleDownloadCertificate}
-                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg disabled:opacity-50"
+                        disabled={isDownloadingCertificate}
+                        className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors group disabled:opacity-60"
                       >
-                        {isDownloadingCertificate ? (
-                          <>
-                            <div className="w-16 h-16 mb-4 flex items-center justify-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                            </div>
-                            <p className="text-lg font-semibold text-center">Downloading...</p>
-                          </>
-                        ) : (
-                          <>
-                            <img src={pledgeDownloadIcon} alt="Download Certificate" className="w-16 h-16 mb-4" />
-                            <p className="text-lg font-semibold text-center">Download Certificate</p>
-                          </>
-                        )}
-                      </div>
-                      
-                      <div 
+                        <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center flex-shrink-0">
+                          {isDownloadingCertificate ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                          ) : (
+                            <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-semibold text-foreground">Download Certificate</p>
+                          <p className="text-xs text-muted-foreground">Get your pledge certificate as PDF</p>
+                        </div>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+
+                      <button
                         onClick={() => setIsShareDialogOpen(true)}
-                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
+                        className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors group"
                       >
-                        <img src={pledgeShareIcon} alt="Share My Pledge" className="w-16 h-16 mb-4" />
-                        <p className="text-lg font-semibold text-center">Share My Pledge</p>
-                      </div>
-                      
-                      <div 
+                        <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center flex-shrink-0">
+                          <Share2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-semibold text-foreground">Share My Pledge</p>
+                          <p className="text-xs text-muted-foreground">Post on social media</p>
+                        </div>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+
+                      <button
                         onClick={() => {
                           const url = window.location.origin + '/pledge';
                           navigator.clipboard.writeText(url);
                           toast({ title: "Link Copied!", description: "Invite link copied to clipboard. Share it with your friends!" });
                         }}
-                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
+                        className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors group"
                       >
-                        <img src={pledgeInviteIcon} alt="Invite Others to Pledge" className="w-16 h-16 mb-4" />
-                        <p className="text-lg font-semibold text-center">Invite Others to Pledge</p>
-                      </div>
-                      
-                      <div 
+                        <div className="h-9 w-9 rounded-lg bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center flex-shrink-0">
+                          <Users className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-semibold text-foreground">Invite Others</p>
+                          <p className="text-xs text-muted-foreground">Copy invite link to share</p>
+                        </div>
+                        <Copy className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+
+                      <button
                         onClick={() => navigate('/pledge')}
-                        className="flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl cursor-pointer transition-all hover:bg-muted hover:scale-105 hover:shadow-lg"
+                        className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors group"
                       >
-                        <img src={pledgeRetakeIcon} alt="Re-take Pledge" className="w-16 h-16 mb-4" />
-                        <p className="text-lg font-semibold text-center">Re-take Pledge</p>
-                      </div>
+                        <div className="h-9 w-9 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center flex-shrink-0">
+                          <RefreshCw className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-semibold text-foreground">Re-take Pledge</p>
+                          <p className="text-xs text-muted-foreground">Renew your commitment</p>
+                        </div>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
                     </div>
                   </>
                 )}
