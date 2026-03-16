@@ -375,8 +375,18 @@ export const InstitutionalDashboard = () => {
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex justify-end mt-2">
+            <div className="flex items-center justify-end gap-2 mt-2">
               <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
+              <ChartExportButton
+                title="Trips vs Revenue"
+                columns={[
+                  { key: "period", label: "Period" },
+                  { key: "trips", label: "Trips" },
+                  { key: "pax", label: "Passengers" },
+                  { key: "revenue", label: "Revenue ($)" },
+                ]}
+                data={tripsChartData}
+              />
             </div>
           </CardHeader>
           <CardContent>
