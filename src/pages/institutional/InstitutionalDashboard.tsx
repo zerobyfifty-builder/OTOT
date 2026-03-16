@@ -319,8 +319,17 @@ export const InstitutionalDashboard = () => {
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex justify-end mt-2">
+            <div className="flex items-center justify-end gap-2 mt-2">
               <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={(r) => { setCountriesDateRange(r); if (r.from) setCountriesTimePeriod("all"); }} />
+              <ChartExportButton
+                title="Countries vs Revenue"
+                columns={[
+                  { key: "country", label: "Country" },
+                  { key: "tourists", label: "Tourists" },
+                  { key: "revenue", label: "Revenue ($)" },
+                ]}
+                data={countriesChartData}
+              />
             </div>
           </CardHeader>
           <CardContent>
