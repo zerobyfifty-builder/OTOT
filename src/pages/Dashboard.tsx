@@ -152,16 +152,21 @@ export const Dashboard: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats', user?.id],
     queryFn: async () => {
-      if (!user) return { trees: 0, trips: 0, co2: 0, hasPledged: false };
+      if (!user) return {
+        treesPlanted: 0, treesNeeded: 0,
+        tripsFullyOffset: 0, tripsPartiallyOffset: 0, tripsNotOffset: 0, totalTrips: 0,
+        co2Offset: 0, co2Total: 0,
+        hasPledged: false,
+      };
 
       const [treesRes, tripsRes, userRes] = await Promise.all([
         supabase
           .from('trees')
-          .select('num_trees', { count: 'exact' })
+          .select('num_trees, trip_id')
           .eq('user_id', user.id),
         supabase
           .from('trips')
-          .select('total_co2')
+          .select('id, total_co2, trees_needed')
           .eq('user_id', user.id),
         supabase
           .from('users')
@@ -170,16 +175,49 @@ export const Dashboard: React.FC = () => {
           .single()
       ]);
 
-      const totalTrees = treesRes.data?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
-      const totalTrips = tripsRes.data?.length || 0;
-      const totalCO2 = tripsRes.data?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
-      const hasPledged = userRes.data?.pledge_status || false;
+      const treesData = treesRes.data || [];
+      const tripsData = tripsRes.data || [];
+
+      const totalTreesPlanted = treesData.reduce((sum, t) => sum + t.num_trees, 0);
+      const totalTreesNeeded = tripsData.reduce((sum, t) => sum + t.trees_needed, 0);
+
+      // Build map of trees planted per trip
+      const treesPerTrip: Record<string, number> = {};
+      treesData.forEach(t => {
+        if (t.trip_id) {
+          treesPerTrip[t.trip_id] = (treesPerTrip[t.trip_id] || 0) + t.num_trees;
+        }
+      });
+
+      let tripsFullyOffset = 0;
+      let tripsPartiallyOffset = 0;
+      let tripsNotOffset = 0;
+
+      tripsData.forEach(trip => {
+        const planted = treesPerTrip[trip.id] || 0;
+        if (planted >= trip.trees_needed && trip.trees_needed > 0) {
+          tripsFullyOffset++;
+        } else if (planted > 0) {
+          tripsPartiallyOffset++;
+        } else {
+          tripsNotOffset++;
+        }
+      });
+
+      const co2Total = tripsData.reduce((sum, t) => sum + Number(t.total_co2), 0);
+      // CO2 offset = trees planted * 22 kg/year
+      const co2Offset = Math.min(totalTreesPlanted * 22, co2Total);
 
       return {
-        trees: totalTrees,
-        trips: totalTrips,
-        co2: totalCO2,
-        hasPledged,
+        treesPlanted: totalTreesPlanted,
+        treesNeeded: totalTreesNeeded,
+        tripsFullyOffset,
+        tripsPartiallyOffset,
+        tripsNotOffset,
+        totalTrips: tripsData.length,
+        co2Offset: Math.round(co2Offset),
+        co2Total: Math.round(co2Total),
+        hasPledged: userRes.data?.pledge_status || false,
       };
     },
     enabled: !!user,
@@ -222,13 +260,15 @@ export const Dashboard: React.FC = () => {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
               <StatsCard
                 icon={TreePine}
                 title="Offset"
                 subtitle="your carbon footprint"
-                metric={stats?.trees.toString() || '0'}
-                unit="Trees"
+                stats={[
+                  { label: 'Trees Planted', value: stats?.treesPlanted || 0, total: stats?.treesNeeded || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'Trees Needed', value: Math.max((stats?.treesNeeded || 0) - (stats?.treesPlanted || 0), 0), color: 'hsl(142, 70%, 70%)' },
+                ]}
                 buttonText="Plant a Tree"
                 buttonVariant="default"
                 href="/carbon-calculator"
@@ -239,8 +279,11 @@ export const Dashboard: React.FC = () => {
                 icon={Plane}
                 title="Calculate"
                 subtitle="your travel emissions"
-                metric={stats?.trips.toString() || '0'}
-                unit="Trips"
+                stats={[
+                  { label: 'Fully Offset', value: stats?.tripsFullyOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'Partially Offset', value: stats?.tripsPartiallyOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(45, 93%, 47%)' },
+                  { label: 'Needs Offset', value: stats?.tripsNotOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(0, 84%, 60%)' },
+                ]}
                 buttonText="Add a Trip"
                 buttonVariant="outline"
                 href="/carbon-calculator"
@@ -251,8 +294,10 @@ export const Dashboard: React.FC = () => {
                 icon={BarChart3}
                 title="Track"
                 subtitle="your environmental impact"
-                metric={stats?.co2 ? (stats.co2 / 1000).toFixed(1) : '0'}
-                unit="kg CO2"
+                stats={[
+                  { label: 'CO₂ Offset', value: stats?.co2Offset || 0, total: stats?.co2Total || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'CO₂ Remaining', value: Math.max((stats?.co2Total || 0) - (stats?.co2Offset || 0), 0), color: 'hsl(30, 60%, 50%)' },
+                ]}
                 buttonText="View Details"
                 buttonVariant="default"
                 href="/my-trips"
