@@ -151,7 +151,7 @@ export const InstitutionalDashboard = () => {
       .map(([country, data]) => ({ country, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
-  }, [stats, countriesTimePeriod, countriesDateRange]);
+  }, [stats, countriesDateRange]);
 
   // Chart data: Trips vs Revenue by time
   const tripsChartData = useMemo(() => {
