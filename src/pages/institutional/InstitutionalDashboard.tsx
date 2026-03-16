@@ -12,6 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { airports } from "@/data/airports";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
+import { ChartExportButton } from "@/components/institutional/ChartExportButton";
 
 const getAirportCountry = (code: string): string => {
   const airport = airports.find(a => a.code === code);
@@ -318,8 +319,17 @@ export const InstitutionalDashboard = () => {
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex justify-end mt-2">
+            <div className="flex items-center justify-end gap-2 mt-2">
               <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={(r) => { setCountriesDateRange(r); if (r.from) setCountriesTimePeriod("all"); }} />
+              <ChartExportButton
+                title="Countries vs Revenue"
+                columns={[
+                  { key: "country", label: "Country" },
+                  { key: "tourists", label: "Tourists" },
+                  { key: "revenue", label: "Revenue ($)" },
+                ]}
+                data={countriesChartData}
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -365,8 +375,18 @@ export const InstitutionalDashboard = () => {
                 </TabsList>
               </Tabs>
             </div>
-            <div className="flex justify-end mt-2">
+            <div className="flex items-center justify-end gap-2 mt-2">
               <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
+              <ChartExportButton
+                title="Trips vs Revenue"
+                columns={[
+                  { key: "period", label: "Period" },
+                  { key: "trips", label: "Trips" },
+                  { key: "pax", label: "Passengers" },
+                  { key: "revenue", label: "Revenue ($)" },
+                ]}
+                data={tripsChartData}
+              />
             </div>
           </CardHeader>
           <CardContent>
