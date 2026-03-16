@@ -123,7 +123,6 @@ export const InstitutionalDashboard = () => {
     if (!stats?.tripsData) return [];
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
     
-    // Apply date range filter first, then time period preset
     let filteredTrips = stats.tripsData;
     
     if (countriesDateRange.from) {
@@ -131,21 +130,6 @@ export const InstitutionalDashboard = () => {
         const date = new Date(trip.from_date || trip.created_at);
         if (countriesDateRange.from && date < countriesDateRange.from) return false;
         if (countriesDateRange.to && date > countriesDateRange.to) return false;
-        return true;
-      });
-    } else if (countriesTimePeriod !== "all") {
-      filteredTrips = filteredTrips.filter(trip => {
-        const date = new Date(trip.from_date || trip.created_at);
-        const now = new Date();
-        if (countriesTimePeriod === "this_month") {
-          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-        } else if (countriesTimePeriod === "last_month") {
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-          return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
-        } else if (countriesTimePeriod === "last_3_months") {
-          const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
-          return date >= threeMonthsAgo;
-        }
         return true;
       });
     }
