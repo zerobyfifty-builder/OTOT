@@ -303,19 +303,24 @@ export const InstitutionalDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Countries vs Revenue Chart */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
-              <CardDescription>Tourists and revenue by origin country</CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
+                <CardDescription>Tourists and revenue by origin country</CardDescription>
+              </div>
+              <Tabs value={countriesDateRange.from ? "" : countriesTimePeriod} onValueChange={(v) => { setCountriesTimePeriod(v); setCountriesDateRange({ from: undefined, to: undefined }); }}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
+                  <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
+                  <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
+                  <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <Tabs value={countriesTimePeriod} onValueChange={setCountriesTimePeriod}>
-              <TabsList className="h-8">
-                <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
-                <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
-                <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
-                <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex justify-end mt-2">
+              <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={(r) => { setCountriesDateRange(r); if (r.from) setCountriesTimePeriod("all"); }} />
+            </div>
           </CardHeader>
           <CardContent>
             {statsLoading ? (
