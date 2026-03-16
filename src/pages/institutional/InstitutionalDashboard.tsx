@@ -7,7 +7,7 @@ import { Users, TreePine, TrendingUp, BarChart3, Plane, Building, DollarSign, Ma
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { InstitutionalStatCard } from "@/components/institutional/InstitutionalStatCard";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, ComposedChart, Area } from "recharts";
 import { airports } from "@/data/airports";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
