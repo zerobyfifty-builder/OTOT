@@ -14,17 +14,7 @@ import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
 const getAirportCountry = (code: string): string => {
   const airport = airports.find(a => a.code === code);
-  if (!airport) return code;
-  // Extract country from the label (format: "City, Country (CODE)")
-  const match = airport.label.match(/,\s*([^(]+)\s*\(/);
-  return match ? match[1].trim() : code;
-};
-
-const getAirportCity = (code: string): string => {
-  const airport = airports.find(a => a.code === code);
-  if (!airport) return code;
-  const match = airport.label.match(/^([^,]+)/);
-  return match ? match[1].trim() : code;
+  return airport?.country || code;
 };
 
 export const InstitutionalDashboard = () => {
