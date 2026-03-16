@@ -293,26 +293,19 @@ export const InstitutionalDashboard = () => {
                 <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
                 <CardDescription>Tourists and revenue by origin country</CardDescription>
               </div>
-              <Tabs value={countriesDateRange.from ? "" : countriesTimePeriod} onValueChange={(v) => { setCountriesTimePeriod(v); setCountriesDateRange({ from: undefined, to: undefined }); }}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
-                  <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
-                  <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
-                  <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2">
-              <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={(r) => { setCountriesDateRange(r); if (r.from) setCountriesTimePeriod("all"); }} />
-              <ChartExportButton
-                title="Countries vs Revenue"
-                columns={[
-                  { key: "country", label: "Country" },
-                  { key: "tourists", label: "Tourists" },
-                  { key: "revenue", label: "Revenue ($)" },
-                ]}
-                data={countriesChartData}
-              />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={setCountriesDateRange} />
+                <ChartExportButton
+                  title="Countries vs Revenue"
+                  columns={[
+                    { key: "country", label: "Country" },
+                    { key: "tourists", label: "Tourists" },
+                    { key: "revenue", label: "Revenue ($)" },
+                  ]}
+                  data={countriesChartData}
+                  iconOnly
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
