@@ -214,7 +214,7 @@ export const InstitutionalDashboard = () => {
     return Object.entries(periodMap)
       .map(([period, data]) => ({ period, ...data }))
       .sort((a, b) => a.period.localeCompare(b.period));
-  }, [stats, tripsTimePeriod]);
+  }, [stats, tripsTimePeriod, tripsDateRange]);
 
   useEffect(() => {
     if (userProfile) setOrganizationInfo(userProfile.organizations);
