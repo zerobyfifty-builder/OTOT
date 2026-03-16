@@ -404,7 +404,7 @@ export const Dashboard: React.FC = () => {
                 )}
               </CardContent>
             </Card>
-            <RecentContributions />
+            <RecentTrips />
           </div>
         </section>
 
