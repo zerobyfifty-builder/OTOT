@@ -285,6 +285,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
               <CardDescription>Tourists and revenue by origin country</CardDescription>
             </div>
+            <Tabs value={countriesTimePeriod} onValueChange={setCountriesTimePeriod}>
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
+                <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
+                <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
+                <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             {statsLoading ? (
