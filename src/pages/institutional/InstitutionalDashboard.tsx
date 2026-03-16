@@ -351,18 +351,23 @@ export const InstitutionalDashboard = () => {
 
         {/* Trips vs Revenue Chart */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-lg">Trips vs Revenue</CardTitle>
-              <CardDescription>Trip volume and passenger count over time</CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Trips vs Revenue</CardTitle>
+                <CardDescription>Trip volume and passenger count over time</CardDescription>
+              </div>
+              <Tabs value={tripsTimePeriod} onValueChange={setTripsTimePeriod}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="monthly" className="text-xs px-2 h-6">Month</TabsTrigger>
+                  <TabsTrigger value="quarterly" className="text-xs px-2 h-6">Quarter</TabsTrigger>
+                  <TabsTrigger value="yearly" className="text-xs px-2 h-6">Year</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <Tabs value={tripsTimePeriod} onValueChange={setTripsTimePeriod}>
-              <TabsList className="h-8">
-                <TabsTrigger value="monthly" className="text-xs px-2 h-6">Month</TabsTrigger>
-                <TabsTrigger value="quarterly" className="text-xs px-2 h-6">Quarter</TabsTrigger>
-                <TabsTrigger value="yearly" className="text-xs px-2 h-6">Year</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex justify-end mt-2">
+              <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
+            </div>
           </CardHeader>
           <CardContent>
             {statsLoading ? (
