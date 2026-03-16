@@ -173,6 +173,8 @@ export const InstitutionalDashboard = () => {
   const tripsChartData = useMemo(() => {
     if (!stats?.tripsData) return [];
     const now = new Date();
+    const periodMap: Record<string, { trips: number; pax: number; revenue: number }> = {};
+
     // Filter by date range if set
     const filteredTrips = tripsDateRange.from
       ? stats.tripsData.filter(trip => {
