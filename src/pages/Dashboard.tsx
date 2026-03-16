@@ -260,13 +260,15 @@ export const Dashboard: React.FC = () => {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
               <StatsCard
                 icon={TreePine}
                 title="Offset"
                 subtitle="your carbon footprint"
-                metric={stats?.trees.toString() || '0'}
-                unit="Trees"
+                stats={[
+                  { label: 'Trees Planted', value: stats?.treesPlanted || 0, total: stats?.treesNeeded || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'Trees Needed', value: Math.max((stats?.treesNeeded || 0) - (stats?.treesPlanted || 0), 0), color: 'hsl(142, 70%, 70%)' },
+                ]}
                 buttonText="Plant a Tree"
                 buttonVariant="default"
                 href="/carbon-calculator"
@@ -277,8 +279,11 @@ export const Dashboard: React.FC = () => {
                 icon={Plane}
                 title="Calculate"
                 subtitle="your travel emissions"
-                metric={stats?.trips.toString() || '0'}
-                unit="Trips"
+                stats={[
+                  { label: 'Fully Offset', value: stats?.tripsFullyOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'Partially Offset', value: stats?.tripsPartiallyOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(45, 93%, 47%)' },
+                  { label: 'Needs Offset', value: stats?.tripsNotOffset || 0, total: stats?.totalTrips || 0, color: 'hsl(0, 84%, 60%)' },
+                ]}
                 buttonText="Add a Trip"
                 buttonVariant="outline"
                 href="/carbon-calculator"
@@ -289,8 +294,10 @@ export const Dashboard: React.FC = () => {
                 icon={BarChart3}
                 title="Track"
                 subtitle="your environmental impact"
-                metric={stats?.co2 ? (stats.co2 / 1000).toFixed(1) : '0'}
-                unit="kg CO2"
+                stats={[
+                  { label: 'CO₂ Offset', value: stats?.co2Offset || 0, total: stats?.co2Total || 0, color: 'hsl(142, 70%, 45%)' },
+                  { label: 'CO₂ Remaining', value: Math.max((stats?.co2Total || 0) - (stats?.co2Offset || 0), 0), color: 'hsl(30, 60%, 50%)' },
+                ]}
                 buttonText="View Details"
                 buttonVariant="default"
                 href="/my-trips"
