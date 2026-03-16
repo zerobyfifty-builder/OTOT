@@ -12,6 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { airports } from "@/data/airports";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
+import { ChartExportButton } from "@/components/institutional/ChartExportButton";
 
 const getAirportCountry = (code: string): string => {
   const airport = airports.find(a => a.code === code);
