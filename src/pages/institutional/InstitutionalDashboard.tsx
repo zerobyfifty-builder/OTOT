@@ -123,22 +123,32 @@ export const InstitutionalDashboard = () => {
     if (!stats?.tripsData) return [];
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
     
-    const filteredTrips = countriesTimePeriod === "all" 
-      ? stats.tripsData 
-      : stats.tripsData.filter(trip => {
-          const date = new Date(trip.from_date || trip.created_at);
-          const now = new Date();
-          if (countriesTimePeriod === "this_month") {
-            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-          } else if (countriesTimePeriod === "last_month") {
-            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-            return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
-          } else if (countriesTimePeriod === "last_3_months") {
-            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
-            return date >= threeMonthsAgo;
-          }
-          return true;
-        });
+    // Apply date range filter first, then time period preset
+    let filteredTrips = stats.tripsData;
+    
+    if (countriesDateRange.from) {
+      filteredTrips = filteredTrips.filter(trip => {
+        const date = new Date(trip.from_date || trip.created_at);
+        if (countriesDateRange.from && date < countriesDateRange.from) return false;
+        if (countriesDateRange.to && date > countriesDateRange.to) return false;
+        return true;
+      });
+    } else if (countriesTimePeriod !== "all") {
+      filteredTrips = filteredTrips.filter(trip => {
+        const date = new Date(trip.from_date || trip.created_at);
+        const now = new Date();
+        if (countriesTimePeriod === "this_month") {
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        } else if (countriesTimePeriod === "last_month") {
+          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+          return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
+        } else if (countriesTimePeriod === "last_3_months") {
+          const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
+          return date >= threeMonthsAgo;
+        }
+        return true;
+      });
+    }
 
     filteredTrips.forEach(trip => {
       const country = getAirportCountry(trip.origin_airport);
