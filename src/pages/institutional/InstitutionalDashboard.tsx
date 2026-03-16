@@ -120,13 +120,29 @@ export const InstitutionalDashboard = () => {
     if (!stats?.tripsData) return [];
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
     
-    stats.tripsData.forEach(trip => {
+    const filteredTrips = countriesTimePeriod === "all" 
+      ? stats.tripsData 
+      : stats.tripsData.filter(trip => {
+          const date = new Date(trip.from_date || trip.created_at);
+          const now = new Date();
+          if (countriesTimePeriod === "this_month") {
+            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+          } else if (countriesTimePeriod === "last_month") {
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+            return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
+          } else if (countriesTimePeriod === "last_3_months") {
+            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
+            return date >= threeMonthsAgo;
+          }
+          return true;
+        });
+
+    filteredTrips.forEach(trip => {
       const country = getAirportCountry(trip.origin_airport);
       if (!countryMap[country]) countryMap[country] = { tourists: 0, revenue: 0 };
       countryMap[country].tourists += Number(trip.num_travelers) || 0;
     });
 
-    // Distribute revenue proportionally by tourists
     const totalVisitors = Object.values(countryMap).reduce((s, c) => s + c.tourists, 0);
     if (totalVisitors > 0 && stats.totalRevenue > 0) {
       Object.keys(countryMap).forEach(country => {
@@ -138,7 +154,7 @@ export const InstitutionalDashboard = () => {
       .map(([country, data]) => ({ country, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
-  }, [stats]);
+  }, [stats, countriesTimePeriod]);
 
   // Chart data: Trips vs Revenue by time
   const tripsChartData = useMemo(() => {
@@ -208,11 +224,10 @@ export const InstitutionalDashboard = () => {
               title="Total Trees"
               value={stats?.totalTrees || 0}
               icon={TreePine}
-              description={`${formatNumber(stats?.totalTrees || 0)} trees in the system`}
               trend={{ value: 8.3, isPositive: true }}
               breakdown={[
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
-                { label: "Planted Trees", value: formatNumber(stats?.plantedTrees || 0) },
+                { label: "Trees Paid For", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "Trees Planted", value: formatNumber(stats?.plantedTrees || 0) },
               ]}
             />
 
@@ -220,11 +235,10 @@ export const InstitutionalDashboard = () => {
               title="CO₂ Offset"
               value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
               icon={TrendingUp}
-              description={`Carbon offset by ${stats?.totalTrees || 0} trees`}
               breakdown={[
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
                 { label: "CO₂ per Tree", value: "25 kg" },
-                { label: "Total Offset", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
+                { label: "Flight CO₂", value: `${formatNumber(stats?.flightCO2 || 0)} kg` },
+                { label: "Accommodation CO₂", value: `${formatNumber(stats?.accommodationCO2 || 0)} kg` },
               ]}
             />
 
@@ -232,12 +246,10 @@ export const InstitutionalDashboard = () => {
               title="Revenue"
               value={`$${formatNumber(stats?.totalRevenue || 0)}`}
               icon={DollarSign}
-              description="Total revenue from all trees"
               trend={{ value: 15.7, isPositive: true }}
               breakdown={[
-                { label: "Total Revenue", value: `$${formatNumber(stats?.totalRevenue || 0)}` },
                 { label: "Revenue/Tourist", value: `$${formatNumber(Math.round(stats?.revenuePerTourist || 0))}` },
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "Revenue/Tree", value: `$${formatNumber(stats?.totalTrees ? Math.round(stats.totalRevenue / stats.totalTrees) : 0)}` },
               ]}
             />
 
@@ -245,9 +257,7 @@ export const InstitutionalDashboard = () => {
               title="Trips"
               value={stats?.totalTrips || 0}
               icon={Plane}
-              description="Total travel records"
               breakdown={[
-                { label: "Total Trips", value: formatNumber(stats?.totalTrips || 0) },
                 { label: "Total Visitors", value: formatNumber(stats?.totalVisitors || 0) },
                 { label: "Countries", value: formatNumber(stats?.totalCountries || 0) },
               ]}
@@ -257,9 +267,7 @@ export const InstitutionalDashboard = () => {
               title="Travel Agents"
               value={stats?.totalAgents || 0}
               icon={UserCheck}
-              description="Registered travel agents"
               breakdown={[
-                { label: "Agents", value: formatNumber(stats?.totalAgents || 0) },
                 { label: "Trees Planted", value: formatNumber(stats?.agentTreesPlanted || 0) },
                 { label: "Revenue", value: `$${formatNumber(stats?.agentRevenue || 0)}` },
               ]}
@@ -277,6 +285,14 @@ export const InstitutionalDashboard = () => {
               <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
               <CardDescription>Tourists and revenue by origin country</CardDescription>
             </div>
+            <Tabs value={countriesTimePeriod} onValueChange={setCountriesTimePeriod}>
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
+                <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
+                <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
+                <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             {statsLoading ? (
