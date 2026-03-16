@@ -152,16 +152,21 @@ export const Dashboard: React.FC = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats', user?.id],
     queryFn: async () => {
-      if (!user) return { trees: 0, trips: 0, co2: 0, hasPledged: false };
+      if (!user) return {
+        treesPlanted: 0, treesNeeded: 0,
+        tripsFullyOffset: 0, tripsPartiallyOffset: 0, tripsNotOffset: 0, totalTrips: 0,
+        co2Offset: 0, co2Total: 0,
+        hasPledged: false,
+      };
 
       const [treesRes, tripsRes, userRes] = await Promise.all([
         supabase
           .from('trees')
-          .select('num_trees', { count: 'exact' })
+          .select('num_trees, trip_id')
           .eq('user_id', user.id),
         supabase
           .from('trips')
-          .select('total_co2')
+          .select('id, total_co2, trees_needed')
           .eq('user_id', user.id),
         supabase
           .from('users')
@@ -170,16 +175,49 @@ export const Dashboard: React.FC = () => {
           .single()
       ]);
 
-      const totalTrees = treesRes.data?.reduce((sum, t) => sum + t.num_trees, 0) || 0;
-      const totalTrips = tripsRes.data?.length || 0;
-      const totalCO2 = tripsRes.data?.reduce((sum, t) => sum + Number(t.total_co2), 0) || 0;
-      const hasPledged = userRes.data?.pledge_status || false;
+      const treesData = treesRes.data || [];
+      const tripsData = tripsRes.data || [];
+
+      const totalTreesPlanted = treesData.reduce((sum, t) => sum + t.num_trees, 0);
+      const totalTreesNeeded = tripsData.reduce((sum, t) => sum + t.trees_needed, 0);
+
+      // Build map of trees planted per trip
+      const treesPerTrip: Record<string, number> = {};
+      treesData.forEach(t => {
+        if (t.trip_id) {
+          treesPerTrip[t.trip_id] = (treesPerTrip[t.trip_id] || 0) + t.num_trees;
+        }
+      });
+
+      let tripsFullyOffset = 0;
+      let tripsPartiallyOffset = 0;
+      let tripsNotOffset = 0;
+
+      tripsData.forEach(trip => {
+        const planted = treesPerTrip[trip.id] || 0;
+        if (planted >= trip.trees_needed && trip.trees_needed > 0) {
+          tripsFullyOffset++;
+        } else if (planted > 0) {
+          tripsPartiallyOffset++;
+        } else {
+          tripsNotOffset++;
+        }
+      });
+
+      const co2Total = tripsData.reduce((sum, t) => sum + Number(t.total_co2), 0);
+      // CO2 offset = trees planted * 22 kg/year
+      const co2Offset = Math.min(totalTreesPlanted * 22, co2Total);
 
       return {
-        trees: totalTrees,
-        trips: totalTrips,
-        co2: totalCO2,
-        hasPledged,
+        treesPlanted: totalTreesPlanted,
+        treesNeeded: totalTreesNeeded,
+        tripsFullyOffset,
+        tripsPartiallyOffset,
+        tripsNotOffset,
+        totalTrips: tripsData.length,
+        co2Offset: Math.round(co2Offset),
+        co2Total: Math.round(co2Total),
+        hasPledged: userRes.data?.pledge_status || false,
       };
     },
     enabled: !!user,
