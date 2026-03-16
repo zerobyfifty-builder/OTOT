@@ -23,6 +23,8 @@ export const InstitutionalDashboard = () => {
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
   const [countriesTimePeriod, setCountriesTimePeriod] = useState<string>("all");
   const [tripsTimePeriod, setTripsTimePeriod] = useState<string>("monthly");
+  const [countriesDateRange, setCountriesDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [tripsDateRange, setTripsDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   // Fetch organization and user info
   const { data: userProfile } = useQuery({
