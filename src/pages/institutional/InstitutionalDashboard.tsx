@@ -7,7 +7,7 @@ import { Users, TreePine, TrendingUp, BarChart3, Plane, Building, DollarSign, Ma
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { InstitutionalStatCard } from "@/components/institutional/InstitutionalStatCard";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, ComposedChart, Area } from "recharts";
 import { airports } from "@/data/airports";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
@@ -22,7 +22,6 @@ const getAirportCountry = (code: string): string => {
 export const InstitutionalDashboard = () => {
   const { user } = useAuth();
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
-  const [countriesTimePeriod, setCountriesTimePeriod] = useState<string>("all");
   const [tripsTimePeriod, setTripsTimePeriod] = useState<string>("monthly");
   const [countriesDateRange, setCountriesDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [tripsDateRange, setTripsDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
@@ -124,7 +123,6 @@ export const InstitutionalDashboard = () => {
     if (!stats?.tripsData) return [];
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
     
-    // Apply date range filter first, then time period preset
     let filteredTrips = stats.tripsData;
     
     if (countriesDateRange.from) {
@@ -132,21 +130,6 @@ export const InstitutionalDashboard = () => {
         const date = new Date(trip.from_date || trip.created_at);
         if (countriesDateRange.from && date < countriesDateRange.from) return false;
         if (countriesDateRange.to && date > countriesDateRange.to) return false;
-        return true;
-      });
-    } else if (countriesTimePeriod !== "all") {
-      filteredTrips = filteredTrips.filter(trip => {
-        const date = new Date(trip.from_date || trip.created_at);
-        const now = new Date();
-        if (countriesTimePeriod === "this_month") {
-          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-        } else if (countriesTimePeriod === "last_month") {
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-          return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
-        } else if (countriesTimePeriod === "last_3_months") {
-          const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
-          return date >= threeMonthsAgo;
-        }
         return true;
       });
     }
@@ -168,7 +151,7 @@ export const InstitutionalDashboard = () => {
       .map(([country, data]) => ({ country, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
-  }, [stats, countriesTimePeriod, countriesDateRange]);
+  }, [stats, countriesDateRange]);
 
   // Chart data: Trips vs Revenue by time
   const tripsChartData = useMemo(() => {
@@ -310,26 +293,19 @@ export const InstitutionalDashboard = () => {
                 <CardTitle className="text-lg">Countries vs Revenue</CardTitle>
                 <CardDescription>Tourists and revenue by origin country</CardDescription>
               </div>
-              <Tabs value={countriesDateRange.from ? "" : countriesTimePeriod} onValueChange={(v) => { setCountriesTimePeriod(v); setCountriesDateRange({ from: undefined, to: undefined }); }}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
-                  <TabsTrigger value="this_month" className="text-xs px-2 h-6">This Month</TabsTrigger>
-                  <TabsTrigger value="last_month" className="text-xs px-2 h-6">Last Month</TabsTrigger>
-                  <TabsTrigger value="last_3_months" className="text-xs px-2 h-6">3 Months</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2">
-              <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={(r) => { setCountriesDateRange(r); if (r.from) setCountriesTimePeriod("all"); }} />
-              <ChartExportButton
-                title="Countries vs Revenue"
-                columns={[
-                  { key: "country", label: "Country" },
-                  { key: "tourists", label: "Tourists" },
-                  { key: "revenue", label: "Revenue ($)" },
-                ]}
-                data={countriesChartData}
-              />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={setCountriesDateRange} />
+                <ChartExportButton
+                  title="Countries vs Revenue"
+                  columns={[
+                    { key: "country", label: "Country" },
+                    { key: "tourists", label: "Tourists" },
+                    { key: "revenue", label: "Revenue ($)" },
+                  ]}
+                  data={countriesChartData}
+                  iconOnly
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -367,26 +343,20 @@ export const InstitutionalDashboard = () => {
                 <CardTitle className="text-lg">Trips vs Revenue</CardTitle>
                 <CardDescription>Trip volume and passenger count over time</CardDescription>
               </div>
-              <Tabs value={tripsTimePeriod} onValueChange={setTripsTimePeriod}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="monthly" className="text-xs px-2 h-6">Month</TabsTrigger>
-                  <TabsTrigger value="quarterly" className="text-xs px-2 h-6">Quarter</TabsTrigger>
-                  <TabsTrigger value="yearly" className="text-xs px-2 h-6">Year</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2">
-              <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
-              <ChartExportButton
-                title="Trips vs Revenue"
-                columns={[
-                  { key: "period", label: "Period" },
-                  { key: "trips", label: "Trips" },
-                  { key: "pax", label: "Passengers" },
-                  { key: "revenue", label: "Revenue ($)" },
-                ]}
-                data={tripsChartData}
-              />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
+                <ChartExportButton
+                  title="Trips vs Revenue"
+                  columns={[
+                    { key: "period", label: "Period" },
+                    { key: "trips", label: "Trips" },
+                    { key: "pax", label: "Passengers" },
+                    { key: "revenue", label: "Revenue ($)" },
+                  ]}
+                  data={tripsChartData}
+                  iconOnly
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
