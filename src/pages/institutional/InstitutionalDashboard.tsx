@@ -343,26 +343,20 @@ export const InstitutionalDashboard = () => {
                 <CardTitle className="text-lg">Trips vs Revenue</CardTitle>
                 <CardDescription>Trip volume and passenger count over time</CardDescription>
               </div>
-              <Tabs value={tripsTimePeriod} onValueChange={setTripsTimePeriod}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="monthly" className="text-xs px-2 h-6">Month</TabsTrigger>
-                  <TabsTrigger value="quarterly" className="text-xs px-2 h-6">Quarter</TabsTrigger>
-                  <TabsTrigger value="yearly" className="text-xs px-2 h-6">Year</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2">
-              <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
-              <ChartExportButton
-                title="Trips vs Revenue"
-                columns={[
-                  { key: "period", label: "Period" },
-                  { key: "trips", label: "Trips" },
-                  { key: "pax", label: "Passengers" },
-                  { key: "revenue", label: "Revenue ($)" },
-                ]}
-                data={tripsChartData}
-              />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
+                <ChartExportButton
+                  title="Trips vs Revenue"
+                  columns={[
+                    { key: "period", label: "Period" },
+                    { key: "trips", label: "Trips" },
+                    { key: "pax", label: "Passengers" },
+                    { key: "revenue", label: "Revenue ($)" },
+                  ]}
+                  data={tripsChartData}
+                  iconOnly
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
