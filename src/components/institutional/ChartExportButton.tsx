@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -14,9 +15,10 @@ interface ChartExportButtonProps {
   title: string;
   columns: { key: string; label: string }[];
   data: Record<string, any>[];
+  iconOnly?: boolean;
 }
 
-export function ChartExportButton({ title, columns, data }: ChartExportButtonProps) {
+export function ChartExportButton({ title, columns, data, iconOnly }: ChartExportButtonProps) {
   const exportCSV = useCallback(() => {
     const header = columns.map(c => c.label).join(",");
     const rows = data.map(row => columns.map(c => row[c.key] ?? "").join(","));
@@ -48,13 +50,30 @@ export function ChartExportButton({ title, columns, data }: ChartExportButtonPro
     doc.save(`${title.replace(/\s+/g, "_").toLowerCase()}.pdf`);
   }, [title, columns, data]);
 
+  const triggerButton = (
+    <Button variant="outline" size="sm" className={iconOnly ? "h-8 w-8 p-0" : "h-8 text-xs gap-1.5"}>
+      <Download className="h-3.5 w-3.5" />
+      {!iconOnly && "Export"}
+    </Button>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
-          <Download className="h-3.5 w-3.5" />
-          Export
-        </Button>
+        {iconOnly ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {triggerButton}
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Export</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          triggerButton
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={exportCSV}>
