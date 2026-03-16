@@ -120,13 +120,29 @@ export const InstitutionalDashboard = () => {
     if (!stats?.tripsData) return [];
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
     
-    stats.tripsData.forEach(trip => {
+    const filteredTrips = countriesTimePeriod === "all" 
+      ? stats.tripsData 
+      : stats.tripsData.filter(trip => {
+          const date = new Date(trip.from_date || trip.created_at);
+          const now = new Date();
+          if (countriesTimePeriod === "this_month") {
+            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+          } else if (countriesTimePeriod === "last_month") {
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+            return date.getMonth() === lastMonth.getMonth() && date.getFullYear() === lastMonth.getFullYear();
+          } else if (countriesTimePeriod === "last_3_months") {
+            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3);
+            return date >= threeMonthsAgo;
+          }
+          return true;
+        });
+
+    filteredTrips.forEach(trip => {
       const country = getAirportCountry(trip.origin_airport);
       if (!countryMap[country]) countryMap[country] = { tourists: 0, revenue: 0 };
       countryMap[country].tourists += Number(trip.num_travelers) || 0;
     });
 
-    // Distribute revenue proportionally by tourists
     const totalVisitors = Object.values(countryMap).reduce((s, c) => s + c.tourists, 0);
     if (totalVisitors > 0 && stats.totalRevenue > 0) {
       Object.keys(countryMap).forEach(country => {
@@ -138,7 +154,7 @@ export const InstitutionalDashboard = () => {
       .map(([country, data]) => ({ country, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
-  }, [stats]);
+  }, [stats, countriesTimePeriod]);
 
   // Chart data: Trips vs Revenue by time
   const tripsChartData = useMemo(() => {
