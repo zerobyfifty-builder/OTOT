@@ -17,7 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent } from '@/components/ui/card';
-import { RecentContributions } from '@/components/dashboard/RecentContributions';
+import { RecentTrips } from '@/components/dashboard/RecentTrips';
 import { ClimateActionCard } from '@/components/dashboard/ClimateActionCard';
 import { FAQAccordion } from '@/components/dashboard/FAQAccordion';
 import reduceFootprintImg from '@/assets/climate-reduce-footprint.jpg';
