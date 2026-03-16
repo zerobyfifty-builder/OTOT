@@ -6,7 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Plane, TreePine, Leaf } from 'lucide-react';
+import { Plane, TreePine, Leaf, CheckCircle2 } from 'lucide-react';
+import { airports } from '@/data/airports';
+
+const getAirportName = (code: string) => {
+  const airport = airports.find(a => a.code === code);
+  return airport ? `${airport.city} (${code})` : code;
+};
 
 export const RecentTrips: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +22,6 @@ export const RecentTrips: React.FC = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      // Fetch recent trips
       const { data: trips, error } = await supabase
         .from('trips')
         .select('id, origin_airport, destination_airport, total_co2, trees_needed, from_date, travel_class')
@@ -27,7 +32,6 @@ export const RecentTrips: React.FC = () => {
       if (error) throw error;
       if (!trips || trips.length === 0) return [];
 
-      // Fetch trees linked to these trips
       const tripIds = trips.map(t => t.id);
       const { data: trees } = await supabase
         .from('trees')
@@ -61,9 +65,9 @@ export const RecentTrips: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="animate-pulse space-y-3">
-            <div className="h-16 bg-muted rounded-xl" />
-            <div className="h-16 bg-muted rounded-xl" />
-            <div className="h-16 bg-muted rounded-xl" />
+            <div className="h-20 bg-muted rounded-xl" />
+            <div className="h-20 bg-muted rounded-xl" />
+            <div className="h-20 bg-muted rounded-xl" />
           </div>
         </CardContent>
       </Card>
@@ -87,53 +91,53 @@ export const RecentTrips: React.FC = () => {
                     key={trip.id}
                     className="rounded-xl border border-border bg-background p-4 hover:bg-muted/40 transition-colors"
                   >
-                    {/* Route & Date */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Plane className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-semibold text-sm text-foreground">
-                          {trip.origin_airport} → {trip.destination_airport}
+                    {/* Route header with date */}
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Plane className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-semibold text-sm text-foreground truncate">
+                          {getAirportName(trip.origin_airport)} → {getAirportName(trip.destination_airport)}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {format(new Date(trip.from_date), 'dd MMM yyyy')}
                       </span>
                     </div>
 
-                    {/* Stats row */}
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {Number(trip.total_co2).toLocaleString()} kg CO₂
-                        </span>
+                    {/* Stats row with amount prominent */}
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center gap-1">
+                          <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {Number(trip.total_co2).toLocaleString()} kg
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <TreePine className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {trip.treesPlanted}/{trip.trees_needed}
+                          </span>
+                        </div>
+                        {/* Status badge inline */}
+                        {isFullyOffset ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Offset
+                          </span>
+                        ) : isPartial ? (
+                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent text-accent-foreground">
+                            Partial
+                          </span>
+                        ) : (
+                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                            Not Offset
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <TreePine className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {trip.treesPlanted}/{trip.trees_needed} trees
-                        </span>
-                      </div>
-                      <span className="ml-auto font-semibold text-foreground">
+                      <span className="text-lg font-bold text-foreground">
                         ${trip.amountPaid.toFixed(2)}
                       </span>
-                    </div>
-
-                    {/* Status badge */}
-                    <div className="mt-2">
-                      {isFullyOffset ? (
-                        <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          Fully Offset
-                        </span>
-                      ) : isPartial ? (
-                        <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-accent text-accent-foreground">
-                          Partially Offset
-                        </span>
-                      ) : (
-                        <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
-                          Needs Offset
-                        </span>
-                      )}
                     </div>
                   </div>
                 );
