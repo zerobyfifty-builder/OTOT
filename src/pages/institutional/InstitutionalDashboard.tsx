@@ -224,11 +224,10 @@ export const InstitutionalDashboard = () => {
               title="Total Trees"
               value={stats?.totalTrees || 0}
               icon={TreePine}
-              description={`${formatNumber(stats?.totalTrees || 0)} trees in the system`}
               trend={{ value: 8.3, isPositive: true }}
               breakdown={[
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
-                { label: "Planted Trees", value: formatNumber(stats?.plantedTrees || 0) },
+                { label: "Trees Paid For", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "Trees Planted", value: formatNumber(stats?.plantedTrees || 0) },
               ]}
             />
 
@@ -236,11 +235,10 @@ export const InstitutionalDashboard = () => {
               title="CO₂ Offset"
               value={`${formatNumber(stats?.totalCO2Offset || 0)} kg`}
               icon={TrendingUp}
-              description={`Carbon offset by ${stats?.totalTrees || 0} trees`}
               breakdown={[
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
                 { label: "CO₂ per Tree", value: "25 kg" },
-                { label: "Total Offset", value: `${formatNumber(stats?.totalCO2Offset || 0)} kg` },
+                { label: "Flight CO₂", value: `${formatNumber(stats?.flightCO2 || 0)} kg` },
+                { label: "Accommodation CO₂", value: `${formatNumber(stats?.accommodationCO2 || 0)} kg` },
               ]}
             />
 
@@ -248,12 +246,10 @@ export const InstitutionalDashboard = () => {
               title="Revenue"
               value={`$${formatNumber(stats?.totalRevenue || 0)}`}
               icon={DollarSign}
-              description="Total revenue from all trees"
               trend={{ value: 15.7, isPositive: true }}
               breakdown={[
-                { label: "Total Revenue", value: `$${formatNumber(stats?.totalRevenue || 0)}` },
                 { label: "Revenue/Tourist", value: `$${formatNumber(Math.round(stats?.revenuePerTourist || 0))}` },
-                { label: "Total Trees", value: formatNumber(stats?.totalTrees || 0) },
+                { label: "Revenue/Tree", value: `$${formatNumber(stats?.totalTrees ? Math.round(stats.totalRevenue / stats.totalTrees) : 0)}` },
               ]}
             />
 
@@ -261,9 +257,7 @@ export const InstitutionalDashboard = () => {
               title="Trips"
               value={stats?.totalTrips || 0}
               icon={Plane}
-              description="Total travel records"
               breakdown={[
-                { label: "Total Trips", value: formatNumber(stats?.totalTrips || 0) },
                 { label: "Total Visitors", value: formatNumber(stats?.totalVisitors || 0) },
                 { label: "Countries", value: formatNumber(stats?.totalCountries || 0) },
               ]}
@@ -273,9 +267,7 @@ export const InstitutionalDashboard = () => {
               title="Travel Agents"
               value={stats?.totalAgents || 0}
               icon={UserCheck}
-              description="Registered travel agents"
               breakdown={[
-                { label: "Agents", value: formatNumber(stats?.totalAgents || 0) },
                 { label: "Trees Planted", value: formatNumber(stats?.agentTreesPlanted || 0) },
                 { label: "Revenue", value: `$${formatNumber(stats?.agentRevenue || 0)}` },
               ]}
