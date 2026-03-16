@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, ComposedChart, Area } from "recharts";
 import { airports } from "@/data/airports";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
 
 const getAirportCountry = (code: string): string => {
   const airport = airports.find(a => a.code === code);
