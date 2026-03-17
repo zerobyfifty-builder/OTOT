@@ -112,7 +112,10 @@ export const generateTreeCertificate = async ({
   
   const certificateId = `TRE-${Date.now()}-${userId.substring(0, 8)}`;
   const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
-  const qrCodeDataUrl = await generateQRCode(verificationUrl);
+  const [qrCodeDataUrl, logos] = await Promise.all([
+    generateQRCode(verificationUrl),
+    getLogos(),
+  ]);
 
   // Save certificate record to database
   try {
