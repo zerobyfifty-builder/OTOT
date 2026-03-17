@@ -82,13 +82,28 @@ export const Dashboard: React.FC = () => {
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
   };
 
+  // Get full name from profile, fallback to email-based name
+  const getFullName = async () => {
+    if (!user) return 'Guest';
+    const { data } = await supabase
+      .from('users')
+      .select('first_name, last_name')
+      .eq('user_id', user.id)
+      .single();
+    const fn = (data as any)?.first_name?.trim();
+    const ln = (data as any)?.last_name?.trim();
+    if (fn && ln) return `${fn} ${ln}`;
+    if (fn) return fn;
+    return getUserName();
+  };
+
   // Handle certificate download
   const handleDownloadCertificate = async () => {
     if (!user) return;
     
     setIsDownloadingCertificate(true);
     try {
-      const userName = getUserName();
+      const userName = await getFullName();
       const { data: userData } = await supabase
         .from('users')
         .select('otot_id')

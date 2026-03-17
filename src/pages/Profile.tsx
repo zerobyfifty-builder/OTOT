@@ -8,8 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, Calendar, TreePine, DollarSign } from 'lucide-react';
+import { ArrowLeft, Download, Calendar, DollarSign, User, Globe, FileText } from 'lucide-react';
 import { z } from 'zod';
+import { generatePledgeCertificate, generateTreeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const updateEmailSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
@@ -29,18 +37,35 @@ interface UserProfile {
   pledge_date: string | null;
   total_donation: number;
   otot_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  country: string | null;
+}
+
+interface CertificateRecord {
+  id: string;
+  certificate_type: string;
+  issued_date: string;
+  certificate_url: string;
 }
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [country, setCountry] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [showCertDialog, setShowCertDialog] = useState(false);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
+  const [downloadingCertId, setDownloadingCertId] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ 
     email?: string; 
     currentPassword?: string;
@@ -61,15 +86,43 @@ export const Profile: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('pledge_status, pledge_date, total_donation, otot_id')
+        .select('pledge_status, pledge_date, total_donation, otot_id, first_name, last_name, country')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      setProfile(data as UserProfile);
+      setFirstName((data as any)?.first_name || '');
+      setLastName((data as any)?.last_name || '');
+      setCountry((data as any)?.country || '');
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load profile data');
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    
+    setProfileLoading(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
+          country: country.trim() || null,
+        })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      toast.success('Profile updated successfully');
+      fetchProfile();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -142,25 +195,88 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const downloadAllCertificates = async () => {
+  const handleDownloadCertificates = async () => {
+    if (!user) return;
+
     try {
-      const { data: certificates, error } = await supabase
+      const { data, error } = await supabase
         .from('certificates')
-        .select('*')
-        .eq('user_id', user?.id);
+        .select('id, certificate_type, issued_date, certificate_url')
+        .eq('user_id', user.id)
+        .order('issued_date', { ascending: false });
 
       if (error) throw error;
 
-      if (certificates.length === 0) {
+      if (!data || data.length === 0) {
         toast.info('No certificates available for download');
         return;
       }
 
-      // In a real implementation, you would zip the certificates or provide individual download links
-      toast.success(`Found ${certificates.length} certificates. Download functionality would be implemented here.`);
+      if (data.length === 1) {
+        // Single certificate - download directly
+        await handleSingleCertDownload(data[0]);
+      } else {
+        // Multiple certificates - show selection dialog
+        setCertificates(data);
+        setShowCertDialog(true);
+      }
     } catch (error) {
       console.error('Error fetching certificates:', error);
       toast.error('Failed to fetch certificates');
+    }
+  };
+
+  const getUserFullName = () => {
+    const fn = firstName?.trim();
+    const ln = lastName?.trim();
+    if (fn && ln) return `${fn} ${ln}`;
+    if (fn) return fn;
+    if (ln) return ln;
+    if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    return 'Guest';
+  };
+
+  const handleSingleCertDownload = async (cert: CertificateRecord) => {
+    if (!user) return;
+    setDownloadingCertId(cert.id);
+    
+    try {
+      const userName = getUserFullName();
+      const { data: userData } = await supabase
+        .from('users')
+        .select('otot_id')
+        .eq('user_id', user.id)
+        .single();
+
+      let blob: Blob;
+      if (cert.certificate_type === 'Pledge') {
+        blob = await generatePledgeCertificate({
+          userName,
+          userId: user.id,
+          ototId: userData?.otot_id,
+        });
+        downloadCertificate(blob, `pledge-certificate-${userName}.pdf`);
+      } else {
+        // For tree certificates, generate with minimal info
+        blob = await generateTreeCertificate({
+          userName,
+          userId: user.id,
+          numTrees: 1,
+          co2Offset: 22,
+          ototId: userData?.otot_id || '',
+        });
+        downloadCertificate(blob, `tree-certificate-${userName}.pdf`);
+      }
+      
+      toast.success('Certificate downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast.error('Failed to download certificate');
+    } finally {
+      setDownloadingCertId(null);
     }
   };
 
@@ -175,13 +291,66 @@ export const Profile: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Profile Information */}
+          {/* Left Column */}
           <div className="space-y-6">
+            {/* Personal Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Personal Information
+                </CardTitle>
                 <CardDescription>
-                  View your account details and carbon offset status
+                  Your name will appear on certificates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        placeholder="Enter first name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Enter last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="flex items-center gap-1">
+                      <Globe className="h-3.5 w-3.5" />
+                      Country
+                    </Label>
+                    <Input
+                      id="country"
+                      placeholder="e.g. Kenya, United States, Germany"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                    />
+                  </div>
+                  <Button type="submit" disabled={profileLoading} className="w-full">
+                    {profileLoading ? 'Saving...' : 'Save Profile'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Account Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Overview</CardTitle>
+                <CardDescription>
+                  Your account details and carbon offset status
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -230,15 +399,15 @@ export const Profile: React.FC = () => {
                   </>
                 )}
 
-                <Button onClick={downloadAllCertificates} variant="outline" className="w-full">
+                <Button onClick={handleDownloadCertificates} variant="outline" className="w-full">
                   <Download className="h-4 w-4 mr-2" />
-                  Download All Certificates
+                  Download Certificates
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Account Settings */}
+          {/* Right Column - Account Settings */}
           <div className="space-y-6">
             {/* Update Email */}
             <Card>
@@ -327,6 +496,56 @@ export const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Certificate Selection Dialog */}
+      <Dialog open={showCertDialog} onOpenChange={setShowCertDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Select Certificate
+            </DialogTitle>
+            <DialogDescription>
+              Choose which certificate you'd like to download
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {certificates.map((cert) => (
+              <button
+                key={cert.id}
+                onClick={() => handleSingleCertDownload(cert)}
+                disabled={downloadingCertId === cert.id}
+                className="w-full flex items-center gap-4 px-4 py-3 rounded-lg border border-border bg-background hover:bg-muted/60 transition-colors text-left disabled:opacity-60"
+              >
+                <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  cert.certificate_type === 'Pledge' 
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30' 
+                    : 'bg-blue-50 dark:bg-blue-950/30'
+                }`}>
+                  {downloadingCertId === cert.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <FileText className={`h-4 w-4 ${
+                      cert.certificate_type === 'Pledge' 
+                        ? 'text-emerald-600 dark:text-emerald-400' 
+                        : 'text-blue-600 dark:text-blue-400'
+                    }`} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">{cert.certificate_type} Certificate</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(cert.issued_date).toLocaleDateString('en-US', { 
+                      year: 'numeric', month: 'long', day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+                <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -3,6 +3,9 @@ import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { PledgeCertificate } from '@/components/certificates/PledgeCertificate';
 import { TreeCertificate } from '@/components/certificates/TreeCertificate';
+import { imageToBase64 } from '@/utils/imageToBase64';
+import ktbDualLogo from '@/assets/ktb-dual-logo.png';
+import kfsLogo2 from '@/assets/kfs-logo-2.png';
 
 interface GeneratePledgeCertificateParams {
   userName: string;
@@ -35,6 +38,19 @@ const generateQRCode = async (data: string): Promise<string> => {
   }
 };
 
+let cachedKtbLogo: string | null = null;
+let cachedKfsLogo: string | null = null;
+
+const getLogos = async () => {
+  if (!cachedKtbLogo) {
+    cachedKtbLogo = await imageToBase64(ktbDualLogo).catch(() => '');
+  }
+  if (!cachedKfsLogo) {
+    cachedKfsLogo = await imageToBase64(kfsLogo2).catch(() => '');
+  }
+  return { ktbLogoDataUrl: cachedKtbLogo, kfsLogoDataUrl: cachedKfsLogo };
+};
+
 export const generatePledgeCertificate = async ({
   userName,
   userId,
@@ -48,7 +64,10 @@ export const generatePledgeCertificate = async ({
   
   const certificateId = `PLD-${Date.now()}-${userId.substring(0, 8)}`;
   const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
-  const qrCodeDataUrl = await generateQRCode(verificationUrl);
+  const [qrCodeDataUrl, logos] = await Promise.all([
+    generateQRCode(verificationUrl),
+    getLogos(),
+  ]);
 
   // Save certificate record to database
   try {
@@ -69,6 +88,8 @@ export const generatePledgeCertificate = async ({
       certificateId={certificateId}
       ototId={ototId}
       qrCodeDataUrl={qrCodeDataUrl}
+      ktbLogoDataUrl={logos.ktbLogoDataUrl}
+      kfsLogoDataUrl={logos.kfsLogoDataUrl}
     />
   ).toBlob();
   
