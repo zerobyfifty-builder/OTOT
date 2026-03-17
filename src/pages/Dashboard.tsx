@@ -441,7 +441,7 @@ export const Dashboard: React.FC = () => {
                       </div>
                       <h2 className="text-xl font-bold text-foreground">My Responsible Traveler Pledge</h2>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-5 ml-[52px]">
+                    <p className="text-sm text-muted-foreground mb-4 sm:mb-5 ml-0 sm:ml-[52px]">
                       Share your pledge and inspire more travelers to make a difference.
                     </p>
                     <div className="space-y-2">
