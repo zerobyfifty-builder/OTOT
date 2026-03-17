@@ -139,6 +139,8 @@ export const generateTreeCertificate = async ({
       co2Offset={co2Offset}
       location={location}
       qrCodeDataUrl={qrCodeDataUrl}
+      ktbLogoDataUrl={logos.ktbLogoDataUrl}
+      kfsLogoDataUrl={logos.kfsLogoDataUrl}
     />
   ).toBlob();
   
