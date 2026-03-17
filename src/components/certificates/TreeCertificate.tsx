@@ -1,4 +1,7 @@
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+
+// Disable hyphenation to prevent word breaks with hyphens
+Font.registerHyphenationCallback(word => [word]);
 
 const styles = StyleSheet.create({
   page: {
