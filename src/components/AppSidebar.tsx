@@ -228,11 +228,12 @@ export function AppSidebar() {
                onClick={collapsed && !isFlowActive ? toggleSidebar : undefined}
                disabled={isFlowActive}
              >
-               <Avatar className="h-8 w-8 flex-shrink-0">
-                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-                   {getUserInitials()}
-                 </AvatarFallback>
-               </Avatar>
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  {profilePhoto && <AvatarImage src={profilePhoto} alt="Profile" />}
+                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
                {!collapsed && (
                  <div className="flex flex-col items-start overflow-hidden text-left">
                    <span className="text-sm font-medium truncate w-full text-sidebar-foreground">

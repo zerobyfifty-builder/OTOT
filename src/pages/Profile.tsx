@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Download, Calendar, DollarSign, User, Globe, FileText, Phone, Camera, Eye } from 'lucide-react';
 import { z } from 'zod';
 import { generatePledgeCertificate, generateTreeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import { CountrySelector } from '@/components/CountrySelector';
 import {
   Dialog,
   DialogContent,

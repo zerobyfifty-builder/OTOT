@@ -574,59 +574,92 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-14 text-base"
-                onClick={shareOnFacebook}
-              >
-                <Facebook className="mr-2 h-5 w-5" />
-                Facebook
+              <Button variant="secondary" size="lg" className="h-14 text-base" onClick={shareOnFacebook}>
+                <Facebook className="mr-2 h-5 w-5" /> Facebook
               </Button>
-              
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-14 text-base"
-                onClick={shareOnTwitter}
-              >
-                <Twitter className="mr-2 h-5 w-5" />
-                Twitter
+              <Button variant="secondary" size="lg" className="h-14 text-base" onClick={shareOnTwitter}>
+                <Twitter className="mr-2 h-5 w-5" /> Twitter
               </Button>
-              
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-14 text-base"
-                onClick={shareOnLinkedIn}
-              >
-                <Linkedin className="mr-2 h-5 w-5" />
-                LinkedIn
+              <Button variant="secondary" size="lg" className="h-14 text-base" onClick={shareOnLinkedIn}>
+                <Linkedin className="mr-2 h-5 w-5" /> LinkedIn
               </Button>
-              
-              <Button
-                variant="secondary"
-                size="lg"
-                className="h-14 text-base"
-                onClick={copyInstagramMessage}
-              >
-                <Instagram className="mr-2 h-5 w-5" />
-                Instagram
+              <Button variant="secondary" size="lg" className="h-14 text-base" onClick={copyInstagramMessage}>
+                <Instagram className="mr-2 h-5 w-5" /> Instagram
               </Button>
             </div>
 
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full h-14 text-base"
-              onClick={copyLink}
-            >
-              <Copy className="mr-2 h-5 w-5" />
-              Copy Link
+            <Button variant="secondary" size="lg" className="w-full h-14 text-base" onClick={copyLink}>
+              <Copy className="mr-2 h-5 w-5" /> Copy Link
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Certificate Selection Dialog */}
+      <Dialog open={showCertDialog} onOpenChange={setShowCertDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Download Certificate</DialogTitle>
+            <DialogDescription>Select a certificate to download or preview</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-2 max-h-[300px] overflow-y-auto">
+            {certificates.map((cert) => (
+              <div key={cert.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                <div>
+                  <p className="text-sm font-medium">{cert.certificate_type}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(cert.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    disabled={previewLoading === cert.id}
+                    onClick={() => handlePreviewCert(cert)}
+                  >
+                    {previewLoading === cert.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={downloadingCertId === cert.id}
+                    onClick={() => handleSingleCertDownload(cert)}
+                  >
+                    {downloadingCertId === cert.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <><Download className="h-3.5 w-3.5 mr-1" /> Download</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Certificate Preview Dialog */}
+      {previewCert && (
+        <Dialog open={!!previewCert} onOpenChange={() => setPreviewCert(null)}>
+          <DialogContent className="max-w-3xl h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>{previewCert.name}</DialogTitle>
+            </DialogHeader>
+            <iframe
+              src={URL.createObjectURL(previewCert.blob)}
+              className="w-full flex-1 rounded-lg border"
+              style={{ height: 'calc(80vh - 80px)' }}
+              title="Certificate Preview"
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
