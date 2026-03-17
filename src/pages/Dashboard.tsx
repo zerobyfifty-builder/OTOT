@@ -28,7 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { generatePledgeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import { generatePledgeCertificate, generateTreeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Eye } from 'lucide-react';
+
+interface CertificateRecord {
+  id: string;
+  certificate_type: string;
+  issued_date: string;
+  certificate_url: string;
+}
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -43,6 +51,12 @@ export const Dashboard: React.FC = () => {
   const { toast } = useToast();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [showCertDialog, setShowCertDialog] = useState(false);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
+  const [downloadingCertId, setDownloadingCertId] = useState<string | null>(null);
+  const [previewCert, setPreviewCert] = useState<{ blob: Blob; name: string } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState<string | null>(null);
+  const [userFirstName, setUserFirstName] = useState<string | null>(null);
 
   // Redirect institutional partners to their dashboard
   useEffect(() => {
