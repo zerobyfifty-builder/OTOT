@@ -89,11 +89,16 @@ export function AppSidebar() {
   };
 
   const getUserInitials = () => {
+    if (displayName) {
+      const parts = displayName.split(' ');
+      return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+    }
     if (!user?.email) return 'U';
     return user.email.charAt(0).toUpperCase();
   };
 
   const getUserDisplayName = () => {
+    if (displayName) return displayName;
     if (!user?.email) return 'User';
     return user.email.split('@')[0];
   };
