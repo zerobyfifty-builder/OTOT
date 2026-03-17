@@ -119,6 +119,8 @@ export const generateTreeCertificate = async ({
   ototId,
   location,
 }: GenerateTreeCertificateParams): Promise<Blob> => {
+  await ensureBuffer();
+
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

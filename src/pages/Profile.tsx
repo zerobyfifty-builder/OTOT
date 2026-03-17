@@ -627,118 +627,24 @@ export const Profile: React.FC = () => {
         </div>
       </div>
 
-      {/* Certificate Selection Dialog */}
-      <Dialog open={showCertDialog} onOpenChange={setShowCertDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Select Certificate
-            </DialogTitle>
-            <DialogDescription>
-              Preview or download your certificates
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {certificates.map((cert) => (
-              <div
-                key={cert.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-background"
-              >
-                <div className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  cert.certificate_type === 'Pledge' 
-                    ? 'bg-primary/10' 
-                    : 'bg-blue-50 dark:bg-blue-950/30'
-                }`}>
-                  <FileText className={`h-4 w-4 ${
-                    cert.certificate_type === 'Pledge' 
-                      ? 'text-primary' 
-                      : 'text-blue-600 dark:text-blue-400'
-                  }`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{cert.certificate_type} Certificate</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(cert.issued_date).toLocaleDateString('en-US', { 
-                      year: 'numeric', month: 'long', day: 'numeric' 
-                    })}
-                  </p>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    disabled={previewLoading === cert.id}
-                    onClick={() => handlePreviewCert(cert)}
-                    title="Preview"
-                  >
-                    {previewLoading === cert.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    disabled={downloadingCertId === cert.id}
-                    onClick={() => handleSingleCertDownload(cert)}
-                    title="Download"
-                  >
-                    {downloadingCertId === cert.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CertificateSelectionDialog
+        open={showCertDialog}
+        onOpenChange={setShowCertDialog}
+        certificates={certificates}
+        previewLoading={previewLoading}
+        downloadingCertId={downloadingCertId}
+        onPreview={handlePreviewCert}
+        onDownload={handleSingleCertDownload}
+      />
 
-      {/* Certificate Preview Dialog */}
-      <Dialog open={!!previewCert} onOpenChange={() => setPreviewCert(null)}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Certificate Preview</DialogTitle>
-            <DialogDescription>Preview your certificate below. You can also download or open it in a new tab.</DialogDescription>
-          </DialogHeader>
-          {previewCert && (
-            <div className="space-y-4">
-              <div className="w-full h-[60vh] border border-border rounded-lg overflow-hidden bg-muted">
-                <object
-                  data={URL.createObjectURL(previewCert.blob)}
-                  type="application/pdf"
-                  className="w-full h-full"
-                >
-                  <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
-                    <p className="text-muted-foreground">PDF preview is not available in this browser.</p>
-                    <Button onClick={() => { const url = URL.createObjectURL(previewCert.blob); window.open(url, '_blank'); }}>
-                      Open in New Tab
-                    </Button>
-                  </div>
-                </object>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setPreviewCert(null)}>
-                  Close
-                </Button>
-                <Button onClick={() => {
-                  downloadCertificate(previewCert.blob, previewCert.name);
-                  toast.success('Certificate downloaded');
-                }}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <CertificatePreviewDialog
+        previewCert={previewCert}
+        onClose={() => setPreviewCert(null)}
+        onDownload={({ blob, name }) => {
+          downloadCertificate(blob, name);
+          toast.success('Certificate downloaded');
+        }}
+      />
     </div>
   );
 };
