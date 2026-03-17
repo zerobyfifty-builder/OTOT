@@ -69,6 +69,8 @@ export const generatePledgeCertificate = async ({
   userId,
   ototId,
 }: GeneratePledgeCertificateParams): Promise<Blob> => {
+  await ensureBuffer();
+
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
