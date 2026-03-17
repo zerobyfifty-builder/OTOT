@@ -1308,6 +1308,7 @@ export type Database = {
           country: string | null
           created_at: string
           created_via: string | null
+          date_of_birth: string | null
           email: string
           email_verified: boolean | null
           first_name: string | null
@@ -1317,8 +1318,10 @@ export type Database = {
           organization_id: string | null
           otot_id: string | null
           password_hash: string | null
+          phone_number: string | null
           pledge_date: string | null
           pledge_status: boolean
+          profile_photo_url: string | null
           role_id: string | null
           total_donation: number
           updated_at: string
@@ -1328,6 +1331,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_via?: string | null
+          date_of_birth?: string | null
           email: string
           email_verified?: boolean | null
           first_name?: string | null
@@ -1337,8 +1341,10 @@ export type Database = {
           organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
+          phone_number?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
+          profile_photo_url?: string | null
           role_id?: string | null
           total_donation?: number
           updated_at?: string
@@ -1348,6 +1354,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_via?: string | null
+          date_of_birth?: string | null
           email?: string
           email_verified?: boolean | null
           first_name?: string | null
@@ -1357,8 +1364,10 @@ export type Database = {
           organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
+          phone_number?: string | null
           pledge_date?: string | null
           pledge_status?: boolean
+          profile_photo_url?: string | null
           role_id?: string | null
           total_donation?: number
           updated_at?: string
