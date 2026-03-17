@@ -40,7 +40,7 @@ interface CertificatePreviewDialogProps {
 /*  Share helper                                                       */
 /* ------------------------------------------------------------------ */
 
-const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+const shareUrl = 'https://mvp.the1campaign.com';
 
 const buildShareMessage = (certName: string) =>
   `I just earned my ${certName} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya`;
