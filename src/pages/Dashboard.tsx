@@ -342,7 +342,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}
-        <section className="relative py-12 px-8 rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
+        <section className="relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
           {/* Decorative pattern background */}
           <div className="absolute inset-0 opacity-5 pointer-events-none">
             <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
@@ -352,7 +352,7 @@ export const Dashboard: React.FC = () => {
           
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10 gap-6">
-              <h2 className="text-4xl font-bold text-foreground">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                 Take Action Today
               </h2>
               <div className="flex flex-wrap gap-4">
