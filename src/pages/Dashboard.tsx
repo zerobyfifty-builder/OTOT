@@ -36,7 +36,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye } from 'lucide-react';
+import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog';
+import { CertificateSelectionDialog } from '@/components/certificates/CertificateSelectionDialog';
 
 interface CertificateRecord {
   id: string;

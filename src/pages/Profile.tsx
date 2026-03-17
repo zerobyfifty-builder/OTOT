@@ -9,17 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, Calendar, DollarSign, User, Globe, FileText, Phone, Camera, Eye } from 'lucide-react';
+import { ArrowLeft, Download, Calendar, DollarSign, User, Globe, Phone, Camera } from 'lucide-react';
 import { z } from 'zod';
 import { generatePledgeCertificate, generateTreeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
 import { CountrySelector } from '@/components/CountrySelector';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog';
+import { CertificateSelectionDialog } from '@/components/certificates/CertificateSelectionDialog';
 
 const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
