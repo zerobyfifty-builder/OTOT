@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Download, ExternalLink } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Download,
+  ExternalLink,
+  Facebook,
+  Linkedin,
+  Share2,
+  Twitter,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +19,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export interface CertificatePreviewFile {
   blob: Blob;
@@ -20,6 +35,90 @@ interface CertificatePreviewDialogProps {
   onClose: () => void;
   onDownload: (certificate: CertificatePreviewFile) => void;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Share helper                                                       */
+/* ------------------------------------------------------------------ */
+
+const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+const buildShareMessage = (certName: string) =>
+  `I just earned my ${certName} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya`;
+
+const ShareMenu = ({ certName }: { certName: string }) => {
+  const [copied, setCopied] = useState(false);
+  const message = buildShareMessage(certName);
+
+  const shareOnFacebook = () =>
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(message)}`,
+      '_blank',
+      'width=600,height=400',
+    );
+
+  const shareOnTwitter = () =>
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(shareUrl)}`,
+      '_blank',
+      'width=600,height=400',
+    );
+
+  const shareOnLinkedIn = () =>
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      '_blank',
+      'width=600,height=400',
+    );
+
+  const copyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(`${message}\n${shareUrl}`);
+      setCopied(true);
+      toast.success('Message & link copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+
+  return (
+    <div className="grid w-56 gap-1 p-1">
+      <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+        Share your certificate
+      </p>
+      <button
+        onClick={shareOnFacebook}
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+      >
+        <Facebook className="h-4 w-4" /> Facebook
+      </button>
+      <button
+        onClick={shareOnTwitter}
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+      >
+        <Twitter className="h-4 w-4" /> Twitter / X
+      </button>
+      <button
+        onClick={shareOnLinkedIn}
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+      >
+        <Linkedin className="h-4 w-4" /> LinkedIn
+      </button>
+      <div className="my-1 h-px bg-border" />
+      <button
+        onClick={copyMessage}
+        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted transition-colors"
+      >
+        {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+        {copied ? 'Copied!' : 'Copy message & link'}
+      </button>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/*  Main dialog                                                        */
+/* ------------------------------------------------------------------ */
 
 export const CertificatePreviewDialog = ({
   previewCert,
@@ -47,6 +146,8 @@ export const CertificatePreviewDialog = ({
       window.open(previewUrl, '_blank', 'noopener,noreferrer');
     }
   };
+
+  const certDisplayName = previewCert?.name?.replace('.pdf', '') || 'Certificate';
 
   return (
     <Dialog open={!!previewCert} onOpenChange={(open) => !open && onClose()}>
@@ -81,20 +182,36 @@ export const CertificatePreviewDialog = ({
             )}
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-            <Button variant="outline" onClick={openInNewTab} disabled={!previewUrl}>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Open in New Tab
-            </Button>
-            {previewCert && (
-              <Button onClick={() => onDownload(previewCert)}>
-                <Download className="mr-2 h-4 w-4" />
-                Download
+          <div className="flex items-center justify-between gap-2">
+            {/* Share action – left side */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0">
+                <ShareMenu certName={certDisplayName} />
+              </PopoverContent>
+            </Popover>
+
+            {/* Primary actions – right side */}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Close
               </Button>
-            )}
+              <Button variant="outline" onClick={openInNewTab} disabled={!previewUrl}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Open in New Tab
+              </Button>
+              {previewCert && (
+                <Button onClick={() => onDownload(previewCert)}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
