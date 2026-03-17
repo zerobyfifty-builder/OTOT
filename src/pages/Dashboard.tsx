@@ -89,8 +89,24 @@ export const Dashboard: React.FC = () => {
     checkUserRole();
   }, [user, navigate]);
 
+  // Fetch user first name for welcome greeting
+  useEffect(() => {
+    const fetchName = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('users')
+        .select('first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+      const fn = (data as any)?.first_name?.trim();
+      if (fn) setUserFirstName(fn);
+    };
+    fetchName();
+  }, [user]);
+
   // Extract user's first name from email or use a default
   const getUserName = () => {
+    if (userFirstName) return userFirstName;
     if (!user?.email) return 'Guest';
     const emailName = user.email.split('@')[0];
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
@@ -111,40 +127,104 @@ export const Dashboard: React.FC = () => {
     return getUserName();
   };
 
-  // Handle certificate download
+  const generateCertBlob = async (cert: CertificateRecord) => {
+    const userName = await getFullName();
+    const { data: userData } = await supabase
+      .from('users')
+      .select('otot_id')
+      .eq('user_id', user!.id)
+      .single();
+
+    if (cert.certificate_type === 'Pledge') {
+      return generatePledgeCertificate({ userName, userId: user!.id, ototId: userData?.otot_id });
+    } else {
+      return generateTreeCertificate({
+        userName,
+        userId: user!.id,
+        numTrees: 1,
+        co2Offset: 22,
+        ototId: userData?.otot_id || '',
+      });
+    }
+  };
+
+  // Handle certificate download with multi-cert dialog
   const handleDownloadCertificate = async () => {
     if (!user) return;
-    
+
+    try {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('id, certificate_type, issued_date, certificate_url')
+        .eq('user_id', user.id)
+        .order('issued_date', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        // No certificates yet - generate pledge cert directly
+        setIsDownloadingCertificate(true);
+        try {
+          const userName = await getFullName();
+          const blob = await generatePledgeCertificate({
+            userName,
+            userId: user.id,
+          });
+          downloadCertificate(blob, `pledge-certificate-${userName}.pdf`);
+          toast({ title: "Certificate Downloaded", description: "Your pledge certificate has been downloaded!" });
+        } finally {
+          setIsDownloadingCertificate(false);
+        }
+        return;
+      }
+
+      if (data.length === 1) {
+        await handleSingleCertDownload(data[0]);
+      } else {
+        setCertificates(data);
+        setShowCertDialog(true);
+      }
+    } catch (error) {
+      console.error('Error fetching certificates:', error);
+      toast({ title: "Download Failed", description: "There was an error. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handleSingleCertDownload = async (cert: CertificateRecord) => {
+    if (!user) return;
+    setDownloadingCertId(cert.id);
     setIsDownloadingCertificate(true);
     try {
+      const blob = await generateCertBlob(cert);
       const userName = await getFullName();
-      const { data: userData } = await supabase
-        .from('users')
-        .select('otot_id')
-        .eq('user_id', user.id)
-        .single();
-
-      const blob = await generatePledgeCertificate({
-        userName,
-        userId: user.id,
-        ototId: userData?.otot_id,
-      });
-
-      downloadCertificate(blob, `pledge-certificate-${userName}.pdf`);
-      
-      toast({
-        title: "Certificate Downloaded",
-        description: "Your pledge certificate has been downloaded successfully!",
-      });
+      const filename = cert.certificate_type === 'Pledge'
+        ? `pledge-certificate-${userName}.pdf`
+        : `tree-certificate-${userName}.pdf`;
+      downloadCertificate(blob, filename);
+      toast({ title: "Certificate Downloaded", description: "Your certificate has been downloaded!" });
     } catch (error) {
       console.error('Error downloading certificate:', error);
-      toast({
-        title: "Download Failed",
-        description: "There was an error downloading your certificate. Please try again.",
-        variant: "destructive",
-      });
+      toast({ title: "Download Failed", description: "There was an error. Please try again.", variant: "destructive" });
     } finally {
+      setDownloadingCertId(null);
       setIsDownloadingCertificate(false);
+    }
+  };
+
+  const handlePreviewCert = async (cert: CertificateRecord) => {
+    setPreviewLoading(cert.id);
+    try {
+      const blob = await generateCertBlob(cert);
+      const userName = await getFullName();
+      const filename = cert.certificate_type === 'Pledge'
+        ? `pledge-certificate-${userName}.pdf`
+        : `tree-certificate-${userName}.pdf`;
+      setPreviewCert({ blob, name: filename });
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      toast({ title: "Preview Failed", description: "Could not generate preview.", variant: "destructive" });
+    } finally {
+      setPreviewLoading(null);
     }
   };
 
