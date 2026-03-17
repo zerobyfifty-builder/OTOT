@@ -1305,12 +1305,15 @@ export type Database = {
       }
       users: {
         Row: {
+          country: string | null
           created_at: string
           created_via: string | null
           email: string
           email_verified: boolean | null
+          first_name: string | null
           id: string
           last_login_at: string | null
+          last_name: string | null
           organization_id: string | null
           otot_id: string | null
           password_hash: string | null
@@ -1322,12 +1325,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          country?: string | null
           created_at?: string
           created_via?: string | null
           email: string
           email_verified?: boolean | null
+          first_name?: string | null
           id?: string
           last_login_at?: string | null
+          last_name?: string | null
           organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
@@ -1339,12 +1345,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          country?: string | null
           created_at?: string
           created_via?: string | null
           email?: string
           email_verified?: boolean | null
+          first_name?: string | null
           id?: string
           last_login_at?: string | null
+          last_name?: string | null
           organization_id?: string | null
           otot_id?: string | null
           password_hash?: string | null
