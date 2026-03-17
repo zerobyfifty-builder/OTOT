@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Home, Plane, TreePine, Calculator, Settings, LogOut, ChevronLeft, ChevronRight, Shield, Map, FileText, BarChart3 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar,
   SidebarContent,
@@ -21,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
@@ -50,6 +51,26 @@ export function AppSidebar() {
     }
   }, [isFlowActive, collapsed, setOpen]);
 
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('users')
+        .select('first_name, last_name, profile_photo_url')
+        .eq('user_id', user.id)
+        .single();
+      const fn = (data as any)?.first_name?.trim();
+      const ln = (data as any)?.last_name?.trim();
+      if (fn && ln) setDisplayName(`${fn} ${ln}`);
+      else if (fn) setDisplayName(fn);
+      if ((data as any)?.profile_photo_url) setProfilePhoto((data as any).profile_photo_url);
+    };
+    fetchUserProfile();
+  }, [user]);
+
   const adminItems = [
     { title: 'Admin Dashboard', url: '/admin/dashboard', icon: Shield },
     { title: 'Trees Management', url: '/admin/trees', icon: TreePine },
@@ -68,11 +89,16 @@ export function AppSidebar() {
   };
 
   const getUserInitials = () => {
+    if (displayName) {
+      const parts = displayName.split(' ');
+      return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+    }
     if (!user?.email) return 'U';
     return user.email.charAt(0).toUpperCase();
   };
 
   const getUserDisplayName = () => {
+    if (displayName) return displayName;
     if (!user?.email) return 'User';
     return user.email.split('@')[0];
   };
@@ -202,11 +228,12 @@ export function AppSidebar() {
                onClick={collapsed && !isFlowActive ? toggleSidebar : undefined}
                disabled={isFlowActive}
              >
-               <Avatar className="h-8 w-8 flex-shrink-0">
-                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-                   {getUserInitials()}
-                 </AvatarFallback>
-               </Avatar>
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  {profilePhoto && <AvatarImage src={profilePhoto} alt="Profile" />}
+                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
                {!collapsed && (
                  <div className="flex flex-col items-start overflow-hidden text-left">
                    <span className="text-sm font-medium truncate w-full text-sidebar-foreground">

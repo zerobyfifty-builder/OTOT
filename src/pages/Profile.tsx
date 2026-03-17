@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Download, Calendar, DollarSign, User, Globe, FileText, Phone, Camera, Eye } from 'lucide-react';
 import { z } from 'zod';
 import { generatePledgeCertificate, generateTreeCertificate, downloadCertificate } from '@/utils/certificateGenerator';
+import { CountrySelector } from '@/components/CountrySelector';
 import {
   Dialog,
   DialogContent,
@@ -470,12 +471,7 @@ export const Profile: React.FC = () => {
                       <Globe className="h-3.5 w-3.5" />
                       Country
                     </Label>
-                    <Input
-                      id="country"
-                      placeholder="e.g. Kenya, United States, Germany"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    />
+                    <CountrySelector value={country} onChange={setCountry} />
                   </div>
                   <Button type="submit" disabled={profileLoading} className="w-full">
                     {profileLoading ? 'Saving...' : 'Save Profile'}
