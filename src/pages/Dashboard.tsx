@@ -418,10 +418,10 @@ export const Dashboard: React.FC = () => {
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="relative overflow-hidden">
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 {!stats?.hasPledged ? (
                   <>
-                    <h2 className="text-2xl font-bold mb-4">Take the Responsible Traveler Pledge</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Take the Responsible Traveler Pledge</h2>
                     <p className="text-muted-foreground mb-6">
                       Commit to 10 principles of responsible tourism and make a positive impact on Kenya's environment and communities.
                     </p>
