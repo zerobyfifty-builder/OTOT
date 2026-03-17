@@ -352,7 +352,7 @@ export const Dashboard: React.FC = () => {
           
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10 gap-6">
-              <h2 className="text-4xl font-bold text-foreground">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
                 Take Action Today
               </h2>
               <div className="flex flex-wrap gap-4">
