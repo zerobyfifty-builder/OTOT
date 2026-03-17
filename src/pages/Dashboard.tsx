@@ -36,7 +36,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye } from 'lucide-react';
+import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog';
+import { CertificateSelectionDialog } from '@/components/certificates/CertificateSelectionDialog';
 
 interface CertificateRecord {
   id: string;
@@ -595,86 +596,21 @@ export const Dashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Certificate Selection Dialog */}
-      <Dialog open={showCertDialog} onOpenChange={setShowCertDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Download Certificate</DialogTitle>
-            <DialogDescription>Select a certificate to download or preview</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 mt-2 max-h-[300px] overflow-y-auto">
-            {certificates.map((cert) => (
-              <div key={cert.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                <div>
-                  <p className="text-sm font-medium">{cert.certificate_type}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(cert.issued_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    disabled={previewLoading === cert.id}
-                    onClick={() => handlePreviewCert(cert)}
-                  >
-                    {previewLoading === cert.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={downloadingCertId === cert.id}
-                    onClick={() => handleSingleCertDownload(cert)}
-                  >
-                    {downloadingCertId === cert.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <><Download className="h-3.5 w-3.5 mr-1" /> Download</>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CertificateSelectionDialog
+        open={showCertDialog}
+        onOpenChange={setShowCertDialog}
+        certificates={certificates}
+        previewLoading={previewLoading}
+        downloadingCertId={downloadingCertId}
+        onPreview={handlePreviewCert}
+        onDownload={handleSingleCertDownload}
+      />
 
-      {/* Certificate Preview Dialog */}
-      {previewCert && (
-        <Dialog open={!!previewCert} onOpenChange={() => { if (previewCert) { URL.revokeObjectURL(URL.createObjectURL(previewCert.blob)); } setPreviewCert(null); }}>
-          <DialogContent className="max-w-3xl h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>{previewCert.name}</DialogTitle>
-              <DialogDescription>Preview your certificate below. You can also download or open it in a new tab.</DialogDescription>
-            </DialogHeader>
-            <object
-              data={URL.createObjectURL(previewCert.blob)}
-              type="application/pdf"
-              className="w-full flex-1 rounded-lg border"
-              style={{ height: 'calc(80vh - 120px)' }}
-            >
-              <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
-                <p className="text-muted-foreground">PDF preview is not available in this browser.</p>
-                <Button onClick={() => { const url = URL.createObjectURL(previewCert.blob); window.open(url, '_blank'); }}>
-                  Open in New Tab
-                </Button>
-              </div>
-            </object>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setPreviewCert(null)}>Close</Button>
-              <Button onClick={() => { downloadCertificate(previewCert.blob, previewCert.name); }}>
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <CertificatePreviewDialog
+        previewCert={previewCert}
+        onClose={() => setPreviewCert(null)}
+        onDownload={({ blob, name }) => downloadCertificate(blob, name)}
+      />
     </div>
   );
 };

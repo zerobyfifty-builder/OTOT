@@ -7,6 +7,19 @@ import { imageToBase64 } from '@/utils/imageToBase64';
 import ktbDualLogo from '@/assets/ktb-dual-logo.png';
 import kfsLogo2 from '@/assets/kfs-logo-2.png';
 
+type GlobalWithBuffer = typeof globalThis & {
+  Buffer?: typeof import('buffer').Buffer;
+};
+
+const ensureBuffer = async () => {
+  const globalWithBuffer = globalThis as GlobalWithBuffer;
+
+  if (!globalWithBuffer.Buffer) {
+    const { Buffer } = await import('buffer');
+    globalWithBuffer.Buffer = Buffer;
+  }
+};
+
 interface GeneratePledgeCertificateParams {
   userName: string;
   userId: string;
@@ -56,6 +69,8 @@ export const generatePledgeCertificate = async ({
   userId,
   ototId,
 }: GeneratePledgeCertificateParams): Promise<Blob> => {
+  await ensureBuffer();
+
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -104,6 +119,8 @@ export const generateTreeCertificate = async ({
   ototId,
   location,
 }: GenerateTreeCertificateParams): Promise<Blob> => {
+  await ensureBuffer();
+
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
