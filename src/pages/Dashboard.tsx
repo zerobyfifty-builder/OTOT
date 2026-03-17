@@ -479,10 +479,11 @@ export const Dashboard: React.FC = () => {
                       </button>
 
                       <button
-                        onClick={() => {
-                          const url = window.location.origin + '/pledge';
-                          navigator.clipboard.writeText(url);
-                          toast({ title: "Link Copied!", description: "Invite link copied to clipboard. Share it with your friends!" });
+                        onClick={async () => {
+                          const fullName = await getFullName();
+                          const inviteMessage = `I just earned my pledge-certificate-${fullName} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya\n\nhttps://mvp.the1campaign.com`;
+                          navigator.clipboard.writeText(inviteMessage);
+                          toast({ title: "Message & Link Copied!", description: "Invite message copied to clipboard. Share it with your friends!" });
                         }}
                         className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors group"
                       >
