@@ -27,7 +27,7 @@ export const RecentTrips: React.FC = () => {
         .select('id, origin_airport, destination_airport, total_co2, trees_needed, from_date, travel_class')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(4);
+        .limit(3);
 
       if (error) throw error;
       if (!trips || trips.length === 0) return [];
