@@ -710,15 +710,23 @@ export const Profile: React.FC = () => {
         <DialogContent className="sm:max-w-3xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Certificate Preview</DialogTitle>
+            <DialogDescription>Preview your certificate below. You can also download or open it in a new tab.</DialogDescription>
           </DialogHeader>
           {previewCert && (
             <div className="space-y-4">
               <div className="w-full h-[60vh] border border-border rounded-lg overflow-hidden bg-muted">
-                <iframe
-                  src={URL.createObjectURL(previewCert.blob)}
+                <object
+                  data={URL.createObjectURL(previewCert.blob)}
+                  type="application/pdf"
                   className="w-full h-full"
-                  title="Certificate Preview"
-                />
+                >
+                  <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+                    <p className="text-muted-foreground">PDF preview is not available in this browser.</p>
+                    <Button onClick={() => { const url = URL.createObjectURL(previewCert.blob); window.open(url, '_blank'); }}>
+                      Open in New Tab
+                    </Button>
+                  </div>
+                </object>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setPreviewCert(null)}>

@@ -646,17 +646,32 @@ export const Dashboard: React.FC = () => {
 
       {/* Certificate Preview Dialog */}
       {previewCert && (
-        <Dialog open={!!previewCert} onOpenChange={() => setPreviewCert(null)}>
+        <Dialog open={!!previewCert} onOpenChange={() => { if (previewCert) { URL.revokeObjectURL(URL.createObjectURL(previewCert.blob)); } setPreviewCert(null); }}>
           <DialogContent className="max-w-3xl h-[80vh]">
             <DialogHeader>
               <DialogTitle>{previewCert.name}</DialogTitle>
+              <DialogDescription>Preview your certificate below. You can also download or open it in a new tab.</DialogDescription>
             </DialogHeader>
-            <iframe
-              src={URL.createObjectURL(previewCert.blob)}
+            <object
+              data={URL.createObjectURL(previewCert.blob)}
+              type="application/pdf"
               className="w-full flex-1 rounded-lg border"
-              style={{ height: 'calc(80vh - 80px)' }}
-              title="Certificate Preview"
-            />
+              style={{ height: 'calc(80vh - 120px)' }}
+            >
+              <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+                <p className="text-muted-foreground">PDF preview is not available in this browser.</p>
+                <Button onClick={() => { const url = URL.createObjectURL(previewCert.blob); window.open(url, '_blank'); }}>
+                  Open in New Tab
+                </Button>
+              </div>
+            </object>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setPreviewCert(null)}>Close</Button>
+              <Button onClick={() => { downloadCertificate(previewCert.blob, previewCert.name); }}>
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       )}
