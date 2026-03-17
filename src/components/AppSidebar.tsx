@@ -51,6 +51,26 @@ export function AppSidebar() {
     }
   }, [isFlowActive, collapsed, setOpen]);
 
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('users')
+        .select('first_name, last_name, profile_photo_url')
+        .eq('user_id', user.id)
+        .single();
+      const fn = (data as any)?.first_name?.trim();
+      const ln = (data as any)?.last_name?.trim();
+      if (fn && ln) setDisplayName(`${fn} ${ln}`);
+      else if (fn) setDisplayName(fn);
+      if ((data as any)?.profile_photo_url) setProfilePhoto((data as any).profile_photo_url);
+    };
+    fetchUserProfile();
+  }, [user]);
+
   const adminItems = [
     { title: 'Admin Dashboard', url: '/admin/dashboard', icon: Shield },
     { title: 'Trees Management', url: '/admin/trees', icon: TreePine },
