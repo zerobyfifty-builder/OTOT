@@ -198,9 +198,6 @@ export const CertificatePreviewDialog = ({
 
             {/* Primary actions – right side */}
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
-                Close
-              </Button>
               <Button variant="outline" onClick={openInNewTab} disabled={!previewUrl}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Open in New Tab
