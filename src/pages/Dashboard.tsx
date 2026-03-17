@@ -418,10 +418,10 @@ export const Dashboard: React.FC = () => {
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="relative overflow-hidden">
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 {!stats?.hasPledged ? (
                   <>
-                    <h2 className="text-2xl font-bold mb-4">Take the Responsible Traveler Pledge</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Take the Responsible Traveler Pledge</h2>
                     <p className="text-muted-foreground mb-6">
                       Commit to 10 principles of responsible tourism and make a positive impact on Kenya's environment and communities.
                     </p>
@@ -441,7 +441,7 @@ export const Dashboard: React.FC = () => {
                       </div>
                       <h2 className="text-xl font-bold text-foreground">My Responsible Traveler Pledge</h2>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-5 ml-[52px]">
+                    <p className="text-sm text-muted-foreground mb-4 sm:mb-5 ml-0 sm:ml-[52px]">
                       Share your pledge and inspire more travelers to make a difference.
                     </p>
                     <div className="space-y-2">
@@ -521,7 +521,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Section 3: Climate Action Cards */}
         <section>
-          <h2 className="text-3xl font-bold mb-8 text-left">Step up Your Climate Action</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-left">Step up Your Climate Action</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ClimateActionCard
               image={reduceFootprintImg}
@@ -546,7 +546,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Section 4: FAQ Accordion */}
         <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto">
             <FAQAccordion />
           </div>
