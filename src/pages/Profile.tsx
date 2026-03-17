@@ -470,12 +470,7 @@ export const Profile: React.FC = () => {
                       <Globe className="h-3.5 w-3.5" />
                       Country
                     </Label>
-                    <Input
-                      id="country"
-                      placeholder="e.g. Kenya, United States, Germany"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    />
+                    <CountrySelector value={country} onChange={setCountry} />
                   </div>
                   <Button type="submit" disabled={profileLoading} className="w-full">
                     {profileLoading ? 'Saving...' : 'Save Profile'}
