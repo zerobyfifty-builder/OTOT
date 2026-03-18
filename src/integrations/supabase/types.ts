@@ -700,36 +700,54 @@ export type Database = {
       }
       nurseries: {
         Row: {
+          address: string | null
           block_name: string
           capacity: number | null
           cbo_name: string
+          county: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
+          is_kefri_certified: boolean | null
           location: string | null
+          manager_name: string | null
+          manager_phone: string | null
           stakeholder_org_id: string
+          sub_county: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           block_name: string
           capacity?: number | null
           cbo_name: string
+          county?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_kefri_certified?: boolean | null
           location?: string | null
+          manager_name?: string | null
+          manager_phone?: string | null
           stakeholder_org_id: string
+          sub_county?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           block_name?: string
           capacity?: number | null
           cbo_name?: string
+          county?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_kefri_certified?: boolean | null
           location?: string | null
+          manager_name?: string | null
+          manager_phone?: string | null
           stakeholder_org_id?: string
+          sub_county?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -738,6 +756,42 @@ export type Database = {
             columns: ["stakeholder_org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nursery_species: {
+        Row: {
+          created_at: string | null
+          id: string
+          nursery_id: string
+          species_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nursery_id: string
+          species_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nursery_id?: string
+          species_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nursery_species_nursery_id_fkey"
+            columns: ["nursery_id"]
+            isOneToOne: false
+            referencedRelation: "nurseries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nursery_species_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "seed_species"
             referencedColumns: ["id"]
           },
         ]
