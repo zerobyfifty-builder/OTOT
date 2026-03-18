@@ -99,7 +99,8 @@ export default function TreesAll() {
           `
           *,
           users(email),
-          lodges(name)
+          lodges(name),
+          organizations:stakeholder_org_id(name)
         `,
           { count: "exact" }
         );
