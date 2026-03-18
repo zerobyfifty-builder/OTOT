@@ -18,15 +18,15 @@ export const StakeholderDashboard = () => {
     queryKey: ["stakeholderProfile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("users")
-        .select("*, roles!inner(name, display_name), organizations!inner(*)")
-        .eq("user_id", user.id)
-        .single();
+      const { data, error } = await supabase.
+      from("users").
+      select("*, roles!inner(name, display_name), organizations!inner(*)").
+      eq("user_id", user.id).
+      single();
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id
   });
 
   const { data: stats, isLoading } = useQuery({
@@ -35,11 +35,11 @@ export const StakeholderDashboard = () => {
       if (!orgInfo?.id) return null;
 
       const [plantingRes, nurseryRes, disbursementRes, monitoringRes] = await Promise.all([
-        supabase.from("planting_records").select("*").eq("stakeholder_org_id", orgInfo.id),
-        supabase.from("nurseries").select("*").eq("stakeholder_org_id", orgInfo.id),
-        supabase.from("stakeholder_disbursements").select("*").eq("stakeholder_org_id", orgInfo.id),
-        supabase.from("monitoring_records").select("*, planting_records!inner(stakeholder_org_id)"),
-      ]);
+      supabase.from("planting_records").select("*").eq("stakeholder_org_id", orgInfo.id),
+      supabase.from("nurseries").select("*").eq("stakeholder_org_id", orgInfo.id),
+      supabase.from("stakeholder_disbursements").select("*").eq("stakeholder_org_id", orgInfo.id),
+      supabase.from("monitoring_records").select("*, planting_records!inner(stakeholder_org_id)")]
+      );
 
       const plantings = plantingRes.data || [];
       const nurseries = nurseryRes.data || [];
@@ -47,25 +47,25 @@ export const StakeholderDashboard = () => {
       const monitoring = monitoringRes.data || [];
 
       const totalPlanted = plantings.reduce((s, p) => s + (p.seedlings_planted || 0), 0);
-      const activeNurseries = nurseries.filter(n => n.is_active).length;
-      const totalReceived = disbursements.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0);
-      const pendingDisbursements = disbursements.filter(d => d.status === 'pending').reduce((s, d) => s + Number(d.amount), 0);
+      const activeNurseries = nurseries.filter((n) => n.is_active).length;
+      const totalReceived = disbursements.filter((d) => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0);
+      const pendingDisbursements = disbursements.filter((d) => d.status === 'pending').reduce((s, d) => s + Number(d.amount), 0);
 
       // Survival rate from latest monitoring
-      const avgSurvival = monitoring.length > 0
-        ? monitoring.reduce((s, m) => s + (Number(m.survival_rate) || 0), 0) / monitoring.length
-        : 0;
+      const avgSurvival = monitoring.length > 0 ?
+      monitoring.reduce((s, m) => s + (Number(m.survival_rate) || 0), 0) / monitoring.length :
+      0;
 
       // Species distribution from planting records
       const speciesCounts: Record<string, number> = {};
-      plantings.forEach(p => {
+      plantings.forEach((p) => {
         const key = p.species_id || 'Unknown';
         speciesCounts[key] = (speciesCounts[key] || 0) + p.seedlings_planted;
       });
 
       // Monthly planting
       const monthlyPlanting: Record<string, number> = {};
-      plantings.forEach(p => {
+      plantings.forEach((p) => {
         const month = p.date_planted?.substring(0, 7) || 'Unknown';
         monthlyPlanting[month] = (monthlyPlanting[month] || 0) + p.seedlings_planted;
       });
@@ -79,10 +79,10 @@ export const StakeholderDashboard = () => {
         totalNurseries: nurseries.length,
         totalDisbursements: disbursements.length,
         recentPlantings: plantings.slice(0, 5),
-        monthlyData: Object.entries(monthlyPlanting).map(([month, count]) => ({ month, count })).sort((a, b) => a.month.localeCompare(b.month)),
+        monthlyData: Object.entries(monthlyPlanting).map(([month, count]) => ({ month, count })).sort((a, b) => a.month.localeCompare(b.month))
       };
     },
-    enabled: !!orgInfo?.id,
+    enabled: !!orgInfo?.id
   });
 
   useEffect(() => {
@@ -95,15 +95,15 @@ export const StakeholderDashboard = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           {orgInfo?.name || 'Stakeholder Dashboard'}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Plantation Partner — Mau Forest Complex</p>
+        <p className="text-sm text-muted-foreground mt-1">Mau Forest Complex</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {isLoading ? (
-          [...Array(5)].map((_, i) => <Skeleton key={i} className="h-32" />)
-        ) : (
-          <>
+        {isLoading ?
+        [...Array(5)].map((_, i) => <Skeleton key={i} className="h-32" />) :
+
+        <>
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export const StakeholderDashboard = () => {
               </CardContent>
             </Card>
           </>
-        )}
+        }
       </div>
 
       {/* Charts */}
@@ -181,10 +181,10 @@ export const StakeholderDashboard = () => {
             <CardDescription>Seedlings planted over time</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-64 w-full" />
-            ) : stats?.monthlyData && stats.monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={256}>
+            {isLoading ?
+            <Skeleton className="h-64 w-full" /> :
+            stats?.monthlyData && stats.monthlyData.length > 0 ?
+            <ResponsiveContainer width="100%" height={256}>
                 <BarChart data={stats.monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -192,12 +192,12 @@ export const StakeholderDashboard = () => {
                   <Tooltip />
                   <Bar dataKey="count" fill="hsl(142 70% 45%)" radius={[4, 4, 0, 0]} name="Seedlings" />
                 </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-muted-foreground">
+              </ResponsiveContainer> :
+
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <p className="text-sm">No planting data yet. Start recording plantings.</p>
               </div>
-            )}
+            }
           </CardContent>
         </Card>
 
@@ -240,10 +240,10 @@ export const StakeholderDashboard = () => {
           <CardTitle className="text-lg">Recent Planting Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          {stats?.recentPlantings && stats.recentPlantings.length > 0 ? (
-            <div className="space-y-3">
-              {stats.recentPlantings.map((p: any) => (
-                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
+          {stats?.recentPlantings && stats.recentPlantings.length > 0 ?
+          <div className="space-y-3">
+              {stats.recentPlantings.map((p: any) =>
+            <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                   <div>
                     <p className="text-sm font-medium">{p.block_name} — Beat {p.beat || 'N/A'}</p>
                     <p className="text-xs text-muted-foreground">Planted by {p.planter_name || 'Unknown'} on {p.date_planted}</p>
@@ -253,13 +253,13 @@ export const StakeholderDashboard = () => {
                     <p className="text-xs text-muted-foreground">seedlings</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No planting records yet.</p>
-          )}
+            )}
+            </div> :
+
+          <p className="text-sm text-muted-foreground text-center py-8">No planting records yet.</p>
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
