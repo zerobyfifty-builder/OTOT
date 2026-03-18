@@ -106,6 +106,15 @@ const menuItems = [
     ],
   },
   {
+    title: "Stakeholders",
+    icon: Landmark,
+    items: [
+      { title: "All Stakeholders", url: "/admin/stakeholders" },
+      { title: "Create New", url: "/admin/stakeholders/create" },
+      { title: "Module Assignment", url: "/admin/stakeholders/modules" },
+    ],
+  },
+  {
     title: "Activity Monitor",
     url: "/admin/activity",
     icon: Activity,
