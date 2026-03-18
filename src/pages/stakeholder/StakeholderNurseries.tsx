@@ -225,6 +225,19 @@ export const StakeholderNurseries = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("nurseries").update({ is_active: !is_active } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(`Nursery ${statusTarget?.is_active ? "deactivated" : "activated"} successfully`);
+      setStatusTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["nurseries"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const selectedSpeciesNames = useMemo(() => {
     if (!allSpecies) return [];
     return allSpecies.filter(s => form.selected_species.includes(s.id));
