@@ -575,6 +575,53 @@ export type Database = {
           },
         ]
       }
+      monitoring_records: {
+        Row: {
+          created_at: string | null
+          height_cm: number | null
+          id: string
+          measurement_date: string
+          notes: string | null
+          original_count: number | null
+          photos: Json | null
+          planting_record_id: string
+          survival_count: number | null
+          survival_rate: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          height_cm?: number | null
+          id?: string
+          measurement_date: string
+          notes?: string | null
+          original_count?: number | null
+          photos?: Json | null
+          planting_record_id: string
+          survival_count?: number | null
+          survival_rate?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          height_cm?: number | null
+          id?: string
+          measurement_date?: string
+          notes?: string | null
+          original_count?: number | null
+          photos?: Json | null
+          planting_record_id?: string
+          survival_count?: number | null
+          survival_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_records_planting_record_id_fkey"
+            columns: ["planting_record_id"]
+            isOneToOne: false
+            referencedRelation: "planting_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -647,6 +694,50 @@ export type Database = {
             columns: ["related_trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nurseries: {
+        Row: {
+          block_name: string
+          capacity: number | null
+          cbo_name: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          location: string | null
+          stakeholder_org_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          block_name: string
+          capacity?: number | null
+          cbo_name: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          stakeholder_org_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          block_name?: string
+          capacity?: number | null
+          cbo_name?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location?: string | null
+          stakeholder_org_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nurseries_stakeholder_org_id_fkey"
+            columns: ["stakeholder_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -901,6 +992,79 @@ export type Database = {
         }
         Relationships: []
       }
+      planting_records: {
+        Row: {
+          beat: string | null
+          block_name: string
+          created_at: string | null
+          date_planted: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          nursery_id: string | null
+          planter_name: string | null
+          seedlings_planted: number
+          species_id: string | null
+          stakeholder_org_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          beat?: string | null
+          block_name: string
+          created_at?: string | null
+          date_planted: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          nursery_id?: string | null
+          planter_name?: string | null
+          seedlings_planted?: number
+          species_id?: string | null
+          stakeholder_org_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          beat?: string | null
+          block_name?: string
+          created_at?: string | null
+          date_planted?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          nursery_id?: string | null
+          planter_name?: string | null
+          seedlings_planted?: number
+          species_id?: string | null
+          stakeholder_org_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planting_records_nursery_id_fkey"
+            columns: ["nursery_id"]
+            isOneToOne: false
+            referencedRelation: "nurseries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planting_records_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "seed_species"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planting_records_stakeholder_org_id_fkey"
+            columns: ["stakeholder_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reimbursements: {
         Row: {
           amount: number
@@ -977,6 +1141,128 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      seed_species: {
+        Row: {
+          category: string | null
+          certification_source: string | null
+          created_at: string | null
+          id: string
+          species_name: string
+        }
+        Insert: {
+          category?: string | null
+          certification_source?: string | null
+          created_at?: string | null
+          id?: string
+          species_name: string
+        }
+        Update: {
+          category?: string | null
+          certification_source?: string | null
+          created_at?: string | null
+          id?: string
+          species_name?: string
+        }
+        Relationships: []
+      }
+      seedling_batches: {
+        Row: {
+          created_at: string | null
+          date_sown: string | null
+          id: string
+          nursery_id: string
+          quantity: number
+          species_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_sown?: string | null
+          id?: string
+          nursery_id: string
+          quantity?: number
+          species_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_sown?: string | null
+          id?: string
+          nursery_id?: string
+          quantity?: number
+          species_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seedling_batches_nursery_id_fkey"
+            columns: ["nursery_id"]
+            isOneToOne: false
+            referencedRelation: "nurseries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seedling_batches_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "seed_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stakeholder_disbursements: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          disbursement_date: string
+          id: string
+          notes: string | null
+          reconciled_at: string | null
+          reference: string | null
+          stakeholder_org_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          disbursement_date: string
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          reference?: string | null
+          stakeholder_org_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          disbursement_date?: string
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          reference?: string | null
+          stakeholder_org_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_disbursements_stakeholder_org_id_fkey"
+            columns: ["stakeholder_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       travel_agent_sessions: {
         Row: {
@@ -1414,6 +1700,7 @@ export type Database = {
         Args: { _lodge_id: string; _session_token: string }
         Returns: boolean
       }
+      is_stakeholder: { Args: { user_id: string }; Returns: boolean }
       is_super_admin: { Args: { user_id: string }; Returns: boolean }
       users_in_same_org: {
         Args: { user1_id: string; user2_id: string }
