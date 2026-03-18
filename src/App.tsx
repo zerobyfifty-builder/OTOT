@@ -13,6 +13,7 @@ import { LodgeRoute } from "@/components/auth/LodgeRoute";
 import { AgentRoute } from "@/components/auth/AgentRoute";
 import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
+import { StakeholderRoute } from "@/components/auth/StakeholderRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
@@ -72,14 +73,25 @@ import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
 
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
+import { StakeholderSidebar } from "@/components/stakeholder/StakeholderSidebar";
 import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
 import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
+import AllStakeholders from "@/pages/admin/AllStakeholders";
+import CreateStakeholder from "@/pages/admin/CreateStakeholder";
+import StakeholderModules from "@/pages/admin/StakeholderModules";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
 import { AgentTickets } from "@/pages/agent/AgentTickets";
 import { AgentReimbursements } from "@/pages/agent/AgentReimbursements";
 import { AgentHelp } from "@/pages/agent/AgentHelp";
+import { StakeholderDashboard } from "@/pages/stakeholder/StakeholderDashboard";
+import { StakeholderNurseries } from "@/pages/stakeholder/StakeholderNurseries";
+import { StakeholderPlanting } from "@/pages/stakeholder/StakeholderPlanting";
+import { StakeholderMonitoring } from "@/pages/stakeholder/StakeholderMonitoring";
+import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
+import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
+import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -143,6 +155,17 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
         <div className="sticky top-0 right-0 z-10 flex justify-end p-4 pointer-events-none">
           <img src={ktbLogo} alt="KTB" className="h-14 object-contain pointer-events-auto" />
         </div>
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
+const StakeholderLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <StakeholderSidebar />
+      <main className="flex-1 overflow-auto bg-background">
         {children}
       </main>
     </div>
@@ -391,6 +414,53 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            
+            {/* Stakeholder admin routes */}
+            <Route path="/admin/stakeholders" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AllStakeholders />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/stakeholders/create" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <CreateStakeholder />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/stakeholders/modules" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <StakeholderModules />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Stakeholder Portal routes */}
+            <Route path="/stakeholder/dashboard" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderDashboard /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/nurseries" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/planting" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderPlanting /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/monitoring" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMonitoring /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/financial" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderFinancial /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/outcomes" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderOutcomes /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/admin" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderAdmin /></StakeholderLayout></StakeholderRoute>
+            } />
+
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
               <AdminRoute>

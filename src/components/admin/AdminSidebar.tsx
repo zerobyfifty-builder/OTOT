@@ -15,6 +15,7 @@ import {
   ChevronDown,
   LogOut,
   Plane,
+  Landmark,
 } from "lucide-react";
 import {
   Sidebar,
@@ -103,6 +104,15 @@ const menuItems = [
     items: [
       { title: "All Agents", url: "/admin/travel-agents" },
       { title: "Agent Tickets", url: "/admin/travel-agents/tickets" },
+    ],
+  },
+  {
+    title: "Stakeholders",
+    icon: Landmark,
+    items: [
+      { title: "All Stakeholders", url: "/admin/stakeholders" },
+      { title: "Create New", url: "/admin/stakeholders/create" },
+      { title: "Module Assignment", url: "/admin/stakeholders/modules" },
     ],
   },
   {
