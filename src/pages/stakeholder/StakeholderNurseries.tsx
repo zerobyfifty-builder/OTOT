@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, Sprout, RefreshCw, X, MoreVertical, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Sprout, RefreshCw, X, MoreVertical, Eye, Pencil, Trash2, Power } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -50,6 +50,7 @@ export const StakeholderNurseries = () => {
   const [form, setForm] = useState<NurseryForm>(emptyForm);
   const [speciesSearch, setSpeciesSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [statusTarget, setStatusTarget] = useState<{ id: string; name: string; is_active: boolean } | null>(null);
 
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
@@ -224,6 +225,19 @@ export const StakeholderNurseries = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("nurseries").update({ is_active: !is_active } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(`Nursery ${statusTarget?.is_active ? "deactivated" : "activated"} successfully`);
+      setStatusTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["nurseries"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const selectedSpeciesNames = useMemo(() => {
     if (!allSpecies) return [];
     return allSpecies.filter(s => form.selected_species.includes(s.id));
@@ -383,6 +397,31 @@ export const StakeholderNurseries = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Status Toggle Confirmation */}
+      <AlertDialog open={!!statusTarget} onOpenChange={(open) => { if (!open) setStatusTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{statusTarget?.is_active ? "Deactivate Nursery" : "Activate Nursery"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusTarget?.is_active ? (
+                <>Are you sure you want to deactivate <strong>{statusTarget?.name}</strong>? It will no longer appear in active lists.</>
+              ) : (
+                <>Are you sure you want to activate <strong>{statusTarget?.name}</strong>? It will be restored to active lists.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={statusMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => statusTarget && statusMutation.mutate({ id: statusTarget.id, is_active: statusTarget.is_active })}
+              disabled={statusMutation.isPending}
+            >
+              {statusMutation.isPending ? "Processing..." : statusTarget?.is_active ? "Deactivate" : "Activate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
@@ -436,6 +475,9 @@ export const StakeholderNurseries = () => {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openSheet('edit', n)}>
                             <Pencil className="h-4 w-4 mr-2" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setStatusTarget({ id: n.id, name: n.cbo_name, is_active: n.is_active ?? true })}>
+                            <Power className="h-4 w-4 mr-2" />{n.is_active ? "Deactivate" : "Activate"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget({ id: n.id, name: n.cbo_name })}>
