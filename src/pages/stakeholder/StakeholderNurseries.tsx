@@ -397,6 +397,31 @@ export const StakeholderNurseries = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Status Toggle Confirmation */}
+      <AlertDialog open={!!statusTarget} onOpenChange={(open) => { if (!open) setStatusTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{statusTarget?.is_active ? "Deactivate Nursery" : "Activate Nursery"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusTarget?.is_active ? (
+                <>Are you sure you want to deactivate <strong>{statusTarget?.name}</strong>? It will no longer appear in active lists.</>
+              ) : (
+                <>Are you sure you want to activate <strong>{statusTarget?.name}</strong>? It will be restored to active lists.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={statusMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => statusTarget && statusMutation.mutate({ id: statusTarget.id, is_active: statusTarget.is_active })}
+              disabled={statusMutation.isPending}
+            >
+              {statusMutation.isPending ? "Processing..." : statusTarget?.is_active ? "Deactivate" : "Activate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
