@@ -296,6 +296,56 @@ export type Database = {
         }
         Relationships: []
       }
+      community_impact: {
+        Row: {
+          created_at: string | null
+          families_supported: number | null
+          id: string
+          jobs_created: number | null
+          notes: string | null
+          nursery_income_kes: number | null
+          reporting_period: string
+          stakeholder_org_id: string
+          updated_at: string | null
+          women_employed: number | null
+          youth_employed: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          families_supported?: number | null
+          id?: string
+          jobs_created?: number | null
+          notes?: string | null
+          nursery_income_kes?: number | null
+          reporting_period: string
+          stakeholder_org_id: string
+          updated_at?: string | null
+          women_employed?: number | null
+          youth_employed?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          families_supported?: number | null
+          id?: string
+          jobs_created?: number | null
+          notes?: string | null
+          nursery_income_kes?: number | null
+          reporting_period?: string
+          stakeholder_org_id?: string
+          updated_at?: string | null
+          women_employed?: number | null
+          youth_employed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_impact_stakeholder_org_id_fkey"
+            columns: ["stakeholder_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ephemeral_sessions: {
         Row: {
           consumed: boolean | null
@@ -1275,11 +1325,13 @@ export type Database = {
           currency: string | null
           disbursement_date: string
           id: string
+          ktb_transfer_reference: string | null
           notes: string | null
           reconciled_at: string | null
           reference: string | null
           stakeholder_org_id: string
           status: string | null
+          tree_count: number | null
           updated_at: string | null
         }
         Insert: {
@@ -1288,11 +1340,13 @@ export type Database = {
           currency?: string | null
           disbursement_date: string
           id?: string
+          ktb_transfer_reference?: string | null
           notes?: string | null
           reconciled_at?: string | null
           reference?: string | null
           stakeholder_org_id: string
           status?: string | null
+          tree_count?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -1301,11 +1355,13 @@ export type Database = {
           currency?: string | null
           disbursement_date?: string
           id?: string
+          ktb_transfer_reference?: string | null
           notes?: string | null
           reconciled_at?: string | null
           reference?: string | null
           stakeholder_org_id?: string
           status?: string | null
+          tree_count?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1470,10 +1526,14 @@ export type Database = {
           num_trees: number
           otot_id: string
           plant_date: string | null
+          planting_status:
+            | Database["public"]["Enums"]["planting_progress_type"]
+            | null
           pledge_status:
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
+          stakeholder_org_id: string | null
           status: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id: string | null
           tree_type: string | null
@@ -1494,10 +1554,14 @@ export type Database = {
           num_trees?: number
           otot_id: string
           plant_date?: string | null
+          planting_status?:
+            | Database["public"]["Enums"]["planting_progress_type"]
+            | null
           pledge_status?:
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
+          stakeholder_org_id?: string | null
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id?: string | null
           tree_type?: string | null
@@ -1518,10 +1582,14 @@ export type Database = {
           num_trees?: number
           otot_id?: string
           plant_date?: string | null
+          planting_status?:
+            | Database["public"]["Enums"]["planting_progress_type"]
+            | null
           pledge_status?:
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type?: Database["public"]["Enums"]["purchase_type"]
+          stakeholder_org_id?: string | null
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id?: string | null
           tree_type?: string | null
@@ -1535,6 +1603,13 @@ export type Database = {
             columns: ["lodge_id"]
             isOneToOne: false
             referencedRelation: "lodges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trees_stakeholder_org_id_fkey"
+            columns: ["stakeholder_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -1773,6 +1848,14 @@ export type Database = {
       app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
       entry_source_type: "Manual" | "Integration"
+      planting_progress_type:
+        | "pending_allocation"
+        | "allocated"
+        | "funds_pending"
+        | "funds_received"
+        | "planting_in_progress"
+        | "planted"
+        | "monitored"
       pledge_status_type:
         | "pending_email_confirmation"
         | "confirmed"
@@ -1924,6 +2007,15 @@ export const Constants = {
       app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
       entry_source_type: ["Manual", "Integration"],
+      planting_progress_type: [
+        "pending_allocation",
+        "allocated",
+        "funds_pending",
+        "funds_received",
+        "planting_in_progress",
+        "planted",
+        "monitored",
+      ],
       pledge_status_type: [
         "pending_email_confirmation",
         "confirmed",

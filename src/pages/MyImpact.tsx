@@ -41,7 +41,7 @@ export const MyImpact = () => {
     const {
       data: treesData,
       error
-    } = await supabase.from('trees').select('*').eq('user_id', user.id);
+    } = await supabase.from('trees').select('*, organizations:stakeholder_org_id(name)').eq('user_id', user.id);
     if (error) {
       console.error('Error fetching trees:', error);
       return;
@@ -53,13 +53,24 @@ export const MyImpact = () => {
     const carbonToDate = totalTrees * 26.5; // kg per tree annually
     const carbonLifetime = totalTrees * 250; // kg per tree over lifetime
 
+    // Fetch real community impact data from stakeholder partners
+    const orgIds = [...new Set(treesData?.map(t => t.stakeholder_org_id).filter(Boolean) || [])];
+    let realFamilies = 0;
+    if (orgIds.length > 0) {
+      const { data: impactData } = await supabase
+        .from('community_impact')
+        .select('families_supported, jobs_created')
+        .in('stakeholder_org_id', orgIds);
+      if (impactData && impactData.length > 0) {
+        realFamilies = impactData.reduce((s, r) => s + (r.families_supported || 0), 0);
+      }
+    }
+
     setStats({
       totalTrees,
-      familiesHelped: Math.floor(totalTrees / 10),
-      // Estimate: 1 family per 10 trees
+      familiesHelped: realFamilies || Math.floor(totalTrees / 10),
       carbonToDate: carbonToDate / 1000,
-      // Convert to tonnes
-      carbonLifetime: carbonLifetime / 1000 // Convert to tonnes
+      carbonLifetime: carbonLifetime / 1000
     });
   };
   const handleGenerateLink = () => {

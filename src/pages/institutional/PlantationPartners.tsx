@@ -15,7 +15,7 @@ import {
 
 export default function PlantationPartners() {
   const { data: partners, isLoading } = useQuery({
-    queryKey: ["business-partners"],
+    queryKey: ["plantation-partners"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
@@ -33,7 +33,7 @@ export default function PlantationPartners() {
           onboarded_date,
           partner_types(name, category)
         `)
-        .eq("category", "business")
+        .in("category", ["stakeholder", "business"])
         .eq("archived", false)
         .order("created_at", { ascending: false });
 
@@ -42,18 +42,41 @@ export default function PlantationPartners() {
     },
   });
 
+  // Fetch planting progress per partner
+  const { data: treeStats } = useQuery({
+    queryKey: ["partnerTreeStats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trees")
+        .select("stakeholder_org_id, num_trees, planting_status")
+        .not("stakeholder_org_id", "is", null);
+      if (error) throw error;
+      
+      const grouped: Record<string, { total: number; planted: number }> = {};
+      data?.forEach(t => {
+        const key = t.stakeholder_org_id!;
+        if (!grouped[key]) grouped[key] = { total: 0, planted: 0 };
+        grouped[key].total += t.num_trees;
+        if (t.planting_status === 'planted' || t.planting_status === 'monitored') {
+          grouped[key].planted += t.num_trees;
+        }
+      });
+      return grouped;
+    },
+  });
+
   return (
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Plantation Partners</h1>
         <p className="text-muted-foreground mt-1">
-          All registered business partners including lodges, nurseries, and conservation organizations
+          All registered plantation and business partners with planting progress
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Business Partners</CardTitle>
+          <CardTitle>Partners</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -68,8 +91,10 @@ export default function PlantationPartners() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Organization</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Contact</TableHead>
+                    <TableHead>Trees Allocated</TableHead>
+                    <TableHead>Trees Planted</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                   </TableRow>
@@ -101,7 +126,7 @@ export default function PlantationPartners() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {partner.partner_types?.name || 'Business Partner'}
+                          {partner.category === 'stakeholder' ? 'Plantation Partner' : partner.partner_types?.name || 'Business Partner'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -122,6 +147,12 @@ export default function PlantationPartners() {
                             </div>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {treeStats?.[partner.id]?.total || 0}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {treeStats?.[partner.id]?.planted || 0}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

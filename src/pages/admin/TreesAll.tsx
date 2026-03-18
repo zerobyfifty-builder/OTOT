@@ -37,6 +37,8 @@ interface Tree {
   num_trees: number;
   tree_type: string | null;
   status: "Waiting to be Assigned" | "Assigned" | "Sapling Planted" | "Being Mapped" | "Planted";
+  planting_status: string | null;
+  stakeholder_org_id: string | null;
   plant_date: string | null;
   location_name: string | null;
   latitude: number | null;
@@ -49,6 +51,14 @@ interface Tree {
   lodges?: {
     name: string;
   };
+  organizations?: {
+    name: string;
+  };
+}
+
+interface StakeholderOrg {
+  id: string;
+  name: string;
 }
 
 export default function TreesAll() {
@@ -59,10 +69,26 @@ export default function TreesAll() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [stakeholderOrgs, setStakeholderOrgs] = useState<StakeholderOrg[]>([]);
+  const [selectedTrees, setSelectedTrees] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchTrees();
   }, [currentPage, pageSize, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    fetchStakeholderOrgs();
+  }, []);
+
+  const fetchStakeholderOrgs = async () => {
+    const { data } = await supabase
+      .from("organizations")
+      .select("id, name")
+      .eq("category", "stakeholder")
+      .eq("is_active", true)
+      .eq("archived", false);
+    setStakeholderOrgs(data || []);
+  };
 
   const fetchTrees = async () => {
     setLoading(true);
@@ -73,7 +99,8 @@ export default function TreesAll() {
           `
           *,
           users(email),
-          lodges(name)
+          lodges(name),
+          organizations:stakeholder_org_id(name)
         `,
           { count: "exact" }
         );
@@ -121,6 +148,42 @@ export default function TreesAll() {
 
   const totalPages = Math.ceil(totalCount / pageSize);
   const totalTreesCount = trees.reduce((sum, t) => sum + t.num_trees, 0);
+
+  const handleAssignStakeholder = async (treeId: string, orgId: string) => {
+    const { error } = await supabase
+      .from("trees")
+      .update({ stakeholder_org_id: orgId, planting_status: 'allocated' as any })
+      .eq("id", treeId);
+    if (error) {
+      toast.error("Failed to assign partner");
+    } else {
+      toast.success("Partner assigned");
+      fetchTrees();
+    }
+  };
+
+  const handleBulkAssign = async (orgId: string) => {
+    if (selectedTrees.size === 0) return;
+    const { error } = await supabase
+      .from("trees")
+      .update({ stakeholder_org_id: orgId, planting_status: 'allocated' as any })
+      .in("id", Array.from(selectedTrees));
+    if (error) {
+      toast.error("Failed to bulk assign");
+    } else {
+      toast.success(`${selectedTrees.size} trees assigned`);
+      setSelectedTrees(new Set());
+      fetchTrees();
+    }
+  };
+
+  const toggleTreeSelection = (id: string) => {
+    setSelectedTrees(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="p-8 space-y-6">
@@ -244,15 +307,43 @@ export default function TreesAll() {
             </div>
           ) : (
             <>
+              {selectedTrees.size > 0 && stakeholderOrgs.length > 0 && (
+                <div className="mb-4 flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <span className="text-sm font-medium">{selectedTrees.size} selected</span>
+                  <Select onValueChange={handleBulkAssign}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Bulk assign partner..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stakeholderOrgs.map(org => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTrees(new Set(trees.map(t => t.id)));
+                            } else {
+                              setSelectedTrees(new Set());
+                            }
+                          }}
+                          checked={selectedTrees.size === trees.length && trees.length > 0}
+                        />
+                      </TableHead>
                       <TableHead>OTOT ID</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Trees</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Plantation Partner</TableHead>
                       <TableHead>Lodge</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Plant Date</TableHead>
@@ -262,6 +353,13 @@ export default function TreesAll() {
                   <TableBody>
                     {trees.map((tree) => (
                       <TableRow key={tree.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedTrees.has(tree.id)}
+                            onChange={() => toggleTreeSelection(tree.id)}
+                          />
+                        </TableCell>
                         <TableCell className="font-mono text-sm">
                           {tree.otot_id}
                         </TableCell>
@@ -269,11 +367,25 @@ export default function TreesAll() {
                           {tree.users?.email}
                         </TableCell>
                         <TableCell>{tree.num_trees}</TableCell>
-                        <TableCell>{tree.tree_type || "N/A"}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariant(tree.status)}>
                             {tree.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={tree.stakeholder_org_id || "unassigned"}
+                            onValueChange={(v) => handleAssignStakeholder(tree.id, v)}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Assign..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {stakeholderOrgs.map(org => (
+                                <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell>{tree.lodges?.name || "N/A"}</TableCell>
                         <TableCell>

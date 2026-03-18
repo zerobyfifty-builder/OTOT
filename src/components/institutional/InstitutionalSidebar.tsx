@@ -30,6 +30,7 @@ const menuItems = [
   { title: 'Recent Trees', url: '/institutional/trees', icon: TreePine },
   { title: 'Travel Agents', url: '/institutional/travel-agents', icon: Plane },
   { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
+  { title: 'Disbursements', url: '/institutional/disbursements', icon: DollarSign },
   { title: 'Reports', url: '/institutional/reports', icon: FileText },
   { title: 'Available Modules', url: '/institutional/modules', icon: Home },
 ];

@@ -31,6 +31,22 @@ export const StakeholderFinancial = () => {
     enabled: !!orgId,
   });
 
+  // Fetch allocated tree value to calculate expected funds
+  const { data: allocatedTreeValue } = useQuery({
+    queryKey: ["allocatedTreeValue", orgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trees")
+        .select("num_trees, amount_paid")
+        .eq("stakeholder_org_id", orgId!);
+      if (error) throw error;
+      const totalTrees = data?.reduce((s, t) => s + t.num_trees, 0) || 0;
+      const totalValue = data?.reduce((s, t) => s + Number(t.amount_paid), 0) || 0;
+      return { totalTrees, totalValue };
+    },
+    enabled: !!orgId,
+  });
+
   const totals = {
     received: disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0,
     pending: disbursements?.filter(d => d.status === 'pending').reduce((s, d) => s + Number(d.amount), 0) || 0,
@@ -57,7 +73,16 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Expected Funds</p>
+            <p className="text-2xl font-bold text-blue-600">
+              ${formatNumber(allocatedTreeValue?.totalValue || 0)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">{allocatedTreeValue?.totalTrees || 0} trees allocated</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total Received</p>

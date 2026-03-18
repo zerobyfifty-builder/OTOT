@@ -93,6 +93,9 @@ import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
 import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
 import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
 import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
+import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
+import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
+import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -317,6 +320,13 @@ const App = () => (
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
+            <Route path="/institutional/disbursements" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalDisbursements />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
             
             {/* God Mode Admin routes */}
             <Route path="/admin" element={
@@ -442,6 +452,12 @@ const App = () => (
             {/* Stakeholder Portal routes */}
             <Route path="/stakeholder/dashboard" element={
               <StakeholderRoute><StakeholderLayout><StakeholderDashboard /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/orders" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderOrders /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/impact" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderImpact /></StakeholderLayout></StakeholderRoute>
             } />
             <Route path="/stakeholder/nurseries" element={
               <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>
