@@ -31,6 +31,22 @@ export const StakeholderFinancial = () => {
     enabled: !!orgId,
   });
 
+  // Fetch allocated tree value to calculate expected funds
+  const { data: allocatedTreeValue } = useQuery({
+    queryKey: ["allocatedTreeValue", orgId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trees")
+        .select("num_trees, amount_paid")
+        .eq("stakeholder_org_id", orgId!);
+      if (error) throw error;
+      const totalTrees = data?.reduce((s, t) => s + t.num_trees, 0) || 0;
+      const totalValue = data?.reduce((s, t) => s + Number(t.amount_paid), 0) || 0;
+      return { totalTrees, totalValue };
+    },
+    enabled: !!orgId,
+  });
+
   const totals = {
     received: disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0,
     pending: disbursements?.filter(d => d.status === 'pending').reduce((s, d) => s + Number(d.amount), 0) || 0,
