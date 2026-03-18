@@ -57,6 +57,15 @@ const menuItems = [
     ],
   },
   {
+    title: "Stakeholders",
+    icon: Landmark,
+    items: [
+      { title: "All Stakeholders", url: "/admin/stakeholders" },
+      { title: "Create New", url: "/admin/stakeholders/create" },
+      { title: "Module Assignment", url: "/admin/stakeholders/modules" },
+    ],
+  },
+  {
     title: "Partners",
     icon: Building2,
     items: [
@@ -73,46 +82,6 @@ const menuItems = [
       { title: "Roles & Permissions", url: "/admin/access/roles" },
       { title: "Modules", url: "/admin/access/modules" },
       { title: "Custom Access", url: "/admin/access/custom" },
-    ],
-  },
-  {
-    title: "Analytics",
-    url: "/admin/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Financial",
-    icon: DollarSign,
-    items: [
-      { title: "Transactions", url: "/admin/financial/transactions" },
-      { title: "Reimbursements", url: "/admin/financial/reimbursements" },
-      { title: "Reports", url: "/admin/financial/reports" },
-    ],
-  },
-  {
-    title: "Trees",
-    icon: Trees,
-    items: [
-      { title: "All Trees", url: "/admin/trees" },
-      { title: "By Status", url: "/admin/trees/status" },
-      { title: "By Location", url: "/admin/trees/location" },
-    ],
-  },
-  {
-    title: "Travel Agents",
-    icon: Plane,
-    items: [
-      { title: "All Agents", url: "/admin/travel-agents" },
-      { title: "Agent Tickets", url: "/admin/travel-agents/tickets" },
-    ],
-  },
-  {
-    title: "Stakeholders",
-    icon: Landmark,
-    items: [
-      { title: "All Stakeholders", url: "/admin/stakeholders" },
-      { title: "Create New", url: "/admin/stakeholders/create" },
-      { title: "Module Assignment", url: "/admin/stakeholders/modules" },
     ],
   },
   {
