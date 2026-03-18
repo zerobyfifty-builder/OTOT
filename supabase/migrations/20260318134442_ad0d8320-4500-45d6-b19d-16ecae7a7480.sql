@@ -1,0 +1,2 @@
+ALTER TABLE public.organizations DROP CONSTRAINT organizations_category_check;
+ALTER TABLE public.organizations ADD CONSTRAINT organizations_category_check CHECK (category = ANY (ARRAY['institutional'::text, 'business'::text, 'stakeholder'::text]));
