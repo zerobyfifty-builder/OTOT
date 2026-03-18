@@ -320,6 +320,13 @@ const App = () => (
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
+            <Route path="/institutional/disbursements" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalDisbursements />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
             
             {/* God Mode Admin routes */}
             <Route path="/admin" element={
