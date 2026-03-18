@@ -149,6 +149,42 @@ export default function TreesAll() {
   const totalPages = Math.ceil(totalCount / pageSize);
   const totalTreesCount = trees.reduce((sum, t) => sum + t.num_trees, 0);
 
+  const handleAssignStakeholder = async (treeId: string, orgId: string) => {
+    const { error } = await supabase
+      .from("trees")
+      .update({ stakeholder_org_id: orgId, planting_status: 'allocated' as any })
+      .eq("id", treeId);
+    if (error) {
+      toast.error("Failed to assign partner");
+    } else {
+      toast.success("Partner assigned");
+      fetchTrees();
+    }
+  };
+
+  const handleBulkAssign = async (orgId: string) => {
+    if (selectedTrees.size === 0) return;
+    const { error } = await supabase
+      .from("trees")
+      .update({ stakeholder_org_id: orgId, planting_status: 'allocated' as any })
+      .in("id", Array.from(selectedTrees));
+    if (error) {
+      toast.error("Failed to bulk assign");
+    } else {
+      toast.success(`${selectedTrees.size} trees assigned`);
+      setSelectedTrees(new Set());
+      fetchTrees();
+    }
+  };
+
+  const toggleTreeSelection = (id: string) => {
+    setSelectedTrees(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
