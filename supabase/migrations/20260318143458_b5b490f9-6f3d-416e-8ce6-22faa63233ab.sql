@@ -1,0 +1,20 @@
+INSERT INTO public.seed_species (species_name, category, certification_source) VALUES
+  ('Delonix regia (Flame Tree / Royal Poinciana)', 'exotic', 'KEFRI'),
+  ('Afzelia quanzensis (African Mahogany / Pod Mahogany)', 'indigenous', 'KEFRI'),
+  ('Gmelina arborea (Gmelina / White Teak)', 'exotic', 'KEFRI'),
+  ('Milicia excelsa (Iroko / African Teak)', 'indigenous', 'KEFRI'),
+  ('Tectona grandis (Teak)', 'exotic', 'KEFRI'),
+  ('Grevillea robusta (Grevillea / Silky Oak)', 'exotic', 'KEFRI'),
+  ('Casuarina equisetifolia (Casuarina / Whistling Pine)', 'exotic', 'KEFRI'),
+  ('Acacia elatior (Acacia)', 'indigenous', 'KEFRI'),
+  ('Acacia nilotica (Acacia / Gum Arabic Tree)', 'indigenous', 'KEFRI'),
+  ('Syzygium cumini (Java Plum / Black Plum)', 'exotic', 'KEFRI'),
+  ('Thevetia peruviana (Yellow Oleander)', 'exotic', 'KEFRI'),
+  ('Roystonea regia (Royal Palm)', 'exotic', 'KEFRI'),
+  ('Croton megalocarpus (Croton / Musine)', 'indigenous', 'KEFRI'),
+  ('Cocos nucifera (Coconut Palm)', 'exotic', 'KEFRI'),
+  ('Eucalyptus grandis (Eucalyptus / Rose Gum)', 'exotic', 'KEFRI'),
+  ('Spathodea campanulata (African Tulip Tree)', 'indigenous', 'KEFRI'),
+  ('Prunus africana (African Cherry)', 'indigenous', 'KEFRI'),
+  ('Olea capensis (African Olive)', 'indigenous', 'KEFRI')
+ON CONFLICT DO NOTHING;
