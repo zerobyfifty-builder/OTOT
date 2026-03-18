@@ -37,6 +37,8 @@ interface Tree {
   num_trees: number;
   tree_type: string | null;
   status: "Waiting to be Assigned" | "Assigned" | "Sapling Planted" | "Being Mapped" | "Planted";
+  planting_status: string | null;
+  stakeholder_org_id: string | null;
   plant_date: string | null;
   location_name: string | null;
   latitude: number | null;
@@ -49,6 +51,14 @@ interface Tree {
   lodges?: {
     name: string;
   };
+  organizations?: {
+    name: string;
+  };
+}
+
+interface StakeholderOrg {
+  id: string;
+  name: string;
 }
 
 export default function TreesAll() {
