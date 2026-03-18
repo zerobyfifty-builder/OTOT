@@ -33,6 +33,7 @@ const menuItems = [
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
   { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target },
   { title: 'Admin', url: '/stakeholder/admin', icon: Settings },
+  { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
 interface StakeholderSidebarProps {
