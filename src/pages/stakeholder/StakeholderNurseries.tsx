@@ -451,6 +451,9 @@ export const StakeholderNurseries = () => {
                           <DropdownMenuItem onClick={() => openSheet('edit', n)}>
                             <Pencil className="h-4 w-4 mr-2" />Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setStatusTarget({ id: n.id, name: n.cbo_name, is_active: n.is_active ?? true })}>
+                            <Power className="h-4 w-4 mr-2" />{n.is_active ? "Deactivate" : "Activate"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget({ id: n.id, name: n.cbo_name })}>
                             <Trash2 className="h-4 w-4 mr-2" />Delete
