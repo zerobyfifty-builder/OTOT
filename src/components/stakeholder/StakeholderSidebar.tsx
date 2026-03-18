@@ -39,12 +39,36 @@ interface StakeholderSidebarProps {
   organizationName?: string;
 }
 
-export function StakeholderSidebar({ organizationName }: StakeholderSidebarProps) {
+export function StakeholderSidebar({ organizationName: propOrgName }: StakeholderSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+  const [orgName, setOrgName] = useState(propOrgName || '');
+
+  useEffect(() => {
+    if (propOrgName) { setOrgName(propOrgName); return; }
+    if (!user) return;
+    const fetchOrgName = async () => {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (userData?.organization_id) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', userData.organization_id)
+          .maybeSingle();
+        if (org?.name) setOrgName(org.name);
+      }
+    };
+    fetchOrgName();
+  }, [user, propOrgName]);
+
+  const organizationName = orgName || undefined;
 
   const handleSignOut = async () => {
     try {
