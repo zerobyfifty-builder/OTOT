@@ -93,6 +93,9 @@ import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
 import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
 import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
 import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
+import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
+import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
+import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
