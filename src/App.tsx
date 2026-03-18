@@ -453,6 +453,12 @@ const App = () => (
             <Route path="/stakeholder/dashboard" element={
               <StakeholderRoute><StakeholderLayout><StakeholderDashboard /></StakeholderLayout></StakeholderRoute>
             } />
+            <Route path="/stakeholder/orders" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderOrders /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/impact" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderImpact /></StakeholderLayout></StakeholderRoute>
+            } />
             <Route path="/stakeholder/nurseries" element={
               <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>
             } />
