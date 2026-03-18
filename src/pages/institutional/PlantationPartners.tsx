@@ -70,7 +70,7 @@ export default function PlantationPartners() {
       <div>
         <h1 className="text-3xl font-bold">Plantation Partners</h1>
         <p className="text-muted-foreground mt-1">
-          All registered business partners including lodges, nurseries, and conservation organizations
+          All registered plantation and business partners with planting progress
         </p>
       </div>
 
