@@ -69,10 +69,26 @@ export default function TreesAll() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [stakeholderOrgs, setStakeholderOrgs] = useState<StakeholderOrg[]>([]);
+  const [selectedTrees, setSelectedTrees] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchTrees();
   }, [currentPage, pageSize, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    fetchStakeholderOrgs();
+  }, []);
+
+  const fetchStakeholderOrgs = async () => {
+    const { data } = await supabase
+      .from("organizations")
+      .select("id, name")
+      .eq("category", "stakeholder")
+      .eq("is_active", true)
+      .eq("archived", false);
+    setStakeholderOrgs(data || []);
+  };
 
   const fetchTrees = async () => {
     setLoading(true);
