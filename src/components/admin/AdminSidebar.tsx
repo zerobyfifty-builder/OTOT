@@ -15,6 +15,7 @@ import {
   ChevronDown,
   LogOut,
   Plane,
+  Landmark,
 } from "lucide-react";
 import {
   Sidebar,
