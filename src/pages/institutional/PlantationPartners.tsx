@@ -148,6 +148,12 @@ export default function PlantationPartners() {
                           )}
                         </div>
                       </TableCell>
+                      <TableCell className="font-medium">
+                        {treeStats?.[partner.id]?.total || 0}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {treeStats?.[partner.id]?.planted || 0}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Badge variant={partner.is_active ? "default" : "secondary"}>
