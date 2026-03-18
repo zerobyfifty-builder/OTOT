@@ -126,7 +126,7 @@ export default function PlantationPartners() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {partner.partner_types?.name || 'Business Partner'}
+                          {partner.category === 'stakeholder' ? 'Plantation Partner' : partner.partner_types?.name || 'Business Partner'}
                         </Badge>
                       </TableCell>
                       <TableCell>
