@@ -91,8 +91,10 @@ export default function PlantationPartners() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Organization</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Contact</TableHead>
+                    <TableHead>Trees Allocated</TableHead>
+                    <TableHead>Trees Planted</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                   </TableRow>
