@@ -13,6 +13,7 @@ import { LodgeRoute } from "@/components/auth/LodgeRoute";
 import { AgentRoute } from "@/components/auth/AgentRoute";
 import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
+import { StakeholderRoute } from "@/components/auth/StakeholderRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
