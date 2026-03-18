@@ -161,6 +161,17 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
   </SidebarProvider>
 );
 
+const StakeholderLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex w-full">
+      <StakeholderSidebar />
+      <main className="flex-1 overflow-auto bg-background">
+        {children}
+      </main>
+    </div>
+  </SidebarProvider>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
