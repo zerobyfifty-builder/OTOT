@@ -15,7 +15,7 @@ import {
 
 export default function PlantationPartners() {
   const { data: partners, isLoading } = useQuery({
-    queryKey: ["business-partners"],
+    queryKey: ["plantation-partners"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
@@ -33,12 +33,35 @@ export default function PlantationPartners() {
           onboarded_date,
           partner_types(name, category)
         `)
-        .eq("category", "business")
+        .in("category", ["stakeholder", "business"])
         .eq("archived", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Fetch planting progress per partner
+  const { data: treeStats } = useQuery({
+    queryKey: ["partnerTreeStats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trees")
+        .select("stakeholder_org_id, num_trees, planting_status")
+        .not("stakeholder_org_id", "is", null);
+      if (error) throw error;
+      
+      const grouped: Record<string, { total: number; planted: number }> = {};
+      data?.forEach(t => {
+        const key = t.stakeholder_org_id!;
+        if (!grouped[key]) grouped[key] = { total: 0, planted: 0 };
+        grouped[key].total += t.num_trees;
+        if (t.planting_status === 'planted' || t.planting_status === 'monitored') {
+          grouped[key].planted += t.num_trees;
+        }
+      });
+      return grouped;
     },
   });
 
