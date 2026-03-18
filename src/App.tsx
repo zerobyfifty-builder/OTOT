@@ -73,14 +73,25 @@ import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
 
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
+import { StakeholderSidebar } from "@/components/stakeholder/StakeholderSidebar";
 import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
 import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
+import AllStakeholders from "@/pages/admin/AllStakeholders";
+import CreateStakeholder from "@/pages/admin/CreateStakeholder";
+import StakeholderModules from "@/pages/admin/StakeholderModules";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
 import { AgentTickets } from "@/pages/agent/AgentTickets";
 import { AgentReimbursements } from "@/pages/agent/AgentReimbursements";
 import { AgentHelp } from "@/pages/agent/AgentHelp";
+import { StakeholderDashboard } from "@/pages/stakeholder/StakeholderDashboard";
+import { StakeholderNurseries } from "@/pages/stakeholder/StakeholderNurseries";
+import { StakeholderPlanting } from "@/pages/stakeholder/StakeholderPlanting";
+import { StakeholderMonitoring } from "@/pages/stakeholder/StakeholderMonitoring";
+import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
+import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
+import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

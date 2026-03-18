@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.create-agent-user]
 verify_jwt = false
+
+[functions.create-stakeholder-user]
+verify_jwt = false
