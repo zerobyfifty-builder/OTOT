@@ -76,7 +76,7 @@ export default function PlantationPartners() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Business Partners</CardTitle>
+          <CardTitle>Partners</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
