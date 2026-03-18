@@ -414,6 +414,53 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            
+            {/* Stakeholder admin routes */}
+            <Route path="/admin/stakeholders" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AllStakeholders />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/stakeholders/create" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <CreateStakeholder />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/stakeholders/modules" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <StakeholderModules />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            
+            {/* Stakeholder Portal routes */}
+            <Route path="/stakeholder/dashboard" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderDashboard /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/nurseries" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/planting" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderPlanting /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/monitoring" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMonitoring /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/financial" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderFinancial /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/outcomes" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderOutcomes /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/admin" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderAdmin /></StakeholderLayout></StakeholderRoute>
+            } />
+
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
               <AdminRoute>
