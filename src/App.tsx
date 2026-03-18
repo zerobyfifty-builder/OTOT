@@ -92,6 +92,7 @@ import { StakeholderMonitoring } from "@/pages/stakeholder/StakeholderMonitoring
 import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
 import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
 import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
+import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -459,6 +460,9 @@ const App = () => (
             } />
             <Route path="/stakeholder/admin" element={
               <StakeholderRoute><StakeholderLayout><StakeholderAdmin /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/settings" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderSettings /></StakeholderLayout></StakeholderRoute>
             } />
 
             {/* Legacy Admin routes */}

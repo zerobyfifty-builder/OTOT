@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +33,7 @@ const menuItems = [
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
   { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target },
   { title: 'Admin', url: '/stakeholder/admin', icon: Settings },
+  { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
 interface StakeholderSidebarProps {
