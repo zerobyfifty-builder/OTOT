@@ -50,6 +50,7 @@ export const StakeholderNurseries = () => {
   const [form, setForm] = useState<NurseryForm>(emptyForm);
   const [speciesSearch, setSpeciesSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [statusTarget, setStatusTarget] = useState<{ id: string; name: string; is_active: boolean } | null>(null);
 
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
