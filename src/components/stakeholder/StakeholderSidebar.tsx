@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   Sidebar,
@@ -38,12 +39,36 @@ interface StakeholderSidebarProps {
   organizationName?: string;
 }
 
-export function StakeholderSidebar({ organizationName }: StakeholderSidebarProps) {
+export function StakeholderSidebar({ organizationName: propOrgName }: StakeholderSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+  const [orgName, setOrgName] = useState(propOrgName || '');
+
+  useEffect(() => {
+    if (propOrgName) { setOrgName(propOrgName); return; }
+    if (!user) return;
+    const fetchOrgName = async () => {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (userData?.organization_id) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', userData.organization_id)
+          .maybeSingle();
+        if (org?.name) setOrgName(org.name);
+      }
+    };
+    fetchOrgName();
+  }, [user, propOrgName]);
+
+  const organizationName = orgName || undefined;
 
   const handleSignOut = async () => {
     try {
