@@ -290,9 +290,9 @@ export const MyTrees = () => {
                                 <ExternalLink className="h-3 w-3" />
                               </button>
                             </TableCell>
-                            <TableCell className="text-left">Mau</TableCell>
-                            <TableCell className="text-left">Nakuru</TableCell>
-                            <TableCell className="text-left">Kenya Forest Service</TableCell>
+                            <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau'}</TableCell>
+                            <TableCell className="text-left">{tree.location_name || 'Nakuru'}</TableCell>
+                            <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                             <TableCell>
                               <Badge className={STATUS_COLORS[tree.status]}>
                                 {tree.status === "Planted" ? "gifted" : tree.status}
