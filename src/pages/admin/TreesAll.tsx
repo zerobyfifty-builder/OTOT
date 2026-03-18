@@ -307,15 +307,43 @@ export default function TreesAll() {
             </div>
           ) : (
             <>
+              {selectedTrees.size > 0 && stakeholderOrgs.length > 0 && (
+                <div className="mb-4 flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  <span className="text-sm font-medium">{selectedTrees.size} selected</span>
+                  <Select onValueChange={handleBulkAssign}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Bulk assign partner..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stakeholderOrgs.map(org => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTrees(new Set(trees.map(t => t.id)));
+                            } else {
+                              setSelectedTrees(new Set());
+                            }
+                          }}
+                          checked={selectedTrees.size === trees.length && trees.length > 0}
+                        />
+                      </TableHead>
                       <TableHead>OTOT ID</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Trees</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Plantation Partner</TableHead>
                       <TableHead>Lodge</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Plant Date</TableHead>
@@ -325,6 +353,13 @@ export default function TreesAll() {
                   <TableBody>
                     {trees.map((tree) => (
                       <TableRow key={tree.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedTrees.has(tree.id)}
+                            onChange={() => toggleTreeSelection(tree.id)}
+                          />
+                        </TableCell>
                         <TableCell className="font-mono text-sm">
                           {tree.otot_id}
                         </TableCell>
@@ -332,11 +367,25 @@ export default function TreesAll() {
                           {tree.users?.email}
                         </TableCell>
                         <TableCell>{tree.num_trees}</TableCell>
-                        <TableCell>{tree.tree_type || "N/A"}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariant(tree.status)}>
                             {tree.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={tree.stakeholder_org_id || "unassigned"}
+                            onValueChange={(v) => handleAssignStakeholder(tree.id, v)}
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Assign..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {stakeholderOrgs.map(org => (
+                                <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell>{tree.lodges?.name || "N/A"}</TableCell>
                         <TableCell>
