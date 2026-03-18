@@ -73,7 +73,16 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Expected Funds</p>
+            <p className="text-2xl font-bold text-blue-600">
+              ${formatNumber(allocatedTreeValue?.totalValue || 0)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">{allocatedTreeValue?.totalTrees || 0} trees allocated</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total Received</p>
