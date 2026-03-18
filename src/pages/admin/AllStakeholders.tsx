@@ -6,20 +6,28 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, RefreshCw, Landmark } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Stakeholder {
   id: string;
   name: string;
-  legal_name: string;
+  legal_name: string | null;
   category: string;
-  contact_email: string;
-  contact_phone: string;
+  contact_person: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  website: string | null;
+  address: any;
+  metadata: any;
   is_active: boolean;
   verified: boolean;
   created_at: string;
-  partner_types?: { name: string; category: string };
+  partner_types?: { name: string; category: string } | null;
 }
 
 export default function AllStakeholders() {
@@ -28,12 +36,30 @@ export default function AllStakeholders() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Edit sheet state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editStakeholder, setEditStakeholder] = useState<Stakeholder | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "", legal_name: "", contact_person: "", contact_email: "", contact_phone: "",
+    website: "", street: "", city: "", county: "", mouReference: "", description: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  // Status dialog state
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<Stakeholder | null>(null);
+
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Stakeholder | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchStakeholders = async () => {
     setLoading(true);
     try {
       let query = supabase
         .from("organizations")
-        .select("id, name, legal_name, category, contact_email, contact_phone, is_active, verified, created_at, partner_types(name, category)")
+        .select("id, name, legal_name, category, contact_person, contact_email, contact_phone, website, address, metadata, is_active, verified, created_at, partner_types(name, category)")
         .eq("category", "stakeholder")
         .eq("archived", false);
 
@@ -53,6 +79,105 @@ export default function AllStakeholders() {
   };
 
   useEffect(() => { fetchStakeholders(); }, [searchTerm]);
+
+  // --- Edit ---
+  const openEdit = (s: Stakeholder) => {
+    setEditStakeholder(s);
+    const addr = s.address || {};
+    const meta = s.metadata || {};
+    setEditForm({
+      name: s.name || "",
+      legal_name: s.legal_name || "",
+      contact_person: s.contact_person || "",
+      contact_email: s.contact_email || "",
+      contact_phone: s.contact_phone || "",
+      website: s.website || "",
+      street: addr.street || "",
+      city: addr.city || "",
+      county: addr.county || "",
+      mouReference: meta.mou_reference || "",
+      description: meta.description || "",
+    });
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editStakeholder) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("organizations")
+        .update({
+          name: editForm.name,
+          legal_name: editForm.legal_name || null,
+          contact_person: editForm.contact_person || null,
+          contact_email: editForm.contact_email || null,
+          contact_phone: editForm.contact_phone || null,
+          website: editForm.website || null,
+          address: { street: editForm.street, city: editForm.city, county: editForm.county },
+          metadata: { mou_reference: editForm.mouReference, description: editForm.description },
+        })
+        .eq("id", editStakeholder.id);
+
+      if (error) throw error;
+      toast.success("Stakeholder updated successfully");
+      setEditOpen(false);
+      fetchStakeholders();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update stakeholder");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // --- Activate / Deactivate ---
+  const openStatusToggle = (s: Stakeholder) => {
+    setStatusTarget(s);
+    setStatusDialogOpen(true);
+  };
+
+  const handleToggleStatus = async () => {
+    if (!statusTarget) return;
+    try {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ is_active: !statusTarget.is_active })
+        .eq("id", statusTarget.id);
+
+      if (error) throw error;
+      toast.success(`Stakeholder ${statusTarget.is_active ? "deactivated" : "activated"} successfully`);
+      setStatusDialogOpen(false);
+      fetchStakeholders();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update status");
+    }
+  };
+
+  // --- Delete ---
+  const openDelete = (s: Stakeholder) => {
+    setDeleteTarget(s);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("organizations")
+        .update({ archived: true, archived_at: new Date().toISOString(), is_active: false })
+        .eq("id", deleteTarget.id);
+
+      if (error) throw error;
+      toast.success("Stakeholder deleted successfully");
+      setDeleteDialogOpen(false);
+      fetchStakeholders();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete stakeholder");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="p-8 space-y-6">
@@ -78,7 +203,7 @@ export default function AllStakeholders() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary"></div></div>
+            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary" /></div>
           ) : stakeholders.length === 0 ? (
             <div className="text-center py-12">
               <Landmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -94,6 +219,7 @@ export default function AllStakeholders() {
                   <TableHead>Contact</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
+                  <TableHead className="w-12">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,6 +237,27 @@ export default function AllStakeholders() {
                       <Badge variant={s.is_active ? "default" : "secondary"}>{s.is_active ? 'Active' : 'Inactive'}</Badge>
                     </TableCell>
                     <TableCell>{new Date(s.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEdit(s)}>
+                            <Pencil className="mr-2 h-4 w-4" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openStatusToggle(s)}>
+                            <Power className="mr-2 h-4 w-4" />{s.is_active ? "Deactivate" : "Activate"}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openDelete(s)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -118,6 +265,112 @@ export default function AllStakeholders() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Sheet */}
+      <Sheet open={editOpen} onOpenChange={setEditOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Stakeholder</SheetTitle>
+            <SheetDescription>Update stakeholder organization details</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
+            <div className="space-y-2">
+              <Label>Organization Name</Label>
+              <Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Legal Name</Label>
+              <Input value={editForm.legal_name} onChange={e => setEditForm(f => ({ ...f, legal_name: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Contact Person</Label>
+              <Input value={editForm.contact_person} onChange={e => setEditForm(f => ({ ...f, contact_person: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input value={editForm.contact_email} onChange={e => setEditForm(f => ({ ...f, contact_email: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={editForm.contact_phone} onChange={e => setEditForm(f => ({ ...f, contact_phone: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Website</Label>
+              <Input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Street Address</Label>
+              <Input value={editForm.street} onChange={e => setEditForm(f => ({ ...f, street: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>County</Label>
+                <Input value={editForm.county} onChange={e => setEditForm(f => ({ ...f, county: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>MoU Reference</Label>
+              <Input value={editForm.mouReference} onChange={e => setEditForm(f => ({ ...f, mouReference: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={saving || !editForm.name}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Activate/Deactivate Dialog */}
+      <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {statusTarget?.is_active ? "Deactivate" : "Activate"} Stakeholder
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusTarget?.is_active
+                ? `Deactivating "${statusTarget?.name}" will prevent their users from logging in. This is temporary and can be reversed.`
+                : `Activating "${statusTarget?.name}" will restore access for their users.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleStatus}>
+              {statusTarget?.is_active ? "Deactivate" : "Activate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Stakeholder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteTarget?.name}"? This will archive the stakeholder and deactivate all associated user accounts. This action cannot be easily undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
