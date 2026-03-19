@@ -573,7 +573,7 @@ const ImpactSection = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Heart className="h-5 w-5 text-pink-500" />
+              <Heart className="h-5 w-5 text-destructive" />
               Community Benefit
             </CardTitle>
           </CardHeader>
