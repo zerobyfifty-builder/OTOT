@@ -48,6 +48,7 @@ interface PaymentBatch {
   amount: number;
   treeIds: string[];
   ototIds: string[];
+  paymentMethod: string;
 }
 
 export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
