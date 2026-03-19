@@ -58,6 +58,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (trip && isOpen) {
