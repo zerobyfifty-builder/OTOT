@@ -47,7 +47,8 @@ export const StakeholderOrders = () => {
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
+      const { data, error } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
+      console.log("[STAKEHOLDER_ORDERS] orgId query result:", data?.organization_id, "error:", error);
       return data?.organization_id;
     },
     enabled: !!user?.id,
@@ -56,11 +57,13 @@ export const StakeholderOrders = () => {
   const { data: trees, isLoading, refetch } = useQuery({
     queryKey: ["stakeholderOrders", orgId],
     queryFn: async () => {
+      console.log("[STAKEHOLDER_ORDERS] Fetching trees for orgId:", orgId);
       const { data, error } = await supabase
         .from("trees")
-        .select("id, otot_id, num_trees, amount_paid, created_at, planting_status, status, plant_date, users(email, first_name, last_name)")
+        .select("id, otot_id, num_trees, amount_paid, created_at, planting_status, status, plant_date")
         .eq("stakeholder_org_id", orgId!)
         .order("created_at", { ascending: false });
+      console.log("[STAKEHOLDER_ORDERS] Trees query result:", data?.length, "rows, error:", error);
       if (error) throw error;
       return data;
     },
@@ -186,11 +189,7 @@ export const StakeholderOrders = () => {
                   {trees.map((tree: any) => (
                     <TableRow key={tree.id}>
                       <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                      <TableCell>
-                        {tree.users?.first_name 
-                          ? `${tree.users.first_name} ${tree.users.last_name?.charAt(0) || ''}.`
-                          : tree.users?.email?.split('@')[0] || 'Anonymous'}
-                      </TableCell>
+                      <TableCell>—</TableCell>
                       <TableCell>{tree.num_trees}</TableCell>
                       <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                       <TableCell>{new Date(tree.created_at).toLocaleDateString()}</TableCell>
