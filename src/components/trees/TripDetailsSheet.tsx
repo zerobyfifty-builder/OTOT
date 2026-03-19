@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, CreditCard, FileText } from "lucide-react";
+import { Plane, Calendar, Leaf, CreditCard, FileText, Download, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,7 +7,9 @@ import { Database } from "@/integrations/supabase/types";
 import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { generateReceipt, ReceiptData } from "@/utils/receiptGenerator";
+import { generateReceipt, downloadReceiptFromUrl, ReceiptData } from "@/utils/receiptGenerator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
