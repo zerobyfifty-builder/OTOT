@@ -820,6 +820,19 @@ export const TreePurchase = () => {
                 </div>
               </div>
 
+              {/* Payment Method Selection */}
+              <div className="mb-6 space-y-2">
+                <Label className="text-sm font-medium">Payment Method</Label>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex flex-wrap gap-3">
+                  {["Card", "M-Pesa", "Bank Transfer", "PayPal"].map((method) => (
+                    <div key={method} className="flex items-center space-x-2">
+                      <RadioGroupItem value={method} id={`pm-${method}`} />
+                      <Label htmlFor={`pm-${method}`} className="text-sm cursor-pointer">{method}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
               <Button
                 size="lg"
                 className="w-full text-lg"
