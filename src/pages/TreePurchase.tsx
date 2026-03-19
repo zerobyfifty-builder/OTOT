@@ -50,6 +50,7 @@ export const TreePurchase = () => {
   const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("Card");
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
@@ -292,6 +293,7 @@ export const TreePurchase = () => {
           lodge_id: null,
           location_name: locationName,
           trip_id: tripId || null,
+          payment_method: paymentMethod,
         });
       }
 
@@ -816,6 +818,19 @@ export const TreePurchase = () => {
                     <p className="text-sm text-muted-foreground">per month</p>
                   )}
                 </div>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="mb-6 space-y-2">
+                <Label className="text-sm font-medium">Payment Method</Label>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex flex-wrap gap-3">
+                  {["Card", "M-Pesa", "Bank Transfer", "PayPal"].map((method) => (
+                    <div key={method} className="flex items-center space-x-2">
+                      <RadioGroupItem value={method} id={`pm-${method}`} />
+                      <Label htmlFor={`pm-${method}`} className="text-sm cursor-pointer">{method}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
               </div>
 
               <Button

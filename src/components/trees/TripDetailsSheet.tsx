@@ -48,6 +48,7 @@ interface PaymentBatch {
   amount: number;
   treeIds: string[];
   ototIds: string[];
+  paymentMethod: string;
 }
 
 export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
@@ -127,6 +128,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       amount: Number(sorted[0].amount_paid),
       treeIds: [sorted[0].id],
       ototIds: [sorted[0].otot_id],
+      paymentMethod: (sorted[0] as any).payment_method || 'Card',
     };
     for (let i = 1; i < sorted.length; i++) {
       const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
@@ -144,6 +146,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
           amount: Number(sorted[i].amount_paid),
           treeIds: [sorted[i].id],
           ototIds: [sorted[i].otot_id],
+          paymentMethod: (sorted[i] as any).payment_method || 'Card',
         };
       }
     }
@@ -280,6 +283,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                   <TableRow>
                     <TableHead className="text-left">Payment Date</TableHead>
                     <TableHead className="text-center">Trees</TableHead>
+                    <TableHead className="text-center">Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="text-center w-10">Receipt</TableHead>
                   </TableRow>
@@ -291,6 +295,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                         {format(new Date(batch.date), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="text-center">{batch.numTrees}</TableCell>
+                      <TableCell className="text-center text-xs text-muted-foreground">{batch.paymentMethod}</TableCell>
                       <TableCell className="text-right font-medium">
                         ${batch.amount.toFixed(2)}
                       </TableCell>
@@ -308,6 +313,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                   <TableRow className="border-t-2">
                     <TableCell className="text-left font-semibold">Total</TableCell>
                     <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
+                    <TableCell />
                     <TableCell className="text-right font-bold">
                       ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
                     </TableCell>
