@@ -366,6 +366,22 @@ export const MyTrees = () => {
                             </div>
 
                             <div className="flex items-center gap-4">
+                              {/* Offset progress bar for trip groups */}
+                              {isTrip && trip && (
+                                <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                                  <div className="flex-1">
+                                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full bg-primary transition-all duration-500"
+                                        style={{ width: `${trip.trees_needed > 0 ? Math.min(100, (group.totalTrees / trip.trees_needed) * 100) : 0}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {group.totalTrees}/{trip.trees_needed}
+                                  </span>
+                                </div>
+                              )}
                               <div className="text-right hidden sm:block">
                                 <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
                                 <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>

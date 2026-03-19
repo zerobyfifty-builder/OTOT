@@ -1,11 +1,13 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, CreditCard } from "lucide-react";
+import { Plane, Calendar, Leaf, CreditCard, FileText } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Database } from "@/integrations/supabase/types";
 import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { generateReceipt, ReceiptData } from "@/utils/receiptGenerator";
 import {
   Table,
   TableBody,
@@ -40,6 +42,8 @@ const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_ty
 };
 
 interface PaymentRecord {
+  treeId: string;
+  ototId: string;
   date: string;
   numTrees: number;
   amount: number;
@@ -48,12 +52,30 @@ interface PaymentRecord {
 export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
   const [trees, setTrees] = useState<Tree[]>([]);
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     if (trip && isOpen) {
       fetchTrees();
+      fetchUser();
     }
   }, [trip, isOpen]);
+
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      setUserEmail(data.user.email || "");
+      const { data: profile } = await supabase
+        .from("users")
+        .select("first_name, last_name")
+        .eq("user_id", data.user.id)
+        .single();
+      if (profile) {
+        setUserName(`${profile.first_name || ""} ${profile.last_name || ""}`.trim() || data.user.email || "");
+      }
+    }
+  };
 
   const fetchTrees = async () => {
     if (!trip) return;
@@ -90,28 +112,32 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const nights = calculateNights(trip.from_date, trip.to_date);
   const totalTreesPlanted = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
+  const offsetPercent = trip.trees_needed > 0 ? Math.min(100, Math.round((totalTreesPlanted / trip.trees_needed) * 100)) : 0;
 
-  // Group trees into payment records by created_at date (same date = same payment batch)
-  const payments: PaymentRecord[] = (() => {
-    const paymentMap = new Map<string, PaymentRecord>();
-    trees.forEach(tree => {
-      const dateKey = format(new Date(tree.created_at), "yyyy-MM-dd");
-      if (paymentMap.has(dateKey)) {
-        const existing = paymentMap.get(dateKey)!;
-        existing.numTrees += tree.num_trees;
-        existing.amount += Number(tree.amount_paid);
-      } else {
-        paymentMap.set(dateKey, {
-          date: tree.created_at,
-          numTrees: tree.num_trees,
-          amount: Number(tree.amount_paid),
-        });
-      }
-    });
-    return Array.from(paymentMap.values()).sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-  })();
+  // Each tree record = one payment row (no aggregation)
+  const payments: PaymentRecord[] = trees.map((tree, idx) => ({
+    treeId: tree.id,
+    ototId: tree.otot_id,
+    date: tree.created_at,
+    numTrees: tree.num_trees,
+    amount: Number(tree.amount_paid),
+  }));
+
+  const handleDownloadReceipt = async (payment: PaymentRecord, idx: number) => {
+    const route = `${trip.origin_airport} → ${trip.destination_airport}`;
+    const receiptData: ReceiptData = {
+      receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(idx + 1).padStart(2, "0")}`,
+      paymentDate: payment.date,
+      numTrees: payment.numTrees,
+      amountPaid: payment.amount,
+      tripId: trip.friendly_trip_id || trip.id.slice(0, 8),
+      route,
+      userName,
+      userEmail,
+      treeIds: [payment.ototId],
+    };
+    await generateReceipt(receiptData);
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -192,72 +218,77 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             </div>
           </div>
 
-          {/* Trees Needed */}
-          <div className="bg-primary/10 rounded-lg p-4">
+          {/* Offset Progress */}
+          <div className="bg-primary/10 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Leaf className="h-5 w-5 text-primary" />
-                <span className="font-medium">Trees Needed:</span>
+                <span className="font-medium">Offset Progress</span>
               </div>
-              <span className="text-2xl font-bold text-primary">{trip.trees_needed}</span>
+              <span className="text-sm font-semibold text-primary">{offsetPercent}%</span>
             </div>
-          </div>
-
-          {/* Trees Planted Count */}
-          <div className="bg-accent/10 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Leaf className="h-5 w-5 text-accent" />
-                <span className="font-medium">Trees Planted:</span>
-              </div>
-              <span className="text-2xl font-bold text-accent">{totalTreesPlanted}</span>
+            <Progress value={offsetPercent} className="h-2.5" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{totalTreesPlanted} planted</span>
+              <span>{trip.trees_needed} needed</span>
             </div>
           </div>
 
           {/* Payments Section */}
-          {payments.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Payments ({payments.length})
-              </h3>
-              {isLoadingTrees ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-left">Payment Date</TableHead>
-                      <TableHead className="text-center">No. of Trees</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments.map((payment, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="text-left">
-                          {format(new Date(payment.date), "dd MMM yyyy")}
-                        </TableCell>
-                        <TableCell className="text-center">{payment.numTrees}</TableCell>
-                        <TableCell className="text-right font-medium">
-                          ${payment.amount.toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow className="border-t-2">
-                      <TableCell className="text-left font-semibold">Total</TableCell>
-                      <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
-                      <TableCell className="text-right font-bold">
-                        ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Payments ({payments.length})
+            </h3>
+            {isLoadingTrees ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : payments.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Payment Date</TableHead>
+                    <TableHead className="text-center">Trees</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-center w-10">Receipt</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment, idx) => (
+                    <TableRow key={payment.treeId}>
+                      <TableCell className="text-left">
+                        {format(new Date(payment.date), "dd MMM yyyy")}
+                      </TableCell>
+                      <TableCell className="text-center">{payment.numTrees}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        ${payment.amount.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <button
+                          onClick={() => handleDownloadReceipt(payment, idx)}
+                          className="text-primary hover:text-primary/80"
+                          title="Download receipt"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </button>
                       </TableCell>
                     </TableRow>
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          )}
+                  ))}
+                  <TableRow className="border-t-2">
+                    <TableCell className="text-left font-semibold">Total</TableCell>
+                    <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
+                    <TableCell className="text-right font-bold">
+                      ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-sm text-muted-foreground">No payments yet.</p>
+            )}
+          </div>
 
           {/* Entry Source */}
           <div>
