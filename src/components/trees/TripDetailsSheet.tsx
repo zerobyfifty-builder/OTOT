@@ -168,6 +168,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       userName,
       userEmail,
       treeIds: batch.ototIds,
+      paymentMethod: batch.paymentMethod,
     };
     await generateReceipt(receiptData);
   };
