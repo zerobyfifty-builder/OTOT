@@ -1,14 +1,34 @@
+import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, MapPin } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+type Tree = Database["public"]["Tables"]["trees"]["Row"];
+type Trip = Database["public"]["Tables"]["trips"]["Row"];
 
 const PLANTING_STATUSES = [
   'pending_allocation',
@@ -30,25 +50,56 @@ const STATUS_LABELS: Record<string, string> = {
   monitored: 'Monitored',
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  pending_allocation: 'secondary',
-  allocated: 'outline',
-  funds_pending: 'outline',
-  funds_received: 'secondary',
-  planting_in_progress: 'default',
-  planted: 'default',
-  monitored: 'default',
+const PLANTING_STATUS_COLORS: Record<string, string> = {
+  pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  funds_pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  funds_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  planting_in_progress: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+  planted: "bg-green-500/10 text-green-700 border-green-500/20",
+  monitored: "bg-accent/10 text-accent border-accent/20",
+};
+
+interface TreeGroup {
+  key: string;
+  tripId: string | null;
+  trip: Trip | null;
+  trees: Tree[];
+  totalTrees: number;
+  totalAmount: number;
+  earliestDate: string;
+}
+
+const getGroupPlantingStatus = (trees: Tree[]): string => {
+  const statuses = trees.map(t => t.planting_status || 'pending_allocation');
+  if (statuses.every(s => s === "planted" || s === "monitored")) return "planted";
+  if (statuses.some(s => s === "planted" || s === "monitored")) return "partially_planted";
+  if (statuses.every(s => s === "pending_allocation")) return "pending_allocation";
+  if (statuses.some(s => s === "planting_in_progress")) return "planting_in_progress";
+  if (statuses.some(s => s === "funds_received")) return "funds_received";
+  return statuses[0] || "pending_allocation";
+};
+
+const getGroupStatusLabel = (status: string): string => {
+  if (status === "partially_planted") return "Partially Planted";
+  return STATUS_LABELS[status] || status;
+};
+
+const getGroupStatusColor = (status: string): string => {
+  if (status === "partially_planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
+  return PLANTING_STATUS_COLORS[status] || "bg-muted text-muted-foreground";
 };
 
 export const StakeholderOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
-      console.log("[STAKEHOLDER_ORDERS] orgId query result:", data?.organization_id, "error:", error);
+      const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
     },
     enabled: !!user?.id,
@@ -57,18 +108,32 @@ export const StakeholderOrders = () => {
   const { data: trees, isLoading, refetch } = useQuery({
     queryKey: ["stakeholderOrders", orgId],
     queryFn: async () => {
-      console.log("[STAKEHOLDER_ORDERS] Fetching trees for orgId:", orgId);
       const { data, error } = await supabase
         .from("trees")
-        .select("id, otot_id, num_trees, amount_paid, created_at, planting_status, status, plant_date")
+        .select("*")
         .eq("stakeholder_org_id", orgId!)
         .order("created_at", { ascending: false });
-      console.log("[STAKEHOLDER_ORDERS] Trees query result:", data?.length, "rows, error:", error);
       if (error) throw error;
-      return data;
+      return data as Tree[];
     },
     enabled: !!orgId,
   });
+
+  const { data: tripsData } = useQuery({
+    queryKey: ["stakeholderOrderTrips", trees],
+    queryFn: async () => {
+      const tripIds = [...new Set(trees?.map(t => t.trip_id).filter(Boolean) || [])];
+      if (tripIds.length === 0) return {};
+      const { data } = await supabase.from("trips").select("*").in("id", tripIds);
+      return (data || []).reduce((acc, trip) => {
+        acc[trip.id] = trip;
+        return acc;
+      }, {} as Record<string, Trip>);
+    },
+    enabled: !!trees && trees.length > 0,
+  });
+
+  const trips = tripsData || {};
 
   const { data: disbursements } = useQuery({
     queryKey: ["stakeholderDisbursementTotal", orgId],
@@ -98,8 +163,63 @@ export const StakeholderOrders = () => {
     onError: () => toast.error("Failed to update status"),
   });
 
+  // Group trees by trip_id (same pattern as MyTrees)
+  const treeGroups = useMemo<TreeGroup[]>(() => {
+    if (!trees) return [];
+    const groupMap = new Map<string, Tree[]>();
+
+    trees.forEach(tree => {
+      const key = tree.trip_id || `__direct_${tree.id}`;
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key)!.push(tree);
+    });
+
+    const groups: TreeGroup[] = [];
+
+    // Trip groups first
+    const tripKeys = [...groupMap.keys()].filter(k => !k.startsWith("__direct_"));
+    tripKeys.sort((a, b) => {
+      const aDate = groupMap.get(a)![0].created_at;
+      const bDate = groupMap.get(b)![0].created_at;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    });
+
+    tripKeys.forEach(tripId => {
+      const groupTrees = groupMap.get(tripId)!;
+      groups.push({
+        key: tripId,
+        tripId,
+        trip: trips[tripId] || null,
+        trees: groupTrees,
+        totalTrees: groupTrees.reduce((sum, t) => sum + t.num_trees, 0),
+        totalAmount: groupTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
+        earliestDate: groupTrees[groupTrees.length - 1]?.created_at || groupTrees[0].created_at,
+      });
+    });
+
+    // Direct purchases
+    const directKeys = [...groupMap.keys()].filter(k => k.startsWith("__direct_"));
+    if (directKeys.length > 0) {
+      const directTrees = directKeys.flatMap(k => groupMap.get(k)!);
+      groups.push({
+        key: "__direct__",
+        tripId: null,
+        trip: null,
+        trees: directTrees,
+        totalTrees: directTrees.reduce((sum, t) => sum + t.num_trees, 0),
+        totalAmount: directTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
+        earliestDate: directTrees[0]?.created_at || "",
+      });
+    }
+
+    return groups;
+  }, [trees, trips]);
+
+  const totalPages = Math.ceil(treeGroups.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedGroups = treeGroups.slice(startIndex, startIndex + itemsPerPage);
+
   const totalTrees = trees?.reduce((s, t) => s + t.num_trees, 0) || 0;
-  const totalRevenue = trees?.reduce((s, t) => s + Number(t.amount_paid), 0) || 0;
   const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
   const planted = trees?.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0) || 0;
 
@@ -160,62 +280,162 @@ export const StakeholderOrders = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Allocated Trees</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-          ) : !trees?.length ? (
-            <div className="text-center py-12">
-              <TreePine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No trees have been allocated to your organization yet.</p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>OTOT ID</TableHead>
-                    <TableHead>Tourist</TableHead>
-                    <TableHead>Trees</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Purchase Date</TableHead>
-                    <TableHead>Planting Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {trees.map((tree: any) => (
-                    <TableRow key={tree.id}>
-                      <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                      <TableCell>—</TableCell>
-                      <TableCell>{tree.num_trees}</TableCell>
-                      <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                      <TableCell>{new Date(tree.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={tree.planting_status || 'pending_allocation'}
-                          onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PLANTING_STATUSES.map(s => (
-                              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+      {isLoading ? (
+        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+      ) : !trees?.length ? (
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <TreePine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No trees have been allocated to your organization yet.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-0">
+            <Accordion type="multiple" className="w-full">
+              {paginatedGroups.map((group, groupIndex) => {
+                const groupStatus = getGroupPlantingStatus(group.trees);
+                const isTrip = group.tripId !== null;
+                const trip = group.trip;
+                const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+
+                return (
+                  <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
+                    <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30">
+                      <div className="flex items-center justify-between w-full mr-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                            {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
+                          </div>
+                          <div className="text-left">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground text-sm">
+                                {isTrip && trip
+                                  ? trip.friendly_trip_id || `Trip ${startIndex + groupIndex + 1}`
+                                  : "Direct Purchase"}
+                              </span>
+                              {isTrip && trip && (
+                                <span className="text-xs text-muted-foreground">
+                                  {trip.origin_airport} → {trip.destination_airport}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(group.earliestDate), "d MMM yyyy")}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          {/* Planting progress bar */}
+                          <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                            <div className="flex-1">
+                              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                  style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
+                                />
+                              </div>
+                            </div>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {plantedInGroup}/{group.totalTrees}
+                            </span>
+                          </div>
+                          <div className="text-right hidden sm:block">
+                            <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
+                            <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+                          </div>
+                          <Badge className={getGroupStatusColor(groupStatus)}>
+                            {getGroupStatusLabel(groupStatus)}
+                          </Badge>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/30">
+                              <TableHead className="w-12">No.</TableHead>
+                              <TableHead>OTOT ID</TableHead>
+                              <TableHead>Trees</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Purchase Date</TableHead>
+                              <TableHead>Planting Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {group.trees.map((tree, index) => (
+                              <TableRow key={tree.id}>
+                                <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                <TableCell>{tree.num_trees}</TableCell>
+                                <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                                <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={tree.planting_status || 'pending_allocation'}
+                                    onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                  >
+                                    <SelectTrigger className="w-[180px]">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PLANTING_STATUSES.map(s => (
+                                        <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                              </TableRow>
                             ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 p-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ←
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const page = parseInt(e.target.value);
+                      if (page >= 1 && page <= totalPages) setCurrentPage(page);
+                    }}
+                    className="w-16 text-center"
+                  />
+                  <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  →
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
