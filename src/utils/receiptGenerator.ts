@@ -120,7 +120,7 @@ export async function generateReceipt(data: ReceiptData) {
     body: [
       [
         "Carbon Offset Tree Planting",
-        String(data.numTrees),
+        `${data.numTrees} Trees`,
         `$${(data.amountPaid / data.numTrees).toFixed(2)}`,
         `$${data.amountPaid.toFixed(2)}`,
       ],
