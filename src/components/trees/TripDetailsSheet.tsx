@@ -128,6 +128,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       amount: Number(sorted[0].amount_paid),
       treeIds: [sorted[0].id],
       ototIds: [sorted[0].otot_id],
+      paymentMethod: (sorted[0] as any).payment_method || 'Card',
     };
     for (let i = 1; i < sorted.length; i++) {
       const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
@@ -145,6 +146,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
           amount: Number(sorted[i].amount_paid),
           treeIds: [sorted[i].id],
           ototIds: [sorted[i].otot_id],
+          paymentMethod: (sorted[i] as any).payment_method || 'Card',
         };
       }
     }
