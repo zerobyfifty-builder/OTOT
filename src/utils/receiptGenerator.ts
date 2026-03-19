@@ -39,6 +39,7 @@ export interface ReceiptData {
   userName: string;
   userEmail: string;
   treeIds: string[];
+  paymentMethod?: string;
 }
 
 export async function generateReceipt(data: ReceiptData) {
