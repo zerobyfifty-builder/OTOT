@@ -368,5 +368,35 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         </div>
       </SheetContent>
     </Sheet>
+
+      {/* Receipt Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={handleClosePreview}>
+        <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle>Receipt Preview</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => previewUrl && downloadReceiptFromUrl(previewUrl, previewReceiptNo)}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 px-6 pb-6 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-md border"
+                title="Receipt Preview"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
