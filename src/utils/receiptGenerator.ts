@@ -137,7 +137,7 @@ export async function generateReceipt(data: ReceiptData) {
     head: [["Description", "Quantity", "Unit Price (USD)", "Total (USD)"]],
     body: [
       [
-        "Carbon Offset Tree Planting",
+        "Tree Planting & Growth Management\nin Tourist Regenerative Forests",
         `${data.numTrees} Trees`,
         `$${(data.amountPaid / data.numTrees).toFixed(2)}`,
         `$${data.amountPaid.toFixed(2)}`,
