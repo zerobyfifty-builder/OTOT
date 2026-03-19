@@ -214,7 +214,7 @@ export const StakeholderOrders = () => {
   });
 
   const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
-
+  const [viewSheet, setViewSheet] = useState<TreeGroup | null>(null);
   const handleBulkApply = useCallback((groupKey: string, treeIds: string[]) => {
     const status = bulkSelections[groupKey];
     if (!status) {
