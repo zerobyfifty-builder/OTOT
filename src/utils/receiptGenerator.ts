@@ -93,7 +93,7 @@ export async function generateReceipt(data: ReceiptData) {
   yPos += 10;
 
   const labelX = 20;
-  const valueX = 72;
+  const valueX = 58;
   const maxValueWidth = pageWidth - valueX - 20;
 
   // Trip reference
