@@ -190,7 +190,6 @@ export const StakeholderOrders = () => {
                     <TableRow key={tree.id}>
                       <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
                       <TableCell>—</TableCell>
-                      </TableCell>
                       <TableCell>{tree.num_trees}</TableCell>
                       <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                       <TableCell>{new Date(tree.created_at).toLocaleDateString()}</TableCell>
