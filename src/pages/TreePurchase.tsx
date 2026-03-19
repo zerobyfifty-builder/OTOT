@@ -293,6 +293,7 @@ export const TreePurchase = () => {
           lodge_id: null,
           location_name: locationName,
           trip_id: tripId || null,
+          payment_method: paymentMethod,
         });
       }
 
