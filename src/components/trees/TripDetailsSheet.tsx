@@ -325,9 +325,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                       </TableCell>
                       <TableCell className="text-center">
                         <button
-                          onClick={() => handleDownloadReceipt(batch)}
+                          onClick={() => handleViewReceipt(batch)}
                           className="text-primary hover:text-primary/80"
-                          title="Download receipt"
+                          title="View receipt"
                         >
                           <FileText className="h-4 w-4" />
                         </button>
