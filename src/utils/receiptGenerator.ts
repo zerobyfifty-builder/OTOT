@@ -70,7 +70,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setTextColor(100, 100, 100);
   doc.text(`Receipt No: ${data.receiptNo}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 5;
-  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy")}`, pageWidth / 2, yPos, { align: "center" });
+  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy, HH:mm")}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 10;
 
   // Divider
