@@ -295,6 +295,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                         {format(new Date(batch.date), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell className="text-center">{batch.numTrees}</TableCell>
+                      <TableCell className="text-center text-xs text-muted-foreground">{batch.paymentMethod}</TableCell>
                       <TableCell className="text-right font-medium">
                         ${batch.amount.toFixed(2)}
                       </TableCell>
