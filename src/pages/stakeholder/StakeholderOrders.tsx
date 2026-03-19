@@ -163,6 +163,33 @@ export const StakeholderOrders = () => {
     onError: () => toast.error("Failed to update status"),
   });
 
+  const bulkUpdateStatus = useMutation({
+    mutationFn: async ({ treeIds, status }: { treeIds: string[]; status: string }) => {
+      const { error } = await supabase
+        .from("trees")
+        .update({ planting_status: status as any })
+        .in("id", treeIds);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrders"] });
+      toast.success(`Updated ${variables.treeIds.length} tree(s) to ${STATUS_LABELS[variables.status]}`);
+      setBulkSelections({});
+    },
+    onError: () => toast.error("Failed to bulk update status"),
+  });
+
+  const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
+
+  const handleBulkApply = useCallback((groupKey: string, treeIds: string[]) => {
+    const status = bulkSelections[groupKey];
+    if (!status) {
+      toast.error("Please select a status first");
+      return;
+    }
+    bulkUpdateStatus.mutate({ treeIds, status });
+  }, [bulkSelections, bulkUpdateStatus]);
+
   // Group trees by trip_id (same pattern as MyTrees)
   const treeGroups = useMemo<TreeGroup[]>(() => {
     if (!trees) return [];
