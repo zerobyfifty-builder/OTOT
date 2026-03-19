@@ -40,6 +40,8 @@ export interface ReceiptData {
   userEmail: string;
   treeIds: string[];
   paymentMethod?: string;
+  isReturn?: boolean;
+  totalCo2?: number;
 }
 
 export async function generateReceipt(data: ReceiptData) {
@@ -68,7 +70,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setTextColor(100, 100, 100);
   doc.text(`Receipt No: ${data.receiptNo}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 5;
-  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy")}`, pageWidth / 2, yPos, { align: "center" });
+  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy, HH:mm")}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 10;
 
   // Divider
@@ -96,8 +98,12 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("Trip Reference:", 20, yPos);
+  yPos += 6;
   doc.setFont("helvetica", "normal");
-  doc.text(`${data.tripId} — ${data.route}`, 70, yPos);
+  doc.setFontSize(10);
+  const tripType = data.isReturn ? "Return" : "One-way";
+  const co2Text = data.totalCo2 != null ? ` | Total CO2: ${data.totalCo2.toFixed(1)} kg` : "";
+  doc.text(`${data.tripId}: ${data.route} (${tripType})${co2Text}`, 20, yPos);
   yPos += 7;
 
   // Payment method
@@ -114,7 +120,7 @@ export async function generateReceipt(data: ReceiptData) {
     body: [
       [
         "Carbon Offset Tree Planting",
-        String(data.numTrees),
+        `${data.numTrees} Trees`,
         `$${(data.amountPaid / data.numTrees).toFixed(2)}`,
         `$${data.amountPaid.toFixed(2)}`,
       ],
@@ -138,21 +144,6 @@ export async function generateReceipt(data: ReceiptData) {
   });
 
   yPos = (doc as any).lastAutoTable.finalY + 12;
-
-  // Tree IDs
-  if (data.treeIds.length > 0) {
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Tree Reference ID(s):", 20, yPos);
-    yPos += 6;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    const idsText = data.treeIds.join(", ");
-    const splitIds = doc.splitTextToSize(idsText, pageWidth - 40);
-    doc.text(splitIds, 20, yPos);
-    yPos += splitIds.length * 5 + 8;
-  }
 
   // Planting location
   doc.setTextColor(0, 0, 0);

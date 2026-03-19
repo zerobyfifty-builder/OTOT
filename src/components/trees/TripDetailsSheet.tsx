@@ -157,7 +157,11 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const payments = buildPaymentBatches();
 
   const handleDownloadReceipt = async (batch: PaymentBatch) => {
-    const route = `${trip.origin_airport} → ${trip.destination_airport}`;
+    const originAirport = airports.find(a => a.code === trip.origin_airport);
+    const destAirport = airports.find(a => a.code === trip.destination_airport);
+    const originName = originAirport ? `${originAirport.name} (${originAirport.code})` : trip.origin_airport;
+    const destName = destAirport ? `${destAirport.name} (${destAirport.code})` : trip.destination_airport;
+    const route = `${originName} → ${destName}`;
     const receiptData: ReceiptData = {
       receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`,
       paymentDate: batch.date,
@@ -169,6 +173,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       userEmail,
       treeIds: batch.ototIds,
       paymentMethod: batch.paymentMethod,
+      isReturn: trip.is_return,
+      totalCo2: trip.total_co2,
     };
     await generateReceipt(receiptData);
   };
