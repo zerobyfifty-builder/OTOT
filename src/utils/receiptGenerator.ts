@@ -44,7 +44,7 @@ export interface ReceiptData {
   totalCo2?: number;
 }
 
-export async function generateReceipt(data: ReceiptData) {
+export async function generateReceipt(data: ReceiptData): Promise<string> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
