@@ -285,18 +285,18 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payments.map((payment, idx) => (
-                    <TableRow key={payment.treeId}>
+                  {payments.map((batch) => (
+                    <TableRow key={batch.batchIndex}>
                       <TableCell className="text-left">
-                        {format(new Date(payment.date), "dd MMM yyyy")}
+                        {format(new Date(batch.date), "dd MMM yyyy")}
                       </TableCell>
-                      <TableCell className="text-center">{payment.numTrees}</TableCell>
+                      <TableCell className="text-center">{batch.numTrees}</TableCell>
                       <TableCell className="text-right font-medium">
-                        ${payment.amount.toFixed(2)}
+                        ${batch.amount.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
                         <button
-                          onClick={() => handleDownloadReceipt(payment, idx)}
+                          onClick={() => handleDownloadReceipt(batch)}
                           className="text-primary hover:text-primary/80"
                           title="Download receipt"
                         >
