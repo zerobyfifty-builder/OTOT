@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, Layers, CheckCheck } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, Layers, CheckCheck, Eye } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -26,6 +26,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -207,7 +214,7 @@ export const StakeholderOrders = () => {
   });
 
   const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
-
+  const [viewSheet, setViewSheet] = useState<TreeGroup | null>(null);
   const handleBulkApply = useCallback((groupKey: string, treeIds: string[]) => {
     const status = bulkSelections[groupKey];
     if (!status) {
@@ -338,58 +345,68 @@ export const StakeholderOrders = () => {
 
                 return (
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
-                    <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30">
-                      <div className="flex items-center justify-between w-full mr-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
-                            {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
-                          </div>
-                          <div className="text-left">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-foreground text-sm">
-                                {isTrip && trip
-                                  ? trip.friendly_trip_id || 'Trip'
-                                  : "Direct Purchase"}
-                              </span>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <span className="text-sm text-foreground">
-                                {touristName}{touristCountry ? ` (${touristCountry})` : ''}
-                              </span>
+                    <div className="flex items-center">
+                      <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30 flex-1">
+                        <div className="flex items-center justify-between w-full mr-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                              {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(group.earliestDate), "d MMM yyyy")}
-                              {isTrip && trip && (
-                                <span className="ml-2">{trip.origin_airport} → {trip.destination_airport}</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          {/* Planting progress bar */}
-                          <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
-                            <div className="flex-1">
-                              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-green-500 transition-all duration-500"
-                                  style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
-                                />
+                            <div className="text-left">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-foreground text-sm">
+                                  {isTrip && trip
+                                    ? trip.friendly_trip_id || 'Trip'
+                                    : "Direct Purchase"}
+                                </span>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <span className="text-sm text-foreground">
+                                  {touristName}{touristCountry ? ` (${touristCountry})` : ''}
+                                </span>
                               </div>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(group.earliestDate), "d MMM yyyy")}
+                              </p>
                             </div>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {plantedInGroup}/{group.totalTrees}
-                            </span>
                           </div>
-                          <div className="text-right hidden sm:block">
-                            <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
-                            <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+
+                          <div className="flex items-center gap-4">
+                            <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                              <div className="flex-1">
+                                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                    style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {plantedInGroup}/{group.totalTrees}
+                              </span>
+                            </div>
+                            <div className="text-right hidden sm:block">
+                              <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
+                              <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+                            </div>
+                            <Badge className={getGroupStatusColor(groupStatus)}>
+                              {getGroupStatusLabel(groupStatus)}
+                            </Badge>
                           </div>
-                          <Badge className={getGroupStatusColor(groupStatus)}>
-                            {getGroupStatusLabel(groupStatus)}
-                          </Badge>
                         </div>
-                      </div>
-                    </AccordionTrigger>
+                      </AccordionTrigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 mr-2 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewSheet(group);
+                        }}
+                        title="View trip details"
+                      >
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
                     <AccordionContent>
                       {/* Bulk Status Update Bar */}
                       <div className="mx-4 mb-3 mt-1 flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
@@ -511,6 +528,139 @@ export const StakeholderOrders = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Trip Details Sheet */}
+      <Sheet open={!!viewSheet} onOpenChange={(open) => !open && setViewSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {viewSheet && (() => {
+            const trip = viewSheet.trip;
+            const userInfo = users[viewSheet.userId];
+            const touristName = userInfo
+              ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
+              : 'Unknown';
+            const touristCountry = userInfo?.country || '';
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Plane className="h-5 w-5 text-primary" />
+                    {trip?.friendly_trip_id || 'Direct Purchase'} Details
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="mt-6 space-y-6">
+                  {/* Tourist Info */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tourist</h3>
+                    <div className="rounded-lg border bg-card p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Name</span>
+                        <span className="text-sm font-medium">{touristName}</span>
+                      </div>
+                      {touristCountry && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Country</span>
+                          <span className="text-sm font-medium">{touristCountry}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Payment Date</span>
+                        <span className="text-sm font-medium">{format(new Date(viewSheet.earliestDate), "d MMM yyyy")}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Order Summary */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Order Summary</h3>
+                    <div className="rounded-lg border bg-card p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Trees</span>
+                        <span className="text-sm font-medium">{viewSheet.totalTrees}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Total Amount</span>
+                        <span className="text-sm font-medium">${viewSheet.totalAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {trip && (
+                    <>
+                      <Separator />
+
+                      {/* Carbon Emission Details */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Carbon Emission</h3>
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Total CO₂</span>
+                            <span className="text-sm font-semibold text-foreground">{Number(trip.total_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Flight CO₂</span>
+                            <span className="text-sm font-medium">{Number(trip.flight_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Accommodation CO₂</span>
+                            <span className="text-sm font-medium">{Number(trip.accommodation_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Trees Needed</span>
+                            <span className="text-sm font-medium">{trip.trees_needed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Flight Details */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Flight Details</h3>
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Origin</span>
+                            <span className="text-sm font-medium">{trip.origin_airport}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Destination</span>
+                            <span className="text-sm font-medium">{trip.destination_airport}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travel Class</span>
+                            <span className="text-sm font-medium">{trip.travel_class}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Return Flight</span>
+                            <span className="text-sm font-medium">{trip.is_return ? 'Yes' : 'No'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travelers</span>
+                            <span className="text-sm font-medium">{trip.num_travelers}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travel Date</span>
+                            <span className="text-sm font-medium">{format(new Date(trip.from_date), "d MMM yyyy")}</span>
+                          </div>
+                          {trip.accommodation_type && trip.accommodation_type !== 'None' && (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Accommodation</span>
+                              <span className="text-sm font-medium">{trip.accommodation_type}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
