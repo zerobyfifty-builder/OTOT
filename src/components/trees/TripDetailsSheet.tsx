@@ -161,10 +161,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const payments = buildPaymentBatches();
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
   const handleViewReceipt = async (batch: PaymentBatch) => {
     const originAirport = airports.find(a => a.code === trip.origin_airport);
     const destAirport = airports.find(a => a.code === trip.destination_airport);
