@@ -68,7 +68,14 @@ interface TreeGroup {
   totalTrees: number;
   totalAmount: number;
   earliestDate: string;
+  userId: string;
 }
+
+type UserInfo = {
+  first_name: string | null;
+  last_name: string | null;
+  country: string | null;
+};
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
   const statuses = trees.map(t => t.planting_status || 'pending_allocation');
