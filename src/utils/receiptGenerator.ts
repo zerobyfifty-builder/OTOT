@@ -39,6 +39,7 @@ export interface ReceiptData {
   userName: string;
   userEmail: string;
   treeIds: string[];
+  paymentMethod?: string;
 }
 
 export async function generateReceipt(data: ReceiptData) {
@@ -97,6 +98,13 @@ export async function generateReceipt(data: ReceiptData) {
   doc.text("Trip Reference:", 20, yPos);
   doc.setFont("helvetica", "normal");
   doc.text(`${data.tripId} — ${data.route}`, 70, yPos);
+  yPos += 7;
+
+  // Payment method
+  doc.setFont("helvetica", "bold");
+  doc.text("Payment Method:", 20, yPos);
+  doc.setFont("helvetica", "normal");
+  doc.text(data.paymentMethod || "Card", 70, yPos);
   yPos += 12;
 
   // Payment details table
