@@ -335,9 +335,6 @@ export const StakeholderOrders = () => {
                   ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
                   : 'Unknown';
                 const touristCountry = userInfo?.country || '';
-                const carbonCalcDate = isTrip && trip
-                  ? format(new Date(trip.created_at), "d MMM yyyy")
-                  : format(new Date(group.earliestDate), "d MMM yyyy");
 
                 return (
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
