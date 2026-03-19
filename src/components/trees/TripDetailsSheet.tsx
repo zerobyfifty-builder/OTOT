@@ -41,12 +41,13 @@ const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_ty
   "Service Apartment": "Service Apartment"
 };
 
-interface PaymentRecord {
-  treeId: string;
-  ototId: string;
+interface PaymentBatch {
+  batchIndex: number;
   date: string;
   numTrees: number;
   amount: number;
+  treeIds: string[];
+  ototIds: string[];
 }
 
 export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
