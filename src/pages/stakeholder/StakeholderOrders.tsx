@@ -347,20 +347,19 @@ export const StakeholderOrders = () => {
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
                     <div className="flex items-center">
                       <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30 flex-1">
-                        <div className="flex items-center justify-between w-full mr-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                        <div className="flex items-center w-full mr-4 gap-4">
+                          {/* Left: Icon + Trip ID / Name / Date */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
                               {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                             </div>
-                            <div className="text-left">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-foreground text-sm">
-                                  {isTrip && trip
-                                    ? trip.friendly_trip_id || 'Trip'
-                                    : "Direct Purchase"}
+                            <div className="text-left min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-foreground text-sm whitespace-nowrap">
+                                  {isTrip && trip ? trip.friendly_trip_id || 'Trip' : "Direct Purchase"}
                                 </span>
                                 <span className="text-xs text-muted-foreground">•</span>
-                                <span className="text-sm text-foreground">
+                                <span className="text-sm text-foreground truncate">
                                   {touristName}{touristCountry ? ` (${touristCountry})` : ''}
                                 </span>
                               </div>
@@ -370,24 +369,29 @@ export const StakeholderOrders = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-4">
-                            <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
-                              <div className="flex-1">
-                                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full bg-green-500 transition-all duration-500"
-                                    style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
-                                  />
-                                </div>
+                          {/* Progress bar */}
+                          <div className="hidden sm:flex items-center gap-2 w-[130px] shrink-0">
+                            <div className="flex-1">
+                              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                  style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
+                                />
                               </div>
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                {plantedInGroup}/{group.totalTrees}
-                              </span>
                             </div>
-                            <div className="text-right hidden sm:block">
-                              <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
-                              <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
-                            </div>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                              {plantedInGroup}/{group.totalTrees}
+                            </span>
+                          </div>
+
+                          {/* Trees count + amount */}
+                          <div className="text-right w-[80px] shrink-0 hidden sm:block">
+                            <p className="text-sm font-semibold text-foreground whitespace-nowrap">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
+                            <p className="text-xs text-muted-foreground whitespace-nowrap">${group.totalAmount.toFixed(2)}</p>
+                          </div>
+
+                          {/* Status badge */}
+                          <div className="shrink-0 w-[140px] flex justify-center">
                             <Badge className={getGroupStatusColor(groupStatus)}>
                               {getGroupStatusLabel(groupStatus)}
                             </Badge>
