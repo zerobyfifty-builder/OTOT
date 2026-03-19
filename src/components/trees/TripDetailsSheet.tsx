@@ -161,7 +161,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     const destAirport = airports.find(a => a.code === trip.destination_airport);
     const originName = originAirport ? `${originAirport.name} (${originAirport.code})` : trip.origin_airport;
     const destName = destAirport ? `${destAirport.name} (${destAirport.code})` : trip.destination_airport;
-    const route = `${originName} → ${destName}`;
+    const route = `${originName} to ${destName}`;
     const receiptData: ReceiptData = {
       receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`,
       paymentDate: batch.date,
