@@ -360,7 +360,7 @@ export const StakeholderOrders = () => {
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Carbon calculated: {carbonCalcDate}
+                              {format(new Date(group.earliestDate), "d MMM yyyy")}
                               {isTrip && trip && (
                                 <span className="ml-2">{trip.origin_airport} → {trip.destination_airport}</span>
                               )}
