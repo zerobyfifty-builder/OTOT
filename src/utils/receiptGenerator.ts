@@ -182,14 +182,14 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.text(
-    "This receipt confirms your contribution to the One Tourist One Tree (OTOT) carbon offset programme",
+    "This receipt confirms your contribution to the One Tourist One Tree (OTOT) Tree plantation program",
     pageWidth / 2,
     yPos,
     { align: "center" }
   );
   yPos += 4;
   doc.text(
-    "managed by the Kenya Tourism Board. Trees are planted and monitored by certified stakeholders.",
+    "managed by the Kenya Tourism Board. Trees are planted and monitored by Ministry of Environment, Climate Change & Forestry.",
     pageWidth / 2,
     yPos,
     { align: "center" }
@@ -198,7 +198,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(34, 139, 34);
-  doc.text("www.magicalkenya.com | One Tourist, One Tree", pageWidth / 2, yPos, { align: "center" });
+  doc.text("One Tourist, One Tree, One Planet", pageWidth / 2, yPos, { align: "center" });
 
   // Save
   doc.save(`Receipt-${data.receiptNo}.pdf`);
