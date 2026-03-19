@@ -737,7 +737,7 @@ export const TreePurchase = () => {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
                 <h3 className="text-lg font-bold text-foreground">Mau Forest Complex</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  A vital water tower and source of 12 major rivers, this degraded landscape is being restored through MFC-ICLIP—where your tree contributes to one of East Africa's most ambitious efforts to recover over 317,000 hectares.
+                  A vital water tower and source of 12 major rivers feeding Lake Victoria, Lake Nakuru, and the Maasai Mara -Serengeti. Your tree is planted here by MFC-ICLIP to restore this degraded landscape and regenerate the forest.
                 </p>
                 <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer">
                   <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
