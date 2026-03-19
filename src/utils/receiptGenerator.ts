@@ -95,16 +95,23 @@ export async function generateReceipt(data: ReceiptData) {
 
   // Trip reference
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.text("Trip Reference:", 20, yPos);
-  yPos += 6;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.text(data.tripId, 62, yPos);
+  yPos += 6;
   const tripType = data.isReturn ? "Return" : "One-way";
-  const co2Text = data.totalCo2 != null ? ` | Total CO2: ${data.totalCo2.toFixed(1)} kg` : "";
-  doc.text(`${data.tripId}: ${data.route} (${tripType})${co2Text}`, 20, yPos);
-  yPos += 7;
+  const routeLine = `${data.route} (${tripType})`;
+  const splitRoute = doc.splitTextToSize(routeLine, pageWidth - 40);
+  doc.text(splitRoute, 20, yPos);
+  yPos += splitRoute.length * 5;
+  const co2Text = data.totalCo2 != null ? `Total CO2 Emission: ${data.totalCo2.toFixed(1)} kg` : "";
+  if (co2Text) {
+    doc.text(co2Text, 20, yPos);
+    yPos += 5;
+  }
+  yPos += 2;
 
   // Payment method
   doc.setFont("helvetica", "bold");
