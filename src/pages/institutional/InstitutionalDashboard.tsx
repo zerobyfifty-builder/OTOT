@@ -3,13 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, TreePine, TrendingUp, BarChart3, Plane, Building, DollarSign, MapPin, UserCheck } from "lucide-react";
+import { Users, TreePine, TrendingUp, BarChart3, Plane, Building, DollarSign, MapPin, UserCheck, Heart, Briefcase, Sprout, Activity } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { InstitutionalStatCard } from "@/components/institutional/InstitutionalStatCard";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, ComposedChart, Area } from "recharts";
 import { airports } from "@/data/airports";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
 import { ChartExportButton } from "@/components/institutional/ChartExportButton";
@@ -388,6 +390,9 @@ export const InstitutionalDashboard = () => {
         </Card>
       </div>
 
+      {/* Planting & Community Impact Section */}
+      <ImpactSection />
+
       {/* CO₂ & Activity Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
@@ -451,6 +456,164 @@ export const InstitutionalDashboard = () => {
                   <p className="text-sm text-muted-foreground">Tourist carbon footprint tracking</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// Impact Section component for KTB Dashboard
+const ImpactSection = () => {
+  const { data: impactData, isLoading } = useQuery({
+    queryKey: ["institutionalImpact"],
+    queryFn: async () => {
+      // Fetch planting status breakdown
+      const { data: trees } = await supabase
+        .from("trees")
+        .select("planting_status, stakeholder_org_id, num_trees");
+
+      const totalAllocated = trees?.filter(t => t.stakeholder_org_id).reduce((s, t) => s + t.num_trees, 0) || 0;
+      const totalPending = trees?.filter(t => !t.stakeholder_org_id).reduce((s, t) => s + t.num_trees, 0) || 0;
+      const planted = trees?.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0) || 0;
+      const inProgress = trees?.filter(t => t.planting_status === 'planting_in_progress').reduce((s, t) => s + t.num_trees, 0) || 0;
+
+      // Fetch community impact aggregates
+      const { data: community } = await supabase
+        .from("community_impact")
+        .select("families_supported, jobs_created, women_employed, youth_employed, nursery_income_kes");
+
+      const totalFamilies = community?.reduce((s, r) => s + (r.families_supported || 0), 0) || 0;
+      const totalJobs = community?.reduce((s, r) => s + (r.jobs_created || 0), 0) || 0;
+      const totalWomen = community?.reduce((s, r) => s + (r.women_employed || 0), 0) || 0;
+      const totalYouth = community?.reduce((s, r) => s + (r.youth_employed || 0), 0) || 0;
+      const totalIncome = community?.reduce((s, r) => s + Number(r.nursery_income_kes || 0), 0) || 0;
+
+      // Fetch avg survival rate
+      const { data: monitoring } = await supabase
+        .from("monitoring_records")
+        .select("survival_rate");
+      const avgSurvival = monitoring && monitoring.length > 0
+        ? monitoring.reduce((s, m) => s + (Number(m.survival_rate) || 0), 0) / monitoring.length
+        : 0;
+
+      // Fetch disbursement totals
+      const { data: disbursements } = await supabase
+        .from("stakeholder_disbursements")
+        .select("amount, status");
+      const totalDisbursed = disbursements?.filter(d => d.status === 'completed' || d.status === 'confirmed').reduce((s, d) => s + Number(d.amount), 0) || 0;
+      const totalPendingFunds = disbursements?.filter(d => d.status === 'pending').reduce((s, d) => s + Number(d.amount), 0) || 0;
+
+      return {
+        totalAllocated, totalPending, planted, inProgress,
+        totalFamilies, totalJobs, totalWomen, totalYouth, totalIncome,
+        avgSurvival, totalDisbursed, totalPendingFunds,
+        totalTrees: (totalAllocated + totalPending),
+      };
+    },
+    refetchInterval: 30000,
+  });
+
+  const plantingProgress = impactData && impactData.totalTrees > 0
+    ? Math.round((impactData.planted / impactData.totalTrees) * 100)
+    : 0;
+
+  if (isLoading) {
+    return <div className="space-y-4"><Skeleton className="h-64" /></div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-foreground">Planting & Community Impact</h2>
+
+      {/* Planting Progress */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sprout className="h-5 w-5 text-primary" />
+              Planting Pipeline
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Overall Progress</span>
+              <span className="font-semibold">{plantingProgress}%</span>
+            </div>
+            <Progress value={plantingProgress} className="h-3" />
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-xs text-muted-foreground">Allocated</p>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalAllocated || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-xs text-muted-foreground">Unallocated</p>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalPending || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-primary/10">
+                <p className="text-xs text-muted-foreground">Planted</p>
+                <p className="text-xl font-bold text-primary">{formatNumber(impactData?.planted || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-xs text-muted-foreground">In Progress</p>
+                <p className="text-xl font-bold">{formatNumber(impactData?.inProgress || 0)}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t">
+              <span className="text-sm text-muted-foreground">Avg Survival Rate</span>
+              <Badge variant={impactData && impactData.avgSurvival >= 80 ? "default" : "secondary"}>
+                {(impactData?.avgSurvival || 0).toFixed(1)}%
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Heart className="h-5 w-5 text-destructive" />
+              Community Benefit
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-muted">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Families Supported</p>
+                </div>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalFamilies || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted">
+                <div className="flex items-center gap-2 mb-1">
+                  <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Jobs Created</p>
+                </div>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalJobs || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-xs text-muted-foreground">Women Employed</p>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalWomen || 0)}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-xs text-muted-foreground">Youth Employed</p>
+                <p className="text-xl font-bold">{formatNumber(impactData?.totalYouth || 0)}</p>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-muted">
+              <p className="text-xs text-muted-foreground">Total Nursery Income</p>
+              <p className="text-xl font-bold">KES {formatNumber(impactData?.totalIncome || 0)}</p>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div>
+                <p className="text-xs text-muted-foreground">Funds Disbursed</p>
+                <p className="text-sm font-semibold">KES {formatNumber(impactData?.totalDisbursed || 0)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Pending</p>
+                <p className="text-sm font-semibold text-destructive">KES {formatNumber(impactData?.totalPendingFunds || 0)}</p>
               </div>
             </div>
           </CardContent>
