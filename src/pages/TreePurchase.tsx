@@ -729,25 +729,21 @@ export const TreePurchase = () => {
             {/* Card 2: Planted here */}
             <Card className="border-border/50 hover:shadow-md transition-shadow overflow-hidden">
               <img 
-                src={kfsPlantingSite} 
-                alt="Aberdare Forest Reserve reforestation site" 
+                src={mauForestImage} 
+                alt="Mau Forest Complex reforestation site" 
                 className="w-full h-32 object-cover"
               />
               <CardContent className="pt-4 text-center space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
-                <h3 className="text-lg font-bold text-foreground">Aberdare Forest Reserve</h3>
+                <h3 className="text-lg font-bold text-foreground">Mau Forest Complex</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  One of Kenya's vital water towers — home to indigenous Cedar, Camphor & African Olive species.
+                  A vital water tower and source of 12 major rivers, this degraded landscape is being restored through MFC-ICLIP—where your tree contributes to one of East Africa's most ambitious efforts to recover over 317,000 hectares.
                 </p>
-                <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground pt-1">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> Central Kenya
-                  </span>
-                  <span>2,000–4,000m</span>
-                </div>
-                <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
-                  Know more →
-                </Button>
+                <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer">
+                  <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
+                    Know more →
+                  </Button>
+                </a>
               </CardContent>
             </Card>
 
