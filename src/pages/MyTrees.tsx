@@ -419,8 +419,8 @@ export const MyTrees = () => {
                                         <MapPin className="h-4 w-4" />
                                       </button>
                                     </TableCell>
-                                    <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau Forest Complex'}</TableCell>
-                                    <TableCell className="text-left">{tree.location_name || 'Nakuru'}</TableCell>
+                                    <TableCell className="text-left">Mau Forest Complex</TableCell>
+                                    <TableCell className="text-left">Nakuru</TableCell>
                                     <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                     <TableCell>
                                       <Badge className={STATUS_COLORS[tree.status]}>
