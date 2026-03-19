@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
-import kfsPlantingSite from "@/assets/kfs-planting-site.jpg";
+import mauForestImage from "@/assets/mau-forest-complex.jpg";
 
 interface Lodge {
   id: string;
