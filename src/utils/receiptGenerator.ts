@@ -98,8 +98,12 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("Trip Reference:", 20, yPos);
+  yPos += 6;
   doc.setFont("helvetica", "normal");
-  doc.text(`${data.tripId} — ${data.route}`, 70, yPos);
+  doc.setFontSize(10);
+  const tripType = data.isReturn ? "Return" : "One-way";
+  const co2Text = data.totalCo2 != null ? ` | Total CO2: ${data.totalCo2.toFixed(1)} kg` : "";
+  doc.text(`${data.tripId}: ${data.route} (${tripType})${co2Text}`, 20, yPos);
   yPos += 7;
 
   // Payment method
