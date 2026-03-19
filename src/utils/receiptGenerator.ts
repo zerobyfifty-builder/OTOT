@@ -143,7 +143,7 @@ export async function generateReceipt(data: ReceiptData) {
         `$${data.amountPaid.toFixed(2)}`,
       ],
     ],
-    foot: [["", "", "Total Paid", `$${data.amountPaid.toFixed(2)}`]],
+    foot: [["", "", "Total Contribution", `$${data.amountPaid.toFixed(2)}`]],
     theme: "grid",
     headStyles: {
       fillColor: [34, 139, 34],
