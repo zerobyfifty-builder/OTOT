@@ -613,7 +613,7 @@ const ImpactSection = () => {
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Pending</p>
-                <p className="text-sm font-semibold text-orange-600">KES {formatNumber(impactData?.totalPendingFunds || 0)}</p>
+                <p className="text-sm font-semibold text-destructive">KES {formatNumber(impactData?.totalPendingFunds || 0)}</p>
               </div>
             </div>
           </CardContent>
