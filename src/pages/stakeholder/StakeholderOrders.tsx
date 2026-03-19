@@ -68,7 +68,14 @@ interface TreeGroup {
   totalTrees: number;
   totalAmount: number;
   earliestDate: string;
+  userId: string;
 }
+
+type UserInfo = {
+  first_name: string | null;
+  last_name: string | null;
+  country: string | null;
+};
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
   const statuses = trees.map(t => t.planting_status || 'pending_allocation');
@@ -135,6 +142,26 @@ export const StakeholderOrders = () => {
 
   const trips = tripsData || {};
 
+  // Fetch user info for all unique user_ids
+  const { data: usersData } = useQuery({
+    queryKey: ["stakeholderOrderUsers", trees],
+    queryFn: async () => {
+      const userIds = [...new Set(trees?.map(t => t.user_id).filter(Boolean) || [])];
+      if (userIds.length === 0) return {};
+      const { data } = await supabase
+        .from("users")
+        .select("user_id, first_name, last_name, country")
+        .in("user_id", userIds);
+      return (data || []).reduce((acc, u) => {
+        acc[u.user_id] = { first_name: u.first_name, last_name: u.last_name, country: u.country };
+        return acc;
+      }, {} as Record<string, UserInfo>);
+    },
+    enabled: !!trees && trees.length > 0,
+  });
+
+  const users = usersData || {};
+
   const { data: disbursements } = useQuery({
     queryKey: ["stakeholderDisbursementTotal", orgId],
     queryFn: async () => {
@@ -190,54 +217,23 @@ export const StakeholderOrders = () => {
     bulkUpdateStatus.mutate({ treeIds, status });
   }, [bulkSelections, bulkUpdateStatus]);
 
-  // Group trees by trip_id (same pattern as MyTrees)
+  // Group trees by individual tree record (each payment batch = separate entry)
   const treeGroups = useMemo<TreeGroup[]>(() => {
     if (!trees) return [];
-    const groupMap = new Map<string, Tree[]>();
 
-    trees.forEach(tree => {
-      const key = tree.trip_id || `__direct_${tree.id}`;
-      if (!groupMap.has(key)) groupMap.set(key, []);
-      groupMap.get(key)!.push(tree);
-    });
+    const groups: TreeGroup[] = trees.map(tree => ({
+      key: tree.id,
+      tripId: tree.trip_id,
+      trip: tree.trip_id ? (trips[tree.trip_id] || null) : null,
+      trees: [tree],
+      totalTrees: tree.num_trees,
+      totalAmount: Number(tree.amount_paid),
+      earliestDate: tree.created_at,
+      userId: tree.user_id,
+    }));
 
-    const groups: TreeGroup[] = [];
-
-    // Trip groups first
-    const tripKeys = [...groupMap.keys()].filter(k => !k.startsWith("__direct_"));
-    tripKeys.sort((a, b) => {
-      const aDate = groupMap.get(a)![0].created_at;
-      const bDate = groupMap.get(b)![0].created_at;
-      return new Date(bDate).getTime() - new Date(aDate).getTime();
-    });
-
-    tripKeys.forEach(tripId => {
-      const groupTrees = groupMap.get(tripId)!;
-      groups.push({
-        key: tripId,
-        tripId,
-        trip: trips[tripId] || null,
-        trees: groupTrees,
-        totalTrees: groupTrees.reduce((sum, t) => sum + t.num_trees, 0),
-        totalAmount: groupTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
-        earliestDate: groupTrees[groupTrees.length - 1]?.created_at || groupTrees[0].created_at,
-      });
-    });
-
-    // Direct purchases
-    const directKeys = [...groupMap.keys()].filter(k => k.startsWith("__direct_"));
-    if (directKeys.length > 0) {
-      const directTrees = directKeys.flatMap(k => groupMap.get(k)!);
-      groups.push({
-        key: "__direct__",
-        tripId: null,
-        trip: null,
-        trees: directTrees,
-        totalTrees: directTrees.reduce((sum, t) => sum + t.num_trees, 0),
-        totalAmount: directTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
-        earliestDate: directTrees[0]?.created_at || "",
-      });
-    }
+    // Sort by created_at descending
+    groups.sort((a, b) => new Date(b.earliestDate).getTime() - new Date(a.earliestDate).getTime());
 
     return groups;
   }, [trees, trips]);
@@ -320,11 +316,19 @@ export const StakeholderOrders = () => {
         <Card>
           <CardContent className="p-0">
             <Accordion type="multiple" className="w-full">
-              {paginatedGroups.map((group, groupIndex) => {
+              {paginatedGroups.map((group) => {
                 const groupStatus = getGroupPlantingStatus(group.trees);
                 const isTrip = group.tripId !== null;
                 const trip = group.trip;
                 const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+                const userInfo = users[group.userId];
+                const touristName = userInfo
+                  ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
+                  : 'Unknown';
+                const touristCountry = userInfo?.country || '';
+                const carbonCalcDate = isTrip && trip
+                  ? format(new Date(trip.created_at), "d MMM yyyy")
+                  : format(new Date(group.earliestDate), "d MMM yyyy");
 
                 return (
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
@@ -335,20 +339,22 @@ export const StakeholderOrders = () => {
                             {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                           </div>
                           <div className="text-left">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-semibold text-foreground text-sm">
                                 {isTrip && trip
-                                  ? trip.friendly_trip_id || `Trip ${startIndex + groupIndex + 1}`
+                                  ? trip.friendly_trip_id || 'Trip'
                                   : "Direct Purchase"}
                               </span>
-                              {isTrip && trip && (
-                                <span className="text-xs text-muted-foreground">
-                                  {trip.origin_airport} → {trip.destination_airport}
-                                </span>
-                              )}
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <span className="text-sm text-foreground">
+                                {touristName}{touristCountry ? ` (${touristCountry})` : ''}
+                              </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(group.earliestDate), "d MMM yyyy")}
+                              Carbon calculated: {carbonCalcDate}
+                              {isTrip && trip && (
+                                <span className="ml-2">{trip.origin_airport} → {trip.destination_airport}</span>
+                              )}
                             </p>
                           </div>
                         </div>
