@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -396,7 +396,7 @@ export const MyTrees = () => {
                                 <TableRow className="bg-muted/30">
                                   <TableHead className="w-12">No.</TableHead>
                                   <TableHead className="text-left">TreeTracker</TableHead>
-                                  <TableHead className="text-left">Forest</TableHead>
+                                  <TableHead className="text-left">Location</TableHead>
                                   <TableHead className="text-left">County</TableHead>
                                   <TableHead className="text-left">Planted By</TableHead>
                                   <TableHead>Status</TableHead>
@@ -413,13 +413,13 @@ export const MyTrees = () => {
                                     <TableCell className="text-left">
                                       <button
                                         onClick={() => setSelectedTree(tree)}
-                                        className="text-primary hover:underline flex items-center gap-1"
+                                        className="text-primary hover:text-primary/80 flex items-center justify-center"
+                                        title={`View ${tree.otot_id}`}
                                       >
-                                        {tree.otot_id}
-                                        <ExternalLink className="h-3 w-3" />
+                                        <MapPin className="h-4 w-4" />
                                       </button>
                                     </TableCell>
-                                    <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau'}</TableCell>
+                                    <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau Forest Complex'}</TableCell>
                                     <TableCell className="text-left">{tree.location_name || 'Nakuru'}</TableCell>
                                     <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                     <TableCell>
