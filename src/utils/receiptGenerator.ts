@@ -40,6 +40,8 @@ export interface ReceiptData {
   userEmail: string;
   treeIds: string[];
   paymentMethod?: string;
+  isReturn?: boolean;
+  totalCo2?: number;
 }
 
 export async function generateReceipt(data: ReceiptData) {
