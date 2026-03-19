@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud } from "lucide-react";
-import ktbLogo from '@/assets/ktb-logo.png';
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TreeDetailPanel } from "@/components/trees/TreeDetailPanel";
 import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
 import { Database } from "@/integrations/supabase/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Table,
   TableBody,
@@ -27,6 +31,16 @@ type Trip = Database["public"]["Tables"]["trips"]["Row"];
 type TreeStatus = Database["public"]["Enums"]["tree_status_type"];
 type PurchaseType = Database["public"]["Enums"]["purchase_type"];
 
+interface TreeGroup {
+  key: string;
+  tripId: string | null;
+  trip: Trip | null;
+  trees: Tree[];
+  totalTrees: number;
+  totalAmount: number;
+  latestDate: string;
+}
+
 const STATUS_COLORS: Record<TreeStatus, string> = {
   "Waiting to be Assigned": "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   "Assigned": "bg-orange-500/10 text-orange-700 border-orange-500/20",
@@ -38,6 +52,21 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
 const SOURCE_COLORS: Record<PurchaseType, string> = {
   "One-time": "bg-blue-500/10 text-blue-700 border-blue-500/20",
   "Subscription": "bg-green-500/10 text-green-700 border-green-500/20",
+};
+
+const getGroupStatus = (trees: Tree[]): string => {
+  const statuses = trees.map(t => t.status);
+  if (statuses.every(s => s === "Planted")) return "Planted";
+  if (statuses.some(s => s === "Planted")) return "Partially Planted";
+  if (statuses.every(s => s === "Waiting to be Assigned")) return "Waiting to be Assigned";
+  return statuses[0] || "Unknown";
+};
+
+const getGroupStatusColor = (status: string): string => {
+  if (status === "Planted") return "bg-accent/10 text-accent border-accent/20";
+  if (status === "Partially Planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
+  if (status === "Waiting to be Assigned") return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+  return "bg-muted text-muted-foreground";
 };
 
 export const MyTrees = () => {
@@ -107,16 +136,64 @@ export const MyTrees = () => {
     }
   };
 
-  const totalPages = Math.ceil(trees.length / itemsPerPage);
+  // Group trees by trip_id
+  const treeGroups = useMemo<TreeGroup[]>(() => {
+    const groupMap = new Map<string, Tree[]>();
+    
+    trees.forEach(tree => {
+      const key = tree.trip_id || "__direct__";
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key)!.push(tree);
+    });
+
+    const groups: TreeGroup[] = [];
+    
+    // Trip groups first (sorted by latest date)
+    const tripKeys = [...groupMap.keys()].filter(k => k !== "__direct__");
+    tripKeys.sort((a, b) => {
+      const aDate = groupMap.get(a)![0].created_at;
+      const bDate = groupMap.get(b)![0].created_at;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    });
+
+    tripKeys.forEach(tripId => {
+      const groupTrees = groupMap.get(tripId)!;
+      groups.push({
+        key: tripId,
+        tripId,
+        trip: trips[tripId] || null,
+        trees: groupTrees,
+        totalTrees: groupTrees.reduce((sum, t) => sum + t.num_trees, 0),
+        totalAmount: groupTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
+        latestDate: groupTrees[0].created_at,
+      });
+    });
+
+    // Direct purchases at the end
+    if (groupMap.has("__direct__")) {
+      const directTrees = groupMap.get("__direct__")!;
+      groups.push({
+        key: "__direct__",
+        tripId: null,
+        trip: null,
+        trees: directTrees,
+        totalTrees: directTrees.reduce((sum, t) => sum + t.num_trees, 0),
+        totalAmount: directTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
+        latestDate: directTrees[0].created_at,
+      });
+    }
+
+    return groups;
+  }, [trees, trips]);
+
+  const totalPages = Math.ceil(treeGroups.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTrees = trees.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedGroups = treeGroups.slice(startIndex, startIndex + itemsPerPage);
 
   const calculateTotals = () => {
-    // Planted = all trees purchased (paid for), regardless of planting status
     const plantedTrees = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
     const tripsList = Object.values(trips);
     const totalCO2ToOffset = tripsList.reduce((sum, trip) => sum + Number(trip.total_co2 || 0), 0);
-    // CO2 offset: 22kg per planted tree per year
     const co2AlreadyOffset = plantedTrees * 22;
     const treesNeeded = tripsList.reduce((sum, trip) => sum + (trip.trees_needed || 0), 0);
     const treesRemaining = Math.max(0, treesNeeded - plantedTrees);
@@ -252,81 +329,122 @@ export const MyTrees = () => {
           </Card>
         ) : (
           <>
-            {/* Trees Table */}
+            {/* Grouped Trees Accordion */}
             <Card>
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-16">No.</TableHead>
-                        <TableHead className="text-left">Trip ID</TableHead>
-                        <TableHead className="text-left">TreeTracker</TableHead>
-                        <TableHead className="text-left">Forest</TableHead>
-                        <TableHead className="text-left">County</TableHead>
-                        <TableHead className="text-left">Planted By</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Payment Date</TableHead>
-                        <TableHead>Source</TableHead>
-                        <TableHead>Trip</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedTrees.map((tree, index) => {
-                        return (
-                          <TableRow key={tree.id}>
-                            <TableCell className="font-medium">
-                              {startIndex + index + 1}
-                            </TableCell>
-                            <TableCell className="text-left">
-                              {tree.trip_id && trips[tree.trip_id] ? trips[tree.trip_id].friendly_trip_id || "-" : "-"}
-                            </TableCell>
-                            <TableCell className="text-left">
-                              <button
-                                onClick={() => setSelectedTree(tree)}
-                                className="text-primary hover:underline flex items-center gap-1"
-                              >
-                                {tree.otot_id}
-                                <ExternalLink className="h-3 w-3" />
-                              </button>
-                            </TableCell>
-                            <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau'}</TableCell>
-                            <TableCell className="text-left">{tree.location_name || 'Nakuru'}</TableCell>
-                            <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
-                            <TableCell>
-                              <Badge className={STATUS_COLORS[tree.status]}>
-                                {tree.status === "Planted" ? "gifted" : tree.status}
+                <Accordion type="multiple" className="w-full">
+                  {paginatedGroups.map((group, groupIndex) => {
+                    const groupStatus = getGroupStatus(group.trees);
+                    const isTrip = group.tripId !== null;
+                    const trip = group.trip;
+
+                    return (
+                      <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
+                        <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30">
+                          <div className="flex items-center justify-between w-full mr-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                                {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
+                              </div>
+                              <div className="text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-foreground text-sm">
+                                    {isTrip && trip
+                                      ? trip.friendly_trip_id || `Trip ${startIndex + groupIndex + 1}`
+                                      : "Direct Purchase"}
+                                  </span>
+                                  {isTrip && trip && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {trip.origin_airport} → {trip.destination_airport}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(group.latestDate), "d MMM yyyy")}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                              <div className="text-right hidden sm:block">
+                                <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
+                                <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+                              </div>
+                              <Badge className={getGroupStatusColor(groupStatus)}>
+                                {groupStatus === "Planted" ? "gifted" : groupStatus}
                               </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {format(new Date(tree.created_at), "d/M/yyyy")}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={SOURCE_COLORS[tree.purchase_type]}>
-                                {tree.purchase_type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {tree.trip_id && trips[tree.trip_id] ? (
+                              {isTrip && trip && (
                                 <button
-                                  onClick={() => {
-                                    setSelectedTrip(trips[tree.trip_id!]);
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTrip(trip);
                                     setIsTripSheetOpen(true);
                                   }}
                                   className="text-primary hover:text-primary/80"
+                                  title="View trip details"
                                 >
                                   <Eye className="h-4 w-4" />
                                 </button>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">-</span>
                               )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-muted/30">
+                                  <TableHead className="w-12">No.</TableHead>
+                                  <TableHead className="text-left">TreeTracker</TableHead>
+                                  <TableHead className="text-left">Forest</TableHead>
+                                  <TableHead className="text-left">County</TableHead>
+                                  <TableHead className="text-left">Planted By</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead>Date</TableHead>
+                                  <TableHead>Source</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {group.trees.map((tree, index) => (
+                                  <TableRow key={tree.id}>
+                                    <TableCell className="font-medium text-muted-foreground">
+                                      {index + 1}
+                                    </TableCell>
+                                    <TableCell className="text-left">
+                                      <button
+                                        onClick={() => setSelectedTree(tree)}
+                                        className="text-primary hover:underline flex items-center gap-1"
+                                      >
+                                        {tree.otot_id}
+                                        <ExternalLink className="h-3 w-3" />
+                                      </button>
+                                    </TableCell>
+                                    <TableCell className="text-left">{(tree as any).organizations?.name || 'Mau'}</TableCell>
+                                    <TableCell className="text-left">{tree.location_name || 'Nakuru'}</TableCell>
+                                    <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
+                                    <TableCell>
+                                      <Badge className={STATUS_COLORS[tree.status]}>
+                                        {tree.status === "Planted" ? "gifted" : tree.status}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      {format(new Date(tree.created_at), "d/M/yyyy")}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge className={SOURCE_COLORS[tree.purchase_type]}>
+                                        {tree.purchase_type}
+                                      </Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
