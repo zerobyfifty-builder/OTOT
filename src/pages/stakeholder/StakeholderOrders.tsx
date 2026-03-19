@@ -379,6 +379,42 @@ export const StakeholderOrders = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      {/* Bulk Status Update Bar */}
+                      <div className="mx-4 mb-3 mt-1 flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <Layers className="h-4 w-4 text-primary" />
+                          <span>Batch update:</span>
+                        </div>
+                        <Select
+                          value={bulkSelections[group.key] || ""}
+                          onValueChange={(value) =>
+                            setBulkSelections(prev => ({ ...prev, [group.key]: value }))
+                          }
+                        >
+                          <SelectTrigger className="w-[200px] h-9 bg-background">
+                            <SelectValue placeholder="Select status for all…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PLANTING_STATUSES.map(s => (
+                              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="h-9 gap-1.5"
+                          disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
+                          onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
+                        >
+                          <CheckCheck className="h-3.5 w-3.5" />
+                          Apply to all ({group.trees.length})
+                        </Button>
+                        <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
+                          Or update individually below
+                        </span>
+                      </div>
+
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
