@@ -145,21 +145,6 @@ export async function generateReceipt(data: ReceiptData) {
 
   yPos = (doc as any).lastAutoTable.finalY + 12;
 
-  // Tree IDs
-  if (data.treeIds.length > 0) {
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Tree Reference ID(s):", 20, yPos);
-    yPos += 6;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    const idsText = data.treeIds.join(", ");
-    const splitIds = doc.splitTextToSize(idsText, pageWidth - 40);
-    doc.text(splitIds, 20, yPos);
-    yPos += splitIds.length * 5 + 8;
-  }
-
   // Planting location
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
