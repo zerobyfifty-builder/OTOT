@@ -50,6 +50,7 @@ export const TreePurchase = () => {
   const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("Card");
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
