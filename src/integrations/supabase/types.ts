@@ -1525,6 +1525,7 @@ export type Database = {
           longitude: number | null
           num_trees: number
           otot_id: string
+          payment_method: string | null
           plant_date: string | null
           planting_status:
             | Database["public"]["Enums"]["planting_progress_type"]
@@ -1553,6 +1554,7 @@ export type Database = {
           longitude?: number | null
           num_trees?: number
           otot_id: string
+          payment_method?: string | null
           plant_date?: string | null
           planting_status?:
             | Database["public"]["Enums"]["planting_progress_type"]
@@ -1581,6 +1583,7 @@ export type Database = {
           longitude?: number | null
           num_trees?: number
           otot_id?: string
+          payment_method?: string | null
           plant_date?: string | null
           planting_status?:
             | Database["public"]["Enums"]["planting_progress_type"]
