@@ -115,27 +115,56 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const totalTreesPlanted = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
   const offsetPercent = trip.trees_needed > 0 ? Math.min(100, Math.round((totalTreesPlanted / trip.trees_needed) * 100)) : 0;
 
-  // Each tree record = one payment row (no aggregation)
-  const payments: PaymentRecord[] = trees.map((tree, idx) => ({
-    treeId: tree.id,
-    ototId: tree.otot_id,
-    date: tree.created_at,
-    numTrees: tree.num_trees,
-    amount: Number(tree.amount_paid),
-  }));
+  // Group trees into payment batches by timestamp proximity (within 5 minutes = same batch)
+  const buildPaymentBatches = (): PaymentBatch[] => {
+    if (trees.length === 0) return [];
+    const sorted = [...trees].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const batches: PaymentBatch[] = [];
+    let current: PaymentBatch = {
+      batchIndex: 1,
+      date: sorted[0].created_at,
+      numTrees: sorted[0].num_trees,
+      amount: Number(sorted[0].amount_paid),
+      treeIds: [sorted[0].id],
+      ototIds: [sorted[0].otot_id],
+    };
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
+      if (gap <= 5 * 60 * 1000) {
+        current.numTrees += sorted[i].num_trees;
+        current.amount += Number(sorted[i].amount_paid);
+        current.treeIds.push(sorted[i].id);
+        current.ototIds.push(sorted[i].otot_id);
+      } else {
+        batches.push(current);
+        current = {
+          batchIndex: batches.length + 2,
+          date: sorted[i].created_at,
+          numTrees: sorted[i].num_trees,
+          amount: Number(sorted[i].amount_paid),
+          treeIds: [sorted[i].id],
+          ototIds: [sorted[i].otot_id],
+        };
+      }
+    }
+    batches.push(current);
+    return batches;
+  };
 
-  const handleDownloadReceipt = async (payment: PaymentRecord, idx: number) => {
+  const payments = buildPaymentBatches();
+
+  const handleDownloadReceipt = async (batch: PaymentBatch) => {
     const route = `${trip.origin_airport} → ${trip.destination_airport}`;
     const receiptData: ReceiptData = {
-      receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(idx + 1).padStart(2, "0")}`,
-      paymentDate: payment.date,
-      numTrees: payment.numTrees,
-      amountPaid: payment.amount,
+      receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`,
+      paymentDate: batch.date,
+      numTrees: batch.numTrees,
+      amountPaid: batch.amount,
       tripId: trip.friendly_trip_id || trip.id.slice(0, 8),
       route,
       userName,
       userEmail,
-      treeIds: [payment.ototId],
+      treeIds: batch.ototIds,
     };
     await generateReceipt(receiptData);
   };
