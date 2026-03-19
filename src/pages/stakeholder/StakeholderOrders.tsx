@@ -528,6 +528,139 @@ export const StakeholderOrders = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Trip Details Sheet */}
+      <Sheet open={!!viewSheet} onOpenChange={(open) => !open && setViewSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {viewSheet && (() => {
+            const trip = viewSheet.trip;
+            const userInfo = users[viewSheet.userId];
+            const touristName = userInfo
+              ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
+              : 'Unknown';
+            const touristCountry = userInfo?.country || '';
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Plane className="h-5 w-5 text-primary" />
+                    {trip?.friendly_trip_id || 'Direct Purchase'} Details
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="mt-6 space-y-6">
+                  {/* Tourist Info */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tourist</h3>
+                    <div className="rounded-lg border bg-card p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Name</span>
+                        <span className="text-sm font-medium">{touristName}</span>
+                      </div>
+                      {touristCountry && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Country</span>
+                          <span className="text-sm font-medium">{touristCountry}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Payment Date</span>
+                        <span className="text-sm font-medium">{format(new Date(viewSheet.earliestDate), "d MMM yyyy")}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Order Summary */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Order Summary</h3>
+                    <div className="rounded-lg border bg-card p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Trees</span>
+                        <span className="text-sm font-medium">{viewSheet.totalTrees}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Total Amount</span>
+                        <span className="text-sm font-medium">${viewSheet.totalAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {trip && (
+                    <>
+                      <Separator />
+
+                      {/* Carbon Emission Details */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Carbon Emission</h3>
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Total CO₂</span>
+                            <span className="text-sm font-semibold text-foreground">{Number(trip.total_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Flight CO₂</span>
+                            <span className="text-sm font-medium">{Number(trip.flight_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Accommodation CO₂</span>
+                            <span className="text-sm font-medium">{Number(trip.accommodation_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Trees Needed</span>
+                            <span className="text-sm font-medium">{trip.trees_needed}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Flight Details */}
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Flight Details</h3>
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Origin</span>
+                            <span className="text-sm font-medium">{trip.origin_airport}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Destination</span>
+                            <span className="text-sm font-medium">{trip.destination_airport}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travel Class</span>
+                            <span className="text-sm font-medium">{trip.travel_class}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Return Flight</span>
+                            <span className="text-sm font-medium">{trip.is_return ? 'Yes' : 'No'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travelers</span>
+                            <span className="text-sm font-medium">{trip.num_travelers}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Travel Date</span>
+                            <span className="text-sm font-medium">{format(new Date(trip.from_date), "d MMM yyyy")}</span>
+                          </div>
+                          {trip.accommodation_type && trip.accommodation_type !== 'None' && (
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">Accommodation</span>
+                              <span className="text-sm font-medium">{trip.accommodation_type}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
