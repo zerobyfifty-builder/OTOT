@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, CreditCard, FileText } from "lucide-react";
+import { Plane, Calendar, Leaf, CreditCard, FileText, Download, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,7 +7,9 @@ import { Database } from "@/integrations/supabase/types";
 import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { generateReceipt, ReceiptData } from "@/utils/receiptGenerator";
+import { generateReceipt, downloadReceiptFromUrl, ReceiptData } from "@/utils/receiptGenerator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -56,6 +58,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (trip && isOpen) {
@@ -156,14 +161,15 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const payments = buildPaymentBatches();
 
-  const handleDownloadReceipt = async (batch: PaymentBatch) => {
+  const handleViewReceipt = async (batch: PaymentBatch) => {
     const originAirport = airports.find(a => a.code === trip.origin_airport);
     const destAirport = airports.find(a => a.code === trip.destination_airport);
     const originName = originAirport ? `${originAirport.name} (${originAirport.code})` : trip.origin_airport;
     const destName = destAirport ? `${destAirport.name} (${destAirport.code})` : trip.destination_airport;
     const route = `${originName} to ${destName}`;
+    const receiptNo = `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`;
     const receiptData: ReceiptData = {
-      receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`,
+      receiptNo,
       paymentDate: batch.date,
       numTrees: batch.numTrees,
       amountPaid: batch.amount,
@@ -176,10 +182,22 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       isReturn: trip.is_return,
       totalCo2: trip.total_co2,
     };
-    await generateReceipt(receiptData);
+    const url = await generateReceipt(receiptData);
+    setPreviewUrl(url);
+    setPreviewReceiptNo(receiptNo);
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
   };
 
   return (
+    <>
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
@@ -308,9 +326,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                       </TableCell>
                       <TableCell className="text-center">
                         <button
-                          onClick={() => handleDownloadReceipt(batch)}
+                          onClick={() => handleViewReceipt(batch)}
                           className="text-primary hover:text-primary/80"
-                          title="Download receipt"
+                          title="View receipt"
                         >
                           <FileText className="h-4 w-4" />
                         </button>
@@ -351,5 +369,35 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         </div>
       </SheetContent>
     </Sheet>
+
+      {/* Receipt Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={handleClosePreview}>
+        <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle>Receipt Preview</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => previewUrl && downloadReceiptFromUrl(previewUrl, previewReceiptNo)}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 px-6 pb-6 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-md border"
+                title="Receipt Preview"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

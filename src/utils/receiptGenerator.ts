@@ -44,7 +44,7 @@ export interface ReceiptData {
   totalCo2?: number;
 }
 
-export async function generateReceipt(data: ReceiptData) {
+export async function generateReceipt(data: ReceiptData): Promise<string> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -200,6 +200,14 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setTextColor(34, 139, 34);
   doc.text("One Tourist, One Tree, One Planet", pageWidth / 2, yPos, { align: "center" });
 
-  // Save
-  doc.save(`Receipt-${data.receiptNo}.pdf`);
+  // Return blob URL for preview
+  const blob = doc.output("blob");
+  return URL.createObjectURL(blob);
+}
+
+export function downloadReceiptFromUrl(url: string, receiptNo: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Receipt-${receiptNo}.pdf`;
+  a.click();
 }
