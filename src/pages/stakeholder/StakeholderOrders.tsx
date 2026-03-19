@@ -189,10 +189,7 @@ export const StakeholderOrders = () => {
                   {trees.map((tree: any) => (
                     <TableRow key={tree.id}>
                       <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                      <TableCell>
-                        {tree.users?.first_name 
-                          ? `${tree.users.first_name} ${tree.users.last_name?.charAt(0) || ''}.`
-                          : tree.users?.email?.split('@')[0] || 'Anonymous'}
+                      <TableCell>—</TableCell>
                       </TableCell>
                       <TableCell>{tree.num_trees}</TableCell>
                       <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
