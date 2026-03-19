@@ -169,7 +169,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFont("helvetica", "bold");
   doc.text("Planting Location:", 20, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text("Mau Forest Complex, Nakuru County, Kenya", 70, yPos);
+  doc.text("Mau Forest Complex, Nakuru County, Kenya", valueX, yPos);
   yPos += 12;
 
   // Divider
