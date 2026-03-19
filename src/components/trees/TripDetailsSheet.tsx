@@ -283,6 +283,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                   <TableRow>
                     <TableHead className="text-left">Payment Date</TableHead>
                     <TableHead className="text-center">Trees</TableHead>
+                    <TableHead className="text-center">Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="text-center w-10">Receipt</TableHead>
                   </TableRow>
