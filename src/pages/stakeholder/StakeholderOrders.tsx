@@ -217,24 +217,33 @@ export const StakeholderOrders = () => {
     bulkUpdateStatus.mutate({ treeIds, status });
   }, [bulkSelections, bulkUpdateStatus]);
 
-  // Group trees by individual tree record (each payment batch = separate entry)
+  // Group trees by payment batch: same trip_id + user_id + purchase date
   const treeGroups = useMemo<TreeGroup[]>(() => {
     if (!trees) return [];
 
-    const groups: TreeGroup[] = trees.map(tree => ({
-      key: tree.id,
-      tripId: tree.trip_id,
-      trip: tree.trip_id ? (trips[tree.trip_id] || null) : null,
-      trees: [tree],
-      totalTrees: tree.num_trees,
-      totalAmount: Number(tree.amount_paid),
-      earliestDate: tree.created_at,
-      userId: tree.user_id,
-    }));
+    const grouped: Record<string, Tree[]> = {};
+    trees.forEach(tree => {
+      const dateKey = format(new Date(tree.created_at), "yyyy-MM-dd");
+      const batchKey = `${tree.trip_id || 'direct'}_${tree.user_id}_${dateKey}`;
+      if (!grouped[batchKey]) grouped[batchKey] = [];
+      grouped[batchKey].push(tree);
+    });
 
-    // Sort by created_at descending
+    const groups: TreeGroup[] = Object.entries(grouped).map(([key, batchTrees]) => {
+      const first = batchTrees[0];
+      return {
+        key,
+        tripId: first.trip_id,
+        trip: first.trip_id ? (trips[first.trip_id] || null) : null,
+        trees: batchTrees,
+        totalTrees: batchTrees.reduce((s, t) => s + t.num_trees, 0),
+        totalAmount: batchTrees.reduce((s, t) => s + Number(t.amount_paid), 0),
+        earliestDate: first.created_at,
+        userId: first.user_id,
+      };
+    });
+
     groups.sort((a, b) => new Date(b.earliestDate).getTime() - new Date(a.earliestDate).getTime());
-
     return groups;
   }, [trees, trips]);
 
