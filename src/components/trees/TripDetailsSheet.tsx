@@ -158,14 +158,19 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const payments = buildPaymentBatches();
 
-  const handleDownloadReceipt = async (batch: PaymentBatch) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const handleViewReceipt = async (batch: PaymentBatch) => {
     const originAirport = airports.find(a => a.code === trip.origin_airport);
     const destAirport = airports.find(a => a.code === trip.destination_airport);
     const originName = originAirport ? `${originAirport.name} (${originAirport.code})` : trip.origin_airport;
     const destName = destAirport ? `${destAirport.name} (${destAirport.code})` : trip.destination_airport;
     const route = `${originName} to ${destName}`;
+    const receiptNo = `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`;
     const receiptData: ReceiptData = {
-      receiptNo: `OTOT-${(trip.friendly_trip_id || "TRIP").replace(/\s/g, "")}-${String(batch.batchIndex).padStart(2, "0")}`,
+      receiptNo,
       paymentDate: batch.date,
       numTrees: batch.numTrees,
       amountPaid: batch.amount,
@@ -178,7 +183,18 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       isReturn: trip.is_return,
       totalCo2: trip.total_co2,
     };
-    await generateReceipt(receiptData);
+    const url = await generateReceipt(receiptData);
+    setPreviewUrl(url);
+    setPreviewReceiptNo(receiptNo);
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
   };
 
   return (
