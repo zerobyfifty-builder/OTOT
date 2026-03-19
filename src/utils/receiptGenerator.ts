@@ -70,7 +70,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setTextColor(100, 100, 100);
   doc.text(`Receipt No: ${data.receiptNo}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 5;
-  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy, HH:mm")}`, pageWidth / 2, yPos, { align: "center" });
+  doc.text(`Date: ${format(new Date(data.paymentDate), "dd MMMM yyyy, hh:mm a")}`, pageWidth / 2, yPos, { align: "center" });
   yPos += 10;
 
   // Divider
@@ -137,13 +137,13 @@ export async function generateReceipt(data: ReceiptData) {
     head: [["Description", "Quantity", "Unit Price (USD)", "Total (USD)"]],
     body: [
       [
-        "Carbon Offset Tree Planting",
+        "Tree Planting & Growth Management\nin Tourist Regenerative Forests",
         `${data.numTrees} Trees`,
         `$${(data.amountPaid / data.numTrees).toFixed(2)}`,
         `$${data.amountPaid.toFixed(2)}`,
       ],
     ],
-    foot: [["", "", "Total Paid", `$${data.amountPaid.toFixed(2)}`]],
+    foot: [["", "", "Total Contribution", `$${data.amountPaid.toFixed(2)}`]],
     theme: "grid",
     headStyles: {
       fillColor: [34, 139, 34],
@@ -169,7 +169,7 @@ export async function generateReceipt(data: ReceiptData) {
   doc.setFont("helvetica", "bold");
   doc.text("Planting Location:", 20, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text("Mau Forest Complex, Nakuru County, Kenya", 70, yPos);
+  doc.text("Mau Forest Complex, Nakuru County, Kenya", valueX, yPos);
   yPos += 12;
 
   // Divider
