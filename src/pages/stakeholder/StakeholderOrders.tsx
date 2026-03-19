@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, MapPin } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, Layers, CheckCheck } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -162,6 +162,33 @@ export const StakeholderOrders = () => {
     },
     onError: () => toast.error("Failed to update status"),
   });
+
+  const bulkUpdateStatus = useMutation({
+    mutationFn: async ({ treeIds, status }: { treeIds: string[]; status: string }) => {
+      const { error } = await supabase
+        .from("trees")
+        .update({ planting_status: status as any })
+        .in("id", treeIds);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrders"] });
+      toast.success(`Updated ${variables.treeIds.length} tree(s) to ${STATUS_LABELS[variables.status]}`);
+      setBulkSelections({});
+    },
+    onError: () => toast.error("Failed to bulk update status"),
+  });
+
+  const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
+
+  const handleBulkApply = useCallback((groupKey: string, treeIds: string[]) => {
+    const status = bulkSelections[groupKey];
+    if (!status) {
+      toast.error("Please select a status first");
+      return;
+    }
+    bulkUpdateStatus.mutate({ treeIds, status });
+  }, [bulkSelections, bulkUpdateStatus]);
 
   // Group trees by trip_id (same pattern as MyTrees)
   const treeGroups = useMemo<TreeGroup[]>(() => {
@@ -352,6 +379,42 @@ export const StakeholderOrders = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      {/* Bulk Status Update Bar */}
+                      <div className="mx-4 mb-3 mt-1 flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <Layers className="h-4 w-4 text-primary" />
+                          <span>Batch update:</span>
+                        </div>
+                        <Select
+                          value={bulkSelections[group.key] || ""}
+                          onValueChange={(value) =>
+                            setBulkSelections(prev => ({ ...prev, [group.key]: value }))
+                          }
+                        >
+                          <SelectTrigger className="w-[200px] h-9 bg-background">
+                            <SelectValue placeholder="Select status for all…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PLANTING_STATUSES.map(s => (
+                              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="h-9 gap-1.5"
+                          disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
+                          onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
+                        >
+                          <CheckCheck className="h-3.5 w-3.5" />
+                          Apply to all ({group.trees.length})
+                        </Button>
+                        <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
+                          Or update individually below
+                        </span>
+                      </div>
+
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
