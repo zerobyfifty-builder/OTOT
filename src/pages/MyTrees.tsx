@@ -165,7 +165,7 @@ export const MyTrees = () => {
         trees: groupTrees,
         totalTrees: groupTrees.reduce((sum, t) => sum + t.num_trees, 0),
         totalAmount: groupTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
-        latestDate: groupTrees[0].created_at,
+        latestDate: groupTrees[groupTrees.length - 1].created_at,
       });
     });
 

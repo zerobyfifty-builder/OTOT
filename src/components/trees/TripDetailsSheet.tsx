@@ -1,15 +1,22 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, ExternalLink } from "lucide-react";
+import { Plane, Calendar, Leaf, CreditCard } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
 import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
-type PurchaseType = Database["public"]["Enums"]["purchase_type"];
 
 interface TripDetailsSheetProps {
   trip: Trip | null;
@@ -32,10 +39,11 @@ const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_ty
   "Service Apartment": "Service Apartment"
 };
 
-const PURCHASE_TYPE_LABELS: Record<PurchaseType, string> = {
-  "One-time": "One-time",
-  "Subscription": "Monthly",
-};
+interface PaymentRecord {
+  date: string;
+  numTrees: number;
+  amount: number;
+}
 
 export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
   const [trees, setTrees] = useState<Tree[]>([]);
@@ -56,7 +64,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         .from("trees")
         .select("*")
         .eq("trip_id", trip.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setTrees(data || []);
@@ -82,6 +90,28 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const nights = calculateNights(trip.from_date, trip.to_date);
   const totalTreesPlanted = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
+
+  // Group trees into payment records by created_at date (same date = same payment batch)
+  const payments: PaymentRecord[] = (() => {
+    const paymentMap = new Map<string, PaymentRecord>();
+    trees.forEach(tree => {
+      const dateKey = format(new Date(tree.created_at), "yyyy-MM-dd");
+      if (paymentMap.has(dateKey)) {
+        const existing = paymentMap.get(dateKey)!;
+        existing.numTrees += tree.num_trees;
+        existing.amount += Number(tree.amount_paid);
+      } else {
+        paymentMap.set(dateKey, {
+          date: tree.created_at,
+          numTrees: tree.num_trees,
+          amount: Number(tree.amount_paid),
+        });
+      }
+    });
+    return Array.from(paymentMap.values()).sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  })();
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -173,49 +203,58 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             </div>
           </div>
 
-          {/* Trees Planted */}
-          {trees.length > 0 && (
-            <div className="bg-accent/10 rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Leaf className="h-5 w-5 text-accent" />
-                  <span className="font-medium">Trees Planted:</span>
-                </div>
-                <span className="text-2xl font-bold text-accent">{totalTreesPlanted}</span>
+          {/* Trees Planted Count */}
+          <div className="bg-accent/10 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Leaf className="h-5 w-5 text-accent" />
+                <span className="font-medium">Trees Planted:</span>
               </div>
-              
+              <span className="text-2xl font-bold text-accent">{totalTreesPlanted}</span>
+            </div>
+          </div>
+
+          {/* Payments Section */}
+          {payments.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Payments ({payments.length})
+              </h3>
               {isLoadingTrees ? (
-                <div className="text-center py-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent mx-auto"></div>
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {trees.map((tree) => (
-                    <div key={tree.id} className="flex items-center justify-between text-sm border-t pt-2">
-                      <div>
-                        <div className="font-medium">
-                          {format(new Date(tree.created_at), "dd MMM yyyy, h:mm a")}
-                        </div>
-                        <Badge variant={tree.purchase_type === "One-time" ? "default" : "secondary"} className="mt-1">
-                          {PURCHASE_TYPE_LABELS[tree.purchase_type]}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-accent">{tree.num_trees} trees</div>
-                        <button 
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                          onClick={() => {
-                            navigator.clipboard.writeText(trip.friendly_trip_id || trip.id);
-                            // Could add a toast notification here
-                          }}
-                          title="Click to copy Trip ID"
-                        >
-                          {trip.friendly_trip_id}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-left">Payment Date</TableHead>
+                      <TableHead className="text-center">No. of Trees</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((payment, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="text-left">
+                          {format(new Date(payment.date), "dd MMM yyyy")}
+                        </TableCell>
+                        <TableCell className="text-center">{payment.numTrees}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${payment.amount.toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="border-t-2">
+                      <TableCell className="text-left font-semibold">Total</TableCell>
+                      <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
+                      <TableCell className="text-right font-bold">
+                        ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               )}
             </div>
           )}
