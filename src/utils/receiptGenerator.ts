@@ -81,43 +81,54 @@ export async function generateReceipt(data: ReceiptData) {
 
   // Customer details
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.text("Received From:", 20, yPos);
   yPos += 6;
   doc.setFont("helvetica", "normal");
   doc.text(data.userName, 20, yPos);
   yPos += 5;
-  doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
   doc.text(data.userEmail, 20, yPos);
   yPos += 10;
+
+  const labelX = 20;
+  const valueX = 72;
+  const maxValueWidth = pageWidth - valueX - 20;
 
   // Trip reference
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("Trip Reference:", 20, yPos);
+  doc.text("Trip Reference:", labelX, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text(data.tripId, 62, yPos);
+  doc.text(data.tripId, valueX, yPos);
   yPos += 6;
+
+  // Route
+  doc.setFont("helvetica", "bold");
+  doc.text("Route:", labelX, yPos);
+  doc.setFont("helvetica", "normal");
   const tripType = data.isReturn ? "Return" : "One-way";
   const routeLine = `${data.route} (${tripType})`;
-  const splitRoute = doc.splitTextToSize(routeLine, pageWidth - 40);
-  doc.text(splitRoute, 20, yPos);
-  yPos += splitRoute.length * 5;
-  const co2Text = data.totalCo2 != null ? `Total CO2 Emission: ${data.totalCo2.toFixed(1)} kg` : "";
-  if (co2Text) {
-    doc.text(co2Text, 20, yPos);
-    yPos += 5;
+  const splitRoute = doc.splitTextToSize(routeLine, maxValueWidth);
+  doc.text(splitRoute, valueX, yPos);
+  yPos += splitRoute.length * 5 + 1;
+
+  // Total CO2
+  if (data.totalCo2 != null) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Total CO2:", labelX, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${data.totalCo2.toFixed(1)} kg`, valueX, yPos);
+    yPos += 6;
   }
-  yPos += 2;
 
   // Payment method
   doc.setFont("helvetica", "bold");
-  doc.text("Payment Method:", 20, yPos);
+  doc.text("Payment Method:", labelX, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text(data.paymentMethod || "Card", 70, yPos);
+  doc.text(data.paymentMethod || "Card", valueX, yPos);
   yPos += 12;
 
   // Payment details table
