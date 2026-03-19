@@ -345,58 +345,68 @@ export const StakeholderOrders = () => {
 
                 return (
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
-                    <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30">
-                      <div className="flex items-center justify-between w-full mr-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
-                            {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
-                          </div>
-                          <div className="text-left">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-foreground text-sm">
-                                {isTrip && trip
-                                  ? trip.friendly_trip_id || 'Trip'
-                                  : "Direct Purchase"}
-                              </span>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <span className="text-sm text-foreground">
-                                {touristName}{touristCountry ? ` (${touristCountry})` : ''}
-                              </span>
+                    <div className="flex items-center">
+                      <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30 flex-1">
+                        <div className="flex items-center justify-between w-full mr-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                              {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(group.earliestDate), "d MMM yyyy")}
-                              {isTrip && trip && (
-                                <span className="ml-2">{trip.origin_airport} → {trip.destination_airport}</span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          {/* Planting progress bar */}
-                          <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
-                            <div className="flex-1">
-                              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-green-500 transition-all duration-500"
-                                  style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
-                                />
+                            <div className="text-left">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-foreground text-sm">
+                                  {isTrip && trip
+                                    ? trip.friendly_trip_id || 'Trip'
+                                    : "Direct Purchase"}
+                                </span>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <span className="text-sm text-foreground">
+                                  {touristName}{touristCountry ? ` (${touristCountry})` : ''}
+                                </span>
                               </div>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(group.earliestDate), "d MMM yyyy")}
+                              </p>
                             </div>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {plantedInGroup}/{group.totalTrees}
-                            </span>
                           </div>
-                          <div className="text-right hidden sm:block">
-                            <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
-                            <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+
+                          <div className="flex items-center gap-4">
+                            <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                              <div className="flex-1">
+                                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                    style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {plantedInGroup}/{group.totalTrees}
+                              </span>
+                            </div>
+                            <div className="text-right hidden sm:block">
+                              <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
+                              <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+                            </div>
+                            <Badge className={getGroupStatusColor(groupStatus)}>
+                              {getGroupStatusLabel(groupStatus)}
+                            </Badge>
                           </div>
-                          <Badge className={getGroupStatusColor(groupStatus)}>
-                            {getGroupStatusLabel(groupStatus)}
-                          </Badge>
                         </div>
-                      </div>
-                    </AccordionTrigger>
+                      </AccordionTrigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 mr-2 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewSheet(group);
+                        }}
+                        title="View trip details"
+                      >
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
                     <AccordionContent>
                       {/* Bulk Status Update Bar */}
                       <div className="mx-4 mb-3 mt-1 flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
