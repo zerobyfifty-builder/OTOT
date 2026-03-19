@@ -719,9 +719,9 @@ export const TreePurchase = () => {
                   <Trees className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted by</p>
-                <h3 className="text-lg font-bold text-foreground">Kenya Forest Service</h3>
+                <h3 className="text-lg font-bold text-foreground">MFC-ICLIP</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Official government forestry agency responsible for conservation and reforestation across Kenya.
+                  The <span className="font-bold text-foreground">'Mau Forest Complex Integrated Conservation and Livelihood Improvement Programme'</span>, under the <span className="font-bold text-foreground">'Ministry of Environment, Climate Change & Forestry'</span>, is a landmark 10-year initiative targeting over 317,000 hectares—one of East Africa's most ambitious landscape restoration efforts.
                 </p>
               </CardContent>
             </Card>
