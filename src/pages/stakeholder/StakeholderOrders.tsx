@@ -316,11 +316,19 @@ export const StakeholderOrders = () => {
         <Card>
           <CardContent className="p-0">
             <Accordion type="multiple" className="w-full">
-              {paginatedGroups.map((group, groupIndex) => {
+              {paginatedGroups.map((group) => {
                 const groupStatus = getGroupPlantingStatus(group.trees);
                 const isTrip = group.tripId !== null;
                 const trip = group.trip;
                 const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+                const userInfo = users[group.userId];
+                const touristName = userInfo
+                  ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
+                  : 'Unknown';
+                const touristCountry = userInfo?.country || '';
+                const carbonCalcDate = isTrip && trip
+                  ? format(new Date(trip.created_at), "d MMM yyyy")
+                  : format(new Date(group.earliestDate), "d MMM yyyy");
 
                 return (
                   <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
@@ -331,20 +339,22 @@ export const StakeholderOrders = () => {
                             {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                           </div>
                           <div className="text-left">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-semibold text-foreground text-sm">
                                 {isTrip && trip
-                                  ? trip.friendly_trip_id || `Trip ${startIndex + groupIndex + 1}`
+                                  ? trip.friendly_trip_id || 'Trip'
                                   : "Direct Purchase"}
                               </span>
-                              {isTrip && trip && (
-                                <span className="text-xs text-muted-foreground">
-                                  {trip.origin_airport} → {trip.destination_airport}
-                                </span>
-                              )}
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <span className="text-sm text-foreground">
+                                {touristName}{touristCountry ? ` (${touristCountry})` : ''}
+                              </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {format(new Date(group.earliestDate), "d MMM yyyy")}
+                              Carbon calculated: {carbonCalcDate}
+                              {isTrip && trip && (
+                                <span className="ml-2">{trip.origin_airport} → {trip.destination_airport}</span>
+                              )}
                             </p>
                           </div>
                         </div>
