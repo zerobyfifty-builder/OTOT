@@ -577,6 +577,7 @@ export type Database = {
       }
       modules: {
         Row: {
+          access_type: string
           category: string
           created_at: string | null
           description: string | null
@@ -590,6 +591,7 @@ export type Database = {
           sort_order: number | null
         }
         Insert: {
+          access_type?: string
           category: string
           created_at?: string | null
           description?: string | null
@@ -603,6 +605,7 @@ export type Database = {
           sort_order?: number | null
         }
         Update: {
+          access_type?: string
           category?: string
           created_at?: string | null
           description?: string | null
@@ -1836,6 +1839,10 @@ export type Database = {
       is_super_admin: { Args: { user_id: string }; Returns: boolean }
       stakeholder_has_module: {
         Args: { _module_name: string; _user_id: string }
+        Returns: boolean
+      }
+      stakeholder_has_module_permission: {
+        Args: { _module_name: string; _permission: string; _user_id: string }
         Returns: boolean
       }
       users_in_same_org: {

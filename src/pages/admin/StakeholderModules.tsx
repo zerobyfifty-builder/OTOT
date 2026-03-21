@@ -1,15 +1,39 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Settings2, Globe, Lock } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+const PERMISSIONS = ["read", "write", "edit", "delete"] as const;
+const PERMISSION_LABELS: Record<string, string> = {
+  read: "Read",
+  write: "Write",
+  edit: "Edit",
+  delete: "Delete",
+};
+const PERMISSION_SHORT: Record<string, string> = {
+  read: "R",
+  write: "W",
+  edit: "E",
+  delete: "D",
+};
+
+function getDefaultPermissions(accessType: string): string[] {
+  if (accessType === "scoped") return ["read", "write", "edit", "delete"];
+  return ["read"];
+}
+
 export default function StakeholderModules() {
   const queryClient = useQueryClient();
+
   const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
     queryKey: ["stakeholderOrgs"],
     queryFn: async () => {
@@ -43,12 +67,22 @@ export default function StakeholderModules() {
 
   const isLoading = loadingOrgs || loadingModules || loadingOrgModules;
 
-  const toggleModule = async (orgId: string, moduleId: string, currentlyEnabled: boolean) => {
+  const getOrgModule = (orgId: string, moduleId: string) => {
+    return orgModules?.find(om => om.organization_id === orgId && om.module_id === moduleId && om.is_active);
+  };
+
+  const toggleModule = async (orgId: string, moduleId: string, accessType: string, currentlyEnabled: boolean) => {
     try {
       if (currentlyEnabled) {
         await supabase.from("organization_modules").delete().eq("organization_id", orgId).eq("module_id", moduleId);
       } else {
-        await supabase.from("organization_modules").insert({ organization_id: orgId, module_id: moduleId, is_active: true });
+        const defaultPerms = getDefaultPermissions(accessType);
+        await supabase.from("organization_modules").insert({
+          organization_id: orgId,
+          module_id: moduleId,
+          is_active: true,
+          permissions: defaultPerms,
+        });
       }
       toast.success("Module access updated");
       queryClient.invalidateQueries({ queryKey: ["orgModules"] });
@@ -57,15 +91,36 @@ export default function StakeholderModules() {
     }
   };
 
-  const hasModule = (orgId: string, moduleId: string) => {
-    return orgModules?.some(om => om.organization_id === orgId && om.module_id === moduleId && om.is_active) || false;
+  const updatePermissions = async (orgId: string, moduleId: string, permissions: string[]) => {
+    try {
+      await supabase
+        .from("organization_modules")
+        .update({ permissions })
+        .eq("organization_id", orgId)
+        .eq("module_id", moduleId);
+      toast.success("Permissions updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch (error) {
+      toast.error("Failed to update permissions");
+    }
+  };
+
+  const togglePermission = (orgId: string, moduleId: string, currentPerms: string[], perm: string) => {
+    const newPerms = currentPerms.includes(perm)
+      ? currentPerms.filter(p => p !== perm)
+      : [...currentPerms, perm];
+    // Always keep "read" if any other permission is set
+    if (newPerms.length > 0 && !newPerms.includes("read")) {
+      newPerms.unshift("read");
+    }
+    updatePermissions(orgId, moduleId, newPerms);
   };
 
   return (
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-admin-primary">Stakeholder Modules</h1>
-        <p className="text-muted-foreground mt-1">Assign and share modules across stakeholders</p>
+        <p className="text-muted-foreground mt-1">Assign modules and configure permissions for each stakeholder</p>
       </div>
 
       {isLoading ? (
@@ -82,31 +137,80 @@ export default function StakeholderModules() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[200px]">Module</TableHead>
+                  <TableHead className="min-w-[220px]">Module</TableHead>
                   {stakeholders.map(s => (
-                    <TableHead key={s.id} className="text-center min-w-[120px]">{s.name}</TableHead>
+                    <TableHead key={s.id} className="text-center min-w-[160px]">{s.name}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {modules?.map(m => (
-                  <TableRow key={m.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{m.display_name}</p>
-                        <p className="text-xs text-muted-foreground">{m.category}</p>
-                      </div>
-                    </TableCell>
-                    {stakeholders.map(s => (
-                      <TableCell key={s.id} className="text-center">
-                        <Switch
-                          checked={hasModule(s.id, m.id)}
-                          onCheckedChange={() => toggleModule(s.id, m.id, hasModule(s.id, m.id))}
-                        />
+                {modules?.map(m => {
+                  const accessType = (m as any).access_type || "shared";
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="font-medium">{m.display_name}</p>
+                            <p className="text-xs text-muted-foreground">{m.category}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
+                            {accessType === "scoped" ? (
+                              <><Lock className="h-3 w-3" /> Own data</>
+                            ) : (
+                              <><Globe className="h-3 w-3" /> Shared</>
+                            )}
+                          </Badge>
+                        </div>
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+                      {stakeholders.map(s => {
+                        const om = getOrgModule(s.id, m.id);
+                        const enabled = !!om;
+                        const perms = (om?.permissions as string[]) || [];
+
+                        return (
+                          <TableCell key={s.id} className="text-center">
+                            <div className="flex flex-col items-center gap-1.5">
+                              <Switch
+                                checked={enabled}
+                                onCheckedChange={() => toggleModule(s.id, m.id, accessType, enabled)}
+                              />
+                              {enabled && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[10px] font-mono text-muted-foreground">
+                                    {perms.map(p => PERMISSION_SHORT[p] || p[0].toUpperCase()).join("")}
+                                  </span>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-5 w-5">
+                                        <Settings2 className="h-3 w-3" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-48 p-3" align="center">
+                                      <p className="text-xs font-medium mb-2">Permissions</p>
+                                      <div className="space-y-2">
+                                        {PERMISSIONS.map(perm => (
+                                          <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer">
+                                            <Checkbox
+                                              checked={perms.includes(perm)}
+                                              onCheckedChange={() => togglePermission(s.id, m.id, perms, perm)}
+                                              disabled={perm === "read" && perms.length > 1}
+                                            />
+                                            {PERMISSION_LABELS[perm]}
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
