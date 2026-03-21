@@ -346,6 +346,103 @@ export type Database = {
           },
         ]
       }
+      contribution_tracking: {
+        Row: {
+          acknowledgement_doc: string | null
+          amount_paid: number
+          contribution_id: string
+          country: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          ktb_receipt_id: string | null
+          ktb_received_date: string | null
+          partner_receipt_confirmation: boolean | null
+          partner_received_date: string | null
+          payment_date: string | null
+          payment_method: string | null
+          plantation_partner_id: string | null
+          status: string
+          tourist_name: string | null
+          transaction_reference: string | null
+          transfer_date: string | null
+          transfer_reference: string | null
+          tree_id: string | null
+          trip_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledgement_doc?: string | null
+          amount_paid?: number
+          contribution_id: string
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          ktb_receipt_id?: string | null
+          ktb_received_date?: string | null
+          partner_receipt_confirmation?: boolean | null
+          partner_received_date?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          plantation_partner_id?: string | null
+          status?: string
+          tourist_name?: string | null
+          transaction_reference?: string | null
+          transfer_date?: string | null
+          transfer_reference?: string | null
+          tree_id?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledgement_doc?: string | null
+          amount_paid?: number
+          contribution_id?: string
+          country?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          ktb_receipt_id?: string | null
+          ktb_received_date?: string | null
+          partner_receipt_confirmation?: boolean | null
+          partner_received_date?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          plantation_partner_id?: string | null
+          status?: string
+          tourist_name?: string | null
+          transaction_reference?: string | null
+          transfer_date?: string | null
+          transfer_reference?: string | null
+          tree_id?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_tracking_plantation_partner_id_fkey"
+            columns: ["plantation_partner_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_tracking_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_tracking_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ephemeral_sessions: {
         Row: {
           consumed: boolean | null
