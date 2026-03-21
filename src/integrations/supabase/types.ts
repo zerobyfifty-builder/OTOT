@@ -1911,6 +1911,33 @@ export type Database = {
           },
         ]
       }
+      wallet_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
