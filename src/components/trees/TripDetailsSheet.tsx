@@ -343,7 +343,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                     <TableHead className="text-center">Trees</TableHead>
                     <TableHead className="text-center">Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-center w-10">Receipt</TableHead>
+                    <TableHead className="text-center w-20">Docs</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -358,13 +358,27 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                         ${batch.amount.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <button
-                          onClick={() => handleViewReceipt(batch)}
-                          className="text-primary hover:text-primary/80"
-                          title="View receipt"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleViewReceipt(batch)}
+                            className="text-primary hover:text-primary/80"
+                            title="View receipt"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleViewCertificate(batch)}
+                            className="text-amber-600 hover:text-amber-500 disabled:opacity-50"
+                            title="View certificate"
+                            disabled={isGeneratingCert === batch.batchIndex}
+                          >
+                            {isGeneratingCert === batch.batchIndex ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+                            ) : (
+                              <Award className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
