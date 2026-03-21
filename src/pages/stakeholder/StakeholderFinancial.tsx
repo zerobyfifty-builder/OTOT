@@ -424,26 +424,31 @@ export const StakeholderFinancial = () => {
                       <TableCell>{c.payment_method || "-"}</TableCell>
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openSheet(c, "view")} title="View Details">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {isKtbUser && c.status === "contribution_confirmed" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_receive")} title="Mark Funds Received" className="text-orange-600">
-                              <Landmark className="h-4 w-4" />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
                             </Button>
-                          )}
-                          {isKtbUser && c.status === "funds_received" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_transfer")} title="Transfer for Planting" className="text-purple-600">
-                              <Landmark className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {isPlantationPartner && c.plantation_partner_id === orgId && c.status === "transferred_for_planting" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "partner")} title="Confirm Receipt" className="text-green-600">
-                              <Building2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Transaction
+                            </DropdownMenuItem>
+                            {isKtbUser && (
+                              <DropdownMenuItem onClick={() => openSheet(c, "ktb_receive")}>
+                                <Landmark className="h-4 w-4 mr-2" />
+                                KTB Transaction
+                              </DropdownMenuItem>
+                            )}
+                            {isPlantationPartner && (
+                              <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
+                                <Building2 className="h-4 w-4 mr-2" />
+                                Plantation Transaction
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
