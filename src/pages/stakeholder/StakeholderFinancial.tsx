@@ -433,17 +433,23 @@ export const StakeholderFinancial = () => {
                     <TableHead>
                       <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
-                    {isPlantationPartner ? (
-                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
-                        <span className="flex items-center">Received Date {getSortIcon("payment_date")}</span>
+                    {isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Transfer Date</span>
                       </TableHead>
-                    ) : (
+                    )}
+                    {!isPlantationPartner && (
                       <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
                         <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
                       </TableHead>
                     )}
                     {!isPlantationPartner && <TableHead>Method</TableHead>}
                     <TableHead>Mode</TableHead>
+                    {isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center">Received Date</span>
+                      </TableHead>
+                    )}
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
                       <span className="flex items-center">Status {getSortIcon("status")}</span>
                     </TableHead>
@@ -461,13 +467,11 @@ export const StakeholderFinancial = () => {
                       {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
                       {!isPlantationPartner && <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
                       <TableCell className="text-blue-700 font-medium">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
-                      {isPlantationPartner ? (
-                        <TableCell>{formatDate(c.partner_received_date)}</TableCell>
-                      ) : (
-                        <TableCell>{formatDate(c.payment_date)}</TableCell>
-                      )}
+                      {isPlantationPartner && <TableCell>{formatDate(c.transfer_date)}</TableCell>}
+                      {!isPlantationPartner && <TableCell>{formatDate(c.payment_date)}</TableCell>}
                       {!isPlantationPartner && <TableCell>{c.payment_method || "-"}</TableCell>}
                       <TableCell>{c.transfer_mode || "-"}</TableCell>
+                      {isPlantationPartner && <TableCell>{formatDate(c.partner_received_date)}</TableCell>}
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
                       <TableCell>
                         <DropdownMenu>
