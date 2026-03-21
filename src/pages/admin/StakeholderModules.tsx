@@ -51,6 +51,7 @@ export default function StakeholderModules() {
         await supabase.from("organization_modules").insert({ organization_id: orgId, module_id: moduleId, is_active: true });
       }
       toast.success("Module access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
     } catch (error) {
       toast.error("Failed to update module access");
     }
