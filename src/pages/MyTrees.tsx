@@ -479,7 +479,7 @@ export const MyTrees = () => {
                                   <p className="text-sm font-bold text-orange-500">{Math.max(0, trip.trees_needed - group.totalTrees)}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Amount</p>
+                                  <p className="text-xs text-muted-foreground">Contribution</p>
                                   <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
                                 </div>
                               </>
@@ -490,7 +490,7 @@ export const MyTrees = () => {
                                   <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Amount</p>
+                                  <p className="text-xs text-muted-foreground">Contribution</p>
                                   <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
                                 </div>
                               </>
