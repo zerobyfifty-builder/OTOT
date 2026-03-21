@@ -339,10 +339,11 @@ export const StakeholderFinancial = () => {
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
+                     <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
                     <div><span className="text-muted-foreground">Tourist:</span><p>{selectedRow.tourist_name || "-"}</p></div>
                     <div><span className="text-muted-foreground">Country:</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground">Trip ID:</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
+                    <div><span className="text-muted-foreground">Trees:</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
                     <div><span className="text-muted-foreground">Amount:</span><p className="font-semibold">${Number(selectedRow.amount_paid).toFixed(2)}</p></div>
                     <div><span className="text-muted-foreground">Currency:</span><p>{selectedRow.currency}</p></div>
                     <div><span className="text-muted-foreground">Payment Date:</span><p>{formatDate(selectedRow.payment_date)}</p></div>
