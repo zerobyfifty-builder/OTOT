@@ -99,6 +99,8 @@ import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbu
 import StakeholderTravelAgents from "@/pages/stakeholder/StakeholderTravelAgents";
 import StakeholderTreeManagement from "@/pages/stakeholder/StakeholderTreeManagement";
 import StakeholderTripManagement from "@/pages/stakeholder/StakeholderTripManagement";
+import StakeholderAnalytics from "@/pages/stakeholder/StakeholderAnalytics";
+import StakeholderPayments from "@/pages/stakeholder/StakeholderPayments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
