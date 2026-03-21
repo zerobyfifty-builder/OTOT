@@ -120,16 +120,16 @@ export function StakeholderTreeManagement() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>OTOT ID</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Trees</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Lodge</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
+                    <TableRow>
+                      <TableHead>OTOT ID</TableHead>
+                      <TableHead>Trees</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Planting Status</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Lodge</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
