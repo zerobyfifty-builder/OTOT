@@ -42,7 +42,7 @@ interface ContributionRow {
   created_at: string;
 }
 
-type SheetMode = "view" | "ktb_receive" | "ktb_transfer" | "partner";
+type SheetMode = "view" | "ktb" | "partner";
 type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "status";
 type SortDir = "asc" | "desc";
 
