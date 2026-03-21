@@ -44,6 +44,8 @@ const coreMenuItems = [
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string }> = {
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Outcomes' },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Dashboard' },
+  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Dashboard' },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Dashboard' },
 };
 
 interface StakeholderSidebarProps {
