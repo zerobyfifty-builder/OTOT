@@ -1,0 +1,2 @@
+INSERT INTO modules (name, display_name, category, route, is_active, sort_order, description)
+VALUES ('tree_orders', 'Tree Orders', 'operations', '/orders', true, 5, 'View and manage tree order allocations assigned to the stakeholder organization');
