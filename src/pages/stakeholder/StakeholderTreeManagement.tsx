@@ -140,16 +140,16 @@ export function StakeholderTreeManagement() {
                     filtered.map((tree) => (
                       <TableRow key={tree.id}>
                         <TableCell className="font-mono text-xs">{tree.otot_id}</TableCell>
-                        <TableCell className="text-sm">
-                          {tree.users?.first_name || tree.users?.last_name
-                            ? `${tree.users.first_name || ""} ${tree.users.last_name || ""}`.trim()
-                            : tree.users?.email || "—"}
-                        </TableCell>
                         <TableCell>{tree.num_trees}</TableCell>
                         <TableCell>{tree.tree_type || "—"}</TableCell>
                         <TableCell>
                           <Badge className={statusColors[tree.status] || "bg-gray-100 text-gray-800"} variant="secondary">
                             {tree.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {tree.planting_status?.replace(/_/g, " ") || "—"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">{tree.location_name || "—"}</TableCell>
