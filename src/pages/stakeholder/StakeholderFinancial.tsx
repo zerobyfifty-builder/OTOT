@@ -627,6 +627,10 @@ export const StakeholderFinancial = () => {
                   <Label>Transfer Ref</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
                 </div>
+                <div className="space-y-2">
+                  <Label>Mode of Transfer</Label>
+                  <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
+                </div>
                 <div className="flex gap-2 mt-4">
                   {selectedRow.status === "contribution_confirmed" && (
                     <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
