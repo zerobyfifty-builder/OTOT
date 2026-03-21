@@ -101,6 +101,7 @@ import StakeholderTreeManagement from "@/pages/stakeholder/StakeholderTreeManage
 import StakeholderTripManagement from "@/pages/stakeholder/StakeholderTripManagement";
 import StakeholderAnalytics from "@/pages/stakeholder/StakeholderAnalytics";
 import StakeholderPayments from "@/pages/stakeholder/StakeholderPayments";
+import WalletSettings from "@/pages/admin/WalletSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
