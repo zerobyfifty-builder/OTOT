@@ -58,6 +58,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const collapsed = state === 'collapsed';
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     if (propOrgName) { setOrgName(propOrgName); }
