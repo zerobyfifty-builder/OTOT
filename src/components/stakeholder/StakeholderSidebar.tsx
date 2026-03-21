@@ -67,18 +67,28 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     const fetchOrgInfo = async () => {
       const { data: userData } = await supabase
         .from('users')
-        .select('organization_id')
+        .select('organization_id, first_name, last_name')
         .eq('user_id', user.id)
         .maybeSingle();
+      if (userData) {
+        const fullName = [userData.first_name, userData.last_name].filter(Boolean).join(' ') || user.user_metadata?.full_name || '';
+        setUserName(fullName);
+      }
       if (userData?.organization_id) {
         setOrgId(userData.organization_id);
-        if (!propOrgName) {
-          const { data: org } = await supabase
-            .from('organizations')
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name, partner_type_id')
+          .eq('id', userData.organization_id)
+          .maybeSingle();
+        if (org?.name && !propOrgName) setOrgName(org.name);
+        if (org?.partner_type_id) {
+          const { data: pt } = await supabase
+            .from('partner_types')
             .select('name')
-            .eq('id', userData.organization_id)
+            .eq('id', org.partner_type_id)
             .maybeSingle();
-          if (org?.name) setOrgName(org.name);
+          if (pt?.name) setPartnerTypeName(pt.name);
         }
       }
     };
