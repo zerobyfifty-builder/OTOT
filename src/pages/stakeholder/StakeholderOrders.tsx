@@ -330,6 +330,7 @@ export const StakeholderOrders = () => {
         </Card>
       ) : (
         <div className="space-y-3">
+          <Accordion type="multiple">
             {paginatedGroups.map((group) => {
               const groupStatus = getGroupPlantingStatus(group.trees);
               const isTrip = group.tripId !== null;
@@ -342,158 +343,157 @@ export const StakeholderOrders = () => {
               const touristCountry = userInfo?.country || '';
 
               return (
-                <Card key={group.key} className="overflow-hidden">
-                  <Accordion type="multiple">
-                    <AccordionItem value={group.key} className="border-0">
-                      <div className="flex items-center">
-                        <AccordionTrigger className="px-3 sm:px-4 py-3 sm:py-4 hover:no-underline hover:bg-muted/30 flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center w-full mr-2 sm:mr-4 gap-2 sm:gap-0">
-                            <div className="flex items-center gap-3 min-w-0 sm:flex-1">
-                              <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
-                                {isTrip ? <Plane className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" /> : <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />}
-                              </div>
-                              <div className="text-left min-w-0">
-                                <div className="flex items-center gap-1.5 sm:gap-2">
-                                  <span className="font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
-                                    {isTrip && trip ? trip.friendly_trip_id || 'Trip' : "Direct"}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground hidden xs:inline">•</span>
-                                  <span className="text-xs sm:text-sm text-foreground truncate">
-                                    {touristName}{touristCountry ? ` (${touristCountry})` : ''}
-                                  </span>
-                                </div>
-                                <p className="text-[11px] sm:text-xs text-muted-foreground">
-                                  {format(new Date(group.earliestDate), "d MMM yyyy")}
-                                </p>
-                              </div>
+                <Card key={group.key} className="overflow-hidden mb-0">
+                  <AccordionItem value={group.key} className="border-0">
+                    <div className="flex items-center">
+                      <AccordionTrigger className="px-3 sm:px-4 py-3 sm:py-4 hover:no-underline hover:bg-muted/30 flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center w-full mr-2 sm:mr-4 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-3 min-w-0 sm:flex-1">
+                            <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                              {isTrip ? <Plane className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" /> : <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />}
                             </div>
-
-                            <div className="flex items-center gap-3 sm:gap-4 pl-11 sm:pl-0 sm:shrink-0">
-                              <div className="flex items-center gap-1.5 w-[90px] sm:w-[120px] shrink-0">
-                                <div className="flex-1">
-                                  <div className="h-1.5 sm:h-2 rounded-full bg-muted overflow-hidden">
-                                    <div
-                                      className="h-full rounded-full bg-green-500 transition-all duration-500"
-                                      style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap tabular-nums">
-                                  {plantedInGroup}/{group.totalTrees}
+                            <div className="text-left min-w-0">
+                              <div className="flex items-center gap-1.5 sm:gap-2">
+                                <span className="font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
+                                  {isTrip && trip ? trip.friendly_trip_id || 'Trip' : "Direct"}
+                                </span>
+                                <span className="text-xs text-muted-foreground hidden xs:inline">•</span>
+                                <span className="text-xs sm:text-sm text-foreground truncate">
+                                  {touristName}{touristCountry ? ` (${touristCountry})` : ''}
                                 </span>
                               </div>
-
-                              <div className="text-right shrink-0 w-[70px] sm:w-[80px]">
-                                <p className="text-xs sm:text-sm font-semibold text-foreground whitespace-nowrap">{group.totalTrees} trees</p>
-                                <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">${group.totalAmount.toFixed(2)}</p>
-                              </div>
-
-                              <div className="shrink-0">
-                                <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${getGroupStatusColor(groupStatus)}`}>
-                                  {getGroupStatusLabel(groupStatus)}
-                                </Badge>
-                              </div>
+                              <p className="text-[11px] sm:text-xs text-muted-foreground">
+                                {format(new Date(group.earliestDate), "d MMM yyyy")}
+                              </p>
                             </div>
                           </div>
-                        </AccordionTrigger>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 sm:h-9 sm:w-9 mr-1 sm:mr-2 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setViewSheet(group);
-                          }}
-                          title="View trip details"
-                        >
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </div>
-                      <AccordionContent className="pb-0">
-                        <div className="border-t bg-muted/30 pb-4">
-                          {/* Bulk Status Update Bar */}
-                          <div className="mx-3 sm:mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 sm:px-4 py-2.5 sm:py-3">
-                            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                              <Layers className="h-4 w-4 text-primary" />
-                              <span>Batch update:</span>
-                            </div>
-                            <Select
-                              value={bulkSelections[group.key] || ""}
-                              onValueChange={(value) =>
-                                setBulkSelections(prev => ({ ...prev, [group.key]: value }))
-                              }
-                            >
-                              <SelectTrigger className="w-[180px] sm:w-[200px] h-9 bg-background">
-                                <SelectValue placeholder="Select status for all…" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {PLANTING_STATUSES.map(s => (
-                                  <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="h-9 gap-1.5"
-                              disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
-                              onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
-                            >
-                              <CheckCheck className="h-3.5 w-3.5" />
-                              Apply ({group.trees.length})
-                            </Button>
-                            <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
-                              Or update individually below
-                            </span>
-                          </div>
 
-                          <div className="mx-3 sm:mx-4 rounded-lg border bg-background overflow-x-auto">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                  <TableHead className="w-12">No.</TableHead>
-                                  <TableHead>OTOT ID</TableHead>
-                                  <TableHead>Trees</TableHead>
-                                  <TableHead>Amount</TableHead>
-                                  <TableHead>Purchase Date</TableHead>
-                                  <TableHead>Planting Status</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {group.trees.map((tree, index) => (
-                                  <TableRow key={tree.id}>
-                                    <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                    <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                                    <TableCell>{tree.num_trees}</TableCell>
-                                    <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                                    <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
-                                    <TableCell>
-                                      <Select
-                                        value={tree.planting_status || 'pending_allocation'}
-                                        onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                      >
-                                        <SelectTrigger className="w-[180px]">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {PLANTING_STATUSES.map(s => (
-                                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                          <div className="flex items-center gap-3 sm:gap-4 pl-11 sm:pl-0 sm:shrink-0">
+                            <div className="flex items-center gap-1.5 w-[90px] sm:w-[120px] shrink-0">
+                              <div className="flex-1">
+                                <div className="h-1.5 sm:h-2 rounded-full bg-muted overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-green-500 transition-all duration-500"
+                                    style={{ width: `${group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0}%` }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                                {plantedInGroup}/{group.totalTrees}
+                              </span>
+                            </div>
+
+                            <div className="text-right shrink-0 w-[70px] sm:w-[80px]">
+                              <p className="text-xs sm:text-sm font-semibold text-foreground whitespace-nowrap">{group.totalTrees} trees</p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">${group.totalAmount.toFixed(2)}</p>
+                            </div>
+
+                            <div className="shrink-0">
+                              <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${getGroupStatusColor(groupStatus)}`}>
+                                {getGroupStatusLabel(groupStatus)}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                      </AccordionTrigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 sm:h-9 sm:w-9 mr-1 sm:mr-2 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewSheet(group);
+                        }}
+                        title="View trip details"
+                      >
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                    <AccordionContent className="pb-0">
+                      <div className="border-t bg-muted/30 pb-4">
+                        {/* Bulk Status Update Bar */}
+                        <div className="mx-3 sm:mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 sm:px-4 py-2.5 sm:py-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <Layers className="h-4 w-4 text-primary" />
+                            <span>Batch update:</span>
+                          </div>
+                          <Select
+                            value={bulkSelections[group.key] || ""}
+                            onValueChange={(value) =>
+                              setBulkSelections(prev => ({ ...prev, [group.key]: value }))
+                            }
+                          >
+                            <SelectTrigger className="w-[180px] sm:w-[200px] h-9 bg-background">
+                              <SelectValue placeholder="Select status for all…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PLANTING_STATUSES.map(s => (
+                                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="h-9 gap-1.5"
+                            disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
+                            onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                            Apply ({group.trees.length})
+                          </Button>
+                          <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
+                            Or update individually below
+                          </span>
+                        </div>
+
+                        <div className="mx-3 sm:mx-4 rounded-lg border bg-background overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/50">
+                                <TableHead className="w-12">No.</TableHead>
+                                <TableHead>OTOT ID</TableHead>
+                                <TableHead>Trees</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Purchase Date</TableHead>
+                                <TableHead>Planting Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {group.trees.map((tree, index) => (
+                                <TableRow key={tree.id}>
+                                  <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                  <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                  <TableCell>{tree.num_trees}</TableCell>
+                                  <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                                  <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={tree.planting_status || 'pending_allocation'}
+                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                    >
+                                      <SelectTrigger className="w-[180px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {PLANTING_STATUSES.map(s => (
+                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 </Card>
               );
             })}
+          </Accordion>
 
           {/* Pagination */}
           {totalPages > 1 && (
