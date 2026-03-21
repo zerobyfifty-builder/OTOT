@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, MapPin, Cloud } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, MapPin, Cloud, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Database } from '@/integrations/supabase/types';
@@ -43,7 +43,11 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
           <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8" />
-          <span className="text-sm font-semibold">Tree is planted by: MFC-ICLIP</span>
+          <span className="text-sm font-semibold">Tree is planted by: </span>
+          <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            MFC-ICLIP
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
         </div>
         <Button
           variant="ghost"
@@ -92,11 +96,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                   Location:
                 </p>
                 <p className="text-base">Mau Forest Complex (Nakuru)</p>
-                <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer">
-                  <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto mt-1">
-                    Know more about MFC-ICLIP →
-                  </Button>
-                </a>
               </div>
 
               {tree.latitude && tree.longitude && (
