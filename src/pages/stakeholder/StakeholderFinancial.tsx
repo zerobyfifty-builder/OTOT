@@ -440,6 +440,9 @@ export const StakeholderFinancial = () => {
                       <TableCell>{c.country || "-"}</TableCell>
                       <TableCell className="font-medium">{c.num_trees}</TableCell>
                       <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
+                      <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-blue-700 font-medium">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
                       <TableCell>{formatDate(c.payment_date)}</TableCell>
                       <TableCell>{c.payment_method || "-"}</TableCell>
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
