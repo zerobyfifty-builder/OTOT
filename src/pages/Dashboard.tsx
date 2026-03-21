@@ -158,6 +158,7 @@ export const Dashboard: React.FC = () => {
         .from('certificates')
         .select('id, certificate_type, issued_date, certificate_url')
         .eq('user_id', user.id)
+        .eq('certificate_type', 'Pledge')
         .order('issued_date', { ascending: false });
 
       if (error) throw error;
