@@ -411,7 +411,16 @@ export const StakeholderFinancial = () => {
                       <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
-                      <span className="flex items-center">Amount {getSortIcon("amount_paid")}</span>
+                      <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Received</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Retained</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
                       <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
