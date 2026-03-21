@@ -261,6 +261,16 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                 <span className="font-medium">{ACCOMMODATION_LABELS[trip.accommodation_type]}</span>
               </div>
             )}
+            <div>
+              <span className="text-muted-foreground">Added on: </span>
+              <span className="font-medium">{format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Entry Source: </span>
+              <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="ml-1">
+                {trip.entry_source}
+              </Badge>
+            </div>
           </div>
 
           {/* Emissions Breakdown */}
