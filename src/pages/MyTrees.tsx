@@ -535,66 +535,68 @@ export const MyTrees = () => {
                           )}
                         </div>
 
-                        {/* Accordion for individual trees */}
-                        <Accordion type="multiple" className="w-full">
-                          <AccordionItem value={`trees-${group.key}`} className="border-t border-b-0">
-                            <AccordionTrigger className="px-4 py-2 hover:no-underline text-xs text-muted-foreground">
-                              <span>View {group.trees.length} individual {group.trees.length === 1 ? 'tree' : 'trees'}</span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="overflow-x-auto">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow className="bg-muted/30">
-                                      <TableHead className="w-12">No.</TableHead>
-                                      <TableHead className="text-left">TreeTracker</TableHead>
-                                      <TableHead className="text-left">Location</TableHead>
-                                      <TableHead className="text-left">County</TableHead>
-                                      <TableHead className="text-left">Planted By</TableHead>
-                                      <TableHead>Status</TableHead>
-                                      <TableHead>Date</TableHead>
-                                      <TableHead>Source</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {group.trees.map((tree, index) => (
-                                      <TableRow key={tree.id}>
-                                        <TableCell className="font-medium text-muted-foreground">
-                                          {index + 1}
-                                        </TableCell>
-                                        <TableCell className="text-left">
-                                          <button
-                                            onClick={() => setSelectedTree(tree)}
-                                            className="text-primary hover:text-primary/80 flex items-center justify-center"
-                                            title={`View ${tree.otot_id}`}
-                                          >
-                                            <MapPin className="h-4 w-4" />
-                                          </button>
-                                        </TableCell>
-                                        <TableCell className="text-left">Mau Forest Complex</TableCell>
-                                        <TableCell className="text-left">Nakuru</TableCell>
-                                        <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
-                                        <TableCell>
-                                          <Badge className={STATUS_COLORS[tree.status]}>
-                                            {tree.status === "Planted" ? "gifted" : tree.status}
-                                          </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                          {format(new Date(tree.created_at), "d/M/yyyy")}
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge className={SOURCE_COLORS[tree.purchase_type]}>
-                                            {tree.purchase_type}
-                                          </Badge>
-                                        </TableCell>
+                        {/* View individual trees toggle - inside the card */}
+                        <div className="border-t border-dashed mx-0 mt-2">
+                          <Accordion type="multiple" className="w-full">
+                            <AccordionItem value={`trees-${group.key}`} className="border-b-0">
+                              <AccordionTrigger className="px-4 py-2 hover:no-underline text-xs text-muted-foreground">
+                                <span>View {group.trees.length} individual {group.trees.length === 1 ? 'tree' : 'trees'}</span>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="overflow-x-auto">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="bg-muted/30">
+                                        <TableHead className="w-12">No.</TableHead>
+                                        <TableHead className="text-left">TreeTracker</TableHead>
+                                        <TableHead className="text-left">Location</TableHead>
+                                        <TableHead className="text-left">County</TableHead>
+                                        <TableHead className="text-left">Planted By</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Source</TableHead>
                                       </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {group.trees.map((tree, index) => (
+                                        <TableRow key={tree.id}>
+                                          <TableCell className="font-medium text-muted-foreground">
+                                            {index + 1}
+                                          </TableCell>
+                                          <TableCell className="text-left">
+                                            <button
+                                              onClick={() => setSelectedTree(tree)}
+                                              className="text-primary hover:text-primary/80 flex items-center justify-center"
+                                              title={`View ${tree.otot_id}`}
+                                            >
+                                              <MapPin className="h-4 w-4" />
+                                            </button>
+                                          </TableCell>
+                                          <TableCell className="text-left">Mau Forest Complex</TableCell>
+                                          <TableCell className="text-left">Nakuru</TableCell>
+                                          <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
+                                          <TableCell>
+                                            <Badge className={STATUS_COLORS[tree.status]}>
+                                              {tree.status === "Planted" ? "gifted" : tree.status}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell>
+                                            {format(new Date(tree.created_at), "d/M/yyyy")}
+                                          </TableCell>
+                                          <TableCell>
+                                            <Badge className={SOURCE_COLORS[tree.purchase_type]}>
+                                              {tree.purchase_type}
+                                            </Badge>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
                       </AccordionItem>
                     );
                   })}
