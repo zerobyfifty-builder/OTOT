@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, CreditCard, FileText, Download, X, Award } from "lucide-react";
+import { Plane, Leaf, CreditCard, FileText, Award, Info } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,12 +7,11 @@ import { Database } from "@/integrations/supabase/types";
 import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { generateReceipt, downloadReceiptFromUrl, ReceiptData } from "@/utils/receiptGenerator";
+import { generateReceipt, ReceiptData } from "@/utils/receiptGenerator";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
+import { PdfPreviewDialog, PdfPreviewFile } from "@/components/ui/PdfPreviewDialog";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -61,10 +60,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
+  const [previewPdf, setPreviewPdf] = useState<(PdfPreviewFile & { type: 'receipt' | 'certificate' }) | null>(null);
   const [isGeneratingCert, setIsGeneratingCert] = useState<number | null>(null);
 
   useEffect(() => {
@@ -91,7 +87,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const fetchTrees = async () => {
     if (!trip) return;
-    
     setIsLoadingTrees(true);
     try {
       const { data, error } = await supabase
@@ -99,7 +94,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         .select("*")
         .eq("trip_id", trip.id)
         .order("created_at", { ascending: true });
-
       if (error) throw error;
       setTrees(data || []);
     } catch (error) {
@@ -126,7 +120,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const totalTreesPlanted = trees.reduce((sum, tree) => sum + tree.num_trees, 0);
   const offsetPercent = trip.trees_needed > 0 ? Math.min(100, Math.round((totalTreesPlanted / trip.trees_needed) * 100)) : 0;
 
-  // Group trees into payment batches by timestamp proximity (within 5 minutes = same batch)
   const buildPaymentBatches = (): PaymentBatch[] => {
     if (trees.length === 0) return [];
     const sorted = [...trees].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -188,17 +181,11 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
       totalCo2: trip.total_co2,
     };
     const url = await generateReceipt(receiptData);
-    setPreviewUrl(url);
-    setPreviewReceiptNo(receiptNo);
-    setIsPreviewOpen(true);
-  };
-
-  const handleClosePreview = () => {
-    setIsPreviewOpen(false);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
+    // Convert URL to blob for unified preview
+    const response = await fetch(url);
+    const blob = await response.blob();
+    URL.revokeObjectURL(url);
+    setPreviewPdf({ blob, name: `${receiptNo}.pdf`, type: 'receipt' });
   };
 
   const handleViewCertificate = async (batch: PaymentBatch) => {
@@ -206,10 +193,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) return;
-
       const co2PerTree = trip.trees_needed > 0 ? trip.total_co2 / trip.trees_needed : 0;
       const batchCo2 = co2PerTree * batch.numTrees;
-
       const blob = await generateTreeCertificate({
         userName,
         userId: authData.user.id,
@@ -218,9 +203,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         ototId: batch.ototIds[0],
         location: 'Mau Forest Complex, Kenya',
       });
-
       const fileName = `tree-certificate-${batch.numTrees}-trees-${format(new Date(batch.date), "dd-MMM-yyyy")}.pdf`;
-      setPreviewCert({ blob, name: fileName });
+      setPreviewPdf({ blob, name: fileName, type: 'certificate' });
     } catch (error) {
       console.error('Error generating certificate:', error);
       toast.error('Failed to generate certificate');
@@ -234,59 +218,61 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl">Trip Details</SheetTitle>
+          <SheetTitle className="text-2xl">Trip and Contribution Details</SheetTitle>
         </SheetHeader>
         
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-5">
+          {/* Entry Source & Added On - moved above route */}
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <div>
+              <span className="text-muted-foreground">Entry Source: </span>
+              <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="ml-1">
+                {trip.entry_source}
+              </Badge>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Added on: </span>
+              <span className="font-medium">{format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}</span>
+            </div>
+          </div>
+
           {/* Trip Route */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
             <div className="flex items-center gap-2 text-lg font-semibold">
-              <Plane className="h-5 w-5 text-primary" />
-              {getAirportInfo(trip.origin_airport)} → {getAirportInfo(trip.destination_airport)}
+              <Plane className="h-5 w-5 text-primary flex-shrink-0" />
+              <span>{getAirportInfo(trip.origin_airport)} → {getAirportInfo(trip.destination_airport)}</span>
             </div>
             <Badge variant={trip.is_return ? "default" : "secondary"} className="mt-2">
               {trip.is_return ? "Round Trip" : "One-way"}
             </Badge>
           </div>
 
-          {/* Travel Dates */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Travel Dates</h3>
-            <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+          {/* Compact Trip Info - single lines */}
+          <div className="space-y-1.5 text-sm">
+            <div>
+              <span className="text-muted-foreground">Travel Dates: </span>
+              <span className="font-medium">
+                {format(new Date(trip.from_date), "dd MMM yyyy")} – {format(new Date(trip.to_date), "dd MMM yyyy")} ({nights} {nights === 1 ? "night" : "nights"})
+              </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Travel Class: </span>
+              <span className="font-medium">{TRAVEL_CLASS_LABELS[trip.travel_class]}</span>
+            </div>
+            {trip.num_travelers > 1 && (
               <div>
-                <div className="font-medium">
-                  {format(new Date(trip.from_date), "dd MMM yyyy")} - {format(new Date(trip.to_date), "dd MMM yyyy")}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {nights} {nights === 1 ? "night" : "nights"}
-                </div>
+                <span className="text-muted-foreground">Travellers: </span>
+                <span className="font-medium">{trip.num_travelers}</span>
               </div>
-            </div>
+            )}
+            {trip.accommodation_type && trip.accommodation_type !== "None" && (
+              <div>
+                <span className="text-muted-foreground">Accommodation: </span>
+                <span className="font-medium">{ACCOMMODATION_LABELS[trip.accommodation_type]}</span>
+              </div>
+            )}
           </div>
-
-          {/* Travel Class */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Travel Class</h3>
-            <p className="font-medium">{TRAVEL_CLASS_LABELS[trip.travel_class]}</p>
-          </div>
-
-          {/* Accommodation */}
-          {trip.accommodation_type && trip.accommodation_type !== "None" && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Accommodation</h3>
-              <p className="font-medium">{ACCOMMODATION_LABELS[trip.accommodation_type]}</p>
-            </div>
-          )}
-
-          {/* Number of Travelers */}
-          {trip.num_travelers > 1 && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Travelers</h3>
-              <p className="font-medium">{trip.num_travelers} travelers</p>
-            </div>
-          )}
 
           {/* Emissions Breakdown */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -325,133 +311,127 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             </div>
           </div>
 
-          {/* Payments Section */}
+          {/* Contributions Section */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
-              Payments ({payments.length})
+              Contributions ({payments.length})
             </h3>
             {isLoadingTrees ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
               </div>
             ) : payments.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-left">Payment Date</TableHead>
-                    <TableHead className="text-center">Trees</TableHead>
-                    <TableHead className="text-center">Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-center w-20">Docs</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((batch) => (
-                    <TableRow key={batch.batchIndex}>
-                      <TableCell className="text-left">
-                        {format(new Date(batch.date), "dd MMM yyyy")}
-                      </TableCell>
-                      <TableCell className="text-center">{batch.numTrees}</TableCell>
-                      <TableCell className="text-center text-xs text-muted-foreground">{batch.paymentMethod}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        ${batch.amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleViewReceipt(batch)}
-                            className="text-primary hover:text-primary/80"
-                            title="View receipt"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleViewCertificate(batch)}
-                            className="text-amber-600 hover:text-amber-500 disabled:opacity-50"
-                            title="View certificate"
-                            disabled={isGeneratingCert === batch.batchIndex}
-                          >
-                            {isGeneratingCert === batch.batchIndex ? (
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
-                            ) : (
-                              <Award className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="border-t-2">
-                    <TableCell className="text-left font-semibold">Total</TableCell>
-                    <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
-                    <TableCell />
-                    <TableCell className="text-right font-bold">
-                      ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <>
+                <TooltipProvider>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Date</TableHead>
+                        <TableHead className="text-center">Trees</TableHead>
+                        <TableHead className="text-center">Method</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-center w-20">Docs</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {payments.map((batch) => (
+                        <TableRow key={batch.batchIndex}>
+                          <TableCell className="text-left">
+                            {format(new Date(batch.date), "dd MMM yyyy")}
+                          </TableCell>
+                          <TableCell className="text-center">{batch.numTrees}</TableCell>
+                          <TableCell className="text-center text-xs text-muted-foreground">{batch.paymentMethod}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            ${batch.amount.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => handleViewReceipt(batch)}
+                                    className="text-primary hover:text-primary/80"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>View Receipt</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => handleViewCertificate(batch)}
+                                    className="text-amber-600 hover:text-amber-500 disabled:opacity-50"
+                                    disabled={isGeneratingCert === batch.batchIndex}
+                                  >
+                                    {isGeneratingCert === batch.batchIndex ? (
+                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+                                    ) : (
+                                      <Award className="h-4 w-4" />
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>View Certificate</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="border-t-2">
+                        <TableCell className="text-left font-semibold">Total</TableCell>
+                        <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
+                        <TableCell />
+                        <TableCell className="text-right font-bold">
+                          ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell />
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TooltipProvider>
+
+                {/* Legend */}
+                <div className="flex items-center gap-4 mt-2 px-1 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1"><FileText className="h-3 w-3 text-primary" /> Receipt</span>
+                    <span className="flex items-center gap-1"><Award className="h-3 w-3 text-amber-600" /> Certificate</span>
+                  </div>
+                </div>
+              </>
             ) : (
-              <p className="text-sm text-muted-foreground">No payments yet.</p>
+              <p className="text-sm text-muted-foreground">No contributions yet.</p>
             )}
-          </div>
-
-          {/* Entry Source */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Entry Source</h3>
-            <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
-              {trip.entry_source}
-            </Badge>
-          </div>
-
-          {/* Date Added */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Added On</h3>
-            <p className="font-medium">
-              {format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}
-            </p>
           </div>
         </div>
       </SheetContent>
     </Sheet>
 
-      {/* Receipt Preview Dialog */}
-      <Dialog open={isPreviewOpen} onOpenChange={handleClosePreview}>
-        <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <DialogTitle>Receipt Preview</DialogTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => previewUrl && downloadReceiptFromUrl(previewUrl, previewReceiptNo)}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="flex-1 px-6 pb-6 min-h-0">
-            {previewUrl && (
-              <iframe
-                src={previewUrl}
-                className="w-full h-full rounded-md border"
-                title="Receipt Preview"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Certificate Preview Dialog */}
-      <CertificatePreviewDialog
-        previewCert={previewCert}
-        onClose={() => setPreviewCert(null)}
-        onDownload={(cert) => downloadCertificate(cert.blob, cert.name)}
-      />
+    {/* Unified PDF Preview Dialog */}
+    <PdfPreviewDialog
+      file={previewPdf}
+      onClose={() => setPreviewPdf(null)}
+      title={previewPdf?.type === 'certificate' ? 'Certificate Preview' : 'Receipt Preview'}
+      description={previewPdf?.type === 'certificate'
+        ? 'Preview your certificate below, open it in a new tab, or download it.'
+        : 'Preview your receipt below, open it in a new tab, or download it.'}
+      showShare={previewPdf?.type === 'certificate'}
+      onDownload={(f) => {
+        if (previewPdf?.type === 'certificate') {
+          downloadCertificate(f.blob, f.name);
+        } else {
+          const url = URL.createObjectURL(f.blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = f.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      }}
+    />
     </>
   );
 };
