@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award } from "lucide-react";
+import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
+import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
