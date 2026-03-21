@@ -5,10 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function StakeholderModules() {
+  const queryClient = useQueryClient();
   const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
     queryKey: ["stakeholderOrgs"],
     queryFn: async () => {
@@ -50,6 +51,7 @@ export default function StakeholderModules() {
         await supabase.from("organization_modules").insert({ organization_id: orgId, module_id: moduleId, is_active: true });
       }
       toast.success("Module access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
     } catch (error) {
       toast.error("Failed to update module access");
     }
