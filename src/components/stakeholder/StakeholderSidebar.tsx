@@ -30,7 +30,6 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 // Core menu items always visible
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
-  { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine },
   { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout },
   { title: 'Planting', url: '/stakeholder/planting', icon: TreePine },
   { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3 },
@@ -44,6 +43,7 @@ const coreMenuItems = [
 // Module-based menu items: keyed by module name from the modules table
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string }> = {
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Outcomes' },
+  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Dashboard' },
 };
 
 interface StakeholderSidebarProps {
