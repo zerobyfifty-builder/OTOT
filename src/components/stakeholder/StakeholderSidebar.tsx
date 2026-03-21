@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal, Plane, Map } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal, Plane, Map, CreditCard } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
