@@ -445,6 +445,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Certificate Preview Dialog */}
+      <CertificatePreviewDialog
+        previewCert={previewCert}
+        onClose={() => setPreviewCert(null)}
+        onDownload={(cert) => downloadCertificate(cert.blob, cert.name)}
+      />
     </>
   );
 };
