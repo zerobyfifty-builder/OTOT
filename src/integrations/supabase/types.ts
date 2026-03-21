@@ -1834,6 +1834,10 @@ export type Database = {
       }
       is_stakeholder: { Args: { user_id: string }; Returns: boolean }
       is_super_admin: { Args: { user_id: string }; Returns: boolean }
+      stakeholder_has_module: {
+        Args: { _module_name: string; _user_id: string }
+        Returns: boolean
+      }
       users_in_same_org: {
         Args: { user1_id: string; user2_id: string }
         Returns: boolean

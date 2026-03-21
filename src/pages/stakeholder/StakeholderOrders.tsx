@@ -120,17 +120,16 @@ export const StakeholderOrders = () => {
   });
 
   const { data: trees, isLoading, refetch } = useQuery({
-    queryKey: ["stakeholderOrders", orgId],
+    queryKey: ["stakeholderOrders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trees")
         .select("*")
-        .eq("stakeholder_org_id", orgId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Tree[];
     },
-    enabled: !!orgId,
+    enabled: !!user?.id,
   });
 
   const { data: tripsData } = useQuery({
