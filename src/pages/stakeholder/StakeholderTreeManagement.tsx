@@ -49,10 +49,14 @@ export function StakeholderTreeManagement() {
     setLoading(true);
     const { data, error } = await supabase
       .from("trees")
-      .select("*, users(email, first_name, last_name), lodges(name)")
+      .select("*, lodges(name)")
       .order("created_at", { ascending: false })
       .limit(500);
-    if (!error && data) setTrees(data as any);
+    if (!error && data) {
+      setTrees(data as any);
+    } else {
+      console.error("Error fetching trees:", error);
+    }
     setLoading(false);
   };
 
