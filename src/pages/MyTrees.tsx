@@ -535,32 +535,37 @@ export const MyTrees = () => {
                           )}
                         </div>
 
-                        {/* View individual trees toggle - inside the card */}
-                        <div className="border-t border-dashed mx-0 mt-2">
+                        {/* View individual trees - inset panel */}
+                        <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/30 shadow-inner overflow-hidden">
                           <Accordion type="multiple" className="w-full">
                             <AccordionItem value={`trees-${group.key}`} className="border-b-0">
-                              <AccordionTrigger className="px-4 py-2 hover:no-underline text-xs text-muted-foreground">
-                                <span>View {group.trees.length} individual {group.trees.length === 1 ? 'tree' : 'trees'}</span>
+                              <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-xl">
+                                <div className="flex items-center gap-2">
+                                  <TreePine className="h-3.5 w-3.5 text-primary" />
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    View {group.trees.length} individual {group.trees.length === 1 ? 'tree' : 'trees'}
+                                  </span>
+                                </div>
                               </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="overflow-x-auto">
+                              <AccordionContent className="pb-0">
+                                <div className="overflow-x-auto bg-background/80 rounded-b-xl">
                                   <Table>
                                     <TableHeader>
-                                      <TableRow className="bg-muted/30">
-                                        <TableHead className="w-12">No.</TableHead>
-                                        <TableHead className="text-left">TreeTracker</TableHead>
-                                        <TableHead className="text-left">Location</TableHead>
-                                        <TableHead className="text-left">County</TableHead>
-                                        <TableHead className="text-left">Planted By</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Source</TableHead>
+                                      <TableRow className="bg-muted/50 border-b border-border/40">
+                                        <TableHead className="w-12 text-xs">No.</TableHead>
+                                        <TableHead className="text-left text-xs">TreeTracker</TableHead>
+                                        <TableHead className="text-left text-xs">Location</TableHead>
+                                        <TableHead className="text-left text-xs">County</TableHead>
+                                        <TableHead className="text-left text-xs">Planted By</TableHead>
+                                        <TableHead className="text-xs">Status</TableHead>
+                                        <TableHead className="text-xs">Date</TableHead>
+                                        <TableHead className="text-xs">Source</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                       {group.trees.map((tree, index) => (
-                                        <TableRow key={tree.id}>
-                                          <TableCell className="font-medium text-muted-foreground">
+                                        <TableRow key={tree.id} className="border-b border-border/20 last:border-b-0 hover:bg-muted/20">
+                                          <TableCell className="font-medium text-muted-foreground text-xs">
                                             {index + 1}
                                           </TableCell>
                                           <TableCell className="text-left">
@@ -572,15 +577,15 @@ export const MyTrees = () => {
                                               <MapPin className="h-4 w-4" />
                                             </button>
                                           </TableCell>
-                                          <TableCell className="text-left">Mau Forest Complex</TableCell>
-                                          <TableCell className="text-left">Nakuru</TableCell>
-                                          <TableCell className="text-left">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
+                                          <TableCell className="text-left text-xs">Mau Forest Complex</TableCell>
+                                          <TableCell className="text-left text-xs">Nakuru</TableCell>
+                                          <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                           <TableCell>
                                             <Badge className={STATUS_COLORS[tree.status]}>
                                               {tree.status === "Planted" ? "gifted" : tree.status}
                                             </Badge>
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-xs">
                                             {format(new Date(tree.created_at), "d/M/yyyy")}
                                           </TableCell>
                                           <TableCell>
