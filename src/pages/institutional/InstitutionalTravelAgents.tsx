@@ -16,6 +16,7 @@ import { Plus, Pencil, Ban, MoreHorizontal, Check, Eye, FileText, Download } fro
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { generateInvoice } from '@/utils/invoiceGenerator';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface TravelAgent {
   id: string;
