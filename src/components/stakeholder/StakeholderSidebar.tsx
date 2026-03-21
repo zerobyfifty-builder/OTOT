@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal, Plane } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +26,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-const menuItems = [
+// Core menu items always visible
+const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine },
   { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout },
@@ -38,6 +40,11 @@ const menuItems = [
   { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
+// Module-based menu items: keyed by module name from the modules table
+const moduleMenuItems: Record<string, { title: string; url: string; icon: React.ComponentType<any>; insertAfter: string }> = {
+  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Outcomes' },
+};
+
 interface StakeholderSidebarProps {
   organizationName?: string;
 }
@@ -49,27 +56,68 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
   const [orgName, setOrgName] = useState(propOrgName || '');
+  const [orgId, setOrgId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (propOrgName) { setOrgName(propOrgName); return; }
+    if (propOrgName) { setOrgName(propOrgName); }
     if (!user) return;
-    const fetchOrgName = async () => {
+    const fetchOrgInfo = async () => {
       const { data: userData } = await supabase
         .from('users')
         .select('organization_id')
         .eq('user_id', user.id)
         .maybeSingle();
       if (userData?.organization_id) {
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('name')
-          .eq('id', userData.organization_id)
-          .maybeSingle();
-        if (org?.name) setOrgName(org.name);
+        setOrgId(userData.organization_id);
+        if (!propOrgName) {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('name')
+            .eq('id', userData.organization_id)
+            .maybeSingle();
+          if (org?.name) setOrgName(org.name);
+        }
       }
     };
-    fetchOrgName();
+    fetchOrgInfo();
   }, [user, propOrgName]);
+
+  // Fetch assigned modules for this organization
+  const { data: assignedModules } = useQuery({
+    queryKey: ['stakeholderAssignedModules', orgId],
+    queryFn: async () => {
+      if (!orgId) return [];
+      const { data, error } = await supabase
+        .from('organization_modules')
+        .select('module_id, is_active, modules(name)')
+        .eq('organization_id', orgId)
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data || []).map((om: any) => om.modules?.name).filter(Boolean) as string[];
+    },
+    enabled: !!orgId,
+  });
+
+  // Build final menu items by inserting module-based items
+  const menuItems = React.useMemo(() => {
+    const items = [...coreMenuItems];
+    if (assignedModules) {
+      for (const moduleName of assignedModules) {
+        const moduleItem = moduleMenuItems[moduleName];
+        if (moduleItem) {
+          const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
+          if (insertIndex !== -1) {
+            items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
+          } else {
+            // Insert before Settings items
+            const settingsIndex = items.findIndex(i => i.title === 'Admin');
+            items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
+          }
+        }
+      }
+    }
+    return items;
+  }, [assignedModules]);
 
   const organizationName = orgName || undefined;
 
