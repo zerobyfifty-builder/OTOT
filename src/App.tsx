@@ -96,6 +96,7 @@ import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
 import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
 import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
 import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
+import StakeholderTravelAgents from "@/pages/stakeholder/StakeholderTravelAgents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -479,6 +480,9 @@ const App = () => (
             } />
             <Route path="/stakeholder/settings" element={
               <StakeholderRoute><StakeholderLayout><StakeholderSettings /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/travel-agents" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderTravelAgents /></StakeholderLayout></StakeholderRoute>
             } />
 
             {/* Legacy Admin routes */}
