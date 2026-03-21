@@ -574,6 +574,13 @@ export const MyTrees = () => {
             setSelectedTrip(null);
           }}
         />
+
+        {/* Certificate Preview Dialog */}
+        <CertificatePreviewDialog
+          previewCert={previewCert}
+          onClose={() => setPreviewCert(null)}
+          onDownload={(cert) => downloadCertificate(cert.blob, cert.name)}
+        />
       </div>
     </div>
   );
