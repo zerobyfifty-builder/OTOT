@@ -42,7 +42,7 @@ const coreMenuItems = [
 ];
 
 // Module-based menu items: keyed by module name from the modules table
-const moduleMenuItems: Record<string, { title: string; url: string; icon: React.ComponentType<any>; insertAfter: string }> = {
+const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string }> = {
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Outcomes' },
 };
 
