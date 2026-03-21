@@ -415,22 +415,35 @@ export const StakeholderFinancial = () => {
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("num_trees")}>
                       <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
-                      <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
-                    </TableHead>
-                    <TableHead>
-                      <span className="flex items-center whitespace-nowrap">Amt Received</span>
-                    </TableHead>
-                    <TableHead>
-                      <span className="flex items-center whitespace-nowrap">Amt Retained</span>
-                    </TableHead>
+                    {!isPlantationPartner && (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
+                        <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Amt Received</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Amt Retained</span>
+                      </TableHead>
+                    )}
                     <TableHead>
                       <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
-                      <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
-                    </TableHead>
-                    <TableHead>Method</TableHead>
+                    {isPlantationPartner ? (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
+                        <span className="flex items-center">Received Date {getSortIcon("payment_date")}</span>
+                      </TableHead>
+                    ) : (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
+                        <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && <TableHead>Method</TableHead>}
+                    <TableHead>Mode</TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
                       <span className="flex items-center">Status {getSortIcon("status")}</span>
                     </TableHead>
