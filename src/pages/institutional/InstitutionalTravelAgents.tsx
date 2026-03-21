@@ -378,10 +378,12 @@ export default function InstitutionalTravelAgents() {
         {/* MANAGE AGENTS TAB */}
         <TabsContent value="agents" className="space-y-4">
           <div className="flex justify-end">
+            {hasWrite && (
             <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Add Travel Agent
             </Button>
+            )}
           </div>
 
           <div className="rounded-md border">
