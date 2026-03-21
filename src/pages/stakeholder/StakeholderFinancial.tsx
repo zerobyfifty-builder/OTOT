@@ -190,15 +190,7 @@ export const StakeholderFinancial = () => {
   const openSheet = (row: ContributionRow, mode: SheetMode) => {
     setSelectedRow(row);
     setSheetMode(mode);
-    if (mode === "ktb_receive") {
-      setKtbForm({
-        ktb_receipt_id: row.ktb_receipt_id || "",
-        ktb_received_date: row.ktb_received_date || "",
-        plantation_partner_id: row.plantation_partner_id || "",
-        transfer_date: row.transfer_date || "",
-        transfer_reference: row.transfer_reference || "",
-      });
-    } else if (mode === "ktb_transfer") {
+    if (mode === "ktb") {
       setKtbForm({
         ktb_receipt_id: row.ktb_receipt_id || "",
         ktb_received_date: row.ktb_received_date || "",
