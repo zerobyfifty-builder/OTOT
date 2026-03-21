@@ -26,6 +26,9 @@ interface ContributionRow {
   trip_id: string | null;
   num_trees: number;
   amount_paid: number;
+  amount_received: number;
+  amount_retained: number;
+  amount_transferred: number;
   currency: string;
   payment_date: string | null;
   payment_method: string | null;
