@@ -91,7 +91,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                   <MapPin className="h-4 w-4" />
                   Location:
                 </p>
-                <p className="text-base">{tree.location_name || 'Pending Assignment'}</p>
+                <p className="text-base">Mau Forest Complex (Nakuru)</p>
               </div>
 
               {tree.latitude && tree.longitude && (
