@@ -316,6 +316,27 @@ export const TreePurchase = () => {
 
       console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
 
+      // Create batch-level contribution tracking entry
+      const { error: contribError } = await supabase
+        .from('contribution_tracking' as any)
+        .insert({
+          tree_id: insertedTrees[0].id,
+          trip_id: tripId || null,
+          tourist_name: userData?.email || 'Unknown',
+          num_trees: treeCount,
+          amount_paid: totalCost,
+          currency: 'USD',
+          payment_date: new Date().toISOString(),
+          payment_method: paymentMethod,
+          transaction_reference: paymentReference,
+          plantation_partner_id: insertedTrees[0].stakeholder_org_id || null,
+          status: 'contribution_received',
+        } as any);
+
+      if (contribError) {
+        console.error('Error creating contribution tracking:', contribError);
+      }
+
       // Generate certificate - use dedication name if dedicated
       const certificateRecipient = isDedicated && dedicationName 
         ? dedicationName 

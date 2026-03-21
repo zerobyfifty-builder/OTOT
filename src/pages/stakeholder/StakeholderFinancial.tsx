@@ -22,6 +22,7 @@ interface ContributionRow {
   tourist_name: string | null;
   country: string | null;
   trip_id: string | null;
+  num_trees: number;
   amount_paid: number;
   currency: string;
   payment_date: string | null;
@@ -203,6 +204,7 @@ export const StakeholderFinancial = () => {
 
   const totals = {
     total: contributions?.reduce((s, c) => s + Number(c.amount_paid), 0) || 0,
+    totalTrees: contributions?.reduce((s, c) => s + Number(c.num_trees), 0) || 0,
     ktbReceived: contributions?.filter((c) => c.status === "ktb_received" || c.status === "partner_confirmed").length || 0,
     partnerConfirmed: contributions?.filter((c) => c.status === "partner_confirmed").length || 0,
     pending: contributions?.filter((c) => c.status === "contribution_received").length || 0,
@@ -228,9 +230,9 @@ export const StakeholderFinancial = () => {
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Total Contributions</p>
+           <p className="text-xs text-muted-foreground">Total Contributions</p>
           <p className="text-2xl font-bold">${formatNumber(totals.total)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} entries</p>
+          <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Pending KTB Receipt</p>
@@ -277,9 +279,10 @@ export const StakeholderFinancial = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Contribution ID</TableHead>
+                 <TableHead>Contribution ID</TableHead>
                   <TableHead>Tourist</TableHead>
                   <TableHead>Country</TableHead>
+                  <TableHead>Trees</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Payment Date</TableHead>
                   <TableHead>Method</TableHead>
@@ -293,6 +296,7 @@ export const StakeholderFinancial = () => {
                     <TableCell className="font-mono text-xs">{c.contribution_id}</TableCell>
                     <TableCell>{c.tourist_name || "-"}</TableCell>
                     <TableCell>{c.country || "-"}</TableCell>
+                    <TableCell className="font-medium">{c.num_trees}</TableCell>
                     <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
                     <TableCell>{formatDate(c.payment_date)}</TableCell>
                     <TableCell>{c.payment_method || "-"}</TableCell>
@@ -336,10 +340,11 @@ export const StakeholderFinancial = () => {
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
+                     <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
                     <div><span className="text-muted-foreground">Tourist:</span><p>{selectedRow.tourist_name || "-"}</p></div>
                     <div><span className="text-muted-foreground">Country:</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground">Trip ID:</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
+                    <div><span className="text-muted-foreground">Trees:</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
                     <div><span className="text-muted-foreground">Amount:</span><p className="font-semibold">${Number(selectedRow.amount_paid).toFixed(2)}</p></div>
                     <div><span className="text-muted-foreground">Currency:</span><p>{selectedRow.currency}</p></div>
                     <div><span className="text-muted-foreground">Payment Date:</span><p>{formatDate(selectedRow.payment_date)}</p></div>
