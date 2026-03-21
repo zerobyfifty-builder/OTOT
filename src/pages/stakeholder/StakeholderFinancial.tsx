@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark } from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -40,7 +41,11 @@ interface ContributionRow {
   created_at: string;
 }
 
-type SheetMode = "view" | "ktb" | "partner";
+type SheetMode = "view" | "ktb_receive" | "ktb_transfer" | "partner";
+type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "status";
+type SortDir = "asc" | "desc";
+
+const PAGE_SIZE = 15;
 
 export const StakeholderFinancial = () => {
   const { user } = useAuth();
@@ -50,6 +55,9 @@ export const StakeholderFinancial = () => {
   const [selectedRow, setSelectedRow] = useState<ContributionRow | null>(null);
   const [sheetMode, setSheetMode] = useState<SheetMode>("view");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>("payment_date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   // KTB form state
   const [ktbForm, setKtbForm] = useState({
@@ -98,7 +106,6 @@ export const StakeholderFinancial = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch plantation partners for KTB dropdown
   const { data: partners } = useQuery({
     queryKey: ["plantationPartners"],
     queryFn: async () => {
@@ -114,29 +121,50 @@ export const StakeholderFinancial = () => {
   const isKtbUser = userRole === "institutional_partner";
   const isPlantationPartner = userRole === "stakeholder";
 
-  const updateKtbMutation = useMutation({
+  // KTB: Mark as Funds Received
+  const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("contribution_tracking" as any)
         .update({
           ktb_receipt_id: ktbForm.ktb_receipt_id,
           ktb_received_date: ktbForm.ktb_received_date || null,
-          plantation_partner_id: ktbForm.plantation_partner_id || null,
-          transfer_date: ktbForm.transfer_date || null,
-          transfer_reference: ktbForm.transfer_reference,
-          status: "ktb_received",
+          status: "funds_received",
         } as any)
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("KTB receipt details saved");
+      toast.success("Funds received — status updated");
       queryClient.invalidateQueries({ queryKey: ["contributionTracking"] });
       setSheetOpen(false);
     },
     onError: (e: any) => toast.error(e.message),
   });
 
+  // KTB: Mark as Transferred for Planting
+  const updateKtbTransferMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("contribution_tracking" as any)
+        .update({
+          plantation_partner_id: ktbForm.plantation_partner_id || null,
+          transfer_date: ktbForm.transfer_date || null,
+          transfer_reference: ktbForm.transfer_reference,
+          status: "transferred_for_planting",
+        } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Funds transferred for planting — status updated");
+      queryClient.invalidateQueries({ queryKey: ["contributionTracking"] });
+      setSheetOpen(false);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Partner: Received for Planting
   const updatePartnerMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -145,7 +173,7 @@ export const StakeholderFinancial = () => {
           partner_receipt_confirmation: partnerForm.partner_receipt_confirmation,
           partner_received_date: partnerForm.partner_received_date || null,
           acknowledgement_doc: partnerForm.acknowledgement_doc || null,
-          status: partnerForm.partner_receipt_confirmation ? "partner_confirmed" : "ktb_received",
+          status: partnerForm.partner_receipt_confirmation ? "received_for_planting" : "transferred_for_planting",
         } as any)
         .eq("id", id);
       if (error) throw error;
@@ -161,7 +189,15 @@ export const StakeholderFinancial = () => {
   const openSheet = (row: ContributionRow, mode: SheetMode) => {
     setSelectedRow(row);
     setSheetMode(mode);
-    if (mode === "ktb") {
+    if (mode === "ktb_receive") {
+      setKtbForm({
+        ktb_receipt_id: row.ktb_receipt_id || "",
+        ktb_received_date: row.ktb_received_date || "",
+        plantation_partner_id: row.plantation_partner_id || "",
+        transfer_date: row.transfer_date || "",
+        transfer_reference: row.transfer_reference || "",
+      });
+    } else if (mode === "ktb_transfer") {
       setKtbForm({
         ktb_receipt_id: row.ktb_receipt_id || "",
         ktb_received_date: row.ktb_received_date || "",
@@ -181,33 +217,98 @@ export const StakeholderFinancial = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "contribution_received":
-        return <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50">Contribution Received</Badge>;
-      case "ktb_received":
-        return <Badge variant="secondary" className="text-orange-700 bg-orange-100">KTB Received</Badge>;
-      case "partner_confirmed":
-        return <Badge className="bg-green-600 text-white">Partner Confirmed</Badge>;
+      case "contribution_confirmed":
+        return <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50 whitespace-nowrap">Contribution Confirmed</Badge>;
+      case "funds_received":
+        return <Badge variant="secondary" className="text-orange-700 bg-orange-100 whitespace-nowrap">Funds Received</Badge>;
+      case "transferred_for_planting":
+        return <Badge variant="outline" className="text-purple-700 border-purple-300 bg-purple-50 whitespace-nowrap">Transferred for Planting</Badge>;
+      case "received_for_planting":
+        return <Badge className="bg-green-600 text-white whitespace-nowrap">Received for Planting</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const filtered = contributions?.filter((c) => {
-    const matchSearch =
-      !search ||
-      c.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
-      c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "all" || c.status === statusFilter;
-    return matchSearch && matchStatus;
-  }) || [];
+  const getStatusOrder = (status: string) => {
+    switch (status) {
+      case "contribution_confirmed": return 1;
+      case "funds_received": return 2;
+      case "transferred_for_planting": return 3;
+      case "received_for_planting": return 4;
+      default: return 0;
+    }
+  };
+
+  // Sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("desc");
+    }
+    setCurrentPage(1);
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  // Filter + Sort + Paginate
+  const filtered = useMemo(() => {
+    let result = contributions?.filter((c) => {
+      const matchSearch =
+        !search ||
+        c.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
+        c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
+        c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
+      const matchStatus = statusFilter === "all" || c.status === statusFilter;
+      return matchSearch && matchStatus;
+    }) || [];
+
+    result.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "contribution_id":
+          cmp = (a.contribution_id || "").localeCompare(b.contribution_id || "");
+          break;
+        case "tourist_name":
+          cmp = (a.tourist_name || "").localeCompare(b.tourist_name || "");
+          break;
+        case "country":
+          cmp = (a.country || "").localeCompare(b.country || "");
+          break;
+        case "num_trees":
+          cmp = Number(a.num_trees) - Number(b.num_trees);
+          break;
+        case "amount_paid":
+          cmp = Number(a.amount_paid) - Number(b.amount_paid);
+          break;
+        case "payment_date":
+          cmp = (a.payment_date || a.created_at || "").localeCompare(b.payment_date || b.created_at || "");
+          break;
+        case "status":
+          cmp = getStatusOrder(a.status) - getStatusOrder(b.status);
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return result;
+  }, [contributions, search, statusFilter, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const totals = {
     total: contributions?.reduce((s, c) => s + Number(c.amount_paid), 0) || 0,
     totalTrees: contributions?.reduce((s, c) => s + Number(c.num_trees), 0) || 0,
-    ktbReceived: contributions?.filter((c) => c.status === "ktb_received" || c.status === "partner_confirmed").length || 0,
-    partnerConfirmed: contributions?.filter((c) => c.status === "partner_confirmed").length || 0,
-    pending: contributions?.filter((c) => c.status === "contribution_received").length || 0,
+    confirmed: contributions?.filter((c) => c.status === "contribution_confirmed").length || 0,
+    fundsReceived: contributions?.filter((c) => c.status === "funds_received").length || 0,
+    transferred: contributions?.filter((c) => c.status === "transferred_for_planting").length || 0,
+    received: contributions?.filter((c) => c.status === "received_for_planting").length || 0,
   };
 
   const formatDate = (d: string | null) => {
@@ -228,23 +329,27 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card><CardContent className="p-4">
-           <p className="text-xs text-muted-foreground">Total Contributions</p>
+          <p className="text-xs text-muted-foreground">Total Contributions</p>
           <p className="text-2xl font-bold">${formatNumber(totals.total)}</p>
           <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Pending KTB Receipt</p>
-          <p className="text-2xl font-bold text-blue-600">{totals.pending}</p>
+          <p className="text-xs text-muted-foreground">Confirmed</p>
+          <p className="text-2xl font-bold text-blue-600">{totals.confirmed}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">KTB Received</p>
-          <p className="text-2xl font-bold text-orange-600">{totals.ktbReceived}</p>
+          <p className="text-xs text-muted-foreground">Funds Received</p>
+          <p className="text-2xl font-bold text-orange-600">{totals.fundsReceived}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Partner Confirmed</p>
-          <p className="text-2xl font-bold text-green-600">{totals.partnerConfirmed}</p>
+          <p className="text-xs text-muted-foreground">Transferred</p>
+          <p className="text-2xl font-bold text-purple-600">{totals.transferred}</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Received for Planting</p>
+          <p className="text-2xl font-bold text-green-600">{totals.received}</p>
         </CardContent></Card>
       </div>
 
@@ -252,15 +357,16 @@ export const StakeholderFinancial = () => {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by ID, tourist name, or reference..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Search by ID, tourist name, or reference..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="contribution_received">Contribution Received</SelectItem>
-            <SelectItem value="ktb_received">KTB Received</SelectItem>
-            <SelectItem value="partner_confirmed">Partner Confirmed</SelectItem>
+            <SelectItem value="contribution_confirmed">Contribution Confirmed</SelectItem>
+            <SelectItem value="funds_received">Funds Received</SelectItem>
+            <SelectItem value="transferred_for_planting">Transferred for Planting</SelectItem>
+            <SelectItem value="received_for_planting">Received for Planting</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -276,52 +382,119 @@ export const StakeholderFinancial = () => {
               <p className="text-muted-foreground">No contributions found.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                 <TableHead>Contribution ID</TableHead>
-                  <TableHead>Tourist</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead>Trees</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment Date</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">{c.contribution_id}</TableCell>
-                    <TableCell>{c.tourist_name || "-"}</TableCell>
-                    <TableCell>{c.country || "-"}</TableCell>
-                    <TableCell className="font-medium">{c.num_trees}</TableCell>
-                    <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
-                    <TableCell>{formatDate(c.payment_date)}</TableCell>
-                    <TableCell>{c.payment_method || "-"}</TableCell>
-                    <TableCell>{getStatusBadge(c.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openSheet(c, "view")} title="View Details">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {isKtbUser && (
-                          <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb")} title="KTB Receipt Entry" className="text-blue-600">
-                            <Landmark className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {isPlantationPartner && c.plantation_partner_id === orgId && c.status !== "contribution_received" && (
-                          <Button variant="ghost" size="icon" onClick={() => openSheet(c, "partner")} title="Partner Confirmation" className="text-green-600">
-                            <Building2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("contribution_id")}>
+                      <span className="flex items-center">ID {getSortIcon("contribution_id")}</span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("tourist_name")}>
+                      <span className="flex items-center">Tourist {getSortIcon("tourist_name")}</span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("country")}>
+                      <span className="flex items-center">Country {getSortIcon("country")}</span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("num_trees")}>
+                      <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
+                      <span className="flex items-center">Amount {getSortIcon("amount_paid")}</span>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
+                      <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
+                    </TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+                      <span className="flex items-center">Status {getSortIcon("status")}</span>
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-mono text-xs">{c.contribution_id}</TableCell>
+                      <TableCell>{c.tourist_name || "-"}</TableCell>
+                      <TableCell>{c.country || "-"}</TableCell>
+                      <TableCell className="font-medium">{c.num_trees}</TableCell>
+                      <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
+                      <TableCell>{formatDate(c.payment_date)}</TableCell>
+                      <TableCell>{c.payment_method || "-"}</TableCell>
+                      <TableCell>{getStatusBadge(c.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openSheet(c, "view")} title="View Details">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {isKtbUser && c.status === "contribution_confirmed" && (
+                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_receive")} title="Mark Funds Received" className="text-orange-600">
+                              <Landmark className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {isKtbUser && c.status === "funds_received" && (
+                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_transfer")} title="Transfer for Planting" className="text-purple-600">
+                              <Landmark className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {isPlantationPartner && c.plantation_partner_id === orgId && c.status === "transferred_for_planting" && (
+                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "partner")} title="Confirm Receipt" className="text-green-600">
+                              <Building2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                </p>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let page: number;
+                      if (totalPages <= 5) {
+                        page = i + 1;
+                      } else if (currentPage <= 3) {
+                        page = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        page = totalPages - 4 + i;
+                      } else {
+                        page = currentPage - 2 + i;
+                      }
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -336,11 +509,10 @@ export const StakeholderFinancial = () => {
                 <SheetDescription>Full contribution lifecycle details</SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-6">
-                {/* Core */}
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                     <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
+                    <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
                     <div><span className="text-muted-foreground">Tourist:</span><p>{selectedRow.tourist_name || "-"}</p></div>
                     <div><span className="text-muted-foreground">Country:</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground">Trip ID:</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
@@ -352,9 +524,8 @@ export const StakeholderFinancial = () => {
                     <div className="col-span-2"><span className="text-muted-foreground">Reference:</span><p>{selectedRow.transaction_reference || "-"}</p></div>
                   </div>
                 </div>
-                {/* KTB */}
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">KTB Receipt</h3>
+                  <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">KTB Receipt & Transfer</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div><span className="text-muted-foreground">Receipt ID:</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
                     <div><span className="text-muted-foreground">Received Date:</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
@@ -362,7 +533,6 @@ export const StakeholderFinancial = () => {
                     <div><span className="text-muted-foreground">Transfer Ref:</span><p>{selectedRow.transfer_reference || "-"}</p></div>
                   </div>
                 </div>
-                {/* Partner */}
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Partner Confirmation</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -376,15 +546,17 @@ export const StakeholderFinancial = () => {
             </>
           )}
 
-          {selectedRow && sheetMode === "ktb" && (
+          {/* KTB: Funds Received */}
+          {selectedRow && sheetMode === "ktb_receive" && (
             <>
               <SheetHeader>
-                <SheetTitle>KTB Receipt Entry</SheetTitle>
-                <SheetDescription>Record KTB payment receipt and transfer details for {selectedRow.contribution_id}</SheetDescription>
+                <SheetTitle>Mark Funds Received</SheetTitle>
+                <SheetDescription>Record KTB payment receipt for {selectedRow.contribution_id}</SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/50 text-sm">
                   <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
+                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
                   <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
@@ -392,8 +564,29 @@ export const StakeholderFinancial = () => {
                   <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g., KTB-REC-001" />
                 </div>
                 <div className="space-y-2">
-                  <Label>KTB Received Date</Label>
+                  <Label>Date Funds Received</Label>
                   <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
+                </div>
+                <Button className="w-full mt-4" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                  {updateKtbReceiveMutation.isPending ? "Saving..." : "Confirm Funds Received"}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* KTB: Transfer for Planting */}
+          {selectedRow && sheetMode === "ktb_transfer" && (
+            <>
+              <SheetHeader>
+                <SheetTitle>Transfer for Planting</SheetTitle>
+                <SheetDescription>Transfer funds to plantation partner for {selectedRow.contribution_id}</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <div className="p-3 rounded-lg bg-muted/50 text-sm">
+                  <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
+                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
+                  <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
+                  <p><strong>KTB Receipt:</strong> {selectedRow.ktb_receipt_id || "-"}</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Plantation Partner</Label>
@@ -412,22 +605,24 @@ export const StakeholderFinancial = () => {
                   <Label>Transfer Reference</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
                 </div>
-                <Button className="w-full mt-4" onClick={() => updateKtbMutation.mutate(selectedRow.id)} disabled={updateKtbMutation.isPending}>
-                  {updateKtbMutation.isPending ? "Saving..." : "Save KTB Receipt"}
+                <Button className="w-full mt-4" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                  {updateKtbTransferMutation.isPending ? "Saving..." : "Confirm Transfer for Planting"}
                 </Button>
               </div>
             </>
           )}
 
+          {/* Partner: Received for Planting */}
           {selectedRow && sheetMode === "partner" && (
             <>
               <SheetHeader>
-                <SheetTitle>Partner Fund Confirmation</SheetTitle>
+                <SheetTitle>Confirm Funds Received for Planting</SheetTitle>
                 <SheetDescription>Confirm receipt of funds from KTB for {selectedRow.contribution_id}</SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/50 text-sm">
                   <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
+                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
                   <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                   <p><strong>KTB Transfer Ref:</strong> {selectedRow.transfer_reference || "-"}</p>
                   <p><strong>Transfer Date:</strong> {formatDate(selectedRow.transfer_date)}</p>
@@ -454,7 +649,7 @@ export const StakeholderFinancial = () => {
                   <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
                 </div>
                 <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
-                  {updatePartnerMutation.isPending ? "Saving..." : "Save Confirmation"}
+                  {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
                 </Button>
               </div>
             </>
