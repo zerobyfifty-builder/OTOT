@@ -420,12 +420,16 @@ export default function InstitutionalTravelAgents() {
                         </span>
                       </TableCell>
                       <TableCell className="space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
-                          <Ban className="h-4 w-4" />
-                        </Button>
+                        {hasEdit && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
