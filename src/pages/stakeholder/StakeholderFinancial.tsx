@@ -433,17 +433,23 @@ export const StakeholderFinancial = () => {
                     <TableHead>
                       <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
-                    {isPlantationPartner ? (
-                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
-                        <span className="flex items-center">Received Date {getSortIcon("payment_date")}</span>
+                    {isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Transfer Date</span>
                       </TableHead>
-                    ) : (
+                    )}
+                    {!isPlantationPartner && (
                       <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
                         <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
                       </TableHead>
                     )}
                     {!isPlantationPartner && <TableHead>Method</TableHead>}
                     <TableHead>Mode</TableHead>
+                    {isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center">Received Date</span>
+                      </TableHead>
+                    )}
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
                       <span className="flex items-center">Status {getSortIcon("status")}</span>
                     </TableHead>
