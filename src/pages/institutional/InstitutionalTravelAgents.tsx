@@ -16,6 +16,7 @@ import { Plus, Pencil, Ban, MoreHorizontal, Check, Eye, FileText, Download } fro
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { generateInvoice } from '@/utils/invoiceGenerator';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface TravelAgent {
   id: string;
@@ -31,6 +32,7 @@ interface TravelAgent {
 export default function InstitutionalTravelAgents() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { hasWrite, hasEdit } = useModulePermissions("travel_agents");
   const [editingAgent, setEditingAgent] = useState<TravelAgent | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
@@ -376,10 +378,12 @@ export default function InstitutionalTravelAgents() {
         {/* MANAGE AGENTS TAB */}
         <TabsContent value="agents" className="space-y-4">
           <div className="flex justify-end">
+            {hasWrite && (
             <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Add Travel Agent
             </Button>
+            )}
           </div>
 
           <div className="rounded-md border">
@@ -416,12 +420,16 @@ export default function InstitutionalTravelAgents() {
                         </span>
                       </TableCell>
                       <TableCell className="space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
-                          <Ban className="h-4 w-4" />
-                        </Button>
+                        {hasEdit && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
+                              <Ban className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
