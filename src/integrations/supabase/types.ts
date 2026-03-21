@@ -370,6 +370,7 @@ export type Database = {
           tourist_name: string | null
           transaction_reference: string | null
           transfer_date: string | null
+          transfer_mode: string | null
           transfer_reference: string | null
           tree_id: string | null
           trip_id: string | null
@@ -398,6 +399,7 @@ export type Database = {
           tourist_name?: string | null
           transaction_reference?: string | null
           transfer_date?: string | null
+          transfer_mode?: string | null
           transfer_reference?: string | null
           tree_id?: string | null
           trip_id?: string | null
@@ -426,6 +428,7 @@ export type Database = {
           tourist_name?: string | null
           transaction_reference?: string | null
           transfer_date?: string | null
+          transfer_mode?: string | null
           transfer_reference?: string | null
           tree_id?: string | null
           trip_id?: string | null

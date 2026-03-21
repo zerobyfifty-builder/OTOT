@@ -38,6 +38,7 @@ interface ContributionRow {
   plantation_partner_id: string | null;
   transfer_date: string | null;
   transfer_reference: string | null;
+  transfer_mode: string | null;
   partner_receipt_confirmation: boolean;
   partner_received_date: string | null;
   acknowledgement_doc: string | null;
@@ -70,6 +71,7 @@ export const StakeholderFinancial = () => {
     plantation_partner_id: "",
     transfer_date: "",
     transfer_reference: "",
+    transfer_mode: "",
   });
 
   // Partner form state
@@ -149,6 +151,7 @@ export const StakeholderFinancial = () => {
           ktb_received_date: ktbForm.ktb_received_date || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference || null,
+          transfer_mode: ktbForm.transfer_mode || null,
           status: "funds_received",
         } as any)
         .eq("id", id);
@@ -171,6 +174,7 @@ export const StakeholderFinancial = () => {
           plantation_partner_id: ktbForm.plantation_partner_id || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference,
+          transfer_mode: ktbForm.transfer_mode || null,
           status: "transferred_for_planting",
         } as any)
         .eq("id", id);
@@ -216,6 +220,7 @@ export const StakeholderFinancial = () => {
         plantation_partner_id: row.plantation_partner_id || "",
         transfer_date: row.transfer_date || "",
         transfer_reference: row.transfer_reference || "",
+        transfer_mode: row.transfer_mode || "",
       });
     } else if (mode === "partner") {
       setPartnerForm({
@@ -410,22 +415,35 @@ export const StakeholderFinancial = () => {
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("num_trees")}>
                       <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
-                      <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
-                    </TableHead>
-                    <TableHead>
-                      <span className="flex items-center whitespace-nowrap">Amt Received</span>
-                    </TableHead>
-                    <TableHead>
-                      <span className="flex items-center whitespace-nowrap">Amt Retained</span>
-                    </TableHead>
+                    {!isPlantationPartner && (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
+                        <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Amt Received</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && (
+                      <TableHead>
+                        <span className="flex items-center whitespace-nowrap">Amt Retained</span>
+                      </TableHead>
+                    )}
                     <TableHead>
                       <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
-                      <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
-                    </TableHead>
-                    <TableHead>Method</TableHead>
+                    {isPlantationPartner ? (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
+                        <span className="flex items-center">Received Date {getSortIcon("payment_date")}</span>
+                      </TableHead>
+                    ) : (
+                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
+                        <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
+                      </TableHead>
+                    )}
+                    {!isPlantationPartner && <TableHead>Method</TableHead>}
+                    <TableHead>Mode</TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
                       <span className="flex items-center">Status {getSortIcon("status")}</span>
                     </TableHead>
@@ -439,12 +457,17 @@ export const StakeholderFinancial = () => {
                       <TableCell>{c.tourist_name || "-"}</TableCell>
                       <TableCell>{c.country || "-"}</TableCell>
                       <TableCell className="font-medium">{c.num_trees}</TableCell>
-                      <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
-                      <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>
-                      <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>
+                      {!isPlantationPartner && <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>}
+                      {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
+                      {!isPlantationPartner && <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
                       <TableCell className="text-blue-700 font-medium">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
-                      <TableCell>{formatDate(c.payment_date)}</TableCell>
-                      <TableCell>{c.payment_method || "-"}</TableCell>
+                      {isPlantationPartner ? (
+                        <TableCell>{formatDate(c.partner_received_date)}</TableCell>
+                      ) : (
+                        <TableCell>{formatDate(c.payment_date)}</TableCell>
+                      )}
+                      {!isPlantationPartner && <TableCell>{c.payment_method || "-"}</TableCell>}
+                      <TableCell>{c.transfer_mode || "-"}</TableCell>
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -560,6 +583,7 @@ export const StakeholderFinancial = () => {
                     <div><span className="text-muted-foreground">Received Date:</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
                     <div><span className="text-muted-foreground">Transfer Date:</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
                     <div><span className="text-muted-foreground">Transfer Ref:</span><p>{selectedRow.transfer_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground">Mode of Transfer:</span><p>{selectedRow.transfer_mode || "-"}</p></div>
                   </div>
                 </div>
                 <div>
@@ -603,6 +627,10 @@ export const StakeholderFinancial = () => {
                 <div className="space-y-2">
                   <Label>Transfer Ref</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Mode of Transfer</Label>
+                  <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
                 </div>
                 <div className="flex gap-2 mt-4">
                   {selectedRow.status === "contribution_confirmed" && (
