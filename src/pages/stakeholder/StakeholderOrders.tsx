@@ -329,27 +329,25 @@ export const StakeholderOrders = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Accordion type="multiple" className="w-full">
-              {paginatedGroups.map((group) => {
-                const groupStatus = getGroupPlantingStatus(group.trees);
-                const isTrip = group.tripId !== null;
-                const trip = group.trip;
-                const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
-                const userInfo = users[group.userId];
-                const touristName = userInfo
-                  ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
-                  : 'Unknown';
-                const touristCountry = userInfo?.country || '';
+        <div className="space-y-3">
+          <Accordion type="multiple">
+            {paginatedGroups.map((group) => {
+              const groupStatus = getGroupPlantingStatus(group.trees);
+              const isTrip = group.tripId !== null;
+              const trip = group.trip;
+              const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+              const userInfo = users[group.userId];
+              const touristName = userInfo
+                ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
+                : 'Unknown';
+              const touristCountry = userInfo?.country || '';
 
-                return (
-                  <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
+              return (
+                <Card key={group.key} className="overflow-hidden mb-0">
+                  <AccordionItem value={group.key} className="border-0">
                     <div className="flex items-center">
                       <AccordionTrigger className="px-3 sm:px-4 py-3 sm:py-4 hover:no-underline hover:bg-muted/30 flex-1 min-w-0">
-                        {/* Mobile: stacked layout, Desktop: single row */}
                         <div className="flex flex-col sm:flex-row sm:items-center w-full mr-2 sm:mr-4 gap-2 sm:gap-0">
-                          {/* Row 1 (mobile) / Left section (desktop): Icon + info */}
                           <div className="flex items-center gap-3 min-w-0 sm:flex-1">
                             <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
                               {isTrip ? <Plane className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" /> : <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />}
@@ -370,9 +368,7 @@ export const StakeholderOrders = () => {
                             </div>
                           </div>
 
-                          {/* Row 2 (mobile) / Right section (desktop): progress, trees, badge */}
                           <div className="flex items-center gap-3 sm:gap-4 pl-11 sm:pl-0 sm:shrink-0">
-                            {/* Progress bar */}
                             <div className="flex items-center gap-1.5 w-[90px] sm:w-[120px] shrink-0">
                               <div className="flex-1">
                                 <div className="h-1.5 sm:h-2 rounded-full bg-muted overflow-hidden">
@@ -387,13 +383,11 @@ export const StakeholderOrders = () => {
                               </span>
                             </div>
 
-                            {/* Trees count + amount */}
                             <div className="text-right shrink-0 w-[70px] sm:w-[80px]">
                               <p className="text-xs sm:text-sm font-semibold text-foreground whitespace-nowrap">{group.totalTrees} trees</p>
                               <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">${group.totalAmount.toFixed(2)}</p>
                             </div>
 
-                            {/* Status badge */}
                             <div className="shrink-0">
                               <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${getGroupStatusColor(groupStatus)}`}>
                                 {getGroupStatusLabel(groupStatus)}
@@ -415,126 +409,128 @@ export const StakeholderOrders = () => {
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
-                    <AccordionContent>
-                      {/* Bulk Status Update Bar */}
-                      <div className="mx-4 mb-3 mt-1 flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
-                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                          <Layers className="h-4 w-4 text-primary" />
-                          <span>Batch update:</span>
+                    <AccordionContent className="pb-0">
+                      <div className="border-t bg-muted/30 pb-4">
+                        {/* Bulk Status Update Bar */}
+                        <div className="mx-3 sm:mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 sm:px-4 py-2.5 sm:py-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <Layers className="h-4 w-4 text-primary" />
+                            <span>Batch update:</span>
+                          </div>
+                          <Select
+                            value={bulkSelections[group.key] || ""}
+                            onValueChange={(value) =>
+                              setBulkSelections(prev => ({ ...prev, [group.key]: value }))
+                            }
+                          >
+                            <SelectTrigger className="w-[180px] sm:w-[200px] h-9 bg-background">
+                              <SelectValue placeholder="Select status for all…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PLANTING_STATUSES.map(s => (
+                                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="h-9 gap-1.5"
+                            disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
+                            onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                            Apply ({group.trees.length})
+                          </Button>
+                          <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
+                            Or update individually below
+                          </span>
                         </div>
-                        <Select
-                          value={bulkSelections[group.key] || ""}
-                          onValueChange={(value) =>
-                            setBulkSelections(prev => ({ ...prev, [group.key]: value }))
-                          }
-                        >
-                          <SelectTrigger className="w-[200px] h-9 bg-background">
-                            <SelectValue placeholder="Select status for all…" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PLANTING_STATUSES.map(s => (
-                              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="h-9 gap-1.5"
-                          disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
-                          onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
-                        >
-                          <CheckCheck className="h-3.5 w-3.5" />
-                          Apply to all ({group.trees.length})
-                        </Button>
-                        <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
-                          Or update individually below
-                        </span>
-                      </div>
 
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-muted/30">
-                              <TableHead className="w-12">No.</TableHead>
-                              <TableHead>OTOT ID</TableHead>
-                              <TableHead>Trees</TableHead>
-                              <TableHead>Amount</TableHead>
-                              <TableHead>Purchase Date</TableHead>
-                              <TableHead>Planting Status</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {group.trees.map((tree, index) => (
-                              <TableRow key={tree.id}>
-                                <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                                <TableCell>{tree.num_trees}</TableCell>
-                                <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                                <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={tree.planting_status || 'pending_allocation'}
-                                    onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                  >
-                                    <SelectTrigger className="w-[180px]">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {PLANTING_STATUSES.map(s => (
-                                        <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
+                        <div className="mx-3 sm:mx-4 rounded-lg border bg-background overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/50">
+                                <TableHead className="w-12">No.</TableHead>
+                                <TableHead>OTOT ID</TableHead>
+                                <TableHead>Trees</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Purchase Date</TableHead>
+                                <TableHead>Planting Status</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {group.trees.map((tree, index) => (
+                                <TableRow key={tree.id}>
+                                  <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                  <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                  <TableCell>{tree.num_trees}</TableCell>
+                                  <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                                  <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={tree.planting_status || 'pending_allocation'}
+                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                    >
+                                      <SelectTrigger className="w-[180px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {PLANTING_STATUSES.map(s => (
+                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
-                );
-              })}
-            </Accordion>
+                </Card>
+              );
+            })}
+          </Accordion>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 p-4 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  ←
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={totalPages}
-                    value={currentPage}
-                    onChange={(e) => {
-                      const page = parseInt(e.target.value);
-                      if (page >= 1 && page <= totalPages) setCurrentPage(page);
-                    }}
-                    className="w-16 text-center"
-                  />
-                  <span className="text-sm text-muted-foreground">/ {totalPages}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  →
-                </Button>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 p-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </Button>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const page = parseInt(e.target.value);
+                    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+                  }}
+                  className="w-16 text-center"
+                />
+                <span className="text-sm text-muted-foreground">/ {totalPages}</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                →
+              </Button>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Trip Details Sheet */}
