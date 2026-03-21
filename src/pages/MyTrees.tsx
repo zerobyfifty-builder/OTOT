@@ -310,10 +310,6 @@ export const MyTrees = () => {
                   {isGeneratingCert ? 'Generating...' : 'View Certificate'}
                 </Button>
               )}
-              <Button onClick={() => navigate("/carbon-calculator")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Plant More Trees
-              </Button>
             </div>
           </div>
 
