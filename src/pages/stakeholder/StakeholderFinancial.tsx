@@ -583,6 +583,7 @@ export const StakeholderFinancial = () => {
                     <div><span className="text-muted-foreground">Received Date:</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
                     <div><span className="text-muted-foreground">Transfer Date:</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
                     <div><span className="text-muted-foreground">Transfer Ref:</span><p>{selectedRow.transfer_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground">Mode of Transfer:</span><p>{selectedRow.transfer_mode || "-"}</p></div>
                   </div>
                 </div>
                 <div>
