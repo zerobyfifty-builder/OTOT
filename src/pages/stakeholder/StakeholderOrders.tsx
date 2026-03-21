@@ -108,6 +108,7 @@ const getGroupStatusColor = (status: string): string => {
 export const StakeholderOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { hasEdit } = useModulePermissions("tree_orders");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
