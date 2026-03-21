@@ -454,9 +454,10 @@ export const TreePurchase = () => {
                       size="lg"
                       className="flex-1 text-lg py-6 gap-2"
                       onClick={() => {
-                        const url = URL.createObjectURL(certificateBlob);
-                        setCertificateUrl(url);
-                        setShowCertificatePreview(true);
+                        setPreviewCert({
+                          blob: certificateBlob,
+                          name: `tree-planting-certificate-${getTreeCount()}-trees.pdf`,
+                        });
                       }}
                     >
                       <Award className="h-5 w-5" />
