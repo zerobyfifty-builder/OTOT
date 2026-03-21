@@ -1,8 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf } from "lucide-react";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
+import { airports } from "@/data/airports";
 import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +70,11 @@ const getGroupStatusColor = (status: string): string => {
   if (status === "Partially Planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
   if (status === "Waiting to be Assigned") return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
   return "bg-muted text-muted-foreground";
+};
+
+const getAirportCity = (code: string) => {
+  const airport = airports.find(a => a.code === code);
+  return airport ? airport.city : code;
 };
 
 export const MyTrees = () => {
@@ -248,6 +254,32 @@ export const MyTrees = () => {
     }
   };
 
+  const handleOffsetEmissions = (trip: Trip) => {
+    const travelClassMap: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
+      "Economy": "economy", "Premium Economy": "premium_economy", "Business": "business", "First": "first"
+    };
+    const accommodationMap: Record<Database["public"]["Enums"]["accommodation_type"], string> = {
+      "None": "none", "Hotel": "hotel", "Rental": "rental", "Cruise Ship": "cruise", "Service Apartment": "service_apartment"
+    };
+    navigate("/tree-purchase", {
+      state: {
+        treesNeeded: trip.trees_needed,
+        totalCO2: trip.total_co2,
+        tripId: trip.id,
+        tripData: {
+          originAirport: trip.origin_airport,
+          destinationAirport: trip.destination_airport,
+          travelClass: travelClassMap[trip.travel_class],
+          isReturn: trip.is_return,
+          fromDate: new Date(trip.from_date),
+          toDate: new Date(trip.to_date ? trip.to_date : trip.from_date),
+          accommodationType: accommodationMap[trip.accommodation_type || "None"],
+          numTravelers: trip.num_travelers
+        }
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -394,34 +426,50 @@ export const MyTrees = () => {
                     return (
                       <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
                         <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/30">
-                          <div className="flex items-center justify-between w-full mr-4">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-9 w-9 rounded-full flex items-center justify-center ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
+                          <div className="flex items-center justify-between w-full mr-4 gap-2 flex-wrap sm:flex-nowrap">
+                            {/* Left: Icon + Trip info */}
+                            <div className="flex items-center gap-3 min-w-0 shrink">
+                              <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
                                 {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
                               </div>
-                              <div className="text-left">
-                                <div className="flex items-center gap-2">
+                              <div className="text-left min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-semibold text-foreground text-sm">
                                     {isTrip && trip
                                       ? trip.friendly_trip_id || `Trip ${startIndex + groupIndex + 1}`
                                       : "Direct Purchase"}
                                   </span>
-                                  {isTrip && trip && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {trip.origin_airport} → {trip.destination_airport}
-                                    </span>
-                                  )}
                                 </div>
+                                {isTrip && trip && (
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {getAirportCity(trip.origin_airport)} → {getAirportCity(trip.destination_airport)}
+                                  </p>
+                                )}
                                 <p className="text-xs text-muted-foreground">
                                   {format(new Date(group.latestDate), "d MMM yyyy")}
                                 </p>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                              {/* Offset progress bar for trip groups */}
+                            {/* Right: Stats + Progress + Offset + Eye */}
+                            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                              {/* Trees Needed */}
                               {isTrip && trip && (
-                                <div className="hidden sm:flex items-center gap-2 min-w-[120px]">
+                                <div className="text-center hidden sm:block">
+                                  <p className="text-sm font-bold text-foreground">{trip.trees_needed} Trees</p>
+                                  <p className="text-xs text-muted-foreground">Needed</p>
+                                </div>
+                              )}
+
+                              {/* Trees Planted + Amount */}
+                              <div className="text-center hidden sm:block">
+                                <p className="text-sm font-bold text-foreground">{group.totalTrees} Trees</p>
+                                <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
+                              </div>
+
+                              {/* Progress bar */}
+                              {isTrip && trip && (
+                                <div className="hidden sm:flex items-center gap-2 min-w-[100px]">
                                   <div className="flex-1">
                                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                                       <div
@@ -435,13 +483,32 @@ export const MyTrees = () => {
                                   </span>
                                 </div>
                               )}
-                              <div className="text-right hidden sm:block">
-                                <p className="text-sm font-semibold text-foreground">{group.totalTrees} {group.totalTrees === 1 ? 'tree' : 'trees'}</p>
-                                <p className="text-xs text-muted-foreground">${group.totalAmount.toFixed(2)}</p>
-                              </div>
-                              <Badge className={getGroupStatusColor(groupStatus)}>
-                                {groupStatus === "Planted" ? "gifted" : groupStatus}
-                              </Badge>
+
+                              {/* Trees Remaining */}
+                              {isTrip && trip && (
+                                <div className="text-center hidden sm:block">
+                                  <p className="text-sm font-bold text-foreground">{Math.max(0, trip.trees_needed - group.totalTrees)} Trees</p>
+                                  <p className="text-xs text-muted-foreground">Remaining</p>
+                                </div>
+                              )}
+
+                              {/* Offset Button */}
+                              {isTrip && trip && (
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOffsetEmissions(trip);
+                                  }}
+                                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                                  disabled={group.totalTrees >= trip.trees_needed}
+                                >
+                                  <Leaf className="h-3 w-3 mr-1" />
+                                  Offset
+                                </Button>
+                              )}
+
+                              {/* View trip details */}
                               {isTrip && trip && (
                                 <button
                                   onClick={(e) => {
