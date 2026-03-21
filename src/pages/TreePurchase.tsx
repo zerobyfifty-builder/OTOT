@@ -54,6 +54,9 @@ export const TreePurchase = () => {
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
+  const [certificateBlob, setCertificateBlob] = useState<Blob | null>(null);
+  const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+  const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
 
   // Dedication modal state
   const [showDedicationModal, setShowDedicationModal] = useState(false);
