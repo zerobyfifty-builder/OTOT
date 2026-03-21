@@ -222,18 +222,16 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         </SheetHeader>
         
         <div className="mt-6 space-y-5">
-          {/* Entry Source & Added On - moved above route */}
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-            <div>
-              <span className="text-muted-foreground">Entry Source: </span>
-              <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="ml-1">
-                {trip.entry_source}
-              </Badge>
+          {/* Trip Route */}
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
+            <div className="flex items-center gap-2 text-lg font-semibold">
+              <Plane className="h-5 w-5 text-primary flex-shrink-0" />
+              <span>{getAirportInfo(trip.origin_airport)} → {getAirportInfo(trip.destination_airport)}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Added on: </span>
-              <span className="font-medium">{format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}</span>
-            </div>
+            <Badge variant={trip.is_return ? "default" : "secondary"} className="mt-2">
+              {trip.is_return ? "Round Trip" : "One-way"}
+            </Badge>
           </div>
 
           {/* Trip Route */}
