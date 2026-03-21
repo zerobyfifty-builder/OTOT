@@ -350,6 +350,9 @@ export type Database = {
         Row: {
           acknowledgement_doc: string | null
           amount_paid: number
+          amount_received: number | null
+          amount_retained: number | null
+          amount_transferred: number | null
           contribution_id: string
           country: string | null
           created_at: string | null
@@ -375,6 +378,9 @@ export type Database = {
         Insert: {
           acknowledgement_doc?: string | null
           amount_paid?: number
+          amount_received?: number | null
+          amount_retained?: number | null
+          amount_transferred?: number | null
           contribution_id: string
           country?: string | null
           created_at?: string | null
@@ -400,6 +406,9 @@ export type Database = {
         Update: {
           acknowledgement_doc?: string | null
           amount_paid?: number
+          amount_received?: number | null
+          amount_retained?: number | null
+          amount_transferred?: number | null
           contribution_id?: string
           country?: string | null
           created_at?: string | null
