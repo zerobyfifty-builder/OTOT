@@ -151,6 +151,7 @@ export const StakeholderFinancial = () => {
           ktb_received_date: ktbForm.ktb_received_date || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference || null,
+          transfer_mode: ktbForm.transfer_mode || null,
           status: "funds_received",
         } as any)
         .eq("id", id);
