@@ -63,7 +63,6 @@ export function StakeholderTreeManagement() {
     const matchSearch =
       !search ||
       t.otot_id?.toLowerCase().includes(search.toLowerCase()) ||
-      t.users?.email?.toLowerCase().includes(search.toLowerCase()) ||
       t.location_name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || t.status === statusFilter;
     return matchSearch && matchStatus;
