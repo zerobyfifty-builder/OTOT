@@ -174,6 +174,7 @@ export const StakeholderFinancial = () => {
           plantation_partner_id: ktbForm.plantation_partner_id || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference,
+          transfer_mode: ktbForm.transfer_mode || null,
           status: "transferred_for_planting",
         } as any)
         .eq("id", id);
