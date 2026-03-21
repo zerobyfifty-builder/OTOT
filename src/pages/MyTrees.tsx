@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award } from "lucide-react";
+import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
+import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -79,6 +81,8 @@ export const MyTrees = () => {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -203,6 +207,47 @@ export const MyTrees = () => {
 
   const { plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded, treesRemaining, co2Remaining } = calculateTotals();
 
+  const handleViewCertificate = async () => {
+    setIsGeneratingCert(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("first_name, last_name, otot_id")
+        .eq("user_id", userData.user.id)
+        .single();
+
+      const userName = userProfile
+        ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Traveler'
+        : 'Traveler';
+
+      const blob = await generateTreeCertificate({
+        userName,
+        userId: userData.user.id,
+        numTrees: plantedTrees,
+        co2Offset: co2AlreadyOffset,
+        ototId: userProfile?.otot_id || userData.user.id.substring(0, 8),
+        location: 'Mau Forest Complex, Kenya',
+      });
+
+      setPreviewCert({
+        blob,
+        name: `tree-planting-certificate-${plantedTrees}-trees.pdf`,
+      });
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate certificate. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingCert(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -226,10 +271,18 @@ export const MyTrees = () => {
                 Track your reforestation journey and environmental impact
               </p>
             </div>
-            <Button onClick={() => navigate("/carbon-calculator")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Plant More Trees
-            </Button>
+            <div className="flex gap-2">
+              {plantedTrees > 0 && (
+                <Button variant="outline" onClick={handleViewCertificate} disabled={isGeneratingCert}>
+                  <Award className="h-4 w-4 mr-2" />
+                  {isGeneratingCert ? 'Generating...' : 'View Certificate'}
+                </Button>
+              )}
+              <Button onClick={() => navigate("/carbon-calculator")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Plant More Trees
+              </Button>
+            </div>
           </div>
 
           {/* Summary Statistics */}
@@ -520,6 +573,13 @@ export const MyTrees = () => {
             setIsTripSheetOpen(false);
             setSelectedTrip(null);
           }}
+        />
+
+        {/* Certificate Preview Dialog */}
+        <CertificatePreviewDialog
+          previewCert={previewCert}
+          onClose={() => setPreviewCert(null)}
+          onDownload={(cert) => downloadCertificate(cert.blob, cert.name)}
         />
       </div>
     </div>
