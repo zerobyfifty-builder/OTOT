@@ -240,7 +240,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                     {organizationName || 'Stakeholder'}
                   </span>
                   <span className="text-xs truncate w-full text-white/60">
-                    Plantation Partner
+                    {partnerTypeName}
                   </span>
                 </div>
               )}
@@ -249,7 +249,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{organizationName || 'Stakeholder'}</p>
-              <p className="text-xs text-muted-foreground">Plantation Partner</p>
+              <p className="text-xs text-muted-foreground">{partnerTypeName}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
