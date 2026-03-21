@@ -32,6 +32,7 @@ interface TravelAgent {
 export default function InstitutionalTravelAgents() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { hasWrite, hasEdit } = useModulePermissions("travel_agents");
   const [editingAgent, setEditingAgent] = useState<TravelAgent | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
