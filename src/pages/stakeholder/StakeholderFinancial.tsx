@@ -230,9 +230,9 @@ export const StakeholderFinancial = () => {
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Total Contributions</p>
+           <p className="text-xs text-muted-foreground">Total Contributions</p>
           <p className="text-2xl font-bold">${formatNumber(totals.total)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} entries</p>
+          <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Pending KTB Receipt</p>
