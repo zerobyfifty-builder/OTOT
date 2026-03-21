@@ -22,7 +22,6 @@ interface Tree {
   location_name: string | null;
   amount_paid: number;
   created_at: string;
-  users?: { email: string; first_name: string | null; last_name: string | null };
   lodges?: { name: string } | null;
 }
 
@@ -49,10 +48,14 @@ export function StakeholderTreeManagement() {
     setLoading(true);
     const { data, error } = await supabase
       .from("trees")
-      .select("*, users(email, first_name, last_name), lodges(name)")
+      .select("*, lodges(name)")
       .order("created_at", { ascending: false })
       .limit(500);
-    if (!error && data) setTrees(data as any);
+    if (!error && data) {
+      setTrees(data as any);
+    } else {
+      console.error("Error fetching trees:", error);
+    }
     setLoading(false);
   };
 
@@ -60,7 +63,6 @@ export function StakeholderTreeManagement() {
     const matchSearch =
       !search ||
       t.otot_id?.toLowerCase().includes(search.toLowerCase()) ||
-      t.users?.email?.toLowerCase().includes(search.toLowerCase()) ||
       t.location_name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || t.status === statusFilter;
     return matchSearch && matchStatus;
@@ -118,16 +120,16 @@ export function StakeholderTreeManagement() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>OTOT ID</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Trees</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Lodge</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
+                    <TableRow>
+                      <TableHead>OTOT ID</TableHead>
+                      <TableHead>Trees</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Planting Status</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Lodge</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
@@ -138,16 +140,16 @@ export function StakeholderTreeManagement() {
                     filtered.map((tree) => (
                       <TableRow key={tree.id}>
                         <TableCell className="font-mono text-xs">{tree.otot_id}</TableCell>
-                        <TableCell className="text-sm">
-                          {tree.users?.first_name || tree.users?.last_name
-                            ? `${tree.users.first_name || ""} ${tree.users.last_name || ""}`.trim()
-                            : tree.users?.email || "—"}
-                        </TableCell>
                         <TableCell>{tree.num_trees}</TableCell>
                         <TableCell>{tree.tree_type || "—"}</TableCell>
                         <TableCell>
                           <Badge className={statusColors[tree.status] || "bg-gray-100 text-gray-800"} variant="secondary">
                             {tree.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {tree.planting_status?.replace(/_/g, " ") || "—"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">{tree.location_name || "—"}</TableCell>
