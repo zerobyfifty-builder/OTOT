@@ -90,7 +90,7 @@ export const StakeholderFinancial = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("users")
-        .select("organization_id, organizations:organization_id(id, name, category)")
+        .select("organization_id, organizations:organization_id(id, name, category, partner_types:partner_type_id(name))")
         .eq("user_id", user!.id)
         .single();
       return data as any;
@@ -100,6 +100,7 @@ export const StakeholderFinancial = () => {
 
   const orgId = userOrg?.organization_id as string | undefined;
   const orgCategory = (userOrg?.organizations as any)?.category as string | undefined;
+  const partnerTypeName = (userOrg?.organizations as any)?.partner_types?.name as string | undefined;
 
   const { data: contributions, isLoading, refetch } = useQuery({
     queryKey: ["contributionTracking"],
@@ -126,9 +127,14 @@ export const StakeholderFinancial = () => {
     },
   });
 
-  // Determine role by org category: institutional = KTB user, stakeholder = plantation partner
-  const isKtbUser = orgCategory === "institutional" || userRole === "institutional_partner";
-  const isPlantationPartner = orgCategory === "stakeholder" && userRole !== "institutional_partner";
+  // KTB-style institutional users can be modeled either as institutional orgs
+  // or as stakeholder orgs with the "Institutional Partner" partner type.
+  const isKtbUser =
+    orgCategory === "institutional" ||
+    userRole === "institutional_partner" ||
+    partnerTypeName === "Institutional Partner";
+
+  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser;
 
   // KTB: Mark as Funds Received (saves receipt fields)
   const updateKtbReceiveMutation = useMutation({
