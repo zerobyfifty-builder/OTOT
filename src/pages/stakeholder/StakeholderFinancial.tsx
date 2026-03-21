@@ -204,6 +204,7 @@ export const StakeholderFinancial = () => {
 
   const totals = {
     total: contributions?.reduce((s, c) => s + Number(c.amount_paid), 0) || 0,
+    totalTrees: contributions?.reduce((s, c) => s + Number(c.num_trees), 0) || 0,
     ktbReceived: contributions?.filter((c) => c.status === "ktb_received" || c.status === "partner_confirmed").length || 0,
     partnerConfirmed: contributions?.filter((c) => c.status === "partner_confirmed").length || 0,
     pending: contributions?.filter((c) => c.status === "contribution_received").length || 0,
