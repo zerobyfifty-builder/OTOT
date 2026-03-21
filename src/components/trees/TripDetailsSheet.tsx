@@ -222,20 +222,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         </SheetHeader>
         
         <div className="mt-6 space-y-5">
-          {/* Entry Source & Added On - moved above route */}
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-            <div>
-              <span className="text-muted-foreground">Entry Source: </span>
-              <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="ml-1">
-                {trip.entry_source}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Added on: </span>
-              <span className="font-medium">{format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}</span>
-            </div>
-          </div>
-
           {/* Trip Route */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
@@ -247,6 +233,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
               {trip.is_return ? "Round Trip" : "One-way"}
             </Badge>
           </div>
+
+
+
 
           {/* Compact Trip Info - single lines */}
           <div className="space-y-1.5 text-sm">
@@ -272,6 +261,16 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                 <span className="font-medium">{ACCOMMODATION_LABELS[trip.accommodation_type]}</span>
               </div>
             )}
+            <div>
+              <span className="text-muted-foreground">Added on: </span>
+              <span className="font-medium">{format(new Date(trip.created_at), "dd MMM yyyy 'at' h:mm a")}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Entry Source: </span>
+              <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="ml-1">
+                {trip.entry_source}
+              </Badge>
+            </div>
           </div>
 
           {/* Emissions Breakdown */}
