@@ -428,7 +428,7 @@ export const StakeholderFinancial = () => {
                               View Transaction
                             </DropdownMenuItem>
                             {isKtbUser && (
-                              <DropdownMenuItem onClick={() => openSheet(c, "ktb_receive")}>
+                              <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
                                 <Landmark className="h-4 w-4 mr-2" />
                                 KTB Transaction
                               </DropdownMenuItem>
