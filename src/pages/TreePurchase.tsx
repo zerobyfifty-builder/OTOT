@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Leaf, Info, Heart, MapPin, Download, Share2, Facebook, Twitter, Linkedin, Instagram, Copy, Trees, X } from "lucide-react";
+import { Leaf, Info, Heart, MapPin, Download, Share2, Facebook, Twitter, Linkedin, Instagram, Copy, Trees, X, Award } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +54,9 @@ export const TreePurchase = () => {
   const [isDedicated, setIsDedicated] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessCard, setShowSuccessCard] = useState(false);
+  const [certificateBlob, setCertificateBlob] = useState<Blob | null>(null);
+  const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+  const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
 
   // Dedication modal state
   const [showDedicationModal, setShowDedicationModal] = useState(false);
@@ -318,7 +321,7 @@ export const TreePurchase = () => {
         ? dedicationName 
         : userData?.email || 'Environmental Supporter';
 
-      const certificateBlob = await generateTreeCertificate({
+      const generatedCert = await generateTreeCertificate({
         userName: certificateRecipient,
         userId: user.id,
         numTrees: treeCount,
@@ -327,7 +330,7 @@ export const TreePurchase = () => {
         location: locationName,
       });
 
-      downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
+      setCertificateBlob(generatedCert);
 
       // If dedicated, log that an email should be sent to the recipient
       if (isDedicated && dedicationEmail) {
@@ -341,7 +344,7 @@ export const TreePurchase = () => {
       
       toast({
         title: "Success!",
-        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}. Certificate downloaded.`,
+        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}.`,
       });
 
     } catch (error: any) {
@@ -436,14 +439,31 @@ export const TreePurchase = () => {
                   </div>
                 </div>
 
-                <Button 
-                  variant="default" 
-                  size="lg"
-                  className="w-full text-lg py-6"
-                  onClick={() => navigate('/my-trees')}
-                >
-                  View my Trees
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="default" 
+                    size="lg"
+                    className="flex-1 text-lg py-6"
+                    onClick={() => navigate('/my-trees')}
+                  >
+                    View my Trees
+                  </Button>
+                  {certificateBlob && (
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="flex-1 text-lg py-6 gap-2"
+                      onClick={() => {
+                        const url = URL.createObjectURL(certificateBlob);
+                        setCertificateUrl(url);
+                        setShowCertificatePreview(true);
+                      }}
+                    >
+                      <Award className="h-5 w-5" />
+                      View Certificate
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -484,6 +504,57 @@ export const TreePurchase = () => {
             </Card>
           </div>
         </div>
+
+        {/* Certificate Preview Modal */}
+        <Dialog open={showCertificatePreview} onOpenChange={(open) => {
+          if (!open) {
+            setShowCertificatePreview(false);
+            if (certificateUrl) {
+              URL.revokeObjectURL(certificateUrl);
+              setCertificateUrl(null);
+            }
+          }
+        }}>
+          <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0">
+            <DialogHeader className="p-6 pb-2">
+              <DialogTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-primary" />
+                Tree Planting Certificate
+              </DialogTitle>
+              <DialogDescription>
+                Your certificate for planting {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 px-6 pb-2">
+              {certificateUrl && (
+                <object
+                  data={certificateUrl}
+                  type="application/pdf"
+                  className="w-full h-full rounded-md border"
+                >
+                  <p className="text-center text-muted-foreground py-8">
+                    Unable to display PDF. 
+                    <Button variant="link" onClick={() => {
+                      if (certificateBlob) downloadCertificate(certificateBlob, `tree-planting-certificate.pdf`);
+                    }}>Download instead</Button>
+                  </p>
+                </object>
+              )}
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <Button 
+                variant="default" 
+                className="gap-2"
+                onClick={() => {
+                  if (certificateBlob) downloadCertificate(certificateBlob, `tree-planting-certificate-${getTreeCount()}-trees.pdf`);
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Download Certificate
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
