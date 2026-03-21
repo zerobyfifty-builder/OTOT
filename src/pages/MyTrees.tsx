@@ -271,10 +271,18 @@ export const MyTrees = () => {
                 Track your reforestation journey and environmental impact
               </p>
             </div>
-            <Button onClick={() => navigate("/carbon-calculator")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Plant More Trees
-            </Button>
+            <div className="flex gap-2">
+              {plantedTrees > 0 && (
+                <Button variant="outline" onClick={handleViewCertificate} disabled={isGeneratingCert}>
+                  <Award className="h-4 w-4 mr-2" />
+                  {isGeneratingCert ? 'Generating...' : 'View Certificate'}
+                </Button>
+              )}
+              <Button onClick={() => navigate("/carbon-calculator")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Plant More Trees
+              </Button>
+            </div>
           </div>
 
           {/* Summary Statistics */}
