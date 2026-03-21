@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function StakeholderModules() {
+  const queryClient = useQueryClient();
   const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
     queryKey: ["stakeholderOrgs"],
     queryFn: async () => {
