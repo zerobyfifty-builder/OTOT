@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Plane, Calendar, Leaf, CreditCard, FileText, Download, X } from "lucide-react";
+import { Plane, Calendar, Leaf, CreditCard, FileText, Download, X, Award } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,8 +8,11 @@ import { airports } from "@/data/airports";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { generateReceipt, downloadReceiptFromUrl, ReceiptData } from "@/utils/receiptGenerator";
+import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -61,6 +64,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
+  const [isGeneratingCert, setIsGeneratingCert] = useState<number | null>(null);
 
   useEffect(() => {
     if (trip && isOpen) {
@@ -196,6 +201,34 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     }
   };
 
+  const handleViewCertificate = async (batch: PaymentBatch) => {
+    setIsGeneratingCert(batch.batchIndex);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+
+      const co2PerTree = trip.trees_needed > 0 ? trip.total_co2 / trip.trees_needed : 0;
+      const batchCo2 = co2PerTree * batch.numTrees;
+
+      const blob = await generateTreeCertificate({
+        userName,
+        userId: authData.user.id,
+        numTrees: batch.numTrees,
+        co2Offset: Number(batchCo2.toFixed(1)),
+        ototId: batch.ototIds[0],
+        location: 'Mau Forest Complex, Kenya',
+      });
+
+      const fileName = `tree-certificate-${batch.numTrees}-trees-${format(new Date(batch.date), "dd-MMM-yyyy")}.pdf`;
+      setPreviewCert({ blob, name: fileName });
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      toast.error('Failed to generate certificate');
+    } finally {
+      setIsGeneratingCert(null);
+    }
+  };
+
   return (
     <>
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -310,7 +343,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                     <TableHead className="text-center">Trees</TableHead>
                     <TableHead className="text-center">Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-center w-10">Receipt</TableHead>
+                    <TableHead className="text-center w-20">Docs</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -325,13 +358,27 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                         ${batch.amount.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <button
-                          onClick={() => handleViewReceipt(batch)}
-                          className="text-primary hover:text-primary/80"
-                          title="View receipt"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleViewReceipt(batch)}
+                            className="text-primary hover:text-primary/80"
+                            title="View receipt"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleViewCertificate(batch)}
+                            className="text-amber-600 hover:text-amber-500 disabled:opacity-50"
+                            title="View certificate"
+                            disabled={isGeneratingCert === batch.batchIndex}
+                          >
+                            {isGeneratingCert === batch.batchIndex ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+                            ) : (
+                              <Award className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -398,6 +445,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Certificate Preview Dialog */}
+      <CertificatePreviewDialog
+        previewCert={previewCert}
+        onClose={() => setPreviewCert(null)}
+        onDownload={(cert) => downloadCertificate(cert.blob, cert.name)}
+      />
     </>
   );
 };
