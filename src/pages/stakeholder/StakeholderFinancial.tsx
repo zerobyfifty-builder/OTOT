@@ -22,6 +22,7 @@ interface ContributionRow {
   tourist_name: string | null;
   country: string | null;
   trip_id: string | null;
+  num_trees: number;
   amount_paid: number;
   currency: string;
   payment_date: string | null;
