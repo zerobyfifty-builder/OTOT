@@ -357,6 +357,7 @@ export type Database = {
           id: string
           ktb_receipt_id: string | null
           ktb_received_date: string | null
+          num_trees: number
           partner_receipt_confirmation: boolean | null
           partner_received_date: string | null
           payment_date: string | null
@@ -381,6 +382,7 @@ export type Database = {
           id?: string
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
+          num_trees?: number
           partner_receipt_confirmation?: boolean | null
           partner_received_date?: string | null
           payment_date?: string | null
@@ -405,6 +407,7 @@ export type Database = {
           id?: string
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
+          num_trees?: number
           partner_receipt_confirmation?: boolean | null
           partner_received_date?: string | null
           payment_date?: string | null
