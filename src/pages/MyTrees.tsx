@@ -254,6 +254,32 @@ export const MyTrees = () => {
     }
   };
 
+  const handleOffsetEmissions = (trip: Trip) => {
+    const travelClassMap: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
+      "Economy": "economy", "Premium Economy": "premium_economy", "Business": "business", "First": "first"
+    };
+    const accommodationMap: Record<Database["public"]["Enums"]["accommodation_type"], string> = {
+      "None": "none", "Hotel": "hotel", "Rental": "rental", "Cruise Ship": "cruise", "Service Apartment": "service_apartment"
+    };
+    navigate("/tree-purchase", {
+      state: {
+        treesNeeded: trip.trees_needed,
+        totalCO2: trip.total_co2,
+        tripId: trip.id,
+        tripData: {
+          originAirport: trip.origin_airport,
+          destinationAirport: trip.destination_airport,
+          travelClass: travelClassMap[trip.travel_class],
+          isReturn: trip.is_return,
+          fromDate: new Date(trip.from_date),
+          toDate: new Date(trip.to_date ? trip.to_date : trip.from_date),
+          accommodationType: accommodationMap[trip.accommodation_type || "None"],
+          numTravelers: trip.num_travelers
+        }
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
