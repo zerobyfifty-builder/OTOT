@@ -43,7 +43,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
           <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8" />
-          <span className="text-sm font-semibold">Tree is planted by: Mara Ecolodge</span>
+          <span className="text-sm font-semibold">Tree is planted by: MFC-ICLIP</span>
         </div>
         <Button
           variant="ghost"
