@@ -323,18 +323,18 @@ export const MyTrees = () => {
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">Trees Overview</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-foreground">{treesNeeded}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Needed</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{treesNeeded}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Needed</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-green-600">{plantedTrees}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Planted</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-green-600 truncate">{plantedTrees}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Planted</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-orange-500">{treesRemaining}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Remaining</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-orange-500 truncate">{treesRemaining}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
                 <div className="mt-4">
