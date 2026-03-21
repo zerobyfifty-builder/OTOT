@@ -201,6 +201,34 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     }
   };
 
+  const handleViewCertificate = async (batch: PaymentBatch) => {
+    setIsGeneratingCert(batch.batchIndex);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+
+      const co2PerTree = trip.trees_needed > 0 ? trip.total_co2 / trip.trees_needed : 0;
+      const batchCo2 = co2PerTree * batch.numTrees;
+
+      const blob = await generateTreeCertificate({
+        userName,
+        userId: authData.user.id,
+        numTrees: batch.numTrees,
+        co2Offset: Number(batchCo2.toFixed(1)),
+        ototId: batch.ototIds[0],
+        location: 'Mau Forest Complex, Kenya',
+      });
+
+      const fileName = `tree-certificate-${batch.numTrees}-trees-${format(new Date(batch.date), "dd-MMM-yyyy")}.pdf`;
+      setPreviewCert({ blob, name: fileName });
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      toast.error('Failed to generate certificate');
+    } finally {
+      setIsGeneratingCert(null);
+    }
+  };
+
   return (
     <>
     <Sheet open={isOpen} onOpenChange={onClose}>
