@@ -1,0 +1,1 @@
+ALTER TABLE public.contribution_tracking ADD COLUMN IF NOT EXISTS transfer_mode text;
