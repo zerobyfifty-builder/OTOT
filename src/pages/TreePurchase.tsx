@@ -330,7 +330,7 @@ export const TreePurchase = () => {
           payment_method: paymentMethod,
           transaction_reference: paymentReference,
           plantation_partner_id: insertedTrees[0].stakeholder_org_id || null,
-          status: 'contribution_received',
+          status: 'contribution_confirmed',
         } as any);
 
       if (contribError) {
