@@ -22,7 +22,6 @@ interface Tree {
   location_name: string | null;
   amount_paid: number;
   created_at: string;
-  users?: { email: string; first_name: string | null; last_name: string | null };
   lodges?: { name: string } | null;
 }
 
