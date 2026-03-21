@@ -524,7 +524,7 @@ export const MyTrees = () => {
                                 }}
                                 disabled={group.totalTrees >= trip.trees_needed}
                               >
-                                <Leaf className="h-3 w-3 mr-1" />
+                                
                                 {group.totalTrees >= trip.trees_needed ? 'Planted All Trees' : '+ Plant More Trees'}
                               </Button>
                             </div>
