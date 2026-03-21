@@ -544,12 +544,12 @@ export const StakeholderFinancial = () => {
             </>
           )}
 
-          {/* KTB: Funds Received */}
-          {selectedRow && sheetMode === "ktb_receive" && (
+          {/* KTB Transaction */}
+          {selectedRow && sheetMode === "ktb" && (
             <>
               <SheetHeader>
-                <SheetTitle>Mark Funds Received</SheetTitle>
-                <SheetDescription>Record KTB payment receipt for {selectedRow.contribution_id}</SheetDescription>
+                <SheetTitle>KTB Transaction</SheetTitle>
+                <SheetDescription>View and update KTB transaction details for {selectedRow.contribution_id}</SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/50 text-sm">
@@ -558,54 +558,33 @@ export const StakeholderFinancial = () => {
                   <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>KTB Receipt ID</Label>
+                  <Label>Receipt ID</Label>
                   <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g., KTB-REC-001" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Date Funds Received</Label>
+                  <Label>Received Date</Label>
                   <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
-                </div>
-                <Button className="w-full mt-4" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                  {updateKtbReceiveMutation.isPending ? "Saving..." : "Confirm Funds Received"}
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* KTB: Transfer for Planting */}
-          {selectedRow && sheetMode === "ktb_transfer" && (
-            <>
-              <SheetHeader>
-                <SheetTitle>Transfer for Planting</SheetTitle>
-                <SheetDescription>Transfer funds to plantation partner for {selectedRow.contribution_id}</SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/50 text-sm">
-                  <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
-                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
-                  <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
-                  <p><strong>KTB Receipt:</strong> {selectedRow.ktb_receipt_id || "-"}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Plantation Partner</Label>
-                  <Select value={ktbForm.plantation_partner_id} onValueChange={(v) => setKtbForm({ ...ktbForm, plantation_partner_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Select partner" /></SelectTrigger>
-                    <SelectContent>
-                      {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Transfer Date</Label>
                   <Input type="date" value={ktbForm.transfer_date} onChange={(e) => setKtbForm({ ...ktbForm, transfer_date: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Transfer Reference</Label>
+                  <Label>Transfer Ref</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
                 </div>
-                <Button className="w-full mt-4" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
-                  {updateKtbTransferMutation.isPending ? "Saving..." : "Confirm Transfer for Planting"}
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  {selectedRow.status === "contribution_confirmed" && (
+                    <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                      {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
+                    </Button>
+                  )}
+                  {selectedRow.status === "funds_received" && (
+                    <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                      {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}
