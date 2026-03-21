@@ -218,6 +218,7 @@ export const StakeholderFinancial = () => {
         plantation_partner_id: row.plantation_partner_id || "",
         transfer_date: row.transfer_date || "",
         transfer_reference: row.transfer_reference || "",
+        transfer_mode: row.transfer_mode || "",
       });
     } else if (mode === "partner") {
       setPartnerForm({
