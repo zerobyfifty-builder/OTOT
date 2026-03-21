@@ -46,6 +46,8 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Dashboard' },
   tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Dashboard' },
   trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Dashboard' },
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Outcomes' },
+  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Financial' },
 };
 
 interface StakeholderSidebarProps {
