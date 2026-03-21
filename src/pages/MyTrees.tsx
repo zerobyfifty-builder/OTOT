@@ -81,6 +81,8 @@ export const MyTrees = () => {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
+  const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
