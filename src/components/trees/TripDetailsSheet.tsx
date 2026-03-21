@@ -64,6 +64,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewReceiptNo, setPreviewReceiptNo] = useState<string>("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
+  const [isGeneratingCert, setIsGeneratingCert] = useState<number | null>(null);
 
   useEffect(() => {
     if (trip && isOpen) {
