@@ -26,6 +26,9 @@ interface ContributionRow {
   trip_id: string | null;
   num_trees: number;
   amount_paid: number;
+  amount_received: number;
+  amount_retained: number;
+  amount_transferred: number;
   currency: string;
   payment_date: string | null;
   payment_method: string | null;
@@ -408,7 +411,16 @@ export const StakeholderFinancial = () => {
                       <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
-                      <span className="flex items-center">Amount {getSortIcon("amount_paid")}</span>
+                      <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Received</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Retained</span>
+                    </TableHead>
+                    <TableHead>
+                      <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
                       <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
@@ -428,6 +440,9 @@ export const StakeholderFinancial = () => {
                       <TableCell>{c.country || "-"}</TableCell>
                       <TableCell className="font-medium">{c.num_trees}</TableCell>
                       <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
+                      <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-blue-700 font-medium">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
                       <TableCell>{formatDate(c.payment_date)}</TableCell>
                       <TableCell>{c.payment_method || "-"}</TableCell>
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
