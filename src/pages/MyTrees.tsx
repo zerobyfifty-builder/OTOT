@@ -310,10 +310,6 @@ export const MyTrees = () => {
                   {isGeneratingCert ? 'Generating...' : 'View Certificate'}
                 </Button>
               )}
-              <Button onClick={() => navigate("/carbon-calculator")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Plant More Trees
-              </Button>
             </div>
           </div>
 
@@ -483,7 +479,7 @@ export const MyTrees = () => {
                                   <p className="text-sm font-bold text-orange-500">{Math.max(0, trip.trees_needed - group.totalTrees)}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Amount</p>
+                                  <p className="text-xs text-muted-foreground">Contribution</p>
                                   <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
                                 </div>
                               </>
@@ -494,7 +490,7 @@ export const MyTrees = () => {
                                   <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Amount</p>
+                                  <p className="text-xs text-muted-foreground">Contribution</p>
                                   <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
                                 </div>
                               </>
@@ -529,7 +525,7 @@ export const MyTrees = () => {
                                 disabled={group.totalTrees >= trip.trees_needed}
                               >
                                 <Leaf className="h-3 w-3 mr-1" />
-                                {group.totalTrees >= trip.trees_needed ? 'Fully Offset' : 'Offset'}
+                                {group.totalTrees >= trip.trees_needed ? 'Planted All Trees' : '+ Plant More Trees'}
                               </Button>
                             </div>
                           )}
