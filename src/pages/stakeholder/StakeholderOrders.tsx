@@ -330,7 +330,7 @@ export const StakeholderOrders = () => {
         </Card>
       ) : (
         <div className="space-y-3">
-          <div className="space-y-3">
+          <Accordion type="multiple" className="space-y-3">
             {paginatedGroups.map((group) => {
               const groupStatus = getGroupPlantingStatus(group.trees);
               const isTrip = group.tripId !== null;
