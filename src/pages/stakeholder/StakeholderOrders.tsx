@@ -110,6 +110,15 @@ export const StakeholderOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const { data: orgId } = useQuery({
+    queryKey: ["stakeholderOrgId", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
+      return data?.organization_id;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: trees, isLoading, refetch } = useQuery({
     queryKey: ["stakeholderOrders", user?.id],
     queryFn: async () => {
