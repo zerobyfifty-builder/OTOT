@@ -71,6 +71,7 @@ export const StakeholderFinancial = () => {
     plantation_partner_id: "",
     transfer_date: "",
     transfer_reference: "",
+    transfer_mode: "",
   });
 
   // Partner form state
