@@ -5,12 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,7 +42,7 @@ interface ContributionRow {
   created_at: string;
 }
 
-type SheetMode = "view" | "ktb_receive" | "ktb_transfer" | "partner";
+type SheetMode = "view" | "ktb" | "partner";
 type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "status";
 type SortDir = "asc" | "desc";
 
@@ -121,7 +122,7 @@ export const StakeholderFinancial = () => {
   const isKtbUser = userRole === "institutional_partner";
   const isPlantationPartner = userRole === "stakeholder";
 
-  // KTB: Mark as Funds Received
+  // KTB: Mark as Funds Received (saves receipt fields)
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -129,6 +130,8 @@ export const StakeholderFinancial = () => {
         .update({
           ktb_receipt_id: ktbForm.ktb_receipt_id,
           ktb_received_date: ktbForm.ktb_received_date || null,
+          transfer_date: ktbForm.transfer_date || null,
+          transfer_reference: ktbForm.transfer_reference || null,
           status: "funds_received",
         } as any)
         .eq("id", id);
@@ -189,15 +192,7 @@ export const StakeholderFinancial = () => {
   const openSheet = (row: ContributionRow, mode: SheetMode) => {
     setSelectedRow(row);
     setSheetMode(mode);
-    if (mode === "ktb_receive") {
-      setKtbForm({
-        ktb_receipt_id: row.ktb_receipt_id || "",
-        ktb_received_date: row.ktb_received_date || "",
-        plantation_partner_id: row.plantation_partner_id || "",
-        transfer_date: row.transfer_date || "",
-        transfer_reference: row.transfer_reference || "",
-      });
-    } else if (mode === "ktb_transfer") {
+    if (mode === "ktb") {
       setKtbForm({
         ktb_receipt_id: row.ktb_receipt_id || "",
         ktb_received_date: row.ktb_received_date || "",
@@ -423,26 +418,31 @@ export const StakeholderFinancial = () => {
                       <TableCell>{c.payment_method || "-"}</TableCell>
                       <TableCell>{getStatusBadge(c.status)}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => openSheet(c, "view")} title="View Details">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {isKtbUser && c.status === "contribution_confirmed" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_receive")} title="Mark Funds Received" className="text-orange-600">
-                              <Landmark className="h-4 w-4" />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
                             </Button>
-                          )}
-                          {isKtbUser && c.status === "funds_received" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "ktb_transfer")} title="Transfer for Planting" className="text-purple-600">
-                              <Landmark className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {isPlantationPartner && c.plantation_partner_id === orgId && c.status === "transferred_for_planting" && (
-                            <Button variant="ghost" size="icon" onClick={() => openSheet(c, "partner")} title="Confirm Receipt" className="text-green-600">
-                              <Building2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Transaction
+                            </DropdownMenuItem>
+                            {isKtbUser && (
+                              <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
+                                <Landmark className="h-4 w-4 mr-2" />
+                                KTB Transaction
+                              </DropdownMenuItem>
+                            )}
+                            {isPlantationPartner && (
+                              <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
+                                <Building2 className="h-4 w-4 mr-2" />
+                                Plantation Transaction
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -546,12 +546,12 @@ export const StakeholderFinancial = () => {
             </>
           )}
 
-          {/* KTB: Funds Received */}
-          {selectedRow && sheetMode === "ktb_receive" && (
+          {/* KTB Transaction */}
+          {selectedRow && sheetMode === "ktb" && (
             <>
               <SheetHeader>
-                <SheetTitle>Mark Funds Received</SheetTitle>
-                <SheetDescription>Record KTB payment receipt for {selectedRow.contribution_id}</SheetDescription>
+                <SheetTitle>KTB Transaction</SheetTitle>
+                <SheetDescription>View and update KTB transaction details for {selectedRow.contribution_id}</SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/50 text-sm">
@@ -560,54 +560,33 @@ export const StakeholderFinancial = () => {
                   <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>KTB Receipt ID</Label>
+                  <Label>Receipt ID</Label>
                   <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g., KTB-REC-001" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Date Funds Received</Label>
+                  <Label>Received Date</Label>
                   <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
-                </div>
-                <Button className="w-full mt-4" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                  {updateKtbReceiveMutation.isPending ? "Saving..." : "Confirm Funds Received"}
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* KTB: Transfer for Planting */}
-          {selectedRow && sheetMode === "ktb_transfer" && (
-            <>
-              <SheetHeader>
-                <SheetTitle>Transfer for Planting</SheetTitle>
-                <SheetDescription>Transfer funds to plantation partner for {selectedRow.contribution_id}</SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/50 text-sm">
-                  <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
-                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
-                  <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
-                  <p><strong>KTB Receipt:</strong> {selectedRow.ktb_receipt_id || "-"}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Plantation Partner</Label>
-                  <Select value={ktbForm.plantation_partner_id} onValueChange={(v) => setKtbForm({ ...ktbForm, plantation_partner_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Select partner" /></SelectTrigger>
-                    <SelectContent>
-                      {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Transfer Date</Label>
                   <Input type="date" value={ktbForm.transfer_date} onChange={(e) => setKtbForm({ ...ktbForm, transfer_date: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Transfer Reference</Label>
+                  <Label>Transfer Ref</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
                 </div>
-                <Button className="w-full mt-4" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
-                  {updateKtbTransferMutation.isPending ? "Saving..." : "Confirm Transfer for Planting"}
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  {selectedRow.status === "contribution_confirmed" && (
+                    <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                      {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
+                    </Button>
+                  )}
+                  {selectedRow.status === "funds_received" && (
+                    <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                      {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}
