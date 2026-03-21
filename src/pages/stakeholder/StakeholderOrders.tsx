@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { useModulePermissions } from "@/hooks/useModulePermissions";
 import {
   Accordion,
   AccordionContent,
