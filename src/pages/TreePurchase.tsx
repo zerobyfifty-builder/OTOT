@@ -321,7 +321,7 @@ export const TreePurchase = () => {
         ? dedicationName 
         : userData?.email || 'Environmental Supporter';
 
-      const certificateBlob = await generateTreeCertificate({
+      const generatedCert = await generateTreeCertificate({
         userName: certificateRecipient,
         userId: user.id,
         numTrees: treeCount,
@@ -330,7 +330,7 @@ export const TreePurchase = () => {
         location: locationName,
       });
 
-      downloadCertificate(certificateBlob, `tree-planting-certificate-${treeCount}-trees.pdf`);
+      setCertificateBlob(generatedCert);
 
       // If dedicated, log that an email should be sent to the recipient
       if (isDedicated && dedicationEmail) {
