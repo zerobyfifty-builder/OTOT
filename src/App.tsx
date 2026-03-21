@@ -454,6 +454,15 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+
+            {/* Configuration routes */}
+            <Route path="/admin/config/wallet" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <WalletSettings />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             
             {/* Stakeholder Portal routes */}
             <Route path="/stakeholder/dashboard" element={
