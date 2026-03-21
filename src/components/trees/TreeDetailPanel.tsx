@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, MapPin, Cloud } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, MapPin, Cloud, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Database } from '@/integrations/supabase/types';
