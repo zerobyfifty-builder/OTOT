@@ -43,7 +43,11 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       <div className="flex items-center justify-between p-4 border-b bg-background">
         <div className="flex items-center gap-2">
           <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8" />
-          <span className="text-sm font-semibold">Tree is planted by: MFC-ICLIP</span>
+          <span className="text-sm font-semibold">Tree is planted by: </span>
+          <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+            MFC-ICLIP
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
         </div>
         <Button
           variant="ghost"
