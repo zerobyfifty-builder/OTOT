@@ -481,6 +481,9 @@ const App = () => (
             <Route path="/stakeholder/settings" element={
               <StakeholderRoute><StakeholderLayout><StakeholderSettings /></StakeholderLayout></StakeholderRoute>
             } />
+            <Route path="/stakeholder/travel-agents" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderTravelAgents /></StakeholderLayout></StakeholderRoute>
+            } />
 
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
