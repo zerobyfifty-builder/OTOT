@@ -96,6 +96,7 @@ import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
 import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
 import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
 import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
+import StakeholderTravelAgents from "@/pages/stakeholder/StakeholderTravelAgents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
