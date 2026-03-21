@@ -122,7 +122,7 @@ export const StakeholderFinancial = () => {
   const isKtbUser = userRole === "institutional_partner";
   const isPlantationPartner = userRole === "stakeholder";
 
-  // KTB: Mark as Funds Received
+  // KTB: Mark as Funds Received (saves receipt fields)
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -130,6 +130,8 @@ export const StakeholderFinancial = () => {
         .update({
           ktb_receipt_id: ktbForm.ktb_receipt_id,
           ktb_received_date: ktbForm.ktb_received_date || null,
+          transfer_date: ktbForm.transfer_date || null,
+          transfer_reference: ktbForm.transfer_reference || null,
           status: "funds_received",
         } as any)
         .eq("id", id);
