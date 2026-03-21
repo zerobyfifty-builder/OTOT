@@ -72,6 +72,11 @@ const getGroupStatusColor = (status: string): string => {
   return "bg-muted text-muted-foreground";
 };
 
+const getAirportCity = (code: string) => {
+  const airport = airports.find(a => a.code === code);
+  return airport ? airport.city : code;
+};
+
 export const MyTrees = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
