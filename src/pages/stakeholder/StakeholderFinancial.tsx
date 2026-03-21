@@ -38,6 +38,7 @@ interface ContributionRow {
   plantation_partner_id: string | null;
   transfer_date: string | null;
   transfer_reference: string | null;
+  transfer_mode: string | null;
   partner_receipt_confirmation: boolean;
   partner_received_date: string | null;
   acknowledgement_doc: string | null;
