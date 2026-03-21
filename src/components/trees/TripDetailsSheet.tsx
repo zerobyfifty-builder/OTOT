@@ -234,17 +234,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             </Badge>
           </div>
 
-          {/* Trip Route */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
-            <div className="flex items-center gap-2 text-lg font-semibold">
-              <Plane className="h-5 w-5 text-primary flex-shrink-0" />
-              <span>{getAirportInfo(trip.origin_airport)} → {getAirportInfo(trip.destination_airport)}</span>
-            </div>
-            <Badge variant={trip.is_return ? "default" : "secondary"} className="mt-2">
-              {trip.is_return ? "Round Trip" : "One-way"}
-            </Badge>
-          </div>
+
+
 
           {/* Compact Trip Info - single lines */}
           <div className="space-y-1.5 text-sm">
