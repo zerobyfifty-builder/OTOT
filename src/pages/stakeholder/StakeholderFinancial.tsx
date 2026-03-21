@@ -85,14 +85,21 @@ export const StakeholderFinancial = () => {
     enabled: !!user?.id,
   });
 
-  const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+  const { data: userOrg } = useQuery({
+    queryKey: ["stakeholderOrg", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
-      return data?.organization_id;
+      const { data } = await supabase
+        .from("users")
+        .select("organization_id, organizations:organization_id(id, name, category)")
+        .eq("user_id", user!.id)
+        .single();
+      return data as any;
     },
     enabled: !!user?.id,
   });
+
+  const orgId = userOrg?.organization_id as string | undefined;
+  const orgCategory = (userOrg?.organizations as any)?.category as string | undefined;
 
   const { data: contributions, isLoading, refetch } = useQuery({
     queryKey: ["contributionTracking"],
@@ -119,8 +126,9 @@ export const StakeholderFinancial = () => {
     },
   });
 
-  const isKtbUser = userRole === "institutional_partner";
-  const isPlantationPartner = userRole === "stakeholder";
+  // Determine role by org category: institutional = KTB user, stakeholder = plantation partner
+  const isKtbUser = orgCategory === "institutional" || userRole === "institutional_partner";
+  const isPlantationPartner = orgCategory === "stakeholder" && userRole !== "institutional_partner";
 
   // KTB: Mark as Funds Received (saves receipt fields)
   const updateKtbReceiveMutation = useMutation({
