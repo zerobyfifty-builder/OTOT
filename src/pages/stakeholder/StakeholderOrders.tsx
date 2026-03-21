@@ -343,7 +343,7 @@ export const StakeholderOrders = () => {
               const touristCountry = userInfo?.country || '';
 
               return (
-                <Card key={group.key} className="overflow-hidden mb-0">
+                <Card key={group.key} className="overflow-hidden">
                   <AccordionItem value={group.key} className="border-0">
                     <div className="flex items-center">
                       <AccordionTrigger className="px-3 sm:px-4 py-3 sm:py-4 hover:no-underline hover:bg-muted/30 flex-1 min-w-0">
