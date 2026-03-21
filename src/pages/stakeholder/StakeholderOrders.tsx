@@ -427,7 +427,8 @@ export const StakeholderOrders = () => {
                     </div>
                     <AccordionContent className="pb-0">
                       <div className="border-t bg-muted/30 pb-4">
-                        {/* Bulk Status Update Bar */}
+                        {/* Bulk Status Update Bar - only show if user has edit permission */}
+                        {hasEdit && (
                         <div className="mx-3 sm:mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 sm:px-4 py-2.5 sm:py-3">
                           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                             <Layers className="h-4 w-4 text-primary" />
@@ -462,6 +463,7 @@ export const StakeholderOrders = () => {
                             Or update individually below
                           </span>
                         </div>
+                        )}
 
                         <div className="mx-3 sm:mx-4 rounded-lg border bg-background overflow-x-auto">
                           <Table>
@@ -484,19 +486,25 @@ export const StakeholderOrders = () => {
                                   <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                   <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
                                   <TableCell>
-                                    <Select
-                                      value={tree.planting_status || 'pending_allocation'}
-                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                    >
-                                      <SelectTrigger className="w-[180px]">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {PLANTING_STATUSES.map(s => (
-                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
+                                    {hasEdit ? (
+                                      <Select
+                                        value={tree.planting_status || 'pending_allocation'}
+                                        onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                      >
+                                        <SelectTrigger className="w-[180px]">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {PLANTING_STATUSES.map(s => (
+                                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    ) : (
+                                      <Badge className={`text-xs ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
+                                        {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                                      </Badge>
+                                    )}
                                   </TableCell>
                                 </TableRow>
                               ))}
