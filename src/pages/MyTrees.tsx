@@ -207,7 +207,46 @@ export const MyTrees = () => {
 
   const { plantedTrees, totalCO2ToOffset, co2AlreadyOffset, treesNeeded, treesRemaining, co2Remaining } = calculateTotals();
 
-  if (isLoading) {
+  const handleViewCertificate = async () => {
+    setIsGeneratingCert(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data: userProfile } = await supabase
+        .from("users")
+        .select("first_name, last_name, otot_id")
+        .eq("user_id", userData.user.id)
+        .single();
+
+      const userName = userProfile
+        ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Traveler'
+        : 'Traveler';
+
+      const blob = await generateTreeCertificate({
+        userName,
+        userId: userData.user.id,
+        numTrees: plantedTrees,
+        co2Offset: co2AlreadyOffset,
+        ototId: userProfile?.otot_id || userData.user.id.substring(0, 8),
+        location: 'Mau Forest Complex, Kenya',
+      });
+
+      setPreviewCert({
+        blob,
+        name: `tree-planting-certificate-${plantedTrees}-trees.pdf`,
+      });
+    } catch (error) {
+      console.error('Error generating certificate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate certificate. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingCert(false);
+    }
+  };
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
