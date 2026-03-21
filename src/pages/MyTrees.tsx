@@ -323,18 +323,18 @@ export const MyTrees = () => {
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">Trees Overview</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-foreground">{treesNeeded}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Needed</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{treesNeeded}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Needed</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-green-600">{plantedTrees}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Planted</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-green-600 truncate">{plantedTrees}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Planted</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-orange-500">{treesRemaining}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Remaining</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold text-orange-500 truncate">{treesRemaining}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
                 <div className="mt-4">
@@ -360,18 +360,18 @@ export const MyTrees = () => {
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">CO₂ Impact</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-foreground">{totalCO2ToOffset.toFixed(0)}<span className="text-sm font-normal ml-1">kg</span></p>
-                    <p className="text-xs text-muted-foreground mt-1">To Offset</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-base sm:text-2xl font-bold text-foreground truncate">{totalCO2ToOffset.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">To Offset</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-green-600">{co2AlreadyOffset}<span className="text-sm font-normal ml-1">kg</span></p>
-                    <p className="text-xs text-muted-foreground mt-1">Offset</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-base sm:text-2xl font-bold text-green-600 truncate">{co2AlreadyOffset}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Offset</p>
                   </div>
-                  <div className="text-center p-3 rounded-lg bg-background/60">
-                    <p className="text-2xl font-bold text-orange-500">{co2Remaining.toFixed(0)}<span className="text-sm font-normal ml-1">kg</span></p>
-                    <p className="text-xs text-muted-foreground mt-1">Remaining</p>
+                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
+                    <p className="text-base sm:text-2xl font-bold text-orange-500 truncate">{co2Remaining.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Remaining</p>
                   </div>
                 </div>
                 <div className="mt-4">
@@ -524,7 +524,7 @@ export const MyTrees = () => {
                                 }}
                                 disabled={group.totalTrees >= trip.trees_needed}
                               >
-                                <Leaf className="h-3 w-3 mr-1" />
+                                
                                 {group.totalTrees >= trip.trees_needed ? 'Planted All Trees' : '+ Plant More Trees'}
                               </Button>
                             </div>
