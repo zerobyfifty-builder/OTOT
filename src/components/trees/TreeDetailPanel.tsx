@@ -96,11 +96,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                   Location:
                 </p>
                 <p className="text-base">Mau Forest Complex (Nakuru)</p>
-                <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer">
-                  <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto mt-1">
-                    Know more about MFC-ICLIP →
-                  </Button>
-                </a>
               </div>
 
               {tree.latitude && tree.longitude && (
