@@ -547,15 +547,15 @@ export const MyTrees = () => {
                                 <div className="overflow-x-auto bg-background/80 rounded-b-xl">
                                   <Table>
                                     <TableHeader>
-                                      <TableRow className="bg-muted/50 border-b border-border/40">
-                                        <TableHead className="w-12 text-xs">No.</TableHead>
-                                        <TableHead className="text-left text-xs">TreeTracker</TableHead>
-                                        <TableHead className="text-left text-xs">Location</TableHead>
-                                        <TableHead className="text-left text-xs">County</TableHead>
-                                        <TableHead className="text-left text-xs">Planted By</TableHead>
-                                        <TableHead className="text-xs">Status</TableHead>
-                                        <TableHead className="text-xs">Date</TableHead>
-                                        <TableHead className="text-xs">Source</TableHead>
+                                      <TableRow className="bg-primary/10 border-b-2 border-primary/20">
+                                        <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
+                                        <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
+                                        <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
+                                        <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
+                                        <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Status</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Date</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
                                       </TableRow>
                                     </TableHeader>
                                     <TableBody>
