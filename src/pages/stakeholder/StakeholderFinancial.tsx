@@ -278,9 +278,10 @@ export const StakeholderFinancial = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Contribution ID</TableHead>
+                 <TableHead>Contribution ID</TableHead>
                   <TableHead>Tourist</TableHead>
                   <TableHead>Country</TableHead>
+                  <TableHead>Trees</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Payment Date</TableHead>
                   <TableHead>Method</TableHead>
@@ -294,6 +295,7 @@ export const StakeholderFinancial = () => {
                     <TableCell className="font-mono text-xs">{c.contribution_id}</TableCell>
                     <TableCell>{c.tourist_name || "-"}</TableCell>
                     <TableCell>{c.country || "-"}</TableCell>
+                    <TableCell className="font-medium">{c.num_trees}</TableCell>
                     <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>
                     <TableCell>{formatDate(c.payment_date)}</TableCell>
                     <TableCell>{c.payment_method || "-"}</TableCell>
