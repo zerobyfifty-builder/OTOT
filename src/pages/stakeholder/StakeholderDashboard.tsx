@@ -89,13 +89,19 @@ export const StakeholderDashboard = () => {
     if (userProfile) setOrgInfo(userProfile.organizations);
   }, [userProfile]);
 
+  const userName = userProfile
+    ? [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name
+    : null;
+
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          {orgInfo?.name || 'Stakeholder Dashboard'}
+          Welcome, {orgInfo?.name || 'Stakeholder Dashboard'}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Mau Forest Complex</p>
+        {userName && (
+          <p className="text-sm text-muted-foreground mt-1">Logged in as {userName}</p>
+        )}
       </div>
 
       {/* KPI Cards */}

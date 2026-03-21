@@ -58,6 +58,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const collapsed = state === 'collapsed';
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     if (propOrgName) { setOrgName(propOrgName); }
@@ -65,18 +67,28 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     const fetchOrgInfo = async () => {
       const { data: userData } = await supabase
         .from('users')
-        .select('organization_id')
+        .select('organization_id, first_name, last_name')
         .eq('user_id', user.id)
         .maybeSingle();
+      if (userData) {
+        const fullName = [userData.first_name, userData.last_name].filter(Boolean).join(' ') || user.user_metadata?.full_name || '';
+        setUserName(fullName);
+      }
       if (userData?.organization_id) {
         setOrgId(userData.organization_id);
-        if (!propOrgName) {
-          const { data: org } = await supabase
-            .from('organizations')
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name, partner_type_id')
+          .eq('id', userData.organization_id)
+          .maybeSingle();
+        if (org?.name && !propOrgName) setOrgName(org.name);
+        if (org?.partner_type_id) {
+          const { data: pt } = await supabase
+            .from('partner_types')
             .select('name')
-            .eq('id', userData.organization_id)
+            .eq('id', org.partner_type_id)
             .maybeSingle();
-          if (org?.name) setOrgName(org.name);
+          if (pt?.name) setPartnerTypeName(pt.name);
         }
       }
     };
@@ -228,7 +240,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                     {organizationName || 'Stakeholder'}
                   </span>
                   <span className="text-xs truncate w-full text-white/60">
-                    Plantation Partner
+                    {partnerTypeName}
                   </span>
                 </div>
               )}
@@ -237,7 +249,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
               <p className="text-sm font-medium">{organizationName || 'Stakeholder'}</p>
-              <p className="text-xs text-muted-foreground">Plantation Partner</p>
+              <p className="text-xs text-muted-foreground">{partnerTypeName}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
