@@ -354,6 +354,7 @@ export type Database = {
           amount_retained: number | null
           amount_transferred: number | null
           contribution_id: string
+          contribution_type: string | null
           country: string | null
           created_at: string | null
           currency: string | null
@@ -383,6 +384,7 @@ export type Database = {
           amount_retained?: number | null
           amount_transferred?: number | null
           contribution_id: string
+          contribution_type?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null
@@ -412,6 +414,7 @@ export type Database = {
           amount_retained?: number | null
           amount_transferred?: number | null
           contribution_id?: string
+          contribution_type?: string | null
           country?: string | null
           created_at?: string | null
           currency?: string | null

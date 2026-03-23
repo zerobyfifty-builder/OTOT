@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react";
@@ -20,6 +20,7 @@ import { format } from "date-fns";
 interface ContributionRow {
   id: string;
   contribution_id: string;
+  contribution_type: string;
   tree_id: string | null;
   tourist_name: string | null;
   country: string | null;
@@ -47,7 +48,7 @@ interface ContributionRow {
 }
 
 type SheetMode = "view" | "ktb" | "partner";
-type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "status";
+type SortField = "contribution_id" | "contribution_type" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "status";
 type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 15;
@@ -64,7 +65,6 @@ export const StakeholderFinancial = () => {
   const [sortField, setSortField] = useState<SortField>("payment_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
-  // KTB form state
   const [ktbForm, setKtbForm] = useState({
     ktb_receipt_id: "",
     ktb_received_date: "",
@@ -74,7 +74,6 @@ export const StakeholderFinancial = () => {
     transfer_mode: "",
   });
 
-  // Partner form state
   const [partnerForm, setPartnerForm] = useState({
     partner_receipt_confirmation: false,
     partner_received_date: "",
@@ -103,7 +102,6 @@ export const StakeholderFinancial = () => {
     enabled: !!user?.id,
   });
 
-  const orgId = userOrg?.organization_id as string | undefined;
   const orgCategory = (userOrg?.organizations as any)?.category as string | undefined;
   const partnerTypeName = (userOrg?.organizations as any)?.partner_types?.name as string | undefined;
 
@@ -132,8 +130,6 @@ export const StakeholderFinancial = () => {
     },
   });
 
-  // KTB-style institutional users can be modeled either as institutional orgs
-  // or as stakeholder orgs with the "Institutional Partner" partner type.
   const isKtbUser =
     orgCategory === "institutional" ||
     userRole === "institutional_partner" ||
@@ -141,7 +137,6 @@ export const StakeholderFinancial = () => {
 
   const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser;
 
-  // KTB: Mark as Funds Received (saves receipt fields)
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -165,7 +160,6 @@ export const StakeholderFinancial = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // KTB: Mark as Transferred for Planting
   const updateKtbTransferMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -188,7 +182,6 @@ export const StakeholderFinancial = () => {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // Partner: Received for Planting
   const updatePartnerMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -235,16 +228,23 @@ export const StakeholderFinancial = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "contribution_confirmed":
-        return <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50 whitespace-nowrap">Contribution Confirmed</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-700 border-blue-200 hover:bg-blue-500/10 whitespace-nowrap">Confirmed</Badge>;
       case "funds_received":
-        return <Badge variant="secondary" className="text-orange-700 bg-orange-100 whitespace-nowrap">Funds Received</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/10 whitespace-nowrap">Funds Received</Badge>;
       case "transferred_for_planting":
-        return <Badge variant="outline" className="text-purple-700 border-purple-300 bg-purple-50 whitespace-nowrap">Transferred for Planting</Badge>;
+        return <Badge className="bg-violet-500/10 text-violet-700 border-violet-200 hover:bg-violet-500/10 whitespace-nowrap">Transferred</Badge>;
       case "received_for_planting":
-        return <Badge className="bg-green-600 text-white whitespace-nowrap">Received for Planting</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/10 whitespace-nowrap">Received</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getContributionTypeBadge = (type: string | null) => {
+    if (type === "travel_agent") {
+      return <span className="text-xs font-medium text-indigo-600">Agent</span>;
+    }
+    return <span className="text-xs font-medium text-teal-600">Tourist</span>;
   };
 
   const getStatusOrder = (status: string) => {
@@ -257,7 +257,6 @@ export const StakeholderFinancial = () => {
     }
   };
 
-  // Sorting
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -269,11 +268,10 @@ export const StakeholderFinancial = () => {
   };
 
   const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
-    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-30" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
   };
 
-  // Filter + Sort + Paginate
   const filtered = useMemo(() => {
     let result = contributions?.filter((c) => {
       const matchSearch =
@@ -290,6 +288,9 @@ export const StakeholderFinancial = () => {
       switch (sortField) {
         case "contribution_id":
           cmp = (a.contribution_id || "").localeCompare(b.contribution_id || "");
+          break;
+        case "contribution_type":
+          cmp = (a.contribution_type || "tourist").localeCompare(b.contribution_type || "tourist");
           break;
         case "tourist_name":
           cmp = (a.tourist_name || "").localeCompare(b.tourist_name || "");
@@ -333,12 +334,28 @@ export const StakeholderFinancial = () => {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
+  // Column header helper for cleaner rendering
+  const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
+    <TableHead
+      className={`cursor-pointer select-none text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors ${className}`}
+      onClick={() => handleSort(field)}
+    >
+      <span className="flex items-center gap-0.5">{label}{getSortIcon(field)}</span>
+    </TableHead>
+  );
+
+  const StaticHead = ({ label, className = "" }: { label: string; className?: string }) => (
+    <TableHead className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${className}`}>
+      {label}
+    </TableHead>
+  );
+
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Financial - Contribution Tracking</h1>
-          <p className="text-muted-foreground mt-1">End-to-end contribution lifecycle from tourist payment to partner confirmation</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Financial - Contribution Tracking</h1>
+          <p className="text-sm text-muted-foreground mt-1">End-to-end contribution lifecycle from payment to partner confirmation</p>
         </div>
         <Button variant="outline" size="icon" onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4" />
@@ -346,169 +363,148 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Total Contributions</p>
-          <p className="text-2xl font-bold">${formatNumber(totals.total)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Confirmed</p>
-          <p className="text-2xl font-bold text-blue-600">{totals.confirmed}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Funds Received</p>
-          <p className="text-2xl font-bold text-orange-600">{totals.fundsReceived}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Transferred</p>
-          <p className="text-2xl font-bold text-purple-600">{totals.transferred}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Received for Planting</p>
-          <p className="text-2xl font-bold text-green-600">{totals.received}</p>
-        </CardContent></Card>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
+            <p className="text-2xl font-bold mt-1">${formatNumber(totals.total)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Confirmed</p>
+            <p className="text-2xl font-bold text-blue-600 mt-1">{totals.confirmed}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">{totals.fundsReceived}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
+            <p className="text-2xl font-bold text-violet-600 mt-1">{totals.transferred}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Received for Planting</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-1">{totals.received}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by ID, tourist name, or reference..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9" />
+          <Input placeholder="Search by ID, name, or reference..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-          <SelectTrigger className="w-[220px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="contribution_confirmed">Contribution Confirmed</SelectItem>
+            <SelectItem value="contribution_confirmed">Confirmed</SelectItem>
             <SelectItem value="funds_received">Funds Received</SelectItem>
-            <SelectItem value="transferred_for_planting">Transferred for Planting</SelectItem>
-            <SelectItem value="received_for_planting">Received for Planting</SelectItem>
+            <SelectItem value="transferred_for_planting">Transferred</SelectItem>
+            <SelectItem value="received_for_planting">Received</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Table */}
-      <Card>
-        <CardContent className="pt-6 overflow-x-auto">
+      <Card className="border-0 shadow-sm overflow-hidden">
+        <CardContent className="p-0">
           {isLoading ? (
-            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+            <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
           ) : !filtered.length ? (
-            <div className="text-center py-12">
-              <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No contributions found.</p>
+            <div className="text-center py-16">
+              <DollarSign className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground text-sm">No contributions found</p>
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("contribution_id")}>
-                      <span className="flex items-center">ID {getSortIcon("contribution_id")}</span>
-                    </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("tourist_name")}>
-                      <span className="flex items-center">Tourist {getSortIcon("tourist_name")}</span>
-                    </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("country")}>
-                      <span className="flex items-center">Country {getSortIcon("country")}</span>
-                    </TableHead>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("num_trees")}>
-                      <span className="flex items-center">Trees {getSortIcon("num_trees")}</span>
-                    </TableHead>
-                    {!isPlantationPartner && (
-                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("amount_paid")}>
-                        <span className="flex items-center">Contribution {getSortIcon("amount_paid")}</span>
-                      </TableHead>
-                    )}
-                    {!isPlantationPartner && (
-                      <TableHead>
-                        <span className="flex items-center whitespace-nowrap">Amt Received</span>
-                      </TableHead>
-                    )}
-                    {!isPlantationPartner && (
-                      <TableHead>
-                        <span className="flex items-center whitespace-nowrap">Amt Retained</span>
-                      </TableHead>
-                    )}
-                    <TableHead>
-                      <span className="flex items-center whitespace-nowrap">Amt Transferred</span>
-                    </TableHead>
-                    {isPlantationPartner && (
-                      <TableHead>
-                        <span className="flex items-center whitespace-nowrap">Transfer Date</span>
-                      </TableHead>
-                    )}
-                    {!isPlantationPartner && (
-                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort("payment_date")}>
-                        <span className="flex items-center">Payment Date {getSortIcon("payment_date")}</span>
-                      </TableHead>
-                    )}
-                    {!isPlantationPartner && <TableHead>Method</TableHead>}
-                    <TableHead>Mode</TableHead>
-                    {isPlantationPartner && (
-                      <TableHead>
-                        <span className="flex items-center">Received Date</span>
-                      </TableHead>
-                    )}
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
-                      <span className="flex items-center">Status {getSortIcon("status")}</span>
-                    </TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginated.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-mono text-xs">{c.contribution_id}</TableCell>
-                      <TableCell>{c.tourist_name || "-"}</TableCell>
-                      <TableCell>{c.country || "-"}</TableCell>
-                      <TableCell className="font-medium">{c.num_trees}</TableCell>
-                      {!isPlantationPartner && <TableCell className="font-medium">${Number(c.amount_paid).toFixed(2)}</TableCell>}
-                      {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
-                      {!isPlantationPartner && <TableCell className="text-orange-700 font-medium">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
-                      <TableCell className="text-blue-700 font-medium">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
-                      {isPlantationPartner && <TableCell>{formatDate(c.transfer_date)}</TableCell>}
-                      {!isPlantationPartner && <TableCell>{formatDate(c.payment_date)}</TableCell>}
-                      {!isPlantationPartner && <TableCell>{c.payment_method || "-"}</TableCell>}
-                      <TableCell>{c.transfer_mode || "-"}</TableCell>
-                      {isPlantationPartner && <TableCell>{formatDate(c.partner_received_date)}</TableCell>}
-                      <TableCell>{getStatusBadge(c.status)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openSheet(c, "view")}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Transaction
-                            </DropdownMenuItem>
-                            {isKtbUser && (
-                              <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
-                                <Landmark className="h-4 w-4 mr-2" />
-                                KTB Transaction
-                              </DropdownMenuItem>
-                            )}
-                            {isPlantationPartner && (
-                              <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
-                                <Building2 className="h-4 w-4 mr-2" />
-                                Plantation Transaction
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
+                      {/* Institutional: Contri Id, Type, Contributor, Country, Trees, Contribution, Received, Dt Recvd, Method, Retained, Transferred, Mode, Status, Action */}
+                      <SortableHead field="contribution_id" label="Contri Id" />
+                      {!isPlantationPartner && <SortableHead field="contribution_type" label="Type" />}
+                      <SortableHead field="tourist_name" label={isPlantationPartner ? "Contributor" : "Contributor"} />
+                      <SortableHead field="country" label="Country" />
+                      <SortableHead field="num_trees" label="Trees" />
+                      {!isPlantationPartner && <SortableHead field="amount_paid" label="Contribution" />}
+                      {!isPlantationPartner && <StaticHead label="Received" />}
+                      {!isPlantationPartner && <StaticHead label="Dt Recvd" />}
+                      {!isPlantationPartner && <StaticHead label="Method" />}
+                      {!isPlantationPartner && <StaticHead label="Retained" />}
+                      <StaticHead label={isPlantationPartner ? "Amt Transferred" : "Transferred"} />
+                      {isPlantationPartner && <StaticHead label="Transfer Date" />}
+                      <StaticHead label="Mode" />
+                      {isPlantationPartner && <StaticHead label="Received Date" />}
+                      <SortableHead field="status" label="Status" />
+                      <StaticHead label="Action" className="text-right" />
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginated.map((c) => (
+                      <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
+                        <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
+                        {!isPlantationPartner && <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>}
+                        <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
+                        <TableCell className="text-sm">{c.country || "-"}</TableCell>
+                        <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
+                        {!isPlantationPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
+                        {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
+                        {!isPlantationPartner && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
+                        {!isPlantationPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
+                        {!isPlantationPartner && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
+                        <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
+                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.transfer_date)}</TableCell>}
+                        <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>
+                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.partner_received_date)}</TableCell>}
+                        <TableCell>{getStatusBadge(c.status)}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Transaction
+                              </DropdownMenuItem>
+                              {isKtbUser && (
+                                <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
+                                  <Landmark className="h-4 w-4 mr-2" />
+                                  KTB Transaction
+                                </DropdownMenuItem>
+                              )}
+                              {isPlantationPartner && (
+                                <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
+                                  <Building2 className="h-4 w-4 mr-2" />
+                                  Plantation Transaction
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+              <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/10">
+                <p className="text-xs text-muted-foreground">
+                  {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
                 </p>
                 <Pagination>
                   <PaginationContent>
@@ -561,44 +557,54 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "view" && (
             <>
               <SheetHeader>
-                <SheetTitle>Contribution {selectedRow.contribution_id}</SheetTitle>
-                <SheetDescription>Full contribution lifecycle details</SheetDescription>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>{selectedRow.contribution_id}</span>
+                  {getStatusBadge(selectedRow.status)}
+                </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-6">
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Contribution Details</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">ID:</span><p className="font-mono">{selectedRow.contribution_id}</p></div>
-                    <div><span className="text-muted-foreground">Tourist:</span><p>{selectedRow.tourist_name || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Country:</span><p>{selectedRow.country || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Trip ID:</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Trees:</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
-                    <div><span className="text-muted-foreground">Amount:</span><p className="font-semibold">${Number(selectedRow.amount_paid).toFixed(2)}</p></div>
-                    <div><span className="text-muted-foreground">Currency:</span><p>{selectedRow.currency}</p></div>
-                    <div><span className="text-muted-foreground">Payment Date:</span><p>{formatDate(selectedRow.payment_date)}</p></div>
-                    <div><span className="text-muted-foreground">Method:</span><p>{selectedRow.payment_method || "-"}</p></div>
-                    <div className="col-span-2"><span className="text-muted-foreground">Reference:</span><p>{selectedRow.transaction_reference || "-"}</p></div>
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                    <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Trip ID</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Trees</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Amount</span><p className="font-semibold">${Number(selectedRow.amount_paid).toFixed(2)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Currency</span><p>{selectedRow.currency}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Payment Date</span><p>{formatDate(selectedRow.payment_date)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Method</span><p>{selectedRow.payment_method || "-"}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground text-xs">Reference</span><p>{selectedRow.transaction_reference || "-"}</p></div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">KTB Receipt & Transfer</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Receipt ID:</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Received Date:</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
-                    <div><span className="text-muted-foreground">Transfer Date:</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
-                    <div><span className="text-muted-foreground">Transfer Ref:</span><p>{selectedRow.transfer_reference || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Mode of Transfer:</span><p>{selectedRow.transfer_mode || "-"}</p></div>
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Fund Allocation</h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="bg-emerald-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Received</span><p className="font-semibold text-emerald-700">${Number(selectedRow.amount_received || 0).toFixed(2)}</p></div>
+                    <div className="bg-amber-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Retained</span><p className="font-semibold text-amber-700">${Number(selectedRow.amount_retained || 0).toFixed(2)}</p></div>
+                    <div className="bg-violet-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Transferred</span><p className="font-semibold text-violet-700">${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p></div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wide">Partner Confirmation</h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Confirmed:</span><p>{selectedRow.partner_receipt_confirmation ? "Yes" : "No"}</p></div>
-                    <div><span className="text-muted-foreground">Received Date:</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
-                    <div className="col-span-2"><span className="text-muted-foreground">Acknowledgement Doc:</span><p>{selectedRow.acknowledgement_doc ? <a href={selectedRow.acknowledgement_doc} target="_blank" rel="noreferrer" className="text-primary underline">View Document</a> : "-"}</p></div>
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">KTB Receipt & Transfer</h3>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                    <div><span className="text-muted-foreground text-xs">Receipt ID</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Transfer Ref</span><p>{selectedRow.transfer_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
                   </div>
                 </div>
-                <div>{getStatusBadge(selectedRow.status)}</div>
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Partner Confirmation</h3>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                    <div><span className="text-muted-foreground text-xs">Confirmed</span><p>{selectedRow.partner_receipt_confirmation ? "Yes" : "No"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
+                    <div className="col-span-2"><span className="text-muted-foreground text-xs">Acknowledgement Doc</span><p>{selectedRow.acknowledgement_doc ? <a href={selectedRow.acknowledgement_doc} target="_blank" rel="noreferrer" className="text-primary underline text-xs">View Document</a> : "-"}</p></div>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -607,33 +613,32 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "ktb" && (
             <>
               <SheetHeader>
-                <SheetTitle>KTB Transaction</SheetTitle>
-                <SheetDescription>View and update KTB transaction details for {selectedRow.contribution_id}</SheetDescription>
+                <SheetTitle>KTB Transaction — {selectedRow.contribution_id}</SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/50 text-sm">
-                  <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
-                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
-                  <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
+                <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Contributor:</span> {selectedRow.tourist_name}</p>
+                  <p><span className="text-muted-foreground">Trees:</span> {selectedRow.num_trees}</p>
+                  <p><span className="text-muted-foreground">Amount:</span> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Receipt ID</Label>
+                  <Label className="text-xs">Receipt ID</Label>
                   <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g., KTB-REC-001" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Received Date</Label>
+                  <Label className="text-xs">Received Date</Label>
                   <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Transfer Date</Label>
+                  <Label className="text-xs">Transfer Date</Label>
                   <Input type="date" value={ktbForm.transfer_date} onChange={(e) => setKtbForm({ ...ktbForm, transfer_date: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Transfer Ref</Label>
+                  <Label className="text-xs">Transfer Ref</Label>
                   <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Mode of Transfer</Label>
+                  <Label className="text-xs">Mode of Transfer</Label>
                   <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
                 </div>
                 <div className="flex gap-2 mt-4">
@@ -656,19 +661,18 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "partner" && (
             <>
               <SheetHeader>
-                <SheetTitle>Confirm Funds Received for Planting</SheetTitle>
-                <SheetDescription>Confirm receipt of funds from KTB for {selectedRow.contribution_id}</SheetDescription>
+                <SheetTitle>Plantation Transaction — {selectedRow.contribution_id}</SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/50 text-sm">
-                  <p><strong>Tourist:</strong> {selectedRow.tourist_name}</p>
-                  <p><strong>Trees:</strong> {selectedRow.num_trees}</p>
-                  <p><strong>Amount:</strong> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
-                  <p><strong>KTB Transfer Ref:</strong> {selectedRow.transfer_reference || "-"}</p>
-                  <p><strong>Transfer Date:</strong> {formatDate(selectedRow.transfer_date)}</p>
+                <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Contributor:</span> {selectedRow.tourist_name}</p>
+                  <p><span className="text-muted-foreground">Trees:</span> {selectedRow.num_trees}</p>
+                  <p><span className="text-muted-foreground">Amount:</span> ${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p>
+                  <p><span className="text-muted-foreground">Transfer Ref:</span> {selectedRow.transfer_reference || "-"}</p>
+                  <p><span className="text-muted-foreground">Transfer Date:</span> {formatDate(selectedRow.transfer_date)}</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Receipt Confirmation</Label>
+                  <Label className="text-xs">Receipt Confirmation</Label>
                   <Select
                     value={partnerForm.partner_receipt_confirmation ? "yes" : "no"}
                     onValueChange={(v) => setPartnerForm({ ...partnerForm, partner_receipt_confirmation: v === "yes" })}
@@ -681,11 +685,11 @@ export const StakeholderFinancial = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Date Received</Label>
+                  <Label className="text-xs">Date Received</Label>
                   <Input type="date" value={partnerForm.partner_received_date} onChange={(e) => setPartnerForm({ ...partnerForm, partner_received_date: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Acknowledgement Document URL</Label>
+                  <Label className="text-xs">Acknowledgement Document URL</Label>
                   <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
                 </div>
                 <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
