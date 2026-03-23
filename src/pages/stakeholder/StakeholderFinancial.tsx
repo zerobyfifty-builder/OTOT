@@ -400,7 +400,7 @@ export const StakeholderFinancial = () => {
 
       {/* Summary */}
       {isTechPartner ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
@@ -410,16 +410,9 @@ export const StakeholderFinancial = () => {
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee ({techFeePercent}%)</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee</p>
               <p className="text-2xl font-bold text-primary mt-1">${formatNumber(totals.totalTechFee)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Trees</p>
-              <p className="text-2xl font-bold mt-1">{formatNumber(totals.totalTrees)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Across {totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
         </div>
@@ -491,12 +484,13 @@ export const StakeholderFinancial = () => {
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
                       <SortableHead field="contribution_id" label="Contri Id" />
+                      {(isTechPartner || isKtbUser) && <SortableHead field="payment_date" label="Contri Date" />}
                       <SortableHead field="contribution_type" label="Type" />
                       <SortableHead field="tourist_name" label="Contributor" />
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
                       {isTechPartner && <SortableHead field="amount_paid" label="Contribution" />}
-                      {isTechPartner && <StaticHead label={`Tech Fee (${techFeePercent}%)`} />}
+                      {isTechPartner && <StaticHead label="Tech Fee" />}
                       {isTechPartner && <StaticHead label="Dt Received" />}
                       {isTechPartner && <StaticHead label="Method" />}
                       {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
@@ -517,6 +511,7 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
+                        {(isTechPartner || isKtbUser) && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
@@ -658,10 +653,17 @@ export const StakeholderFinancial = () => {
                   </div>
                 </div>
                 <div className="border-t pt-4">
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Tech Partner Receipt</h3>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.transaction_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.payment_date || selectedRow.created_at)}</p></div>
+                  </div>
+                </div>
+                <div className="border-t pt-4">
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">KTB Receipt & Transfer</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Receipt ID</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.ktb_received_date)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.ktb_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Transfer Ref</span><p>{selectedRow.transfer_reference || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
