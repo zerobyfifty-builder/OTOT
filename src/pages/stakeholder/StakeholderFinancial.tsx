@@ -679,10 +679,11 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "partner" && (
             <>
               <SheetHeader>
-                <SheetTitle className="flex items-center justify-between">
-                  <span>Plantation Transaction: {selectedRow.contribution_id}</span>
-                  {getStatusBadge(selectedRow.status)}
-                </SheetTitle>
+                <SheetTitle className="flex items-center gap-2">
+                   <Pencil className="h-4 w-4" />
+                   <span>Receive Funds: {selectedRow.contribution_id}</span>
+                   {getStatusBadge(selectedRow.status)}
+                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
