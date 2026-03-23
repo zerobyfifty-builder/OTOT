@@ -527,7 +527,7 @@ export const StakeholderFinancial = () => {
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
