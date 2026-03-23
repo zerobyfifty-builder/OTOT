@@ -395,7 +395,6 @@ export const StakeholderFinancial = () => {
             <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
           </CardContent>
         </Card>
-        </Card>
       </div>
 
       {/* Filters */}
