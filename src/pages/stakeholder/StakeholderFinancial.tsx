@@ -511,7 +511,7 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
-                        <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
+                        {(isTechPartner || isKtbUser) && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
