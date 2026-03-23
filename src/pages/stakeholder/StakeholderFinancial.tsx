@@ -45,6 +45,8 @@ interface ContributionRow {
   acknowledgement_doc: string | null;
   status: string;
   created_at: string;
+  tech_receipt_id: string | null;
+  tech_received_date: string | null;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
@@ -655,8 +657,8 @@ export const StakeholderFinancial = () => {
                 <div className="border-t pt-4">
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Tech Partner Receipt</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.transaction_reference || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.payment_date || selectedRow.created_at)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.tech_receipt_id || selectedRow.transaction_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.tech_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
                   </div>
                 </div>
                 <div className="border-t pt-4">

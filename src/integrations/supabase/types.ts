@@ -368,6 +368,8 @@ export type Database = {
           payment_method: string | null
           plantation_partner_id: string | null
           status: string
+          tech_receipt_id: string | null
+          tech_received_date: string | null
           tourist_name: string | null
           transaction_reference: string | null
           transfer_date: string | null
@@ -398,6 +400,8 @@ export type Database = {
           payment_method?: string | null
           plantation_partner_id?: string | null
           status?: string
+          tech_receipt_id?: string | null
+          tech_received_date?: string | null
           tourist_name?: string | null
           transaction_reference?: string | null
           transfer_date?: string | null
@@ -428,6 +432,8 @@ export type Database = {
           payment_method?: string | null
           plantation_partner_id?: string | null
           status?: string
+          tech_receipt_id?: string | null
+          tech_received_date?: string | null
           tourist_name?: string | null
           transaction_reference?: string | null
           transfer_date?: string | null
