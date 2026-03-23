@@ -400,7 +400,7 @@ export const StakeholderFinancial = () => {
 
       {/* Summary */}
       {isTechPartner ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
@@ -410,16 +410,9 @@ export const StakeholderFinancial = () => {
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee ({techFeePercent}%)</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee</p>
               <p className="text-2xl font-bold text-primary mt-1">${formatNumber(totals.totalTechFee)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Trees</p>
-              <p className="text-2xl font-bold mt-1">{formatNumber(totals.totalTrees)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Across {totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
         </div>
