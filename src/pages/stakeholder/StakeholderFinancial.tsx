@@ -617,7 +617,10 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "ktb" && (
             <>
               <SheetHeader>
-                <SheetTitle>KTB Transaction — {selectedRow.contribution_id}</SheetTitle>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>KTB Transaction: {selectedRow.contribution_id}</span>
+                  {getStatusBadge(selectedRow.status)}
+                </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
