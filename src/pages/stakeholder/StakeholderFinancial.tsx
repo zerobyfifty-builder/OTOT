@@ -320,14 +320,24 @@ export const StakeholderFinancial = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const totals = {
-    total: contributions?.reduce((s, c) => s + Number(c.amount_paid), 0) || 0,
-    totalTrees: contributions?.reduce((s, c) => s + Number(c.num_trees), 0) || 0,
-    confirmed: contributions?.filter((c) => c.status === "contribution_confirmed").length || 0,
-    fundsReceived: contributions?.filter((c) => c.status === "funds_received").length || 0,
-    transferred: contributions?.filter((c) => c.status === "transferred_for_planting").length || 0,
-    received: contributions?.filter((c) => c.status === "received_for_planting").length || 0,
-  };
+  const totals = useMemo(() => {
+    const all = contributions || [];
+    const totalAllocated = all.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const totalTrees = all.reduce((s, c) => s + Number(c.num_trees), 0);
+    const fundsReceivedRows = all.filter((c) => c.status === "funds_received" || c.status === "transferred_for_planting" || c.status === "received_for_planting");
+    const fundsReceivedTotal = fundsReceivedRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
+    const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    return {
+      totalAllocated,
+      totalTrees,
+      totalBatches: all.length,
+      fundsReceivedCount: fundsReceivedRows.length,
+      fundsReceivedTotal,
+      transferredCount: transferredRows.length,
+      transferredTotal,
+    };
+  }, [contributions]);
 
   const formatDate = (d: string | null) => {
     if (!d) return "-";
