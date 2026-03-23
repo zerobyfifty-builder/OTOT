@@ -135,7 +135,26 @@ export const StakeholderFinancial = () => {
     userRole === "institutional_partner" ||
     partnerTypeName === "Institutional Partner";
 
-  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser;
+  const isTechPartner = partnerTypeName === "Tech Partner" || partnerTypeName === "Technology Partner";
+
+  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser && !isTechPartner;
+
+  // Fetch wallet settings for tech fee calculation
+  const { data: walletSettings } = useQuery({
+    queryKey: ["walletSettings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_settings")
+        .select("setting_key, setting_value");
+      return data || [];
+    },
+    enabled: isTechPartner,
+  });
+
+  const techFeePercent = useMemo(() => {
+    const setting = walletSettings?.find((s: any) => s.setting_key === "tech_partner_fee");
+    return setting ? Number(setting.setting_value) : 30;
+  }, [walletSettings]);
 
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
