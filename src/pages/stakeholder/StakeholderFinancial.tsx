@@ -348,6 +348,9 @@ export const StakeholderFinancial = () => {
     const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
     const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
+    // Tech partner totals
+    const totalTechFee = all.reduce((s, c) => s + (Number(c.amount_paid) * techFeePercent / 100), 0);
+    const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
     return {
       totalAllocated,
       totalTrees,
@@ -357,8 +360,10 @@ export const StakeholderFinancial = () => {
       transferredCount: transferredRows.length,
       transferredTotal,
       balance,
+      totalTechFee,
+      totalContribution,
     };
-  }, [contributions]);
+  }, [contributions, techFeePercent]);
 
   const formatDate = (d: string | null) => {
     if (!d) return "-";
