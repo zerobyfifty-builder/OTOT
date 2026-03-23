@@ -648,18 +648,20 @@ export const StakeholderFinancial = () => {
                   <Label className="text-xs">Mode of Transfer</Label>
                   <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
                 </div>
-                <div className="flex gap-2 mt-4">
-                  {selectedRow.status === "contribution_confirmed" && (
-                    <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                      {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
-                    </Button>
-                  )}
-                  {selectedRow.status === "funds_received" && (
-                    <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
-                      {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
-                    </Button>
-                  )}
-                </div>
+                {(selectedRow.status === "contribution_confirmed" || selectedRow.status === "funds_received") && (
+                  <div className="flex gap-2 mt-4">
+                    {selectedRow.status === "contribution_confirmed" && (
+                      <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                        {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
+                      </Button>
+                    )}
+                    {selectedRow.status === "funds_received" && (
+                      <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                        {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           )}
