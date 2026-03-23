@@ -433,16 +433,17 @@ export const StakeholderFinancial = () => {
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
                       {/* Institutional: Contri Id, Type, Contributor, Country, Trees, Contribution, Received, Dt Recvd, Method, Retained, Transferred, Mode, Status, Action */}
                       <SortableHead field="contribution_id" label="Contri Id" />
-                      {!isPlantationPartner && <SortableHead field="contribution_type" label="Type" />}
-                      <SortableHead field="tourist_name" label={isPlantationPartner ? "Contributor" : "Contributor"} />
+                      <SortableHead field="contribution_type" label="Type" />
+                      <SortableHead field="tourist_name" label="Contributor" />
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
+                      {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
                       {!isPlantationPartner && <SortableHead field="amount_paid" label="Contribution" />}
                       {!isPlantationPartner && <StaticHead label="Received" />}
                       {!isPlantationPartner && <StaticHead label="Dt Recvd" />}
                       {!isPlantationPartner && <StaticHead label="Method" />}
                       {!isPlantationPartner && <StaticHead label="Retained" />}
-                      <StaticHead label={isPlantationPartner ? "Amt Transferred" : "Transferred"} />
+                      <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />
                       {isPlantationPartner && <StaticHead label="Transfer Date" />}
                       <StaticHead label="Mode" />
                       {isPlantationPartner && <StaticHead label="Received Date" />}
