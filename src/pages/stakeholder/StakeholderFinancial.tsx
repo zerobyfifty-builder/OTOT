@@ -558,7 +558,7 @@ export const StakeholderFinancial = () => {
       {/* Detail / Edit Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          {selectedRow && sheetMode === "view" && (
+           {selectedRow && sheetMode === "view" && (
             <>
               <SheetHeader>
                 <SheetTitle className="flex items-center justify-between">
