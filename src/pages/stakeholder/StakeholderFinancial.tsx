@@ -501,8 +501,8 @@ export const StakeholderFinancial = () => {
                               )}
                               {isPlantationPartner && (
                                 <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
-                                  <Building2 className="h-4 w-4 mr-2" />
-                                  Plantation Transaction
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Receive Funds
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
