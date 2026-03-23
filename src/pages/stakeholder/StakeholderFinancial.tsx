@@ -328,6 +328,7 @@ export const StakeholderFinancial = () => {
     const fundsReceivedTotal = fundsReceivedRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
     const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
     return {
       totalAllocated,
       totalTrees,
@@ -336,6 +337,7 @@ export const StakeholderFinancial = () => {
       fundsReceivedTotal,
       transferredCount: transferredRows.length,
       transferredTotal,
+      balance,
     };
   }, [contributions]);
 
@@ -373,12 +375,19 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
             <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
             <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
+            <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
@@ -390,9 +399,9 @@ export const StakeholderFinancial = () => {
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
-            <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
+            <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">Allocated − Received − Transferred</p>
           </CardContent>
         </Card>
       </div>
