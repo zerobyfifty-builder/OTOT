@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical } from "lucide-react";
+import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -401,7 +401,7 @@ export const StakeholderFinancial = () => {
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
             <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">Allocated − Received − Transferred</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{contributions.length} contributions</p>
           </CardContent>
         </Card>
       </div>
@@ -501,8 +501,8 @@ export const StakeholderFinancial = () => {
                               )}
                               {isPlantationPartner && (
                                 <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
-                                  <Building2 className="h-4 w-4 mr-2" />
-                                  Plantation Transaction
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Receive Funds
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -679,10 +679,11 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "partner" && (
             <>
               <SheetHeader>
-                <SheetTitle className="flex items-center justify-between">
-                  <span>Plantation Transaction: {selectedRow.contribution_id}</span>
-                  {getStatusBadge(selectedRow.status)}
-                </SheetTitle>
+                <SheetTitle className="flex items-center gap-2">
+                   <Pencil className="h-4 w-4" />
+                   <span>Receive Funds: {selectedRow.contribution_id}</span>
+                   {getStatusBadge(selectedRow.status)}
+                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
