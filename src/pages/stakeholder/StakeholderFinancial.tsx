@@ -401,7 +401,7 @@ export const StakeholderFinancial = () => {
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
             <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{contributions.length} contributions</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{(contributions || []).length} contributions</p>
           </CardContent>
         </Card>
       </div>
