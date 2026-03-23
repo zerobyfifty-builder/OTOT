@@ -167,6 +167,8 @@ export const StakeholderFinancial = () => {
         .update({
           ktb_receipt_id: ktbForm.ktb_receipt_id,
           ktb_received_date: ktbForm.ktb_received_date || null,
+          institution_receipt_id: ktbForm.ktb_receipt_id,
+          institution_received_date: ktbForm.ktb_received_date || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference || null,
           transfer_mode: ktbForm.transfer_mode || null,
