@@ -455,10 +455,11 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
-                        {!isPlantationPartner && <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>}
+                        <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
+                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
@@ -477,10 +478,12 @@ export const StakeholderFinancial = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openSheet(c, "view")}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Transaction
-                              </DropdownMenuItem>
+                              {!isPlantationPartner && (
+                                <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Transaction
+                                </DropdownMenuItem>
+                              )}
                               {isKtbUser && (
                                 <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
                                   <Landmark className="h-4 w-4 mr-2" />
