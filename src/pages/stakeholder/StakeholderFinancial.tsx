@@ -373,37 +373,28 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
           <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
-            <p className="text-2xl font-bold mt-1">${formatNumber(totals.total)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Confirmed</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{totals.confirmed}</p>
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
+            <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{totals.fundsReceived}</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">${formatNumber(totals.fundsReceivedTotal)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.fundsReceivedCount} contributions</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
-            <p className="text-2xl font-bold text-violet-600 mt-1">{totals.transferred}</p>
+            <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Received for Planting</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">{totals.received}</p>
-          </CardContent>
         </Card>
       </div>
 
