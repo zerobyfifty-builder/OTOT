@@ -320,14 +320,24 @@ export const StakeholderFinancial = () => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const totals = {
-    total: contributions?.reduce((s, c) => s + Number(c.amount_paid), 0) || 0,
-    totalTrees: contributions?.reduce((s, c) => s + Number(c.num_trees), 0) || 0,
-    confirmed: contributions?.filter((c) => c.status === "contribution_confirmed").length || 0,
-    fundsReceived: contributions?.filter((c) => c.status === "funds_received").length || 0,
-    transferred: contributions?.filter((c) => c.status === "transferred_for_planting").length || 0,
-    received: contributions?.filter((c) => c.status === "received_for_planting").length || 0,
-  };
+  const totals = useMemo(() => {
+    const all = contributions || [];
+    const totalAllocated = all.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const totalTrees = all.reduce((s, c) => s + Number(c.num_trees), 0);
+    const fundsReceivedRows = all.filter((c) => c.status === "funds_received" || c.status === "transferred_for_planting" || c.status === "received_for_planting");
+    const fundsReceivedTotal = fundsReceivedRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
+    const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    return {
+      totalAllocated,
+      totalTrees,
+      totalBatches: all.length,
+      fundsReceivedCount: fundsReceivedRows.length,
+      fundsReceivedTotal,
+      transferredCount: transferredRows.length,
+      transferredTotal,
+    };
+  }, [contributions]);
 
   const formatDate = (d: string | null) => {
     if (!d) return "-";
@@ -363,36 +373,26 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
           <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
-            <p className="text-2xl font-bold mt-1">${formatNumber(totals.total)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{contributions?.length || 0} batches · {totals.totalTrees} trees</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Confirmed</p>
-            <p className="text-2xl font-bold text-blue-600 mt-1">{totals.confirmed}</p>
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
+            <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{totals.fundsReceived}</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">${formatNumber(totals.fundsReceivedTotal)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.fundsReceivedCount} contributions</p>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
-            <p className="text-2xl font-bold text-violet-600 mt-1">{totals.transferred}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Received for Planting</p>
-            <p className="text-2xl font-bold text-emerald-600 mt-1">{totals.received}</p>
+            <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
           </CardContent>
         </Card>
       </div>
@@ -558,7 +558,7 @@ export const StakeholderFinancial = () => {
       {/* Detail / Edit Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          {selectedRow && sheetMode === "view" && (
+           {selectedRow && sheetMode === "view" && (
             <>
               <SheetHeader>
                 <SheetTitle className="flex items-center justify-between">
@@ -617,7 +617,10 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "ktb" && (
             <>
               <SheetHeader>
-                <SheetTitle>KTB Transaction — {selectedRow.contribution_id}</SheetTitle>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>KTB Transaction: {selectedRow.contribution_id}</span>
+                  {getStatusBadge(selectedRow.status)}
+                </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
@@ -645,18 +648,20 @@ export const StakeholderFinancial = () => {
                   <Label className="text-xs">Mode of Transfer</Label>
                   <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
                 </div>
-                <div className="flex gap-2 mt-4">
-                  {selectedRow.status === "contribution_confirmed" && (
-                    <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                      {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
-                    </Button>
-                  )}
-                  {selectedRow.status === "funds_received" && (
-                    <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
-                      {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
-                    </Button>
-                  )}
-                </div>
+                {(selectedRow.status === "contribution_confirmed" || selectedRow.status === "funds_received") && (
+                  <div className="flex gap-2 mt-4">
+                    {selectedRow.status === "contribution_confirmed" && (
+                      <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                        {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
+                      </Button>
+                    )}
+                    {selectedRow.status === "funds_received" && (
+                      <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                        {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -699,9 +704,11 @@ export const StakeholderFinancial = () => {
                   <Label className="text-xs">Acknowledgement Document URL</Label>
                   <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
                 </div>
-                <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
-                  {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
-                </Button>
+                {selectedRow.status !== "received_for_planting" && (
+                  <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
+                    {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
+                  </Button>
+                )}
               </div>
             </>
           )}
