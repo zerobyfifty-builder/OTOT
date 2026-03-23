@@ -45,6 +45,8 @@ interface ContributionRow {
   acknowledgement_doc: string | null;
   status: string;
   created_at: string;
+  tech_receipt_id: string | null;
+  tech_received_date: string | null;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
