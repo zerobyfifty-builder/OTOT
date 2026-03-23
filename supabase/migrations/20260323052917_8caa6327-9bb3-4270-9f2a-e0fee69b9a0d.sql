@@ -1,0 +1,1 @@
+ALTER TABLE public.contribution_tracking ADD COLUMN contribution_type text DEFAULT 'tourist';
