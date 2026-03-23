@@ -135,7 +135,26 @@ export const StakeholderFinancial = () => {
     userRole === "institutional_partner" ||
     partnerTypeName === "Institutional Partner";
 
-  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser;
+  const isTechPartner = partnerTypeName === "Tech Partner" || partnerTypeName === "Technology Partner";
+
+  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser && !isTechPartner;
+
+  // Fetch wallet settings for tech fee calculation
+  const { data: walletSettings } = useQuery({
+    queryKey: ["walletSettings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_settings")
+        .select("setting_key, setting_value");
+      return data || [];
+    },
+    enabled: isTechPartner,
+  });
+
+  const techFeePercent = useMemo(() => {
+    const setting = walletSettings?.find((s: any) => s.setting_key === "tech_partner_fee");
+    return setting ? Number(setting.setting_value) : 30;
+  }, [walletSettings]);
 
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -329,6 +348,9 @@ export const StakeholderFinancial = () => {
     const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
     const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
+    // Tech partner totals
+    const totalTechFee = all.reduce((s, c) => s + (Number(c.amount_paid) * techFeePercent / 100), 0);
+    const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
     return {
       totalAllocated,
       totalTrees,
@@ -338,8 +360,10 @@ export const StakeholderFinancial = () => {
       transferredCount: transferredRows.length,
       transferredTotal,
       balance,
+      totalTechFee,
+      totalContribution,
     };
-  }, [contributions]);
+  }, [contributions, techFeePercent]);
 
   const formatDate = (d: string | null) => {
     if (!d) return "-";
@@ -375,36 +399,62 @@ export const StakeholderFinancial = () => {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
-            <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
-            <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">${formatNumber(totals.fundsReceivedTotal)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{totals.fundsReceivedCount} contributions</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
-            <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches - totals.transferredCount - totals.fundsReceivedCount} contributions</p>
-          </CardContent>
-        </Card>
-      </div>
+      {isTechPartner ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
+              <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalContribution)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee ({techFeePercent}%)</p>
+              <p className="text-2xl font-bold text-primary mt-1">${formatNumber(totals.totalTechFee)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Trees</p>
+              <p className="text-2xl font-bold mt-1">{formatNumber(totals.totalTrees)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Across {totals.totalBatches} contributions</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
+              <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
+              <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">${formatNumber(totals.fundsReceivedTotal)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.fundsReceivedCount} contributions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
+              <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches - totals.transferredCount - totals.fundsReceivedCount} contributions</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -440,21 +490,24 @@ export const StakeholderFinancial = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
-                      {/* Institutional: Contri Id, Type, Contributor, Country, Trees, Contribution, Received, Dt Recvd, Method, Retained, Transferred, Mode, Status, Action */}
                       <SortableHead field="contribution_id" label="Contri Id" />
                       <SortableHead field="contribution_type" label="Type" />
                       <SortableHead field="tourist_name" label="Contributor" />
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
+                      {isTechPartner && <SortableHead field="amount_paid" label="Contribution" />}
+                      {isTechPartner && <StaticHead label={`Tech Fee (${techFeePercent}%)`} />}
+                      {isTechPartner && <StaticHead label="Dt Received" />}
+                      {isTechPartner && <StaticHead label="Method" />}
                       {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
-                      {!isPlantationPartner && <SortableHead field="amount_paid" label="Contribution" />}
-                      {!isPlantationPartner && <StaticHead label="Received" />}
-                      {!isPlantationPartner && <StaticHead label="Dt Recvd" />}
-                      {!isPlantationPartner && <StaticHead label="Method" />}
-                      {!isPlantationPartner && <StaticHead label="Retained" />}
-                      <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />
+                      {isKtbUser && <SortableHead field="amount_paid" label="Contribution" />}
+                      {isKtbUser && <StaticHead label="Received" />}
+                      {isKtbUser && <StaticHead label="Dt Recvd" />}
+                      {isKtbUser && <StaticHead label="Method" />}
+                      {isKtbUser && <StaticHead label="Retained" />}
+                      {(isKtbUser || isPlantationPartner) && <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />}
                       {isPlantationPartner && <StaticHead label="Transfer Date" />}
-                      <StaticHead label="Mode" />
+                      {(isKtbUser || isPlantationPartner) && <StaticHead label="Mode" />}
                       {isPlantationPartner && <StaticHead label="Received Date" />}
                       <SortableHead field="status" label="Status" />
                       <StaticHead label="Action" className="text-right" />
@@ -468,15 +521,19 @@ export const StakeholderFinancial = () => {
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
+                        {isTechPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
+                        {isTechPartner && <TableCell className="text-primary font-medium text-sm tabular-nums">${(Number(c.amount_paid) * techFeePercent / 100).toFixed(2)}</TableCell>}
+                        {isTechPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
+                        {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
-                        {!isPlantationPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
-                        {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
-                        {!isPlantationPartner && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
-                        {!isPlantationPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
-                        {!isPlantationPartner && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
-                        <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>
+                        {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
+                        {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
+                        {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.transfer_date)}</TableCell>}
-                        <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>
+                        {(isKtbUser || isPlantationPartner) && <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.partner_received_date)}</TableCell>}
                         <TableCell>{getStatusBadge(c.status)}</TableCell>
                         <TableCell className="text-right">
@@ -487,7 +544,7 @@ export const StakeholderFinancial = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {!isPlantationPartner && (
+                              {(isKtbUser || isTechPartner) && (
                                 <DropdownMenuItem onClick={() => openSheet(c, "view")}>
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Transaction
