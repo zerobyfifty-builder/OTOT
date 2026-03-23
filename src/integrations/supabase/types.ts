@@ -359,6 +359,8 @@ export type Database = {
           created_at: string | null
           currency: string | null
           id: string
+          institution_receipt_id: string | null
+          institution_received_date: string | null
           ktb_receipt_id: string | null
           ktb_received_date: string | null
           num_trees: number
@@ -391,6 +393,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          institution_receipt_id?: string | null
+          institution_received_date?: string | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
           num_trees?: number
@@ -423,6 +427,8 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           id?: string
+          institution_receipt_id?: string | null
+          institution_received_date?: string | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
           num_trees?: number
