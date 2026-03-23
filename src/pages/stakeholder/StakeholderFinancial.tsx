@@ -231,8 +231,8 @@ export const StakeholderFinancial = () => {
     setSheetMode(mode);
     if (mode === "ktb") {
       setKtbForm({
-        ktb_receipt_id: row.ktb_receipt_id || "",
-        ktb_received_date: row.ktb_received_date || "",
+        ktb_receipt_id: row.institution_receipt_id || row.ktb_receipt_id || "",
+        ktb_received_date: row.institution_received_date || row.ktb_received_date || (row.payment_date ? row.payment_date.split('T')[0] : "") || "",
         plantation_partner_id: row.plantation_partner_id || "",
         transfer_date: row.transfer_date || "",
         transfer_reference: row.transfer_reference || "",
