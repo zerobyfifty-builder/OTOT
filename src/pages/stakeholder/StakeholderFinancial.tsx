@@ -704,9 +704,11 @@ export const StakeholderFinancial = () => {
                   <Label className="text-xs">Acknowledgement Document URL</Label>
                   <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
                 </div>
-                <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
-                  {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
-                </Button>
+                {selectedRow.status !== "received_for_planting" && (
+                  <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
+                    {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
+                  </Button>
+                )}
               </div>
             </>
           )}
