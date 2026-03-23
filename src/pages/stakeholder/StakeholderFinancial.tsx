@@ -47,6 +47,8 @@ interface ContributionRow {
   created_at: string;
   tech_receipt_id: string | null;
   tech_received_date: string | null;
+  institution_receipt_id: string | null;
+  institution_received_date: string | null;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
@@ -165,6 +167,8 @@ export const StakeholderFinancial = () => {
         .update({
           ktb_receipt_id: ktbForm.ktb_receipt_id,
           ktb_received_date: ktbForm.ktb_received_date || null,
+          institution_receipt_id: ktbForm.ktb_receipt_id,
+          institution_received_date: ktbForm.ktb_received_date || null,
           transfer_date: ktbForm.transfer_date || null,
           transfer_reference: ktbForm.transfer_reference || null,
           transfer_mode: ktbForm.transfer_mode || null,
@@ -229,8 +233,8 @@ export const StakeholderFinancial = () => {
     setSheetMode(mode);
     if (mode === "ktb") {
       setKtbForm({
-        ktb_receipt_id: row.ktb_receipt_id || "",
-        ktb_received_date: row.ktb_received_date || "",
+        ktb_receipt_id: row.institution_receipt_id || row.ktb_receipt_id || "",
+        ktb_received_date: row.institution_received_date || row.ktb_received_date || (row.payment_date ? row.payment_date.split('T')[0] : "") || "",
         plantation_partner_id: row.plantation_partner_id || "",
         transfer_date: row.transfer_date || "",
         transfer_reference: row.transfer_reference || "",
@@ -525,7 +529,7 @@ export const StakeholderFinancial = () => {
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
@@ -664,8 +668,8 @@ export const StakeholderFinancial = () => {
                 <div className="border-t pt-4">
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">KTB Receipt & Transfer</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.ktb_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.ktb_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.institution_receipt_id || selectedRow.ktb_receipt_id || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.institution_received_date || selectedRow.ktb_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Transfer Ref</span><p>{selectedRow.transfer_reference || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
