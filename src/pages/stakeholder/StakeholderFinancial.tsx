@@ -433,16 +433,17 @@ export const StakeholderFinancial = () => {
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
                       {/* Institutional: Contri Id, Type, Contributor, Country, Trees, Contribution, Received, Dt Recvd, Method, Retained, Transferred, Mode, Status, Action */}
                       <SortableHead field="contribution_id" label="Contri Id" />
-                      {!isPlantationPartner && <SortableHead field="contribution_type" label="Type" />}
-                      <SortableHead field="tourist_name" label={isPlantationPartner ? "Contributor" : "Contributor"} />
+                      <SortableHead field="contribution_type" label="Type" />
+                      <SortableHead field="tourist_name" label="Contributor" />
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
+                      {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
                       {!isPlantationPartner && <SortableHead field="amount_paid" label="Contribution" />}
                       {!isPlantationPartner && <StaticHead label="Received" />}
                       {!isPlantationPartner && <StaticHead label="Dt Recvd" />}
                       {!isPlantationPartner && <StaticHead label="Method" />}
                       {!isPlantationPartner && <StaticHead label="Retained" />}
-                      <StaticHead label={isPlantationPartner ? "Amt Transferred" : "Transferred"} />
+                      <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />
                       {isPlantationPartner && <StaticHead label="Transfer Date" />}
                       <StaticHead label="Mode" />
                       {isPlantationPartner && <StaticHead label="Received Date" />}
@@ -454,10 +455,11 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
-                        {!isPlantationPartner && <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>}
+                        <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
+                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.amount_received || 0).toFixed(2)}</TableCell>}
                         {!isPlantationPartner && <TableCell className="text-sm">{formatDate(c.ktb_received_date)}</TableCell>}
@@ -476,10 +478,12 @@ export const StakeholderFinancial = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openSheet(c, "view")}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Transaction
-                              </DropdownMenuItem>
+                              {!isPlantationPartner && (
+                                <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Transaction
+                                </DropdownMenuItem>
+                              )}
                               {isKtbUser && (
                                 <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
                                   <Landmark className="h-4 w-4 mr-2" />
@@ -661,15 +665,18 @@ export const StakeholderFinancial = () => {
           {selectedRow && sheetMode === "partner" && (
             <>
               <SheetHeader>
-                <SheetTitle>Plantation Transaction — {selectedRow.contribution_id}</SheetTitle>
+                <SheetTitle className="flex items-center justify-between">
+                  <span>Plantation Transaction: {selectedRow.contribution_id}</span>
+                  {getStatusBadge(selectedRow.status)}
+                </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
-                  <p><span className="text-muted-foreground">Contributor:</span> {selectedRow.tourist_name}</p>
-                  <p><span className="text-muted-foreground">Trees:</span> {selectedRow.num_trees}</p>
-                  <p><span className="text-muted-foreground">Amount:</span> ${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p>
-                  <p><span className="text-muted-foreground">Transfer Ref:</span> {selectedRow.transfer_reference || "-"}</p>
-                  <p><span className="text-muted-foreground">Transfer Date:</span> {formatDate(selectedRow.transfer_date)}</p>
+                <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Trees:</span> <span className="font-medium">{selectedRow.num_trees}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span> <span className="font-medium">${Number(selectedRow.amount_transferred || 0).toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Transfer Date:</span> <span className="font-medium">{formatDate(selectedRow.transfer_date)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Mode:</span> <span className="font-medium">{selectedRow.transfer_mode || "-"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Transfer Ref:</span> <span className="font-medium">{selectedRow.transfer_reference || "-"}</span></div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">Receipt Confirmation</Label>
