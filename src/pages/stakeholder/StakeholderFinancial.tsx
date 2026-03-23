@@ -328,6 +328,7 @@ export const StakeholderFinancial = () => {
     const fundsReceivedTotal = fundsReceivedRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     const transferredRows = all.filter((c) => c.status === "transferred_for_planting" || c.status === "received_for_planting");
     const transferredTotal = transferredRows.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
     return {
       totalAllocated,
       totalTrees,
@@ -336,6 +337,7 @@ export const StakeholderFinancial = () => {
       fundsReceivedTotal,
       transferredCount: transferredRows.length,
       transferredTotal,
+      balance,
     };
   }, [contributions]);
 
