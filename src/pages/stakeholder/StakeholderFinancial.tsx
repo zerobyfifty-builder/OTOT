@@ -648,12 +648,14 @@ export const StakeholderFinancial = () => {
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
            {selectedRow && sheetMode === "view" && (
             <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center justify-between">
-                  <span>{selectedRow.contribution_id}</span>
-                  {getStatusBadge(selectedRow.status)}
-                </SheetTitle>
-              </SheetHeader>
+               <SheetHeader>
+                <SheetTitle>{selectedRow.contribution_id}</SheetTitle>
+               </SheetHeader>
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                    <div><span className="text-muted-foreground text-xs">Contri ID</span><div className="flex items-center gap-2"><p className="font-mono font-medium">{selectedRow.contribution_id}</p>{getStatusBadge(selectedRow.status)}</div></div>
               <div className="mt-6 space-y-6">
                 <div>
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
