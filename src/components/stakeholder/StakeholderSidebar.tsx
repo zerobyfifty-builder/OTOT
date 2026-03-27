@@ -140,6 +140,16 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   const organizationName = orgName || undefined;
 
+  // Dynamic sidebar color based on stakeholder type
+  const sidebarColor = (() => {
+    switch (partnerCategory) {
+      case 'institutional': return 'hsl(348 70% 30%)';
+      case 'tech': return 'hsl(212 100% 50%)';
+      case 'plantation':
+      default: return 'hsl(138 70% 22%)';
+    }
+  })();
+
   const handleSignOut = async () => {
     try {
       await signOut();
