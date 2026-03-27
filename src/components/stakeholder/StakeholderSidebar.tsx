@@ -63,6 +63,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
   const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
+  const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
@@ -89,10 +90,11 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         if (org?.partner_type_id) {
           const { data: pt } = await supabase
             .from('partner_types')
-            .select('name')
+            .select('name, category')
             .eq('id', org.partner_type_id)
             .maybeSingle();
           if (pt?.name) setPartnerTypeName(pt.name);
+          if (pt?.category) setPartnerCategory(pt.category.toLowerCase());
         }
       }
     };
@@ -138,6 +140,16 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   const organizationName = orgName || undefined;
 
+  // Dynamic sidebar color based on stakeholder type
+  const sidebarColor = (() => {
+    switch (partnerCategory) {
+      case 'institutional': return 'hsl(348 70% 30%)';
+      case 'tech': return 'hsl(212 100% 50%)';
+      case 'plantation':
+      default: return 'hsl(138 70% 22%)';
+    }
+  })();
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -155,13 +167,13 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   return (
     <Sidebar
-      style={{ backgroundColor: 'hsl(138 70% 22%)' }}
+      style={{ backgroundColor: sidebarColor }}
       className={`group/sidebar border-r border-white/10 ${collapsed ? 'w-20' : 'w-64'}`}
       collapsible="icon"
     >
-      <SidebarContent style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+      <SidebarContent style={{ backgroundColor: sidebarColor }}>
         <div
-          style={{ backgroundColor: 'hsl(138 70% 22%)' }}
+          style={{ backgroundColor: sidebarColor }}
           className={`p-4 border-b border-white/20 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}
         >
           {!collapsed && (
@@ -197,7 +209,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           )}
         </div>
 
-        <SidebarGroup style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+        <SidebarGroup style={{ backgroundColor: sidebarColor }}>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
@@ -225,7 +237,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+      <SidebarFooter style={{ backgroundColor: sidebarColor }}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button

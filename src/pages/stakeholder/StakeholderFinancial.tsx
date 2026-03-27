@@ -649,13 +649,13 @@ export const StakeholderFinancial = () => {
            {selectedRow && sheetMode === "view" && (
             <>
                <SheetHeader>
-                <SheetTitle>{selectedRow.contribution_id}</SheetTitle>
+                <SheetTitle className="flex items-center gap-3">{selectedRow.contribution_id} {getStatusBadge(selectedRow.status)}</SheetTitle>
                </SheetHeader>
               <div className="mt-6 space-y-6">
                 <div>
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Contri ID</span><div className="flex items-center gap-2"><p className="font-mono font-medium">{selectedRow.contribution_id}</p>{getStatusBadge(selectedRow.status)}</div></div>
+                    <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
                     <div><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
