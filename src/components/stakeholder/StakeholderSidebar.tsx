@@ -30,10 +30,10 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 // Core menu items always visible
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
+  { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
   { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout },
   { title: 'Planting', url: '/stakeholder/planting', icon: TreePine },
   { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3 },
-  { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
   { title: 'Community Impact', url: '/stakeholder/impact', icon: Target },
   { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target },
   { title: 'Admin', url: '/stakeholder/admin', icon: Settings },

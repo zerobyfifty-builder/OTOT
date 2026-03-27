@@ -49,6 +49,7 @@ interface ContributionRow {
   tech_received_date: string | null;
   institution_receipt_id: string | null;
   institution_received_date: string | null;
+  tech_fee_received: number;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
