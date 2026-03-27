@@ -132,7 +132,7 @@ export function AdminSidebar() {
 
   return (
     <Sidebar className={collapsed ? "w-14" : "w-64"}>
-      <SidebarContent className="bg-admin-primary text-admin-cream">
+      <SidebarContent style={{ backgroundColor: 'hsl(220 9% 35%)' }} className="text-white">
         {/* User info header */}
         {!collapsed && (
           <div className="p-4 border-b border-admin-cream/20">
