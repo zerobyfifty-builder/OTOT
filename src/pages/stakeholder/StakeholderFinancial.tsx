@@ -526,6 +526,7 @@ export const StakeholderFinancial = () => {
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
                         {isTechPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-primary font-medium text-sm tabular-nums">${(Number(c.amount_paid) * techFeePercent / 100).toFixed(2)}</TableCell>}
+                        {isTechPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
