@@ -497,7 +497,8 @@ export const StakeholderFinancial = () => {
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
                       {isTechPartner && <SortableHead field="amount_paid" label="Contribution" />}
-                      {isTechPartner && <StaticHead label="Tech Fee" />}
+                      {isTechPartner && <StaticHead label="Tech Fee Allocated" />}
+                      {isTechPartner && <StaticHead label="Amnt Received" />}
                       {isTechPartner && <StaticHead label="Dt Received" />}
                       {isTechPartner && <StaticHead label="Method" />}
                       {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
