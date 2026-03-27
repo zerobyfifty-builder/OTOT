@@ -209,7 +209,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           )}
         </div>
 
-        <SidebarGroup style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+        <SidebarGroup style={{ backgroundColor: sidebarColor }}>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
