@@ -49,6 +49,7 @@ interface ContributionRow {
   tech_received_date: string | null;
   institution_receipt_id: string | null;
   institution_received_date: string | null;
+  tech_fee_received: number;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
@@ -356,7 +357,9 @@ export const StakeholderFinancial = () => {
     const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
     // Tech partner totals
     const totalTechFee = all.reduce((s, c) => s + (Number(c.amount_paid) * techFeePercent / 100), 0);
+    const totalTechReceived = all.reduce((s, c) => s + Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)), 0);
     const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
+    const techUnderProcessing = totalTechFee - totalTechReceived;
     return {
       totalAllocated,
       totalTrees,
@@ -367,6 +370,8 @@ export const StakeholderFinancial = () => {
       transferredTotal,
       balance,
       totalTechFee,
+      totalTechReceived,
+      techUnderProcessing,
       totalContribution,
     };
   }, [contributions, techFeePercent]);
@@ -406,7 +411,7 @@ export const StakeholderFinancial = () => {
 
       {/* Summary */}
       {isTechPartner ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
@@ -416,8 +421,22 @@ export const StakeholderFinancial = () => {
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee Allocated</p>
               <p className="text-2xl font-bold text-primary mt-1">${formatNumber(totals.totalTechFee)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Received</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">${formatNumber(totals.totalTechReceived)}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Under Processing</p>
+              <p className={`text-2xl font-bold mt-1 ${totals.techUnderProcessing >= 0 ? 'text-amber-600' : 'text-red-600'}`}>${formatNumber(totals.techUnderProcessing)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
@@ -496,7 +515,8 @@ export const StakeholderFinancial = () => {
                       <SortableHead field="country" label="Country" />
                       <SortableHead field="num_trees" label="Trees" />
                       {isTechPartner && <SortableHead field="amount_paid" label="Contribution" />}
-                      {isTechPartner && <StaticHead label="Tech Fee" />}
+                      {isTechPartner && <StaticHead label="Tech Fee Allocated" />}
+                      {isTechPartner && <StaticHead label="Amnt Received" />}
                       {isTechPartner && <StaticHead label="Dt Received" />}
                       {isTechPartner && <StaticHead label="Method" />}
                       {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
@@ -524,6 +544,7 @@ export const StakeholderFinancial = () => {
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
                         {isTechPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-primary font-medium text-sm tabular-nums">${(Number(c.amount_paid) * techFeePercent / 100).toFixed(2)}</TableCell>}
+                        {isTechPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
@@ -627,17 +648,14 @@ export const StakeholderFinancial = () => {
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
            {selectedRow && sheetMode === "view" && (
             <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center justify-between">
-                  <span>{selectedRow.contribution_id}</span>
-                  {getStatusBadge(selectedRow.status)}
-                </SheetTitle>
-              </SheetHeader>
+               <SheetHeader>
+                <SheetTitle>{selectedRow.contribution_id}</SheetTitle>
+               </SheetHeader>
               <div className="mt-6 space-y-6">
                 <div>
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                    <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Contri ID</span><div className="flex items-center gap-2"><p className="font-mono font-medium">{selectedRow.contribution_id}</p>{getStatusBadge(selectedRow.status)}</div></div>
                     <div><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
