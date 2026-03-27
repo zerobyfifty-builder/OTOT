@@ -73,11 +73,16 @@ All colors MUST be HSL.
     --sidebar-border: 0 0% 20%;
     --sidebar-ring: 142 60% 55%;
 
-    /* Admin Dashboard - Humboldt Foundation Aesthetic */
-    --admin-primary: 138 70% 22%;      /* Deep forest green #1a5d1a */
+    /* Admin Dashboard - Grey theme */
+    --admin-primary: 220 9% 35%;       /* Slate grey #4f5660 */
     --admin-cream: 40 40% 98%;         /* Cream background #faf8f5 */
-    --admin-accent: 15 65% 57%;        /* Terracotta #d4704b */
-    --admin-muted: 40 20% 90%;         /* Light cream for cards */
+    --admin-accent: 220 9% 50%;        /* Medium grey accent */
+    --admin-muted: 220 10% 92%;        /* Light grey for cards */
+
+    /* Stakeholder sidebar themes */
+    --stakeholder-plantation: 138 70% 22%;     /* Forest green - current */
+    --stakeholder-institutional: 348 70% 30%;  /* KTB maroon/dark red */
+    --stakeholder-tech: 212 100% 50%;          /* Azure blue #007FFF */
   }
 
   .dark {
