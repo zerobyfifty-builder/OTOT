@@ -90,10 +90,11 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         if (org?.partner_type_id) {
           const { data: pt } = await supabase
             .from('partner_types')
-            .select('name')
+            .select('name, category')
             .eq('id', org.partner_type_id)
             .maybeSingle();
           if (pt?.name) setPartnerTypeName(pt.name);
+          if (pt?.category) setPartnerCategory(pt.category.toLowerCase());
         }
       }
     };
