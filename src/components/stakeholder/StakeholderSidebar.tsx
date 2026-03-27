@@ -237,7 +237,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+      <SidebarFooter style={{ backgroundColor: sidebarColor }}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
