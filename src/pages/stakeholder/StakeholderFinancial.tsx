@@ -357,7 +357,9 @@ export const StakeholderFinancial = () => {
     const balance = totalAllocated - fundsReceivedTotal - transferredTotal;
     // Tech partner totals
     const totalTechFee = all.reduce((s, c) => s + (Number(c.amount_paid) * techFeePercent / 100), 0);
+    const totalTechReceived = all.reduce((s, c) => s + Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)), 0);
     const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
+    const techUnderProcessing = totalTechFee - totalTechReceived;
     return {
       totalAllocated,
       totalTrees,
@@ -368,6 +370,8 @@ export const StakeholderFinancial = () => {
       transferredTotal,
       balance,
       totalTechFee,
+      totalTechReceived,
+      techUnderProcessing,
       totalContribution,
     };
   }, [contributions, techFeePercent]);
