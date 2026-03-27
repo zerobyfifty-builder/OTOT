@@ -167,13 +167,13 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   return (
     <Sidebar
-      style={{ backgroundColor: 'hsl(138 70% 22%)' }}
+      style={{ backgroundColor: sidebarColor }}
       className={`group/sidebar border-r border-white/10 ${collapsed ? 'w-20' : 'w-64'}`}
       collapsible="icon"
     >
-      <SidebarContent style={{ backgroundColor: 'hsl(138 70% 22%)' }}>
+      <SidebarContent style={{ backgroundColor: sidebarColor }}>
         <div
-          style={{ backgroundColor: 'hsl(138 70% 22%)' }}
+          style={{ backgroundColor: sidebarColor }}
           className={`p-4 border-b border-white/20 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}
         >
           {!collapsed && (
