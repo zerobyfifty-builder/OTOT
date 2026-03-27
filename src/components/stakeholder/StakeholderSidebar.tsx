@@ -63,6 +63,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
   const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
+  const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
