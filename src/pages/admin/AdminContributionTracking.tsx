@@ -611,7 +611,7 @@ export default function AdminContributionTracking() {
                     <div className="text-right"><span className="text-muted-foreground text-xs">Trees</span><p className="text-sm font-medium">{selectedRow.num_trees}</p></div>
                     <div><span className="text-muted-foreground text-xs">Payment Date</span><p className="text-sm font-medium">{formatDate(selectedRow.payment_date || selectedRow.created_at)}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Method</span><p className="text-sm font-medium">{selectedRow.payment_method || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Reference</span><p className="font-mono text-xs">{selectedRow.transaction_reference || "-"}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Reference</span><p className="font-mono text-xs">{selectedRow.transaction_reference || "-"}</p></div>
                   </div>
                 </div>
 

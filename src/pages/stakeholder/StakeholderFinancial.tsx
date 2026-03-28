@@ -872,7 +872,7 @@ export const StakeholderFinancial = () => {
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Partner Confirmation</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                     <div><span className="text-muted-foreground text-xs">Confirmed</span><p>{selectedRow.partner_receipt_confirmation ? "Yes" : "No"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
                     <div className="col-span-2"><span className="text-muted-foreground text-xs">Acknowledgement Doc</span><p>{selectedRow.acknowledgement_doc ? <a href={selectedRow.acknowledgement_doc} target="_blank" rel="noreferrer" className="text-primary underline text-xs">View Document</a> : "-"}</p></div>
                   </div>
                 </div>
