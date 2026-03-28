@@ -417,8 +417,12 @@ export const StakeholderFinancial = () => {
   const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100);
   // Helper: AMNT RECEIVED replicates TO BE RECEIVED
   const getAmntReceived = (c: ContributionRow) => getToBeReceived(c);
-  // Helper: RETAINED = AMNT RECEIVED × KTB marketing fee %
+  // Helper: RETAINED FOR MKTNG & ADMIN = AMNT RECEIVED × KTB marketing fee %
   const getRetained = (c: ContributionRow) => getAmntReceived(c) * ktbFeePercent / 100;
+  // Helper: TO BE TRANSFERRED = AMNT RECEIVED - RETAINED
+  const getToBeTransferred = (c: ContributionRow) => getAmntReceived(c) - getRetained(c);
+  // Helper: TRANSFERRED replicates TO BE TRANSFERRED (future: from bank API)
+  const getTransferred = (c: ContributionRow) => getToBeTransferred(c);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
