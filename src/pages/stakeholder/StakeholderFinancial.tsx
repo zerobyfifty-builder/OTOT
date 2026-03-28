@@ -394,6 +394,8 @@ export const StakeholderFinancial = () => {
       totalToBeReceived,
       totalAmntReceived,
       ktbUnderProcessing,
+      totalRetained,
+      totalToBeTransferred,
       totalTransferredForPlantation,
     };
   }, [contributions, techFeePercent, ktbFeePercent]);
