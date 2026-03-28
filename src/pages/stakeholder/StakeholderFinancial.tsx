@@ -592,7 +592,8 @@ export const StakeholderFinancial = () => {
                       {isKtbUser && <StaticHead label="Amnt Received" />}
                       {isKtbUser && <StaticHead label="Dt Recvd" />}
                       {isKtbUser && <StaticHead label="Method" />}
-                      {isKtbUser && <StaticHead label="Retained" />}
+                      {isKtbUser && <StaticHead label="Retained for Mktng & Admin" />}
+                      {isKtbUser && <StaticHead label="To Be Transferred" />}
                       {(isKtbUser || isPlantationPartner) && <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />}
                       {isPlantationPartner && <StaticHead label="Transfer Date" />}
                       {(isKtbUser || isPlantationPartner) && <StaticHead label="Mode" />}
