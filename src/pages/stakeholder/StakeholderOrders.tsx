@@ -77,6 +77,7 @@ const STATUS_LABELS: Record<string, string> = {
   dead: 'Dead',
   // Legacy mappings for any old data
   pending_allocation: 'Waiting to be Assigned',
+  allocated: 'Assigned',
   funds_pending: 'Planting Scheduled',
   funds_received: 'Saplings Ready',
   planting_in_progress: 'Sapling Planted',
