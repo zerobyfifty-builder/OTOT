@@ -71,7 +71,7 @@ export default function InstitutionalDisbursements() {
         if (!grouped[key]) grouped[key] = { trees: 0, amount: 0, planted: 0 };
         grouped[key].trees += t.num_trees;
         grouped[key].amount += Number(t.amount_paid);
-        if (t.planting_status === 'planted' || t.planting_status === 'monitored') {
+        if (t.planting_status === 'planted' || t.planting_status === 'verified') {
           grouped[key].planted += t.num_trees;
         }
       });
