@@ -7,18 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Plane, ShoppingBag, Layers, CheckCheck, Eye } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   Table,
   TableBody,
@@ -34,9 +28,27 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { Plane } from "lucide-react";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
+
+interface ContributionRow {
+  id: string;
+  contribution_id: string;
+  contribution_type: string | null;
+  tree_id: string | null;
+  tourist_name: string | null;
+  country: string | null;
+  trip_id: string | null;
+  num_trees: number;
+  amount_paid: number;
+  status: string;
+  created_at: string;
+  payment_date: string | null;
+  payment_method: string | null;
+  currency: string | null;
+}
 
 const PLANTING_STATUSES = [
   'pending_allocation',
@@ -68,30 +80,36 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   monitored: "bg-accent/10 text-accent border-accent/20",
 };
 
-interface TreeGroup {
-  key: string;
-  tripId: string | null;
-  trip: Trip | null;
+type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "planting_status";
+type SortDir = "asc" | "desc";
+const PAGE_SIZE = 15;
+
+interface ContributionGroup {
+  contribution_id: string;
+  contribution_type: string | null;
+  tourist_name: string | null;
+  country: string | null;
+  trip_id: string | null;
+  total_trees: number;
+  total_amount: number;
+  payment_date: string | null;
+  created_at: string;
+  currency: string | null;
+  payment_method: string | null;
   trees: Tree[];
-  totalTrees: number;
-  totalAmount: number;
-  earliestDate: string;
-  userId: string;
+  trip: Trip | null;
+  planting_status: string;
 }
 
-type UserInfo = {
-  first_name: string | null;
-  last_name: string | null;
-  country: string | null;
-};
-
 const getGroupPlantingStatus = (trees: Tree[]): string => {
+  if (!trees.length) return "pending_allocation";
   const statuses = trees.map(t => t.planting_status || 'pending_allocation');
   if (statuses.every(s => s === "planted" || s === "monitored")) return "planted";
   if (statuses.some(s => s === "planted" || s === "monitored")) return "partially_planted";
   if (statuses.every(s => s === "pending_allocation")) return "pending_allocation";
   if (statuses.some(s => s === "planting_in_progress")) return "planting_in_progress";
   if (statuses.some(s => s === "funds_received")) return "funds_received";
+  if (statuses.some(s => s === "allocated")) return "allocated";
   return statuses[0] || "pending_allocation";
 };
 
@@ -105,12 +123,26 @@ const getGroupStatusColor = (status: string): string => {
   return PLANTING_STATUS_COLORS[status] || "bg-muted text-muted-foreground";
 };
 
+const getPlantingStatusOrder = (status: string) => {
+  const order: Record<string, number> = {
+    pending_allocation: 0, allocated: 1, funds_pending: 2, funds_received: 3,
+    planting_in_progress: 4, partially_planted: 5, planted: 6, monitored: 7,
+  };
+  return order[status] ?? 0;
+};
+
 export const StakeholderOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { hasEdit } = useModulePermissions("tree_orders");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [sortField, setSortField] = useState<SortField>("payment_date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [viewSheet, setViewSheet] = useState<ContributionGroup | null>(null);
+  const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
 
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
@@ -121,8 +153,23 @@ export const StakeholderOrders = () => {
     enabled: !!user?.id,
   });
 
-  const { data: trees, isLoading, refetch } = useQuery({
-    queryKey: ["stakeholderOrders", user?.id],
+  // Fetch contributions
+  const { data: contributions, isLoading, refetch } = useQuery({
+    queryKey: ["stakeholderOrderContributions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contribution_tracking" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as ContributionRow[];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch all trees
+  const { data: trees } = useQuery({
+    queryKey: ["stakeholderOrderTrees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trees")
@@ -134,10 +181,11 @@ export const StakeholderOrders = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch trips
   const { data: tripsData } = useQuery({
-    queryKey: ["stakeholderOrderTrips", trees],
+    queryKey: ["stakeholderOrderTrips", contributions],
     queryFn: async () => {
-      const tripIds = [...new Set(trees?.map(t => t.trip_id).filter(Boolean) || [])];
+      const tripIds = [...new Set(contributions?.map(c => c.trip_id).filter(Boolean) || [])];
       if (tripIds.length === 0) return {};
       const { data } = await supabase.from("trips").select("*").in("id", tripIds);
       return (data || []).reduce((acc, trip) => {
@@ -145,30 +193,10 @@ export const StakeholderOrders = () => {
         return acc;
       }, {} as Record<string, Trip>);
     },
-    enabled: !!trees && trees.length > 0,
+    enabled: !!contributions && contributions.length > 0,
   });
 
   const trips = tripsData || {};
-
-  // Fetch user info for all unique user_ids
-  const { data: usersData } = useQuery({
-    queryKey: ["stakeholderOrderUsers", trees],
-    queryFn: async () => {
-      const userIds = [...new Set(trees?.map(t => t.user_id).filter(Boolean) || [])];
-      if (userIds.length === 0) return {};
-      const { data } = await supabase
-        .from("users")
-        .select("user_id, first_name, last_name, country")
-        .in("user_id", userIds);
-      return (data || []).reduce((acc, u) => {
-        acc[u.user_id] = { first_name: u.first_name, last_name: u.last_name, country: u.country };
-        return acc;
-      }, {} as Record<string, UserInfo>);
-    },
-    enabled: !!trees && trees.length > 0,
-  });
-
-  const users = usersData || {};
 
   const { data: disbursements } = useQuery({
     queryKey: ["stakeholderDisbursementTotal", orgId],
@@ -192,7 +220,7 @@ export const StakeholderOrders = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stakeholderOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
       toast.success("Planting status updated");
     },
     onError: () => toast.error("Failed to update status"),
@@ -207,61 +235,140 @@ export const StakeholderOrders = () => {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["stakeholderOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
       toast.success(`Updated ${variables.treeIds.length} tree(s) to ${STATUS_LABELS[variables.status]}`);
       setBulkSelections({});
     },
     onError: () => toast.error("Failed to bulk update status"),
   });
 
-  const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
-  const [viewSheet, setViewSheet] = useState<TreeGroup | null>(null);
-  const handleBulkApply = useCallback((groupKey: string, treeIds: string[]) => {
-    const status = bulkSelections[groupKey];
-    if (!status) {
-      toast.error("Please select a status first");
-      return;
-    }
-    bulkUpdateStatus.mutate({ treeIds, status });
-  }, [bulkSelections, bulkUpdateStatus]);
-
-  // Group trees by payment batch: same trip_id + user_id + purchase date
-  const treeGroups = useMemo<TreeGroup[]>(() => {
-    if (!trees) return [];
+  // Build tree lookup by contribution_id
+  const treesByContribution = useMemo(() => {
+    if (!trees || !contributions) return {};
+    // Map tree_id from contribution_tracking to trees
+    const treeMap: Record<string, Tree> = {};
+    trees.forEach(t => { treeMap[t.id] = t; });
 
     const grouped: Record<string, Tree[]> = {};
-    trees.forEach(tree => {
-      const dateKey = format(new Date(tree.created_at), "yyyy-MM-dd");
-      const batchKey = `${tree.trip_id || 'direct'}_${tree.user_id}_${dateKey}`;
-      if (!grouped[batchKey]) grouped[batchKey] = [];
-      grouped[batchKey].push(tree);
+    contributions.forEach(c => {
+      if (!grouped[c.contribution_id]) grouped[c.contribution_id] = [];
+      if (c.tree_id && treeMap[c.tree_id]) {
+        grouped[c.contribution_id].push(treeMap[c.tree_id]);
+      }
+    });
+    return grouped;
+  }, [trees, contributions]);
+
+  // Group contributions by contribution_id
+  const contributionGroups = useMemo<ContributionGroup[]>(() => {
+    if (!contributions) return [];
+    const grouped: Record<string, ContributionRow[]> = {};
+    contributions.forEach(c => {
+      if (!grouped[c.contribution_id]) grouped[c.contribution_id] = [];
+      grouped[c.contribution_id].push(c);
     });
 
-    const groups: TreeGroup[] = Object.entries(grouped).map(([key, batchTrees]) => {
-      const first = batchTrees[0];
+    return Object.entries(grouped).map(([contribId, rows]) => {
+      const first = rows[0];
+      const groupTrees = treesByContribution[contribId] || [];
       return {
-        key,
-        tripId: first.trip_id,
+        contribution_id: contribId,
+        contribution_type: first.contribution_type,
+        tourist_name: first.tourist_name,
+        country: first.country,
+        trip_id: first.trip_id,
+        total_trees: rows.reduce((s, r) => s + Number(r.num_trees), 0),
+        total_amount: rows.reduce((s, r) => s + Number(r.amount_paid), 0),
+        payment_date: first.payment_date,
+        created_at: first.created_at,
+        currency: first.currency,
+        payment_method: first.payment_method,
+        trees: groupTrees,
         trip: first.trip_id ? (trips[first.trip_id] || null) : null,
-        trees: batchTrees,
-        totalTrees: batchTrees.reduce((s, t) => s + t.num_trees, 0),
-        totalAmount: batchTrees.reduce((s, t) => s + Number(t.amount_paid), 0),
-        earliestDate: first.created_at,
-        userId: first.user_id,
+        planting_status: getGroupPlantingStatus(groupTrees),
       };
     });
+  }, [contributions, treesByContribution, trips]);
 
-    groups.sort((a, b) => new Date(b.earliestDate).getTime() - new Date(a.earliestDate).getTime());
-    return groups;
-  }, [trees, trips]);
+  // Sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("desc");
+    }
+    setCurrentPage(1);
+  };
 
-  const totalPages = Math.ceil(treeGroups.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedGroups = treeGroups.slice(startIndex, startIndex + itemsPerPage);
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-30" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
+  };
 
-  const totalTrees = trees?.reduce((s, t) => s + t.num_trees, 0) || 0;
+  // Filtering & sorting
+  const filtered = useMemo(() => {
+    let result = contributionGroups.filter(g => {
+      const matchSearch = !search ||
+        g.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
+        g.tourist_name?.toLowerCase().includes(search.toLowerCase());
+      const matchStatus = statusFilter === "all" || g.planting_status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+
+    result.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "contribution_id": cmp = (a.contribution_id || "").localeCompare(b.contribution_id || ""); break;
+        case "tourist_name": cmp = (a.tourist_name || "").localeCompare(b.tourist_name || ""); break;
+        case "country": cmp = (a.country || "").localeCompare(b.country || ""); break;
+        case "num_trees": cmp = a.total_trees - b.total_trees; break;
+        case "amount_paid": cmp = a.total_amount - b.total_amount; break;
+        case "payment_date": cmp = (a.payment_date || a.created_at || "").localeCompare(b.payment_date || b.created_at || ""); break;
+        case "planting_status": cmp = getPlantingStatusOrder(a.planting_status) - getPlantingStatusOrder(b.planting_status); break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return result;
+  }, [contributionGroups, search, statusFilter, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const toggleRow = (contribId: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(contribId)) next.delete(contribId); else next.add(contribId);
+      return next;
+    });
+  };
+
+  const formatDate = (d: string | null) => {
+    if (!d) return "-";
+    try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
+  };
+
+  // Stats
+  const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
+  const allGroupTrees = contributionGroups.flatMap(g => g.trees);
+  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
   const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
-  const planted = trees?.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0) || 0;
+
+  const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
+    <TableHead
+      className={`cursor-pointer select-none text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors ${className}`}
+      onClick={() => handleSort(field)}
+    >
+      <span className="flex items-center gap-0.5">{label}{getSortIcon(field)}</span>
+    </TableHead>
+  );
+
+  const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
+    const status = bulkSelections[contribId];
+    if (!status) { toast.error("Please select a status first"); return; }
+    bulkUpdateStatus.mutate({ treeIds, status });
+  }, [bulkSelections, bulkUpdateStatus]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -320,350 +427,351 @@ export const StakeholderOrders = () => {
         </Card>
       </div>
 
+      {/* Search & Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by contribution ID or contributor..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {PLANTING_STATUSES.map(s => (
+              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+            ))}
+            <SelectItem value="partially_planted">Partially Planted</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading ? (
-        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-      ) : !trees?.length ? (
+        <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
+      ) : !filtered.length ? (
         <Card className="py-12">
           <CardContent className="text-center">
             <TreePine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No trees have been allocated to your organization yet.</p>
+            <p className="text-muted-foreground">No tree orders found.</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          <Accordion type="multiple" className="space-y-3">
-            {paginatedGroups.map((group) => {
-              const groupStatus = getGroupPlantingStatus(group.trees);
-              const isTrip = group.tripId !== null;
-              const trip = group.trip;
-              const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
-              const userInfo = users[group.userId];
-              const touristName = userInfo
-                ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
-                : 'Unknown';
-              const touristCountry = userInfo?.country || '';
-              const progressPct = group.totalTrees > 0 ? Math.min(100, (plantedInGroup / group.totalTrees) * 100) : 0;
+        <>
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-10" />
+                    <SortableHead field="contribution_id" label="Contri ID" />
+                    <SortableHead field="payment_date" label="Date" />
+                    <SortableHead field="tourist_name" label="Contributor" />
+                    <SortableHead field="country" label="Country" />
+                    <SortableHead field="num_trees" label="Trees" />
+                    <SortableHead field="amount_paid" label="Amount" />
+                    <SortableHead field="planting_status" label="Planting Status" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((group) => {
+                    const isExpanded = expandedRows.has(group.contribution_id);
+                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+                    const progressPct = group.total_trees > 0 ? Math.min(100, (plantedInGroup / group.total_trees) * 100) : 0;
 
-              return (
-                <Card key={group.key} className="overflow-hidden">
-                  <AccordionItem value={group.key} className="border-0">
-                    {/* Card Header Row */}
-                    <div className="px-4 py-3.5 flex items-center gap-3">
-                      {/* Icon */}
-                      <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${isTrip ? 'bg-primary/10' : 'bg-muted'}`}>
-                        {isTrip ? <Plane className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4 text-muted-foreground" />}
-                      </div>
+                    return (
+                      <>
+                        {/* Main Row */}
+                        <TableRow
+                          key={group.contribution_id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => toggleRow(group.contribution_id)}
+                        >
+                          <TableCell className="w-10 px-3">
+                            {isExpanded
+                              ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
+                          <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
+                          <TableCell className="text-sm">{group.tourist_name || "-"}</TableCell>
+                          <TableCell className="text-sm">{group.country || "-"}</TableCell>
+                          <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
+                          <TableCell className="text-sm font-medium">${group.total_amount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
+                                {getGroupStatusLabel(group.planting_status)}
+                              </Badge>
+                              <div className="hidden lg:flex items-center gap-1.5 w-16">
+                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                                  <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${progressPct}%` }} />
+                                </div>
+                                <span className="text-[10px] text-muted-foreground tabular-nums">{plantedInGroup}/{group.total_trees}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => { e.stopPropagation(); setViewSheet(group); }}
+                              title="View details"
+                            >
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
 
-                      {/* Trip ID + Name + Date */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline gap-2">
-                          <span className="font-semibold text-sm text-foreground whitespace-nowrap">
-                            {isTrip && trip ? trip.friendly_trip_id || 'Trip' : "Direct"}
-                          </span>
-                          <span className="text-sm text-foreground truncate">
-                            {touristName}{touristCountry ? ` (${touristCountry})` : ''}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(new Date(group.earliestDate), "d MMM yyyy")}
-                        </p>
-                      </div>
+                        {/* Expanded Tree Details */}
+                        {isExpanded && (
+                          <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
+                            <TableCell colSpan={9} className="p-0">
+                              <div className="px-4 py-3 space-y-3">
+                                {/* Bulk Update */}
+                                {hasEdit && group.trees.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                      <Layers className="h-4 w-4 text-primary" />
+                                      <span>Batch update:</span>
+                                    </div>
+                                    <Select
+                                      value={bulkSelections[group.contribution_id] || ""}
+                                      onValueChange={(value) =>
+                                        setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
+                                      }
+                                    >
+                                      <SelectTrigger className="w-[180px] h-9 bg-background">
+                                        <SelectValue placeholder="Select status…" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {PLANTING_STATUSES.map(s => (
+                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      className="h-9 gap-1.5"
+                                      disabled={!bulkSelections[group.contribution_id] || bulkUpdateStatus.isPending}
+                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
+                                    >
+                                      <CheckCheck className="h-3.5 w-3.5" />
+                                      Apply ({group.trees.length})
+                                    </Button>
+                                  </div>
+                                )}
 
-                      {/* Progress */}
-                      <div className="hidden sm:flex items-center gap-2 w-28 shrink-0">
-                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-green-500 transition-all duration-500"
-                            style={{ width: `${progressPct}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                          {plantedInGroup}/{group.totalTrees}
-                        </span>
-                      </div>
-
-                      {/* Trees + Amount */}
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-foreground whitespace-nowrap">{group.totalTrees} trees</p>
-                        <p className="text-xs text-muted-foreground whitespace-nowrap">${group.totalAmount.toFixed(2)}</p>
-                      </div>
-
-                      {/* Status Badge */}
-                      <Badge className={`text-xs whitespace-nowrap shrink-0 ${getGroupStatusColor(groupStatus)}`}>
-                        {getGroupStatusLabel(groupStatus)}
-                      </Badge>
-
-                      {/* Accordion Toggle */}
-                      <AccordionTrigger className="p-0 hover:no-underline shrink-0 [&>svg]:h-4 [&>svg]:w-4" />
-
-                      {/* View Button */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setViewSheet(group);
-                        }}
-                        title="View trip details"
-                      >
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </div>
-
-                    {/* Mobile-only progress bar */}
-                    <div className="sm:hidden px-4 pb-3 -mt-1">
-                      <div className="flex items-center gap-2 pl-12">
-                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-green-500 transition-all duration-500"
-                            style={{ width: `${progressPct}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
-                          {plantedInGroup}/{group.totalTrees}
-                        </span>
-                      </div>
-                    </div>
-                    <AccordionContent className="pb-0">
-                      <div className="border-t bg-muted/30 pb-4">
-                        {/* Bulk Status Update Bar - only show if user has edit permission */}
-                        {hasEdit && (
-                        <div className="mx-3 sm:mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:gap-3 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 sm:px-4 py-2.5 sm:py-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                            <Layers className="h-4 w-4 text-primary" />
-                            <span>Batch update:</span>
-                          </div>
-                          <Select
-                            value={bulkSelections[group.key] || ""}
-                            onValueChange={(value) =>
-                              setBulkSelections(prev => ({ ...prev, [group.key]: value }))
-                            }
-                          >
-                            <SelectTrigger className="w-[180px] sm:w-[200px] h-9 bg-background">
-                              <SelectValue placeholder="Select status for all…" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PLANTING_STATUSES.map(s => (
-                                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            size="sm"
-                            variant="default"
-                            className="h-9 gap-1.5"
-                            disabled={!bulkSelections[group.key] || bulkUpdateStatus.isPending}
-                            onClick={() => handleBulkApply(group.key, group.trees.map(t => t.id))}
-                          >
-                            <CheckCheck className="h-3.5 w-3.5" />
-                            Apply ({group.trees.length})
-                          </Button>
-                          <span className="text-xs text-muted-foreground ml-auto hidden md:inline">
-                            Or update individually below
-                          </span>
-                        </div>
+                                {/* Tree-level Table */}
+                                {group.trees.length > 0 ? (
+                                  <div className="rounded-lg border bg-background overflow-x-auto">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow className="bg-muted/50">
+                                          <TableHead className="w-12 text-xs">No.</TableHead>
+                                          <TableHead className="text-xs">OTOT ID</TableHead>
+                                          <TableHead className="text-xs">Trees</TableHead>
+                                          <TableHead className="text-xs">Amount</TableHead>
+                                          <TableHead className="text-xs">Purchase Date</TableHead>
+                                          <TableHead className="text-xs">Planting Status</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {group.trees.map((tree, index) => (
+                                          <TableRow key={tree.id}>
+                                            <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                            <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                            <TableCell>{tree.num_trees}</TableCell>
+                                            <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                                            <TableCell>{formatDate(tree.created_at)}</TableCell>
+                                            <TableCell>
+                                              {hasEdit ? (
+                                                <Select
+                                                  value={tree.planting_status || 'pending_allocation'}
+                                                  onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                                >
+                                                  <SelectTrigger className="w-[180px]">
+                                                    <SelectValue />
+                                                  </SelectTrigger>
+                                                  <SelectContent>
+                                                    {PLANTING_STATUSES.map(s => (
+                                                      <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                                    ))}
+                                                  </SelectContent>
+                                                </Select>
+                                              ) : (
+                                                <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
+                                                  {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                                                </Badge>
+                                              )}
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground py-2">No tree records linked to this contribution.</p>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
                         )}
-
-                        <div className="mx-3 sm:mx-4 rounded-lg border bg-background overflow-x-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-muted/50">
-                                <TableHead className="w-12">No.</TableHead>
-                                <TableHead>OTOT ID</TableHead>
-                                <TableHead>Trees</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead>Purchase Date</TableHead>
-                                <TableHead>Planting Status</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {group.trees.map((tree, index) => (
-                                <TableRow key={tree.id}>
-                                  <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                  <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                                  <TableCell>{tree.num_trees}</TableCell>
-                                  <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                                  <TableCell>{format(new Date(tree.created_at), "d MMM yyyy")}</TableCell>
-                                  <TableCell>
-                                    {hasEdit ? (
-                                      <Select
-                                        value={tree.planting_status || 'pending_allocation'}
-                                        onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                      >
-                                        <SelectTrigger className="w-[180px]">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {PLANTING_STATUSES.map(s => (
-                                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    ) : (
-                                      <Badge className={`text-xs ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
-                                        {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
-                                      </Badge>
-                                    )}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Card>
-              );
-            })}
-          </Accordion>
+                      </>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 p-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                ←
-              </Button>
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>←</Button>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
                   min={1}
                   max={totalPages}
                   value={currentPage}
-                  onChange={(e) => {
-                    const page = parseInt(e.target.value);
-                    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-                  }}
+                  onChange={(e) => { const p = parseInt(e.target.value); if (p >= 1 && p <= totalPages) setCurrentPage(p); }}
                   className="w-16 text-center"
                 />
                 <span className="text-sm text-muted-foreground">/ {totalPages}</span>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                →
-              </Button>
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>→</Button>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* Trip Details Sheet */}
+      {/* View Details Sheet */}
       <Sheet open={!!viewSheet} onOpenChange={(open) => !open && setViewSheet(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           {viewSheet && (() => {
             const trip = viewSheet.trip;
-            const userInfo = users[viewSheet.userId];
-            const touristName = userInfo
-              ? `${userInfo.first_name || ''} ${userInfo.last_name || ''}`.trim() || 'Unknown'
-              : 'Unknown';
-            const touristCountry = userInfo?.country || '';
-
             return (
               <>
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
-                    <Plane className="h-5 w-5 text-primary" />
-                    {trip?.friendly_trip_id || 'Direct Purchase'} Details
+                    <TreePine className="h-5 w-5 text-primary" />
+                    Contribution {viewSheet.contribution_id}
                   </SheetTitle>
                 </SheetHeader>
 
                 <div className="mt-6 space-y-6">
-                  {/* Tourist Info */}
+                  {/* Contribution Details */}
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tourist</h3>
-                    <div className="rounded-lg border bg-card p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Name</span>
-                        <span className="text-sm font-medium">{touristName}</span>
-                      </div>
-                      {touristCountry && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Country</span>
-                          <span className="text-sm font-medium">{touristCountry}</span>
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Contribution Details</h3>
+                    <div className="rounded-lg border bg-card p-4">
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Contributor</span>
+                          <p className="font-medium">{viewSheet.tourist_name || "-"}</p>
                         </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Payment Date</span>
-                        <span className="text-sm font-medium">{format(new Date(viewSheet.earliestDate), "d MMM yyyy")}</span>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Country</span>
+                          <p className="font-medium">{viewSheet.country || "-"}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Trees</span>
+                          <p className="font-medium">{viewSheet.total_trees}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Amount</span>
+                          <p className="font-medium">${viewSheet.total_amount.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Date</span>
+                          <p className="font-medium">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Planting Status</span>
+                          <div className="mt-0.5">
+                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(viewSheet.planting_status)}`}>
+                              {getGroupStatusLabel(viewSheet.planting_status)}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <Separator />
 
-                  {/* Order Summary */}
+                  {/* Tree Records */}
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Order Summary</h3>
-                    <div className="rounded-lg border bg-card p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Trees</span>
-                        <span className="text-sm font-medium">{viewSheet.totalTrees}</span>
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                      Tree Records ({viewSheet.trees.length})
+                    </h3>
+                    {viewSheet.trees.length > 0 ? (
+                      <div className="space-y-2">
+                        {viewSheet.trees.map((tree, i) => (
+                          <div key={tree.id} className="rounded-lg border bg-card p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-mono text-xs text-muted-foreground">#{i + 1} · {tree.otot_id}</span>
+                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation']}`}>
+                                {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-y-1 text-sm">
+                              <div>
+                                <span className="text-muted-foreground text-xs">Trees</span>
+                                <p className="font-medium">{tree.num_trees}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-muted-foreground text-xs">Amount</span>
+                                <p className="font-medium">${Number(tree.amount_paid).toFixed(2)}</p>
+                              </div>
+                              {tree.location_name && (
+                                <div className="col-span-2">
+                                  <span className="text-muted-foreground text-xs">Location</span>
+                                  <p className="font-medium">{tree.location_name}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Total Amount</span>
-                        <span className="text-sm font-medium">${viewSheet.totalAmount.toFixed(2)}</span>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No tree records linked.</p>
+                    )}
                   </div>
 
                   {trip && (
                     <>
                       <Separator />
-
-                      {/* Carbon Emission Details */}
                       <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Carbon Emission</h3>
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Trip Details</h3>
                         <div className="rounded-lg border bg-card p-4 space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Total CO₂</span>
-                            <span className="text-sm font-semibold text-foreground">{Number(trip.total_co2).toFixed(1)} kg</span>
+                            <span className="text-sm text-muted-foreground">Trip ID</span>
+                            <span className="text-sm font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Flight CO₂</span>
-                            <span className="text-sm font-medium">{Number(trip.flight_co2).toFixed(1)} kg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Accommodation CO₂</span>
-                            <span className="text-sm font-medium">{Number(trip.accommodation_co2).toFixed(1)} kg</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Trees Needed</span>
-                            <span className="text-sm font-medium">{trip.trees_needed}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      {/* Flight Details */}
-                      <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Flight Details</h3>
-                        <div className="rounded-lg border bg-card p-4 space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Origin</span>
-                            <span className="text-sm font-medium">{trip.origin_airport}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Destination</span>
-                            <span className="text-sm font-medium">{trip.destination_airport}</span>
+                            <span className="text-sm text-muted-foreground">Route</span>
+                            <span className="text-sm font-medium">{trip.origin_airport} → {trip.destination_airport}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Travel Class</span>
                             <span className="text-sm font-medium">{trip.travel_class}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Return Flight</span>
-                            <span className="text-sm font-medium">{trip.is_return ? 'Yes' : 'No'}</span>
+                            <span className="text-sm text-muted-foreground">Total CO₂</span>
+                            <span className="text-sm font-semibold">{Number(trip.total_co2).toFixed(1)} kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">Flight CO₂</span>
+                            <span className="text-sm font-medium">{Number(trip.flight_co2).toFixed(1)} kg</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Travelers</span>
@@ -671,14 +779,8 @@ export const StakeholderOrders = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Travel Date</span>
-                            <span className="text-sm font-medium">{format(new Date(trip.from_date), "d MMM yyyy")}</span>
+                            <span className="text-sm font-medium">{formatDate(trip.from_date)}</span>
                           </div>
-                          {trip.accommodation_type && trip.accommodation_type !== 'None' && (
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Accommodation</span>
-                              <span className="text-sm font-medium">{trip.accommodation_type}</span>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </>
