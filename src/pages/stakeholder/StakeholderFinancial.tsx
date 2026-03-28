@@ -411,8 +411,12 @@ export const StakeholderFinancial = () => {
     </TableHead>
   );
 
-  // Helper to get mktng fee for a row
-  const getMktngFee = (c: ContributionRow) => Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100));
+  // Helper: TO BE RECEIVED = contribution minus tech fee
+  const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100);
+  // Helper: AMNT RECEIVED replicates TO BE RECEIVED
+  const getAmntReceived = (c: ContributionRow) => getToBeReceived(c);
+  // Helper: RETAINED = AMNT RECEIVED × KTB marketing fee %
+  const getRetained = (c: ContributionRow) => getAmntReceived(c) * ktbFeePercent / 100;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
