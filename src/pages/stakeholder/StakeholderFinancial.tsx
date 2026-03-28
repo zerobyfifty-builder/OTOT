@@ -275,17 +275,18 @@ export const StakeholderFinancial = () => {
   };
 
   const getStatusBadge = (status: string) => {
+    const base = "whitespace-nowrap px-2 py-0.5 text-[10px] font-medium";
     switch (status) {
       case "contribution_confirmed":
-        return <Badge className="bg-blue-500/10 text-blue-700 border-blue-200 hover:bg-blue-500/10 text-center leading-tight text-[10px]">Confirmed</Badge>;
+        return <Badge className={`${base} bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50`}>Confirmed</Badge>;
       case "funds_received":
-        return <Badge className="bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/10 text-center leading-tight text-[10px]">Received by KTB</Badge>;
+        return <Badge className={`${base} bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50`}>Received by KTB</Badge>;
       case "transferred_for_planting":
-        return <Badge className="bg-violet-500/10 text-violet-700 border-violet-200 hover:bg-violet-500/10 text-center leading-tight text-[10px]">Transferred for Plantation</Badge>;
+        return <Badge className={`${base} bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-50`}>Transferred for Plantation</Badge>;
       case "received_for_planting":
-        return <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/10 text-center leading-tight text-[10px]">Received for Plantation</Badge>;
+        return <Badge className={`${base} bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50`}>Received for Plantation</Badge>;
       default:
-        return <Badge variant="outline" className="text-center leading-tight text-[10px]">{status}</Badge>;
+        return <Badge variant="outline" className={base}>{status}</Badge>;
     }
   };
 
