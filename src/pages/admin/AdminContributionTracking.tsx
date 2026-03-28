@@ -49,6 +49,8 @@ interface ContributionRow {
   institution_receipt_id: string | null;
   institution_received_date: string | null;
   tech_fee_received: number;
+  tech_fee_percent: number | null;
+  ktb_fee_percent: number | null;
 }
 
 type SortField = "contribution_id" | "contribution_type" | "tourist_name" | "num_trees" | "amount_paid" | "payment_date" | "status";
