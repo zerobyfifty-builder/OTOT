@@ -56,12 +56,23 @@ type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 20;
 
-const STATUS_OPTIONS = [
+const STATUS_SEQUENCE = [
   { value: "contribution_confirmed", label: "Confirmed" },
   { value: "funds_received", label: "Received by KTB" },
   { value: "transferred_for_planting", label: "Transferred for Plantation" },
   { value: "received_for_planting", label: "Received for Plantation" },
 ];
+
+const getNextStatuses = (currentStatus: string) => {
+  const currentIndex = STATUS_SEQUENCE.findIndex(s => s.value === currentStatus);
+  if (currentIndex === -1) return STATUS_SEQUENCE.slice(0, 1);
+  // Only allow the immediate next status
+  if (currentIndex >= STATUS_SEQUENCE.length - 1) return [];
+  return [STATUS_SEQUENCE[currentIndex + 1]];
+};
+
+// Keep for label lookups
+const STATUS_OPTIONS = STATUS_SEQUENCE;
 
 const getStatusBadge = (status: string) => {
   switch (status) {
