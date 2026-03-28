@@ -242,57 +242,17 @@ export const StakeholderOrders = () => {
     onError: () => toast.error("Failed to bulk update status"),
   });
 
-  // Build tree lookup by contribution_id
+  // Build tree lookup by contribution_id (direct column on trees table)
   const treesByContribution = useMemo(() => {
     if (!trees || !contributions) return {};
-    const treeMap: Record<string, Tree> = {};
-    trees.forEach(t => { treeMap[t.id] = t; });
-
-    // Group trees by trip_id for fallback matching
-    const treesByTrip: Record<string, Tree[]> = {};
-    trees.forEach(t => {
-      if (t.trip_id) {
-        if (!treesByTrip[t.trip_id]) treesByTrip[t.trip_id] = [];
-        treesByTrip[t.trip_id].push(t);
-      }
-    });
-
     const grouped: Record<string, Tree[]> = {};
-    const seenTreeIds = new Set<string>();
 
-    // First pass: match via direct tree_id references
-    contributions.forEach(c => {
-      if (!grouped[c.contribution_id]) grouped[c.contribution_id] = [];
-      if (c.tree_id && treeMap[c.tree_id] && !seenTreeIds.has(c.tree_id)) {
-        grouped[c.contribution_id].push(treeMap[c.tree_id]);
-        seenTreeIds.add(c.tree_id);
-      }
-    });
-
-    // Second pass: for contributions where tree count from direct refs is less than num_trees,
-    // fill in remaining trees via trip_id
-    const contribRows: Record<string, ContributionRow[]> = {};
-    contributions.forEach(c => {
-      if (!contribRows[c.contribution_id]) contribRows[c.contribution_id] = [];
-      contribRows[c.contribution_id].push(c);
-    });
-
-    Object.entries(contribRows).forEach(([contribId, rows]) => {
-      const expectedTrees = rows.reduce((s, r) => s + Number(r.num_trees), 0);
-      const currentTrees = grouped[contribId] || [];
-      if (currentTrees.length < expectedTrees) {
-        // Try to find additional trees via trip_id
-        const tripIds = [...new Set(rows.map(r => r.trip_id).filter(Boolean))] as string[];
-        tripIds.forEach(tripId => {
-          const tripTrees = treesByTrip[tripId] || [];
-          tripTrees.forEach(t => {
-            if (!seenTreeIds.has(t.id)) {
-              if (!grouped[contribId]) grouped[contribId] = [];
-              grouped[contribId].push(t);
-              seenTreeIds.add(t.id);
-            }
-          });
-        });
+    // Group trees by their contribution_id column
+    trees.forEach(t => {
+      const cid = (t as any).contribution_id as string | null;
+      if (cid) {
+        if (!grouped[cid]) grouped[cid] = [];
+        grouped[cid].push(t);
       }
     });
 
