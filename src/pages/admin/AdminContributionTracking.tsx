@@ -667,9 +667,9 @@ export default function AdminContributionTracking() {
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Receipt Tracking</p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div><span className="text-muted-foreground">Tech Receipt</span><p className="font-mono">{selectedRow.tech_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Tech Received</span><p>{formatDate(selectedRow.tech_received_date)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground">Tech Received</span><p>{formatDate(selectedRow.tech_received_date)}</p></div>
                     <div><span className="text-muted-foreground">KTB Receipt</span><p className="font-mono">{selectedRow.institution_receipt_id || selectedRow.ktb_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground">KTB Received</span><p>{formatDate(selectedRow.institution_received_date || selectedRow.ktb_received_date)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground">KTB Received</span><p>{formatDate(selectedRow.institution_received_date || selectedRow.ktb_received_date)}</p></div>
                   </div>
                 </div>
 
