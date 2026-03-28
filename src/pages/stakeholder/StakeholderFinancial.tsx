@@ -778,12 +778,43 @@ export const StakeholderFinancial = () => {
                   </div>
                 </div>
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Fund Allocation</h3>
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div className="bg-emerald-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Received (KTB)</span><p className="font-semibold text-emerald-700">${Number(selectedRow.amount_received || 0).toFixed(2)}</p></div>
-                    <div className="bg-amber-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Retained (KTB)</span><p className="font-semibold text-amber-700">${Number(selectedRow.amount_retained || 0).toFixed(2)}</p></div>
-                    <div className="bg-violet-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Transferred (Plantation)</span><p className="font-semibold text-violet-700">${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p></div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Fund Allocation</h3>
+                    <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">
+                      as on {formatDate(selectedRow.payment_date || selectedRow.created_at)}
+                    </Badge>
                   </div>
+                  {(() => {
+                    const gross = Number(selectedRow.amount_paid || 0);
+                    const techFee = gross * (techFeePercent / 100);
+                    const ktbNet = gross - techFee;
+                    const ktbRetained = ktbNet * (ktbFeePercent / 100);
+                    const forPlantation = ktbNet - ktbRetained;
+                    return (
+                      <div className="space-y-0 text-sm border rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                          <span className="text-muted-foreground">Gross Contribution</span>
+                          <span className="font-semibold tabular-nums">${formatNumber(gross)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b bg-blue-50">
+                          <span className="text-blue-700 font-medium">Tech Fee ({techFeePercent}%)</span>
+                          <span className="font-semibold text-blue-700 tabular-nums">${formatNumber(techFee)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                          <span className="text-muted-foreground">KTB Net (To Be Received)</span>
+                          <span className="font-semibold tabular-nums">${formatNumber(ktbNet)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b bg-amber-50">
+                          <span className="text-amber-700 font-medium">KTB Retained ({ktbFeePercent}%)</span>
+                          <span className="font-semibold text-amber-700 tabular-nums">${formatNumber(ktbRetained)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 bg-emerald-50">
+                          <span className="text-emerald-800 font-medium">For Plantation ({100 - ktbFeePercent}%)</span>
+                          <span className="font-semibold text-emerald-800 tabular-nums">${formatNumber(forPlantation)}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="border-t pt-4">
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Tech Partner Receipt</h3>
