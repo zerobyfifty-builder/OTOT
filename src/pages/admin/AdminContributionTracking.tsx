@@ -680,20 +680,28 @@ export default function AdminContributionTracking() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">Current Status</p>
-              {statusTarget && getStatusBadge(statusTarget.status)}
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">New Status</p>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map(s => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Current Status</p>
+                {statusTarget && getStatusBadge(statusTarget.status)}
+              </div>
+              <span className="text-muted-foreground mt-4">→</span>
+              <div className="flex-1">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Next Status</p>
+                {statusTarget && (() => {
+                  const allowed = getNextStatuses(statusTarget.status);
+                  return (
+                    <Select value={newStatus} onValueChange={setNewStatus}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {allowed.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Contextual fields based on selected status */}
