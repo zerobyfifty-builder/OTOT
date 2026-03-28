@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Pencil } from "lucide-react";
+import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Pencil, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -414,9 +415,18 @@ export const StakeholderFinancial = () => {
     </TableHead>
   );
 
-  const StaticHead = ({ label, className = "" }: { label: string; className?: string }) => (
+  const StaticHead = ({ label, className = "", tooltip }: { label: string; className?: string; tooltip?: string }) => (
     <TableHead className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${className}`}>
-      {label}
+      {tooltip ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 opacity-50" /></span>
+            </TooltipTrigger>
+            <TooltipContent><p className="text-xs max-w-[200px]">{tooltip}</p></TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : label}
     </TableHead>
   );
 
@@ -592,7 +602,7 @@ export const StakeholderFinancial = () => {
                       {isKtbUser && <StaticHead label="Amnt Received" />}
                       {isKtbUser && <StaticHead label="Dt Recvd" />}
                       {isKtbUser && <StaticHead label="Method" />}
-                      {isKtbUser && <StaticHead label="Retained for Mktng & Admin" />}
+                      {isKtbUser && <StaticHead label="Amnt Retained" tooltip="Retained for Marketing, Administrative and Oversight Expenses" />}
                       {isKtbUser && <StaticHead label="To Be Transferred" />}
                       {(isKtbUser || isPlantationPartner) && <StaticHead label={isPlantationPartner ? "Amt Allocated" : "Transferred"} />}
                       {isPlantationPartner && <StaticHead label="Transfer Date" />}
