@@ -2047,6 +2047,7 @@ export type Database = {
         | "being_mapped"
         | "verified"
         | "dead"
+        | "assigned"
       pledge_status_type:
         | "pending_email_confirmation"
         | "confirmed"
@@ -2214,6 +2215,7 @@ export const Constants = {
         "being_mapped",
         "verified",
         "dead",
+        "assigned",
       ],
       pledge_status_type: [
         "pending_email_confirmation",
