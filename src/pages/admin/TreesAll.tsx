@@ -633,8 +633,8 @@ export default function TreesAll() {
                                                   <TableCell>-</TableCell>
                                                   <TableCell>-</TableCell>
                                                   <TableCell>
-                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['pending_allocation']}`}>
-                                                      {STATUS_LABELS['pending_allocation']}
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
+                                                      {STATUS_LABELS['waiting_to_be_assigned']}
                                                     </Badge>
                                                   </TableCell>
                                                 </TableRow>
