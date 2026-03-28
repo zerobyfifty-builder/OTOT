@@ -263,11 +263,11 @@ export const StakeholderFinancial = () => {
       case "contribution_confirmed":
         return <Badge className="bg-blue-500/10 text-blue-700 border-blue-200 hover:bg-blue-500/10 whitespace-nowrap">Confirmed</Badge>;
       case "funds_received":
-        return <Badge className="bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/10 whitespace-nowrap">Funds Received</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-700 border-amber-200 hover:bg-amber-500/10 whitespace-nowrap">Received by KTB</Badge>;
       case "transferred_for_planting":
-        return <Badge className="bg-violet-500/10 text-violet-700 border-violet-200 hover:bg-violet-500/10 whitespace-nowrap">Transferred</Badge>;
+        return <Badge className="bg-violet-500/10 text-violet-700 border-violet-200 hover:bg-violet-500/10 whitespace-nowrap">Transferred for Plantation</Badge>;
       case "received_for_planting":
-        return <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/10 whitespace-nowrap">Received</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 hover:bg-emerald-500/10 whitespace-nowrap">Received for Plantation</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
