@@ -618,19 +618,9 @@ export default function TreesAll() {
                                                   <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                   <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                   <TableCell>
-                                                    <Select
-                                                      value={tree.planting_status || 'pending_allocation'}
-                                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                                    >
-                                                      <SelectTrigger className="w-[180px]">
-                                                        <SelectValue />
-                                                      </SelectTrigger>
-                                                      <SelectContent>
-                                                        {PLANTING_STATUSES.map(s => (
-                                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                                        ))}
-                                                      </SelectContent>
-                                                    </Select>
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
+                                                      {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
+                                                    </Badge>
                                                   </TableCell>
                                                 </TableRow>
                                               );
