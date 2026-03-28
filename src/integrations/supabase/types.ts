@@ -363,6 +363,7 @@ export type Database = {
           institution_received_date: string | null
           ktb_receipt_id: string | null
           ktb_received_date: string | null
+          mktng_fee_allocated: number | null
           num_trees: number
           partner_receipt_confirmation: boolean | null
           partner_received_date: string | null
@@ -398,6 +399,7 @@ export type Database = {
           institution_received_date?: string | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
+          mktng_fee_allocated?: number | null
           num_trees?: number
           partner_receipt_confirmation?: boolean | null
           partner_received_date?: string | null
@@ -433,6 +435,7 @@ export type Database = {
           institution_received_date?: string | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
+          mktng_fee_allocated?: number | null
           num_trees?: number
           partner_receipt_confirmation?: boolean | null
           partner_received_date?: string | null
