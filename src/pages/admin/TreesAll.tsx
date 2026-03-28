@@ -575,45 +575,10 @@ export default function TreesAll() {
                           </TableCell>
                         </TableRow>
 
-                        {/* Expanded Tree Details - No assign partner dropdown */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
                             <TableCell colSpan={10} className="p-0">
                               <div className="px-4 py-3 space-y-3">
-                                {/* Bulk Update only */}
-                                {group.trees.length > 0 && (
-                                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                      <Layers className="h-4 w-4 text-primary" />
-                                      <span>Batch update:</span>
-                                    </div>
-                                    <Select
-                                      value={bulkSelections[group.contribution_id] || ""}
-                                      onValueChange={(value) =>
-                                        setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
-                                      }
-                                    >
-                                      <SelectTrigger className="w-[180px] h-9 bg-background">
-                                        <SelectValue placeholder="Select status…" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {PLANTING_STATUSES.map(s => (
-                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      className="h-9 gap-1.5"
-                                      disabled={!bulkSelections[group.contribution_id] || bulkUpdateStatus.isPending}
-                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
-                                    >
-                                      <CheckCheck className="h-3.5 w-3.5" />
-                                      Apply ({group.trees.length})
-                                    </Button>
-                                  </div>
-                                )}
 
                                 {/* Tree-level Table */}
                                 {(() => {
