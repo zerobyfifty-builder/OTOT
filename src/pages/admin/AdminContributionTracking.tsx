@@ -677,11 +677,11 @@ export default function AdminContributionTracking() {
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Transfer Details</p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div><span className="text-muted-foreground">Plantation Partner</span><p>{selectedRow.plantation_partner_id && orgMap?.[selectedRow.plantation_partner_id]?.name || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
                     <div><span className="text-muted-foreground">Transfer Ref</span><p className="font-mono">{selectedRow.transfer_reference || "-"}</p></div>
-                    <div><span className="text-muted-foreground">Transfer Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground">Transfer Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
                     <div><span className="text-muted-foreground">Partner Confirmed</span><p>{selectedRow.partner_receipt_confirmation ? "Yes" : "No"}</p></div>
-                    <div><span className="text-muted-foreground">Partner Received</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground">Partner Received</span><p>{formatDate(selectedRow.partner_received_date)}</p></div>
                   </div>
                 </div>
               </div>
