@@ -40,6 +40,7 @@ interface ContributionRow {
   trip_id: string | null;
   num_trees: number;
   amount_paid: number;
+  amount_transferred: number | null;
   status: string;
   created_at: string;
   payment_date: string | null;
@@ -78,7 +79,23 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   monitored: "bg-accent/10 text-accent border-accent/20",
 };
 
-type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "planting_status" | "partner";
+const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
+  contribution_received: "Received",
+  contribution_confirmed: "Confirmed",
+  received_by_ktb: "Received by KTB",
+  transferred_for_planting: "Transferred",
+  received_for_planting: "Received for Planting",
+};
+
+const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
+  contribution_received: "bg-gray-500/10 text-gray-700 border-gray-500/20",
+  contribution_confirmed: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  received_by_ktb: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  transferred_for_planting: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  received_for_planting: "bg-green-500/10 text-green-700 border-green-500/20",
+};
+
+type SortField = "contribution_id" | "payment_date" | "contribution_type" | "num_trees" | "amount_transferred" | "planting_status" | "payment_status";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 15;
 
@@ -90,6 +107,7 @@ interface ContributionGroup {
   trip_id: string | null;
   total_trees: number;
   total_amount: number;
+  amount_transferred: number;
   payment_date: string | null;
   created_at: string;
   currency: string | null;
@@ -99,6 +117,7 @@ interface ContributionGroup {
   planting_status: string;
   plantation_partner_id: string | null;
   partner_name: string | null;
+  payment_status: string;
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
@@ -131,6 +150,13 @@ const getPlantingStatusOrder = (status: string) => {
   return order[status] ?? 0;
 };
 
+const getContriTypeLabel = (type: string | null): string => {
+  if (!type) return "-";
+  if (type === "tourist") return "Tourist";
+  if (type === "travel_agent") return "Travel Agent";
+  return type;
+};
+
 export default function TreesAll() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -142,7 +168,6 @@ export default function TreesAll() {
   const [viewSheet, setViewSheet] = useState<ContributionGroup | null>(null);
   const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
 
-  // Fetch contributions
   const { data: contributions, isLoading, refetch } = useQuery({
     queryKey: ["adminTreeOrderContributions"],
     queryFn: async () => {
@@ -155,7 +180,6 @@ export default function TreesAll() {
     },
   });
 
-  // Fetch all trees
   const { data: trees } = useQuery({
     queryKey: ["adminTreeOrderTrees"],
     queryFn: async () => {
@@ -168,7 +192,6 @@ export default function TreesAll() {
     },
   });
 
-  // Fetch trips
   const { data: tripsData } = useQuery({
     queryKey: ["adminTreeOrderTrips", contributions],
     queryFn: async () => {
@@ -183,7 +206,6 @@ export default function TreesAll() {
     enabled: !!contributions && contributions.length > 0,
   });
 
-  // Fetch stakeholder orgs for partner names
   const { data: orgsData } = useQuery({
     queryKey: ["adminTreeOrderOrgs"],
     queryFn: async () => {
@@ -196,21 +218,6 @@ export default function TreesAll() {
         acc[org.id] = org.name;
         return acc;
       }, {} as Record<string, string>);
-    },
-  });
-
-  // Fetch all stakeholder orgs for assignment
-  const { data: stakeholderOrgs } = useQuery({
-    queryKey: ["adminStakeholderOrgsForAssign"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("organizations")
-        .select("id, name")
-        .eq("category", "stakeholder")
-        .eq("is_active", true)
-        .eq("archived", false);
-      if (error) throw error;
-      return data || [];
     },
   });
 
@@ -248,22 +255,6 @@ export default function TreesAll() {
     onError: () => toast.error("Failed to bulk update status"),
   });
 
-  const assignPartner = useMutation({
-    mutationFn: async ({ treeIds, orgId }: { treeIds: string[]; orgId: string }) => {
-      const { error } = await supabase
-        .from("trees")
-        .update({ stakeholder_org_id: orgId, planting_status: 'allocated' as any })
-        .in("id", treeIds);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminTreeOrderTrees"] });
-      toast.success("Plantation partner assigned");
-    },
-    onError: () => toast.error("Failed to assign partner"),
-  });
-
-  // Build tree lookup by contribution_id
   const treesByContribution = useMemo(() => {
     if (!trees || !contributions) return {};
     const grouped: Record<string, Tree[]> = {};
@@ -277,7 +268,6 @@ export default function TreesAll() {
     return grouped;
   }, [trees, contributions]);
 
-  // Group contributions by contribution_id
   const contributionGroups = useMemo<ContributionGroup[]>(() => {
     if (!contributions) return [];
     const grouped: Record<string, ContributionRow[]> = {};
@@ -298,6 +288,7 @@ export default function TreesAll() {
         trip_id: first.trip_id,
         total_trees: rows.reduce((s, r) => s + Number(r.num_trees), 0),
         total_amount: rows.reduce((s, r) => s + Number(r.amount_paid), 0),
+        amount_transferred: rows.reduce((s, r) => s + Number(r.amount_transferred || 0), 0),
         payment_date: first.payment_date,
         created_at: first.created_at,
         currency: first.currency,
@@ -307,11 +298,11 @@ export default function TreesAll() {
         planting_status: getGroupPlantingStatus(groupTrees),
         plantation_partner_id: partnerId,
         partner_name: partnerId ? (orgs[partnerId] || null) : null,
+        payment_status: first.status,
       };
     });
   }, [contributions, treesByContribution, trips, orgs]);
 
-  // Sorting
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -327,7 +318,6 @@ export default function TreesAll() {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1 text-admin-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-admin-primary" />;
   };
 
-  // Filtering & sorting
   const filtered = useMemo(() => {
     let result = contributionGroups.filter(g => {
       const matchSearch = !search ||
@@ -342,13 +332,12 @@ export default function TreesAll() {
       let cmp = 0;
       switch (sortField) {
         case "contribution_id": cmp = (a.contribution_id || "").localeCompare(b.contribution_id || ""); break;
-        case "tourist_name": cmp = (a.tourist_name || "").localeCompare(b.tourist_name || ""); break;
-        case "country": cmp = (a.country || "").localeCompare(b.country || ""); break;
-        case "num_trees": cmp = a.total_trees - b.total_trees; break;
-        case "amount_paid": cmp = a.total_amount - b.total_amount; break;
         case "payment_date": cmp = (a.payment_date || a.created_at || "").localeCompare(b.payment_date || b.created_at || ""); break;
+        case "contribution_type": cmp = (a.contribution_type || "").localeCompare(b.contribution_type || ""); break;
+        case "num_trees": cmp = a.total_trees - b.total_trees; break;
+        case "amount_transferred": cmp = a.amount_transferred - b.amount_transferred; break;
         case "planting_status": cmp = getPlantingStatusOrder(a.planting_status) - getPlantingStatusOrder(b.planting_status); break;
-        case "partner": cmp = (a.partner_name || "").localeCompare(b.partner_name || ""); break;
+        case "payment_status": cmp = (a.payment_status || "").localeCompare(b.payment_status || ""); break;
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -372,7 +361,6 @@ export default function TreesAll() {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
-  // Stats
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
   const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
@@ -398,7 +386,7 @@ export default function TreesAll() {
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-admin-primary">All Trees</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-admin-primary">Tree Orders</h1>
           <p className="text-muted-foreground mt-1">Manage and monitor all tree orders across the platform</p>
         </div>
         <Button variant="outline" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
@@ -495,11 +483,11 @@ export default function TreesAll() {
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
                     <SortableHead field="payment_date" label="Date" />
-                    <SortableHead field="tourist_name" label="Contributor" />
-                    <SortableHead field="country" label="Country" />
+                    <SortableHead field="contribution_type" label="Contri Type" />
                     <SortableHead field="num_trees" label="Trees" />
-                    <SortableHead field="amount_paid" label="Amount" />
-                    <SortableHead field="partner" label="Partner" />
+                    <SortableHead field="amount_transferred" label="Allocated for Planting" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
+                    <SortableHead field="payment_status" label="Payment Status" />
                     <SortableHead field="planting_status" label="Planting Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
@@ -524,11 +512,19 @@ export default function TreesAll() {
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
-                          <TableCell className="text-sm">{group.tourist_name || "-"}</TableCell>
-                          <TableCell className="text-sm">{group.country || "-"}</TableCell>
+                          <TableCell className="text-sm">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal whitespace-nowrap">
+                              {getContriTypeLabel(group.contribution_type)}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
-                          <TableCell className="text-sm font-medium">${group.total_amount.toFixed(2)}</TableCell>
-                          <TableCell className="text-sm">{group.partner_name || <span className="text-muted-foreground italic">Unassigned</span>}</TableCell>
+                          <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
+                          <TableCell>
+                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[group.payment_status] || "bg-muted text-muted-foreground"}`}>
+                              {CONTRIBUTION_STATUS_LABELS[group.payment_status] || group.payment_status}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
@@ -555,62 +551,45 @@ export default function TreesAll() {
                           </TableCell>
                         </TableRow>
 
-                        {/* Expanded Tree Details */}
+                        {/* Expanded Tree Details - No assign partner dropdown */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
                             <TableCell colSpan={10} className="p-0">
                               <div className="px-4 py-3 space-y-3">
-                                {/* Bulk Update & Partner Assign */}
-                                <div className="flex flex-wrap items-center gap-3">
-                                  {group.trees.length > 0 && (
-                                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
-                                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                        <Layers className="h-4 w-4 text-primary" />
-                                        <span>Batch update:</span>
-                                      </div>
-                                      <Select
-                                        value={bulkSelections[group.contribution_id] || ""}
-                                        onValueChange={(value) =>
-                                          setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
-                                        }
-                                      >
-                                        <SelectTrigger className="w-[180px] h-9 bg-background">
-                                          <SelectValue placeholder="Select status…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {PLANTING_STATUSES.map(s => (
-                                            <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <Button
-                                        size="sm"
-                                        variant="default"
-                                        className="h-9 gap-1.5"
-                                        disabled={!bulkSelections[group.contribution_id] || bulkUpdateStatus.isPending}
-                                        onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
-                                      >
-                                        <CheckCheck className="h-3.5 w-3.5" />
-                                        Apply ({group.trees.length})
-                                      </Button>
+                                {/* Bulk Update only */}
+                                {group.trees.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                      <Layers className="h-4 w-4 text-primary" />
+                                      <span>Batch update:</span>
                                     </div>
-                                  )}
-                                  {stakeholderOrgs && stakeholderOrgs.length > 0 && group.trees.length > 0 && (
-                                    <div className="flex items-center gap-2 rounded-lg border border-dashed border-green-500/30 bg-green-500/5 px-3 py-2.5">
-                                      <span className="text-sm font-medium">Assign partner:</span>
-                                      <Select onValueChange={(orgId) => assignPartner.mutate({ treeIds: group.trees.map(t => t.id), orgId })}>
-                                        <SelectTrigger className="w-[180px] h-9 bg-background">
-                                          <SelectValue placeholder="Select partner…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {stakeholderOrgs.map(org => (
-                                            <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  )}
-                                </div>
+                                    <Select
+                                      value={bulkSelections[group.contribution_id] || ""}
+                                      onValueChange={(value) =>
+                                        setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
+                                      }
+                                    >
+                                      <SelectTrigger className="w-[180px] h-9 bg-background">
+                                        <SelectValue placeholder="Select status…" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {PLANTING_STATUSES.map(s => (
+                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      className="h-9 gap-1.5"
+                                      disabled={!bulkSelections[group.contribution_id] || bulkUpdateStatus.isPending}
+                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
+                                    >
+                                      <CheckCheck className="h-3.5 w-3.5" />
+                                      Apply ({group.trees.length})
+                                    </Button>
+                                  </div>
+                                )}
 
                                 {/* Tree-level Table */}
                                 {(() => {
@@ -635,7 +614,6 @@ export default function TreesAll() {
                                             <TableHead className="text-xs">Trees</TableHead>
                                             <TableHead className="text-xs">Amount</TableHead>
                                             <TableHead className="text-xs">Purchase Date</TableHead>
-                                            <TableHead className="text-xs">Partner</TableHead>
                                             <TableHead className="text-xs">Planting Status</TableHead>
                                           </TableRow>
                                         </TableHeader>
@@ -650,11 +628,6 @@ export default function TreesAll() {
                                                   <TableCell>{tree.num_trees}</TableCell>
                                                   <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                   <TableCell>{formatDate(tree.created_at)}</TableCell>
-                                                  <TableCell className="text-sm">
-                                                    {tree.stakeholder_org_id ? (orgs[tree.stakeholder_org_id] || "Assigned") : (
-                                                      <span className="text-muted-foreground italic">Unassigned</span>
-                                                    )}
-                                                  </TableCell>
                                                   <TableCell>
                                                     <Select
                                                       value={tree.planting_status || 'pending_allocation'}
@@ -678,7 +651,6 @@ export default function TreesAll() {
                                                   <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                   <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
                                                   <TableCell>1</TableCell>
-                                                  <TableCell>-</TableCell>
                                                   <TableCell>-</TableCell>
                                                   <TableCell>-</TableCell>
                                                   <TableCell>
@@ -759,16 +731,36 @@ export default function TreesAll() {
                           <p className="font-medium">{viewSheet.country || "-"}</p>
                         </div>
                         <div>
+                          <span className="text-muted-foreground text-xs">Contri Type</span>
+                          <p className="font-medium">{getContriTypeLabel(viewSheet.contribution_type)}</p>
+                        </div>
+                        <div className="text-right">
                           <span className="text-muted-foreground text-xs">Trees</span>
                           <p className="font-medium">{viewSheet.total_trees}</p>
                         </div>
-                        <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Amount</span>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Total Amount</span>
                           <p className="font-medium">${viewSheet.total_amount.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Allocated for Planting</span>
+                          <p className="font-medium">${viewSheet.amount_transferred.toFixed(2)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Date</span>
                           <p className="font-medium">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Planted By</span>
+                          <p className="font-medium">MFC-ICLIP</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Payment Status</span>
+                          <div className="mt-0.5">
+                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[viewSheet.payment_status] || "bg-muted text-muted-foreground"}`}>
+                              {CONTRIBUTION_STATUS_LABELS[viewSheet.payment_status] || viewSheet.payment_status}
+                            </Badge>
+                          </div>
                         </div>
                         <div className="text-right">
                           <span className="text-muted-foreground text-xs">Planting Status</span>
@@ -816,12 +808,8 @@ export default function TreesAll() {
                                 <span className="text-muted-foreground text-xs">Amount</span>
                                 <p className="font-medium">${Number(tree.amount_paid).toFixed(2)}</p>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground text-xs">Partner</span>
-                                <p className="font-medium">{tree.stakeholder_org_id ? (orgs[tree.stakeholder_org_id] || "Assigned") : "Unassigned"}</p>
-                              </div>
                               {tree.location_name && (
-                                <div className="text-right">
+                                <div className="col-span-2">
                                   <span className="text-muted-foreground text-xs">Location</span>
                                   <p className="font-medium">{tree.location_name}</p>
                                 </div>
