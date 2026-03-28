@@ -102,6 +102,8 @@ export default function AdminContributionTracking() {
   const [statusTarget, setStatusTarget] = useState<ContributionRow | null>(null);
   const [newStatus, setNewStatus] = useState("");
   const [updating, setUpdating] = useState(false);
+  // Contextual fields for status updates
+  const [statusFields, setStatusFields] = useState<Record<string, string>>({});
 
   const queryClient = useQueryClient();
 
