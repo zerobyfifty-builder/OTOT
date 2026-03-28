@@ -671,33 +671,58 @@ export const StakeholderFinancial = () => {
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.partner_received_date)}</TableCell>}
                         <TableCell>{getStatusBadge(c.status)}</TableCell>
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-60 group-hover:opacity-100 transition-opacity">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {(isKtbUser || isTechPartner) && (
-                                <DropdownMenuItem onClick={() => openSheet(c, "view")}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View
-                                </DropdownMenuItem>
-                              )}
-                              {isKtbUser && (
-                                <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Transaction
-                                </DropdownMenuItem>
-                              )}
-                              {isPlantationPartner && (
-                                <DropdownMenuItem onClick={() => openSheet(c, "partner")}>
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Receive Funds
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {isPlantationPartner ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-block">
+                                    <Button
+                                      size="sm"
+                                      className={`h-7 px-3 text-xs font-semibold gap-1.5 rounded-full transition-all ${
+                                        c.status === "transferred_for_planting"
+                                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                          : "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                                      }`}
+                                      disabled={c.status !== "transferred_for_planting"}
+                                      onClick={() => c.status === "transferred_for_planting" && openSheet(c, "partner")}
+                                    >
+                                      <DollarSign className="h-3.5 w-3.5" />
+                                      Receive
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">
+                                    {c.status === "transferred_for_planting"
+                                      ? "Click to confirm receipt"
+                                      : "Funds must be transferred before confirming receipt"}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-60 group-hover:opacity-100 transition-opacity">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {(isKtbUser || isTechPartner) && (
+                                  <DropdownMenuItem onClick={() => openSheet(c, "view")}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View
+                                  </DropdownMenuItem>
+                                )}
+                                {isKtbUser && (
+                                  <DropdownMenuItem onClick={() => openSheet(c, "ktb")}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Transaction
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
