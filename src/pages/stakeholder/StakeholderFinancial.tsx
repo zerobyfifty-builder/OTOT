@@ -576,9 +576,9 @@ export const StakeholderFinancial = () => {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="contribution_confirmed">Confirmed</SelectItem>
-            <SelectItem value="funds_received">Funds Received</SelectItem>
-            <SelectItem value="transferred_for_planting">Transferred</SelectItem>
-            <SelectItem value="received_for_planting">Received</SelectItem>
+            <SelectItem value="funds_received">Received by KTB</SelectItem>
+            <SelectItem value="transferred_for_planting">Transferred for Plantation</SelectItem>
+            <SelectItem value="received_for_planting">Received for Plantation</SelectItem>
           </SelectContent>
         </Select>
       </div>
