@@ -399,6 +399,15 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
+            {/* Contribution Tracking */}
+            <Route path="/admin/contributions" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <AdminContributionTracking />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+
             {/* Financial routes */}
             <Route path="/admin/financial/transactions" element={
               <SuperAdminRoute>
