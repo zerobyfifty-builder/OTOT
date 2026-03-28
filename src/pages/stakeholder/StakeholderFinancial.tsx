@@ -366,10 +366,12 @@ export const StakeholderFinancial = () => {
     const totalTechReceived = all.reduce((s, c) => s + Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)), 0);
     const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
     const techUnderProcessing = totalTechFee - totalTechReceived;
-    // KTB / Institutional totals
-    const totalMktngFeeAllocated = all.reduce((s, c) => s + Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100)), 0);
-    const totalAmntReceived = all.reduce((s, c) => s + Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100)), 0);
-    const ktbUnderProcessing = totalMktngFeeAllocated - totalAmntReceived;
+    // KTB / Institutional totals - using wallet settings
+    // TO BE RECEIVED = contribution - (contribution × tech fee %)
+    const totalToBeReceived = all.reduce((s, c) => s + (Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100)), 0);
+    // AMNT RECEIVED replicates TO BE RECEIVED
+    const totalAmntReceived = totalToBeReceived;
+    const ktbUnderProcessing = totalToBeReceived - totalAmntReceived;
     const totalTransferredForPlantation = all.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     return {
       totalAllocated,
@@ -384,7 +386,7 @@ export const StakeholderFinancial = () => {
       totalTechReceived,
       techUnderProcessing,
       totalContribution,
-      totalMktngFeeAllocated,
+      totalToBeReceived,
       totalAmntReceived,
       ktbUnderProcessing,
       totalTransferredForPlantation,
