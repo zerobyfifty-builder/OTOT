@@ -49,6 +49,8 @@ interface ContributionRow {
   institution_receipt_id: string | null;
   institution_received_date: string | null;
   tech_fee_received: number;
+  tech_fee_percent: number | null;
+  ktb_fee_percent: number | null;
 }
 
 type SortField = "contribution_id" | "contribution_type" | "tourist_name" | "num_trees" | "amount_paid" | "payment_date" | "status";
@@ -163,9 +165,11 @@ export default function AdminContributionTracking() {
     return s ? Number(s.setting_value) : 40;
   }, [walletSettings]);
 
-  const getTechFee = (c: ContributionRow) => Number(c.amount_paid) * techFeePercent / 100;
+  const getRowTechFee = (c: ContributionRow) => c.tech_fee_percent ?? techFeePercent;
+  const getRowKtbFee = (c: ContributionRow) => c.ktb_fee_percent ?? ktbFeePercent;
+  const getTechFee = (c: ContributionRow) => Number(c.amount_paid) * getRowTechFee(c) / 100;
   const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - getTechFee(c);
-  const getRetained = (c: ContributionRow) => getToBeReceived(c) * ktbFeePercent / 100;
+  const getRetained = (c: ContributionRow) => getToBeReceived(c) * getRowKtbFee(c) / 100;
   const getToBeTransferred = (c: ContributionRow) => getToBeReceived(c) - getRetained(c);
 
   const plantationPercent = 100 - ktbFeePercent;
@@ -611,33 +615,50 @@ export default function AdminContributionTracking() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fund Allocation</p>
+                    <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">
+                      as on {formatDate(selectedRow.payment_date || selectedRow.created_at)}
+                    </Badge>
+                  </div>
+                  {(() => {
+                    const rowTechPct = getRowTechFee(selectedRow);
+                    const rowKtbPct = getRowKtbFee(selectedRow);
+                    const rowPlantPct = 100 - rowKtbPct;
+                    const gross = Number(selectedRow.amount_paid);
+                    const techFee = gross * rowTechPct / 100;
+                    const ktbNet = gross - techFee;
+                    const ktbRetained = ktbNet * rowKtbPct / 100;
+                    const forPlantation = ktbNet - ktbRetained;
+                    return (
+                      <div className="space-y-0 text-sm border rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                          <span className="text-muted-foreground">Gross Contribution</span>
+                          <span className="font-semibold tabular-nums">${formatNumber(gross)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b bg-blue-50">
+                          <span className="text-blue-700 font-medium">Tech Fee ({rowTechPct}%)</span>
+                          <span className="font-semibold text-blue-700 tabular-nums">${formatNumber(techFee)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b">
+                          <span className="text-muted-foreground">KTB Net (To Be Received)</span>
+                          <span className="font-semibold tabular-nums">${formatNumber(ktbNet)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 border-b bg-amber-50">
+                          <span className="text-amber-700 font-medium">KTB Retained ({rowKtbPct}%)</span>
+                          <span className="font-semibold text-amber-700 tabular-nums">${formatNumber(ktbRetained)}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-4 py-3 bg-emerald-50">
+                          <span className="text-emerald-800 font-medium">For Plantation ({rowPlantPct}%)</span>
+                          <span className="font-semibold text-emerald-800 tabular-nums">${formatNumber(forPlantation)}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="mt-3 flex justify-end">
                     <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openStatusDialog(selectedRow)}>
                       <Pencil className="h-3 w-3 mr-1" />Update Status
                     </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center bg-muted/30 rounded-lg p-3">
-                      <span className="text-xs text-muted-foreground">Gross Contribution</span>
-                      <span className="text-sm font-bold tabular-nums">${formatNumber(Number(selectedRow.amount_paid))}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-blue-50 rounded-lg p-3">
-                      <span className="text-xs text-[hsl(212,100%,50%)]">Tech Fee ({techFeePercent}%)</span>
-                      <span className="text-sm font-bold tabular-nums text-[hsl(212,100%,50%)]">${formatNumber(getTechFee(selectedRow))}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-muted/20 rounded-lg p-3">
-                      <span className="text-xs text-muted-foreground">KTB Net (To Be Received)</span>
-                      <span className="text-sm font-bold tabular-nums">${formatNumber(getToBeReceived(selectedRow))}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-rose-50 rounded-lg p-3">
-                      <span className="text-xs text-[hsl(348,70%,30%)]">KTB Retained ({ktbFeePercent}%)</span>
-                      <span className="text-sm font-bold tabular-nums text-[hsl(348,70%,30%)]">${formatNumber(getRetained(selectedRow))}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-emerald-50 rounded-lg p-3">
-                      <span className="text-xs text-emerald-700">For Plantation ({plantationPercent}%)</span>
-                      <span className="text-sm font-bold tabular-nums text-emerald-700">${formatNumber(getToBeTransferred(selectedRow))}</span>
-                    </div>
                   </div>
                 </div>
 

@@ -361,6 +361,7 @@ export type Database = {
           id: string
           institution_receipt_id: string | null
           institution_received_date: string | null
+          ktb_fee_percent: number | null
           ktb_receipt_id: string | null
           ktb_received_date: string | null
           mktng_fee_allocated: number | null
@@ -371,6 +372,7 @@ export type Database = {
           payment_method: string | null
           plantation_partner_id: string | null
           status: string
+          tech_fee_percent: number | null
           tech_fee_received: number | null
           tech_receipt_id: string | null
           tech_received_date: string | null
@@ -397,6 +399,7 @@ export type Database = {
           id?: string
           institution_receipt_id?: string | null
           institution_received_date?: string | null
+          ktb_fee_percent?: number | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
           mktng_fee_allocated?: number | null
@@ -407,6 +410,7 @@ export type Database = {
           payment_method?: string | null
           plantation_partner_id?: string | null
           status?: string
+          tech_fee_percent?: number | null
           tech_fee_received?: number | null
           tech_receipt_id?: string | null
           tech_received_date?: string | null
@@ -433,6 +437,7 @@ export type Database = {
           id?: string
           institution_receipt_id?: string | null
           institution_received_date?: string | null
+          ktb_fee_percent?: number | null
           ktb_receipt_id?: string | null
           ktb_received_date?: string | null
           mktng_fee_allocated?: number | null
@@ -443,6 +448,7 @@ export type Database = {
           payment_method?: string | null
           plantation_partner_id?: string | null
           status?: string
+          tech_fee_percent?: number | null
           tech_fee_received?: number | null
           tech_receipt_id?: string | null
           tech_received_date?: string | null
