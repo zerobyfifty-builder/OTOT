@@ -372,7 +372,12 @@ export const StakeholderFinancial = () => {
     // AMNT RECEIVED replicates TO BE RECEIVED
     const totalAmntReceived = totalToBeReceived;
     const ktbUnderProcessing = totalToBeReceived - totalAmntReceived;
-    const totalTransferredForPlantation = all.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
+    // RETAINED total
+    const totalRetained = all.reduce((s, c) => s + (((Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100)) * ktbFeePercent / 100)), 0);
+    // TO BE TRANSFERRED = AMNT RECEIVED - RETAINED
+    const totalToBeTransferred = totalAmntReceived - totalRetained;
+    // TRANSFERRED replicates TO BE TRANSFERRED
+    const totalTransferredForPlantation = totalToBeTransferred;
     return {
       totalAllocated,
       totalTrees,
