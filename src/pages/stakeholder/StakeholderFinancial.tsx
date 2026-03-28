@@ -421,7 +421,7 @@ export const StakeholderFinancial = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 opacity-50" /></span>
+              <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 text-muted-foreground/80" /></span>
             </TooltipTrigger>
             <TooltipContent><p className="text-xs max-w-[200px]">{tooltip}</p></TooltipContent>
           </Tooltip>
