@@ -778,8 +778,8 @@ export default function TreesAll() {
                           <div key={tree.id} className="rounded-lg border bg-card p-3">
                             <div className="flex justify-between items-start mb-2">
                               <span className="font-mono text-xs text-muted-foreground">#{i + 1} · {tree.otot_id}</span>
-                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation']}`}>
-                                {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned']}`}>
+                                {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                               </Badge>
                             </div>
                             <div className="grid grid-cols-2 gap-y-1 text-sm">
