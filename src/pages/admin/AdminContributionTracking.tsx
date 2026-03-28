@@ -211,8 +211,13 @@ export default function AdminContributionTracking() {
   };
 
   const openStatusDialog = (c: ContributionRow) => {
+    const nextStatuses = getNextStatuses(c.status);
+    if (nextStatuses.length === 0) {
+      toast.info("This contribution has reached its final status.");
+      return;
+    }
     setStatusTarget(c);
-    setNewStatus(c.status);
+    setNewStatus(nextStatuses[0].value);
     setStatusFields({
       ktb_receipt_id: c.ktb_receipt_id || "",
       ktb_received_date: c.ktb_received_date || new Date().toISOString().split("T")[0],
