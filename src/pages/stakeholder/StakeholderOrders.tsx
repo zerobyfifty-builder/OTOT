@@ -820,7 +820,7 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</p>
                         </div>
                         <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Planted By</span>
+                          <span className="text-muted-foreground text-xs">Planting By</span>
                           <p className="font-medium">MFC-ICLIP</p>
                         </div>
                         <div>
