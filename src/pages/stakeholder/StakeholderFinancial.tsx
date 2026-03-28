@@ -366,10 +366,12 @@ export const StakeholderFinancial = () => {
     const totalTechReceived = all.reduce((s, c) => s + Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)), 0);
     const totalContribution = all.reduce((s, c) => s + Number(c.amount_paid), 0);
     const techUnderProcessing = totalTechFee - totalTechReceived;
-    // KTB / Institutional totals
-    const totalMktngFeeAllocated = all.reduce((s, c) => s + Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100)), 0);
-    const totalAmntReceived = all.reduce((s, c) => s + Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100)), 0);
-    const ktbUnderProcessing = totalMktngFeeAllocated - totalAmntReceived;
+    // KTB / Institutional totals - using wallet settings
+    // TO BE RECEIVED = contribution - (contribution × tech fee %)
+    const totalToBeReceived = all.reduce((s, c) => s + (Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100)), 0);
+    // AMNT RECEIVED replicates TO BE RECEIVED
+    const totalAmntReceived = totalToBeReceived;
+    const ktbUnderProcessing = totalToBeReceived - totalAmntReceived;
     const totalTransferredForPlantation = all.reduce((s, c) => s + Number(c.amount_transferred || 0), 0);
     return {
       totalAllocated,
@@ -384,7 +386,7 @@ export const StakeholderFinancial = () => {
       totalTechReceived,
       techUnderProcessing,
       totalContribution,
-      totalMktngFeeAllocated,
+      totalToBeReceived,
       totalAmntReceived,
       ktbUnderProcessing,
       totalTransferredForPlantation,
@@ -411,8 +413,12 @@ export const StakeholderFinancial = () => {
     </TableHead>
   );
 
-  // Helper to get mktng fee for a row
-  const getMktngFee = (c: ContributionRow) => Number(c.mktng_fee_allocated || (Number(c.amount_received || 0) * ktbFeePercent / 100));
+  // Helper: TO BE RECEIVED = contribution minus tech fee
+  const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - (Number(c.amount_paid) * techFeePercent / 100);
+  // Helper: AMNT RECEIVED replicates TO BE RECEIVED
+  const getAmntReceived = (c: ContributionRow) => getToBeReceived(c);
+  // Helper: RETAINED = AMNT RECEIVED × KTB marketing fee %
+  const getRetained = (c: ContributionRow) => getAmntReceived(c) * ktbFeePercent / 100;
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -463,8 +469,8 @@ export const StakeholderFinancial = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
             <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Mktng Fee Allocated</p>
-              <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalMktngFeeAllocated)}</p>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">To Be Received</p>
+              <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalToBeReceived)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
@@ -571,7 +577,7 @@ export const StakeholderFinancial = () => {
                       {isTechPartner && <StaticHead label="Method" />}
                       {isPlantationPartner && <SortableHead field="payment_date" label="Contri Date" />}
                       {isKtbUser && <SortableHead field="amount_paid" label="Contribution" />}
-                      {isKtbUser && <StaticHead label="Mktng Fee Allocated" />}
+                      {isKtbUser && <StaticHead label="To Be Received" />}
                       {isKtbUser && <StaticHead label="Amnt Received" />}
                       {isKtbUser && <StaticHead label="Dt Recvd" />}
                       {isKtbUser && <StaticHead label="Method" />}
@@ -600,11 +606,11 @@ export const StakeholderFinancial = () => {
                         {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-primary font-medium text-sm tabular-nums">${getMktngFee(c).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${getMktngFee(c).toFixed(2)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-primary font-medium text-sm tabular-nums">${getToBeReceived(c).toFixed(2)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${getAmntReceived(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{formatDate(c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at)}</TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
-                        {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${Number(c.amount_retained || 0).toFixed(2)}</TableCell>}
+                        {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${getRetained(c).toFixed(2)}</TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
                         {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.transfer_date)}</TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>}
