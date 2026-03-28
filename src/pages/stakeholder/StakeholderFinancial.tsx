@@ -839,7 +839,7 @@ export const StakeholderFinancial = () => {
                   <div className="flex gap-2 mt-4">
                     {selectedRow.status === "contribution_confirmed" && (
                       <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                        {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Funds Received"}
+                        {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Received by KTB"}
                       </Button>
                     )}
                     {selectedRow.status === "funds_received" && (
