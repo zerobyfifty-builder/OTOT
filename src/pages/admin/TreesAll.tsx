@@ -510,8 +510,8 @@ export default function TreesAll() {
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
                     <SortableHead field="amount_transferred" label="Allocated for Planting" />
-                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
                     <SortableHead field="payment_status" label="Payment Status" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting By</TableHead>
                     <SortableHead field="planting_status" label="Planting Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
@@ -519,7 +519,7 @@ export default function TreesAll() {
                 <TableBody>
                   {paginated.map((group) => {
                     const isExpanded = expandedRows.has(group.contribution_id);
-                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
                     const progressPct = group.total_trees > 0 ? Math.min(100, (plantedInGroup / group.total_trees) * 100) : 0;
 
                     return (
@@ -543,12 +543,12 @@ export default function TreesAll() {
                           </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
                           <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
-                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[group.payment_status] || "bg-muted text-muted-foreground"}`}>
                               {CONTRIBUTION_STATUS_LABELS[group.payment_status] || group.payment_status}
                             </Badge>
                           </TableCell>
+                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>

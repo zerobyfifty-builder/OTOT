@@ -616,7 +616,7 @@ export const StakeholderOrders = () => {
                             <TableCell colSpan={10} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 {/* Bulk Update */}
-                                {hasEdit && group.trees.length > 0 && (
+                                {canEditPlantingStatus && group.trees.length > 0 && (
                                   <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
                                     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                                       <Layers className="h-4 w-4 text-primary" />
