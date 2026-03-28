@@ -742,8 +742,12 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">{viewSheet.country || "-"}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs">Contri Type</span>
-                          <p className="font-medium">{getContriTypeLabel(viewSheet.contribution_type)}</p>
+                          <span className="text-muted-foreground text-xs">Type</span>
+                          <p className="font-medium">
+                            {viewSheet.contribution_type === "travel_agent"
+                              ? <span className="text-xs font-medium text-indigo-600">Agent</span>
+                              : <span className="text-xs font-medium text-teal-600">Tourist</span>}
+                          </p>
                         </div>
                         <div className="text-right">
                           <span className="text-muted-foreground text-xs">Trees</span>
