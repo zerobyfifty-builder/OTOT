@@ -31,23 +31,23 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
-  { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout },
-  { title: 'Planting', url: '/stakeholder/planting', icon: TreePine },
-  { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3 },
-  { title: 'Community Impact', url: '/stakeholder/impact', icon: Target },
-  { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target },
   { title: 'Admin', url: '/stakeholder/admin', icon: Settings },
   { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
 // Module-based menu items: keyed by module name from the modules table
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string }> = {
-  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Outcomes' },
+  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Settings' },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Dashboard' },
   tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Dashboard' },
   trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Dashboard' },
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Outcomes' },
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Settings' },
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Financial' },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Financial' },
+  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, insertAfter: 'Financial' },
+  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, insertAfter: 'Financial' },
+  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, insertAfter: 'Financial' },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Financial' },
 };
 
 interface StakeholderSidebarProps {
