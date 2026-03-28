@@ -486,34 +486,48 @@ export const StakeholderFinancial = () => {
           </Card>
         </div>
       ) : isKtbUser ? (
-        /* Summary - KTB / Institutional */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">To Be Received</p>
-              <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalToBeReceived)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
+        /* Summary - KTB / Institutional — Two grouped cards */
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Mktng & Admin Card */}
+          <Card className="border-0 shadow-md bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-lg" />
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">Mktng &amp; Admin</p>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">To Be Received</p>
+                  <p className="text-xl font-bold mt-1 tabular-nums">${formatNumber(totals.totalToBeReceived)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Amnt Received</p>
+                  <p className="text-xl font-bold text-emerald-600 mt-1 tabular-nums">${formatNumber(totals.totalAmntReceived)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Under Processing</p>
+                  <p className={`text-xl font-bold mt-1 tabular-nums ${totals.ktbUnderProcessing >= 0 ? 'text-amber-600' : 'text-red-600'}`}>${formatNumber(totals.ktbUnderProcessing)}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Amnt Received</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">${formatNumber(totals.totalAmntReceived)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Under Processing</p>
-              <p className={`text-2xl font-bold mt-1 ${totals.ktbUnderProcessing >= 0 ? 'text-amber-600' : 'text-red-600'}`}>${formatNumber(totals.ktbUnderProcessing)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred for Plantation</p>
-              <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.totalTransferredForPlantation)}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
+          {/* Plantation Card */}
+          <Card className="border-0 shadow-md bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-1 h-full bg-violet-500 rounded-l-lg" />
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 mb-4">Plantation</p>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
+                  <p className="text-xl font-bold mt-1 tabular-nums">${formatNumber(totals.totalToBeTransferred)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Amnt Transferred</p>
+                  <p className="text-xl font-bold text-violet-600 mt-1 tabular-nums">${formatNumber(totals.totalTransferredForPlantation)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Balance to Process</p>
+                  <p className={`text-xl font-bold mt-1 tabular-nums ${(totals.totalToBeTransferred - totals.totalTransferredForPlantation) >= 0 ? 'text-amber-600' : 'text-red-600'}`}>${formatNumber(totals.totalToBeTransferred - totals.totalTransferredForPlantation)}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
