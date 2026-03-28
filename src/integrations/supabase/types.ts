@@ -2039,6 +2039,14 @@ export type Database = {
         | "planting_in_progress"
         | "planted"
         | "monitored"
+        | "waiting_to_be_assigned"
+        | "site_prepared"
+        | "saplings_ready"
+        | "planting_scheduled"
+        | "sapling_planted"
+        | "being_mapped"
+        | "verified"
+        | "dead"
       pledge_status_type:
         | "pending_email_confirmation"
         | "confirmed"
@@ -2198,6 +2206,14 @@ export const Constants = {
         "planting_in_progress",
         "planted",
         "monitored",
+        "waiting_to_be_assigned",
+        "site_prepared",
+        "saplings_ready",
+        "planting_scheduled",
+        "sapling_planted",
+        "being_mapped",
+        "verified",
+        "dead",
       ],
       pledge_status_type: [
         "pending_email_confirmation",
