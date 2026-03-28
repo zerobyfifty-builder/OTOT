@@ -700,6 +700,10 @@ export const StakeholderFinancial = () => {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
+                          ) : isTechPartner ? (
+                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-60 group-hover:opacity-100 transition-opacity" onClick={() => openSheet(c, "view")}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
                           ) : (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -708,7 +712,7 @@ export const StakeholderFinancial = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {(isKtbUser || isTechPartner) && (
+                                {isKtbUser && (
                                   <DropdownMenuItem onClick={() => openSheet(c, "view")}>
                                     <Eye className="h-4 w-4 mr-2" />
                                     View
