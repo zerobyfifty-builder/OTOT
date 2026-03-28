@@ -788,9 +788,12 @@ export const StakeholderFinancial = () => {
                   </div>
                   {(() => {
                     const gross = Number(selectedRow.amount_paid || 0);
-                    const techFee = gross * (techFeePercent / 100);
+                    const rowTechPct = selectedRow.tech_fee_percent ?? techFeePercent;
+                    const rowKtbPct = selectedRow.ktb_fee_percent ?? ktbFeePercent;
+                    const rowPlantPct = 100 - rowKtbPct;
+                    const techFee = gross * (rowTechPct / 100);
                     const ktbNet = gross - techFee;
-                    const ktbRetained = ktbNet * (ktbFeePercent / 100);
+                    const ktbRetained = ktbNet * (rowKtbPct / 100);
                     const forPlantation = ktbNet - ktbRetained;
                     return (
                       <div className="space-y-0 text-sm border rounded-lg overflow-hidden">
@@ -799,7 +802,7 @@ export const StakeholderFinancial = () => {
                           <span className="font-semibold tabular-nums">${formatNumber(gross)}</span>
                         </div>
                         <div className="flex items-center justify-between px-4 py-3 border-b bg-blue-50">
-                          <span className="text-blue-700 font-medium">Tech Fee ({techFeePercent}%)</span>
+                          <span className="text-blue-700 font-medium">Tech Fee ({rowTechPct}%)</span>
                           <span className="font-semibold text-blue-700 tabular-nums">${formatNumber(techFee)}</span>
                         </div>
                         <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -807,11 +810,11 @@ export const StakeholderFinancial = () => {
                           <span className="font-semibold tabular-nums">${formatNumber(ktbNet)}</span>
                         </div>
                         <div className="flex items-center justify-between px-4 py-3 border-b bg-amber-50">
-                          <span className="text-amber-700 font-medium">KTB Retained ({ktbFeePercent}%)</span>
+                          <span className="text-amber-700 font-medium">KTB Retained ({rowKtbPct}%)</span>
                           <span className="font-semibold text-amber-700 tabular-nums">${formatNumber(ktbRetained)}</span>
                         </div>
                         <div className="flex items-center justify-between px-4 py-3 bg-emerald-50">
-                          <span className="text-emerald-800 font-medium">For Plantation ({100 - ktbFeePercent}%)</span>
+                          <span className="text-emerald-800 font-medium">For Plantation ({rowPlantPct}%)</span>
                           <span className="font-semibold text-emerald-800 tabular-nums">${formatNumber(forPlantation)}</span>
                         </div>
                       </div>
