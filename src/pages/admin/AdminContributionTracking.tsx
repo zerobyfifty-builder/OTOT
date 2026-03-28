@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,13 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { RefreshCw, Search, Eye, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Info, Download } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { RefreshCw, Search, Eye, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Info, Download, Pencil } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 interface ContributionRow {
   id: string;
@@ -54,6 +56,13 @@ type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 20;
 
+const STATUS_OPTIONS = [
+  { value: "contribution_confirmed", label: "Confirmed" },
+  { value: "funds_received", label: "Received by KTB" },
+  { value: "transferred_for_planting", label: "Transferred for Plantation" },
+  { value: "received_for_planting", label: "Received for Plantation" },
+];
+
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "contribution_confirmed":
@@ -79,6 +88,8 @@ const getStatusOrder = (status: string) => {
   }
 };
 
+const PIE_COLORS = ["#3b82f6", "#f59e0b", "#8b5cf6", "#10b981"];
+
 export default function AdminContributionTracking() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -87,6 +98,12 @@ export default function AdminContributionTracking() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [selectedRow, setSelectedRow] = useState<ContributionRow | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusTarget, setStatusTarget] = useState<ContributionRow | null>(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [updating, setUpdating] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { data: contributions, isLoading, refetch } = useQuery({
     queryKey: ["adminContributionTracking"],
@@ -133,11 +150,43 @@ export default function AdminContributionTracking() {
     return s ? Number(s.setting_value) : 40;
   }, [walletSettings]);
 
-  // Derived calculations
   const getTechFee = (c: ContributionRow) => Number(c.amount_paid) * techFeePercent / 100;
   const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - getTechFee(c);
   const getRetained = (c: ContributionRow) => getToBeReceived(c) * ktbFeePercent / 100;
   const getToBeTransferred = (c: ContributionRow) => getToBeReceived(c) - getRetained(c);
+
+  const plantationPercent = 100 - ktbFeePercent;
+
+  // Status update handler
+  const handleStatusUpdate = async () => {
+    if (!statusTarget || !newStatus) return;
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("contribution_tracking" as any)
+        .update({ status: newStatus, updated_at: new Date().toISOString() } as any)
+        .eq("id", statusTarget.id);
+      if (error) throw error;
+      toast.success(`Status updated to "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"`);
+      queryClient.invalidateQueries({ queryKey: ["adminContributionTracking"] });
+      setStatusDialogOpen(false);
+      setStatusTarget(null);
+      // Also update the sheet if open
+      if (selectedRow?.id === statusTarget.id) {
+        setSelectedRow({ ...selectedRow, status: newStatus });
+      }
+    } catch (err: any) {
+      toast.error("Failed to update status: " + err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const openStatusDialog = (c: ContributionRow) => {
+    setStatusTarget(c);
+    setNewStatus(c.status);
+    setStatusDialogOpen(true);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -194,6 +243,33 @@ export default function AdminContributionTracking() {
     return { gross, totalTechFee, totalToBeReceived, totalRetained, totalToBeTransferred, count: all.length, trees: all.reduce((s, c) => s + c.num_trees, 0), byStatus };
   }, [contributions, techFeePercent, ktbFeePercent]);
 
+  // Chart data: fund flow over time (monthly)
+  const monthlyChartData = useMemo(() => {
+    const all = contributions || [];
+    const monthMap: Record<string, { month: string; gross: number; techFee: number; ktbRetained: number; plantation: number }> = {};
+    all.forEach(c => {
+      const d = c.payment_date || c.created_at;
+      if (!d) return;
+      const monthKey = d.substring(0, 7); // YYYY-MM
+      if (!monthMap[monthKey]) {
+        monthMap[monthKey] = { month: monthKey, gross: 0, techFee: 0, ktbRetained: 0, plantation: 0 };
+      }
+      monthMap[monthKey].gross += Number(c.amount_paid);
+      monthMap[monthKey].techFee += getTechFee(c);
+      monthMap[monthKey].ktbRetained += getRetained(c);
+      monthMap[monthKey].plantation += getToBeTransferred(c);
+    });
+    return Object.values(monthMap).sort((a, b) => a.month.localeCompare(b.month)).slice(-12);
+  }, [contributions, techFeePercent, ktbFeePercent]);
+
+  // Chart data: status distribution pie
+  const statusPieData = useMemo(() => [
+    { name: "Confirmed", value: totals.byStatus.confirmed },
+    { name: "Received by KTB", value: totals.byStatus.receivedByKtb },
+    { name: "Transferred", value: totals.byStatus.transferred },
+    { name: "Received for Plantation", value: totals.byStatus.receivedForPlanting },
+  ].filter(d => d.value > 0), [totals]);
+
   const formatDate = (d: string | null) => {
     if (!d) return "-";
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
@@ -209,7 +285,7 @@ export default function AdminContributionTracking() {
     <TableHead className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${className}`}>
       {tooltip ? (
         <TooltipProvider><Tooltip><TooltipTrigger asChild>
-          <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 text-muted-foreground/70" /></span>
+          <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 text-muted-foreground/50" /></span>
         </TooltipTrigger><TooltipContent><p className="text-xs max-w-[200px]">{tooltip}</p></TooltipContent></Tooltip></TooltipProvider>
       ) : label}
     </TableHead>
@@ -229,6 +305,13 @@ export default function AdminContributionTracking() {
     a.click(); toast.success("Exported successfully");
   };
 
+  const formatChartMonth = (m: string) => {
+    try {
+      const [y, mo] = m.split("-");
+      return format(new Date(Number(y), Number(mo) - 1), "MMM yy");
+    } catch { return m; }
+  };
+
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       {/* Header */}
@@ -243,9 +326,8 @@ export default function AdminContributionTracking() {
         </div>
       </div>
 
-      {/* Summary Cards — 4-column fund flow overview */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Gross contributions */}
         <Card className="border-0 shadow-md overflow-hidden relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-admin-primary rounded-l-lg" />
           <CardContent className="p-5">
@@ -254,8 +336,6 @@ export default function AdminContributionTracking() {
             <p className="text-[11px] text-muted-foreground mt-1">{totals.count} contributions · {totals.trees} trees</p>
           </CardContent>
         </Card>
-
-        {/* Tech Partner allocation */}
         <Card className="border-0 shadow-md overflow-hidden relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-[hsl(212,100%,50%)] rounded-l-lg" />
           <CardContent className="p-5">
@@ -264,24 +344,20 @@ export default function AdminContributionTracking() {
             <p className="text-[11px] text-muted-foreground mt-1">{techFeePercent}% of gross</p>
           </CardContent>
         </Card>
-
-        {/* KTB / Institutional */}
         <Card className="border-0 shadow-md overflow-hidden relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-[hsl(348,70%,30%)] rounded-l-lg" />
           <CardContent className="p-5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[hsl(348,70%,30%)] mb-3">KTB Retained</p>
             <p className="text-2xl font-bold tabular-nums">${formatNumber(totals.totalRetained)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{ktbFeePercent}% of net ({formatNumber(totals.totalToBeReceived)})</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{ktbFeePercent}% of net</p>
           </CardContent>
         </Card>
-
-        {/* Plantation */}
         <Card className="border-0 shadow-md overflow-hidden relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-emerald-600 rounded-l-lg" />
           <CardContent className="p-5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-700 mb-3">For Plantation</p>
             <p className="text-2xl font-bold tabular-nums">${formatNumber(totals.totalToBeTransferred)}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">Tree planting, growing &amp; maintenance</p>
+            <p className="text-[11px] text-muted-foreground mt-1">{plantationPercent}% of net</p>
           </CardContent>
         </Card>
       </div>
@@ -302,6 +378,61 @@ export default function AdminContributionTracking() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Fund flow over time */}
+        <Card className="lg:col-span-2 border shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Fund Flow Over Time</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {monthlyChartData.length === 0 ? (
+              <div className="h-[260px] flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={monthlyChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tickFormatter={formatChartMonth} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <RechartsTooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
+                    formatter={(value: number, name: string) => [`$${formatNumber(value)}`, name]}
+                    labelFormatter={formatChartMonth}
+                  />
+                  <Bar dataKey="techFee" name="Tech Fee" fill="hsl(212, 100%, 50%)" radius={[2, 2, 0, 0]} stackId="a" />
+                  <Bar dataKey="ktbRetained" name="KTB Retained" fill="hsl(348, 70%, 30%)" radius={[0, 0, 0, 0]} stackId="a" />
+                  <Bar dataKey="plantation" name="Plantation" fill="hsl(152, 60%, 40%)" radius={[2, 2, 0, 0]} stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Status distribution pie */}
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {statusPieData.length === 0 ? (
+              <div className="h-[260px] flex items-center justify-center text-sm text-muted-foreground">No data yet</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={statusPieData} cx="50%" cy="45%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    {statusPieData.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <RechartsTooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -376,6 +507,10 @@ export default function AdminContributionTracking() {
                               <DropdownMenuItem onClick={() => { setSelectedRow(c); setSheetOpen(true); }}>
                                 <Eye className="h-4 w-4 mr-2" />View
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => openStatusDialog(c)}>
+                                <Pencil className="h-4 w-4 mr-2" />Update Status
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -421,7 +556,6 @@ export default function AdminContributionTracking() {
               </SheetHeader>
 
               <div className="mt-6 space-y-5">
-                {/* Contribution details */}
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Contribution Details</p>
                   <div className="grid grid-cols-2 gap-3">
@@ -431,13 +565,17 @@ export default function AdminContributionTracking() {
                     <div><span className="text-muted-foreground text-xs">Trees</span><p className="text-sm font-medium">{selectedRow.num_trees}</p></div>
                     <div><span className="text-muted-foreground text-xs">Payment Date</span><p className="text-sm font-medium">{formatDate(selectedRow.payment_date || selectedRow.created_at)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Method</span><p className="text-sm font-medium">{selectedRow.payment_method || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Reference</span><p className="text-sm font-medium font-mono text-xs">{selectedRow.transaction_reference || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Reference</span><p className="font-mono text-xs">{selectedRow.transaction_reference || "-"}</p></div>
                   </div>
                 </div>
 
-                {/* Fund flow */}
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Fund Allocation</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fund Allocation</p>
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openStatusDialog(selectedRow)}>
+                      <Pencil className="h-3 w-3 mr-1" />Update Status
+                    </Button>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center bg-muted/30 rounded-lg p-3">
                       <span className="text-xs text-muted-foreground">Gross Contribution</span>
@@ -456,13 +594,12 @@ export default function AdminContributionTracking() {
                       <span className="text-sm font-bold tabular-nums text-[hsl(348,70%,30%)]">${formatNumber(getRetained(selectedRow))}</span>
                     </div>
                     <div className="flex justify-between items-center bg-emerald-50 rounded-lg p-3">
-                      <span className="text-xs text-emerald-700">For Plantation</span>
+                      <span className="text-xs text-emerald-700">For Plantation ({plantationPercent}%)</span>
                       <span className="text-sm font-bold tabular-nums text-emerald-700">${formatNumber(getToBeTransferred(selectedRow))}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Receipt tracking */}
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Receipt Tracking</p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -473,7 +610,6 @@ export default function AdminContributionTracking() {
                   </div>
                 </div>
 
-                {/* Transfer details */}
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Transfer Details</p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -490,6 +626,43 @@ export default function AdminContributionTracking() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Status Update Dialog */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Contribution Status</DialogTitle>
+            <DialogDescription>
+              {statusTarget && (
+                <span>Change status for <strong className="font-mono">{statusTarget.contribution_id}</strong></span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Current Status</p>
+              {statusTarget && getStatusBadge(statusTarget.status)}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">New Status</p>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(s => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleStatusUpdate} disabled={updating || newStatus === statusTarget?.status}>
+              {updating ? "Updating..." : "Update Status"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
