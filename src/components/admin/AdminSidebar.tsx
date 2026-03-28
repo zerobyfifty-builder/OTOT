@@ -57,6 +57,11 @@ const menuItems = [
     ],
   },
   {
+    title: "Contribution Tracking",
+    url: "/admin/contributions",
+    icon: DollarSign,
+  },
+  {
     title: "Stakeholders",
     icon: Landmark,
     items: [

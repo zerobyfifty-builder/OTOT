@@ -49,6 +49,7 @@ import AllPartners from "@/pages/admin/AllPartners";
 import AccessControlRoles from "@/pages/admin/AccessControlRoles";
 import AccessControlModules from "@/pages/admin/AccessControlModules";
 import FinancialTransactions from "@/pages/admin/FinancialTransactions";
+import AdminContributionTracking from "@/pages/admin/AdminContributionTracking";
 import TreesAll from "@/pages/admin/TreesAll";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import TreesManagement from "@/pages/admin/TreesManagement";
