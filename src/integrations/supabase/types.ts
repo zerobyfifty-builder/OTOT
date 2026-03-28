@@ -1657,6 +1657,7 @@ export type Database = {
       trees: {
         Row: {
           amount_paid: number
+          contribution_id: string | null
           created_at: string
           growth_notes: string | null
           id: string
@@ -1686,6 +1687,7 @@ export type Database = {
         }
         Insert: {
           amount_paid: number
+          contribution_id?: string | null
           created_at?: string
           growth_notes?: string | null
           id?: string
@@ -1715,6 +1717,7 @@ export type Database = {
         }
         Update: {
           amount_paid?: number
+          contribution_id?: string | null
           created_at?: string
           growth_notes?: string | null
           id?: string
