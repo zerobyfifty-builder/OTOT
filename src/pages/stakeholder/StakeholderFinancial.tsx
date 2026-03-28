@@ -801,7 +801,11 @@ export const StakeholderFinancial = () => {
           )}
 
           {/* KTB Transaction */}
-          {selectedRow && sheetMode === "ktb" && (
+          {selectedRow && sheetMode === "ktb" && (() => {
+            const ktbNextStatuses = getNextStatuses(selectedRow.status);
+            const ktbNextStatus = ktbNextStatuses.length > 0 ? ktbNextStatuses[0] : null;
+            const ktbAllowed = ktbNextStatus && (ktbNextStatus.value === "funds_received" || ktbNextStatus.value === "transferred_for_planting");
+            return (
             <>
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-3">
@@ -815,43 +819,87 @@ export const StakeholderFinancial = () => {
                   <p><span className="text-muted-foreground">Trees:</span> {selectedRow.num_trees}</p>
                   <p><span className="text-muted-foreground">Amount:</span> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Receipt ID</Label>
-                  <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g., KTB-REC-001" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Received Date</Label>
-                  <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Transfer Date</Label>
-                  <Input type="date" value={ktbForm.transfer_date} onChange={(e) => setKtbForm({ ...ktbForm, transfer_date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Transfer Ref</Label>
-                  <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g., TRF-2026-001" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Mode of Transfer</Label>
-                  <Input value={ktbForm.transfer_mode} onChange={(e) => setKtbForm({ ...ktbForm, transfer_mode: e.target.value })} placeholder="e.g., Bank Transfer, RTGS, EFT" />
-                </div>
-                {(selectedRow.status === "contribution_confirmed" || selectedRow.status === "funds_received") && (
-                  <div className="flex gap-2 mt-4">
-                    {selectedRow.status === "contribution_confirmed" && (
-                      <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
-                        {updateKtbReceiveMutation.isPending ? "Saving..." : "Mark Received by KTB"}
-                      </Button>
+
+                {ktbAllowed ? (
+                  <div className="border rounded-lg p-4 space-y-4">
+                    <p className="text-sm font-semibold">Update Status</p>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Current Status</p>
+                        {getStatusBadge(selectedRow.status)}
+                      </div>
+                      <span className="text-muted-foreground mt-4">→</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Next Status</p>
+                        <div className="border rounded-md px-3 py-2 text-sm bg-muted/20">{ktbNextStatus.label}</div>
+                      </div>
+                    </div>
+
+                    {ktbNextStatus.value === "funds_received" && (
+                      <div className="space-y-3 border-t pt-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Receipt Details</p>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Receipt ID</label>
+                          <Input value={ktbForm.ktb_receipt_id} onChange={(e) => setKtbForm({ ...ktbForm, ktb_receipt_id: e.target.value })} placeholder="e.g. KTB-REC-001" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Received Date</label>
+                          <Input type="date" value={ktbForm.ktb_received_date} onChange={(e) => setKtbForm({ ...ktbForm, ktb_received_date: e.target.value })} />
+                        </div>
+                      </div>
                     )}
-                    {selectedRow.status === "funds_received" && (
-                      <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
-                        {updateKtbTransferMutation.isPending ? "Saving..." : "Transfer for Planting"}
-                      </Button>
+
+                    {ktbNextStatus.value === "transferred_for_planting" && (
+                      <div className="space-y-3 border-t pt-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer Details</p>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Reference</label>
+                          <Input value={ktbForm.transfer_reference} onChange={(e) => setKtbForm({ ...ktbForm, transfer_reference: e.target.value })} placeholder="e.g. TRF-001" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Date</label>
+                          <Input type="date" value={ktbForm.transfer_date} onChange={(e) => setKtbForm({ ...ktbForm, transfer_date: e.target.value })} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Mode</label>
+                          <Select value={ktbForm.transfer_mode} onValueChange={(v) => setKtbForm({ ...ktbForm, transfer_mode: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select mode" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                              <SelectItem value="RTGS">RTGS</SelectItem>
+                              <SelectItem value="EFT">EFT</SelectItem>
+                              <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                              <SelectItem value="Cheque">Cheque</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" className="flex-1" onClick={() => setSheetOpen(false)}>Cancel</Button>
+                      {ktbNextStatus.value === "funds_received" && (
+                        <Button className="flex-1" onClick={() => updateKtbReceiveMutation.mutate(selectedRow.id)} disabled={updateKtbReceiveMutation.isPending}>
+                          {updateKtbReceiveMutation.isPending ? "Updating..." : "Update Status"}
+                        </Button>
+                      )}
+                      {ktbNextStatus.value === "transferred_for_planting" && (
+                        <Button className="flex-1" onClick={() => updateKtbTransferMutation.mutate(selectedRow.id)} disabled={updateKtbTransferMutation.isPending}>
+                          {updateKtbTransferMutation.isPending ? "Updating..." : "Update Status"}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-4 text-center text-sm text-muted-foreground">
+                    This contribution has reached its final status for KTB actions.
                   </div>
                 )}
               </div>
             </>
-          )}
+            );
+          })()}
 
           {/* Partner: Received for Planting */}
           {selectedRow && sheetMode === "partner" && (() => {
