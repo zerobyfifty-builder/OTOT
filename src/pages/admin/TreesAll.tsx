@@ -483,7 +483,7 @@ export default function TreesAll() {
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
                     <SortableHead field="payment_date" label="Date" />
-                    <SortableHead field="contribution_type" label="Contri Type" />
+                    <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
                     <SortableHead field="amount_transferred" label="Allocated for Planting" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
