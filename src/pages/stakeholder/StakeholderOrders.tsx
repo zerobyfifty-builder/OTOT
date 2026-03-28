@@ -143,7 +143,7 @@ interface ContributionGroup {
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
   if (!trees.length) return "waiting_to_be_assigned";
-  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
+  const statuses: string[] = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
   if (statuses.every(s => s === "planted" || s === "verified")) return "planted";
   if (statuses.some(s => s === "planted" || s === "verified")) return "partially_planted";
   if (statuses.every(s => s === "waiting_to_be_assigned")) return "waiting_to_be_assigned";
