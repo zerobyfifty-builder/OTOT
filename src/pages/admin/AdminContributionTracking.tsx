@@ -164,18 +164,33 @@ export default function AdminContributionTracking() {
     if (!statusTarget || !newStatus) return;
     setUpdating(true);
     try {
+      const updatePayload: Record<string, any> = { status: newStatus, updated_at: new Date().toISOString() };
+
+      // Add contextual fields based on status
+      if (newStatus === "funds_received") {
+        if (statusFields.ktb_receipt_id) updatePayload.ktb_receipt_id = statusFields.ktb_receipt_id;
+        if (statusFields.ktb_received_date) updatePayload.ktb_received_date = statusFields.ktb_received_date;
+      } else if (newStatus === "transferred_for_planting") {
+        if (statusFields.transfer_reference) updatePayload.transfer_reference = statusFields.transfer_reference;
+        if (statusFields.transfer_date) updatePayload.transfer_date = statusFields.transfer_date;
+        if (statusFields.transfer_mode) updatePayload.transfer_mode = statusFields.transfer_mode;
+      } else if (newStatus === "received_for_planting") {
+        updatePayload.partner_receipt_confirmation = true;
+        if (statusFields.partner_received_date) updatePayload.partner_received_date = statusFields.partner_received_date;
+      }
+
       const { error } = await supabase
         .from("contribution_tracking" as any)
-        .update({ status: newStatus, updated_at: new Date().toISOString() } as any)
+        .update(updatePayload as any)
         .eq("id", statusTarget.id);
       if (error) throw error;
       toast.success(`Status updated to "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"`);
       queryClient.invalidateQueries({ queryKey: ["adminContributionTracking"] });
       setStatusDialogOpen(false);
       setStatusTarget(null);
-      // Also update the sheet if open
+      setStatusFields({});
       if (selectedRow?.id === statusTarget.id) {
-        setSelectedRow({ ...selectedRow, status: newStatus });
+        setSelectedRow({ ...selectedRow, status: newStatus, ...updatePayload });
       }
     } catch (err: any) {
       toast.error("Failed to update status: " + err.message);
@@ -187,6 +202,14 @@ export default function AdminContributionTracking() {
   const openStatusDialog = (c: ContributionRow) => {
     setStatusTarget(c);
     setNewStatus(c.status);
+    setStatusFields({
+      ktb_receipt_id: c.ktb_receipt_id || "",
+      ktb_received_date: c.ktb_received_date || new Date().toISOString().split("T")[0],
+      transfer_reference: c.transfer_reference || "",
+      transfer_date: c.transfer_date || new Date().toISOString().split("T")[0],
+      transfer_mode: c.transfer_mode || "",
+      partner_received_date: c.partner_received_date || new Date().toISOString().split("T")[0],
+    });
     setStatusDialogOpen(true);
   };
 
