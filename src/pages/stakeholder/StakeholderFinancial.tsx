@@ -857,18 +857,21 @@ export const StakeholderFinancial = () => {
             const ktbAllowed = ktbNextStatus && (ktbNextStatus.value === "funds_received" || ktbNextStatus.value === "transferred_for_planting");
             return (
             <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-3">
-                  <span>{selectedRow.contribution_id}</span>
-                  {getStatusBadge(selectedRow.status)}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
-                  <p><span className="text-muted-foreground">Contributor:</span> {selectedRow.tourist_name}</p>
-                  <p><span className="text-muted-foreground">Trees:</span> {selectedRow.num_trees}</p>
-                  <p><span className="text-muted-foreground">Amount:</span> ${Number(selectedRow.amount_paid).toFixed(2)}</p>
-                </div>
+               <SheetHeader>
+                 <SheetTitle className="flex items-center gap-2">
+                   <Pencil className="h-4 w-4" />
+                   <span>Transaction: {selectedRow.contribution_id}</span>
+                   {getStatusBadge(selectedRow.status)}
+                 </SheetTitle>
+               </SheetHeader>
+               <div className="mt-6 space-y-4">
+                 <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
+                   <div className="flex justify-between"><span className="text-muted-foreground">Contributor:</span> <span className="font-medium">{selectedRow.tourist_name || "-"}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Trees:</span> <span className="font-medium">{selectedRow.num_trees}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span> <span className="font-medium">${formatNumber(selectedRow.amount_paid)}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Date:</span> <span className="font-medium">{formatDate(selectedRow.payment_date)}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Method:</span> <span className="font-medium">{selectedRow.payment_method || "-"}</span></div>
+                 </div>
 
                 {ktbAllowed ? (
                   <div className="border rounded-lg p-4 space-y-4">
