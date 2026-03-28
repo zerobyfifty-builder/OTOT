@@ -766,9 +766,9 @@ export const StakeholderFinancial = () => {
                 <div className="border-t pt-4">
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Fund Allocation</h3>
                   <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div className="bg-emerald-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">{isTechPartner ? "Received (KTB)" : "Received"}</span><p className="font-semibold text-emerald-700">${Number(selectedRow.amount_received || 0).toFixed(2)}</p></div>
-                    <div className="bg-amber-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">{isTechPartner ? "Retained (KTB)" : "Retained"}</span><p className="font-semibold text-amber-700">${Number(selectedRow.amount_retained || 0).toFixed(2)}</p></div>
-                    <div className="bg-violet-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">{isTechPartner ? "Transferred (Plantation)" : "Transferred"}</span><p className="font-semibold text-violet-700">${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p></div>
+                    <div className="bg-emerald-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Received (KTB)</span><p className="font-semibold text-emerald-700">${Number(selectedRow.amount_received || 0).toFixed(2)}</p></div>
+                    <div className="bg-amber-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Retained (KTB)</span><p className="font-semibold text-amber-700">${Number(selectedRow.amount_retained || 0).toFixed(2)}</p></div>
+                    <div className="bg-violet-50 rounded-lg p-3"><span className="text-muted-foreground text-xs">Transferred (Plantation)</span><p className="font-semibold text-violet-700">${Number(selectedRow.amount_transferred || 0).toFixed(2)}</p></div>
                   </div>
                 </div>
                 <div className="border-t pt-4">
