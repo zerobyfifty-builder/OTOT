@@ -854,7 +854,9 @@ export const StakeholderFinancial = () => {
           )}
 
           {/* Partner: Received for Planting */}
-          {selectedRow && sheetMode === "partner" && (
+          {selectedRow && sheetMode === "partner" && (() => {
+            const partnerCanAdvance = selectedRow.status === "transferred_for_planting";
+            return (
             <>
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
@@ -871,35 +873,54 @@ export const StakeholderFinancial = () => {
                   <div className="flex justify-between"><span className="text-muted-foreground">Mode:</span> <span className="font-medium">{selectedRow.transfer_mode || "-"}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Transfer Ref:</span> <span className="font-medium">{selectedRow.transfer_reference || "-"}</span></div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Receipt Confirmation</Label>
-                  <Select
-                    value={partnerForm.partner_receipt_confirmation ? "yes" : "no"}
-                    onValueChange={(v) => setPartnerForm({ ...partnerForm, partner_receipt_confirmation: v === "yes" })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes - Funds Received</SelectItem>
-                      <SelectItem value="no">No - Not Yet Received</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Date Received</Label>
-                  <Input type="date" value={partnerForm.partner_received_date} onChange={(e) => setPartnerForm({ ...partnerForm, partner_received_date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Acknowledgement Document URL</Label>
-                  <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
-                </div>
-                {selectedRow.status !== "received_for_planting" && (
-                  <Button className="w-full mt-4" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
-                    {updatePartnerMutation.isPending ? "Saving..." : "Confirm Received for Planting"}
-                  </Button>
+
+                {/* Status update section - admin style */}
+                {partnerCanAdvance ? (
+                  <div className="border rounded-lg p-4 space-y-4">
+                    <p className="text-sm font-semibold">Update Status</p>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Current Status</p>
+                        {getStatusBadge(selectedRow.status)}
+                      </div>
+                      <span className="text-muted-foreground mt-4">→</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Next Status</p>
+                        <div className="border rounded-md px-3 py-2 text-sm bg-muted/20">Received for Plantation</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 border-t pt-3">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plantation Receipt</p>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Date Received</label>
+                        <Input type="date" value={partnerForm.partner_received_date} onChange={(e) => setPartnerForm({ ...partnerForm, partner_received_date: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Acknowledgement Document URL</label>
+                        <Input value={partnerForm.acknowledgement_doc} onChange={(e) => setPartnerForm({ ...partnerForm, acknowledgement_doc: e.target.value })} placeholder="https://..." />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Receipt confirmation will be set to <strong>Yes</strong> automatically.</p>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" className="flex-1" onClick={() => setSheetOpen(false)}>Cancel</Button>
+                      <Button className="flex-1" onClick={() => updatePartnerMutation.mutate(selectedRow.id)} disabled={updatePartnerMutation.isPending}>
+                        {updatePartnerMutation.isPending ? "Updating..." : "Update Status"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-4 text-center text-sm text-muted-foreground">
+                    {selectedRow.status === "received_for_planting" 
+                      ? "This contribution has been confirmed as received."
+                      : "Funds must be transferred before confirming receipt."}
+                  </div>
                 )}
               </div>
             </>
-          )}
+            );
+          })()}
         </SheetContent>
       </Sheet>
     </div>
