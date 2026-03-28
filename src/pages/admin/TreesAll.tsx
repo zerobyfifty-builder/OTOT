@@ -387,7 +387,7 @@ export default function TreesAll() {
 
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
-  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
   const totalAmount = contributionGroups.reduce((s, g) => s + g.total_amount, 0);
   const pendingPlanting = totalTrees - planted;
 

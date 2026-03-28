@@ -395,8 +395,36 @@ export const StakeholderOrders = () => {
 
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
-  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
   const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
+
+  // Check if current stakeholder is plantation type (not institutional)
+  const { data: isPlantationType } = useQuery({
+    queryKey: ["isPlantationStakeholder", orgId],
+    queryFn: async () => {
+      if (!orgId) return false;
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("category, partner_type_id")
+        .eq("id", orgId)
+        .single();
+      if (!org) return false;
+      // Institutional partners have category 'institutional' or partner type containing 'institutional'/'ktb'
+      if (org.category === 'institutional') return false;
+      if (org.partner_type_id) {
+        const { data: pt } = await supabase
+          .from("partner_types")
+          .select("name")
+          .eq("id", org.partner_type_id)
+          .single();
+        if (pt?.name?.toLowerCase().includes('institutional') || pt?.name?.toLowerCase().includes('ktb')) return false;
+      }
+      return true;
+    },
+    enabled: !!orgId,
+  });
+
+  const canEditPlantingStatus = hasEdit && !!isPlantationType;
 
   const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
     <TableHead
