@@ -97,6 +97,7 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   dead: "bg-red-500/10 text-red-700 border-red-500/20",
   // Legacy mappings
   pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
   funds_pending: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
   funds_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   planting_in_progress: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
