@@ -234,10 +234,10 @@ export const StakeholderFinancial = () => {
       const { error } = await supabase
         .from("contribution_tracking" as any)
         .update({
-          partner_receipt_confirmation: partnerForm.partner_receipt_confirmation,
+          partner_receipt_confirmation: true,
           partner_received_date: partnerForm.partner_received_date || null,
           acknowledgement_doc: partnerForm.acknowledgement_doc || null,
-          status: partnerForm.partner_receipt_confirmation ? "received_for_planting" : "transferred_for_planting",
+          status: "received_for_planting",
         } as any)
         .eq("id", id);
       if (error) throw error;
