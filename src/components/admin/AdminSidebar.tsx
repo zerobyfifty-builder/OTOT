@@ -62,6 +62,11 @@ const menuItems = [
     icon: DollarSign,
   },
   {
+    title: "Tree Orders",
+    url: "/admin/trees",
+    icon: Trees,
+  },
+  {
     title: "Stakeholders",
     icon: Landmark,
     items: [
