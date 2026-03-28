@@ -578,12 +578,12 @@ export const StakeholderOrders = () => {
                           </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
                           <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
-                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[group.payment_status] || "bg-muted text-muted-foreground"}`}>
                               {CONTRIBUTION_STATUS_LABELS[group.payment_status] || group.payment_status}
                             </Badge>
                           </TableCell>
+                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
