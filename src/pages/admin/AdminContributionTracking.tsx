@@ -56,12 +56,23 @@ type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 20;
 
-const STATUS_OPTIONS = [
+const STATUS_SEQUENCE = [
   { value: "contribution_confirmed", label: "Confirmed" },
   { value: "funds_received", label: "Received by KTB" },
   { value: "transferred_for_planting", label: "Transferred for Plantation" },
   { value: "received_for_planting", label: "Received for Plantation" },
 ];
+
+const getNextStatuses = (currentStatus: string) => {
+  const currentIndex = STATUS_SEQUENCE.findIndex(s => s.value === currentStatus);
+  if (currentIndex === -1) return STATUS_SEQUENCE.slice(0, 1);
+  // Only allow the immediate next status
+  if (currentIndex >= STATUS_SEQUENCE.length - 1) return [];
+  return [STATUS_SEQUENCE[currentIndex + 1]];
+};
+
+// Keep for label lookups
+const STATUS_OPTIONS = STATUS_SEQUENCE;
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -200,8 +211,13 @@ export default function AdminContributionTracking() {
   };
 
   const openStatusDialog = (c: ContributionRow) => {
+    const nextStatuses = getNextStatuses(c.status);
+    if (nextStatuses.length === 0) {
+      toast.info("This contribution has reached its final status.");
+      return;
+    }
     setStatusTarget(c);
-    setNewStatus(c.status);
+    setNewStatus(nextStatuses[0].value);
     setStatusFields({
       ktb_receipt_id: c.ktb_receipt_id || "",
       ktb_received_date: c.ktb_received_date || new Date().toISOString().split("T")[0],
@@ -664,20 +680,28 @@ export default function AdminContributionTracking() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">Current Status</p>
-              {statusTarget && getStatusBadge(statusTarget.status)}
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">New Status</p>
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map(s => (
-                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Current Status</p>
+                {statusTarget && getStatusBadge(statusTarget.status)}
+              </div>
+              <span className="text-muted-foreground mt-4">→</span>
+              <div className="flex-1">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Next Status</p>
+                {statusTarget && (() => {
+                  const allowed = getNextStatuses(statusTarget.status);
+                  return (
+                    <Select value={newStatus} onValueChange={setNewStatus}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {allowed.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Contextual fields based on selected status */}
