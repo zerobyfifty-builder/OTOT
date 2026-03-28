@@ -611,13 +611,26 @@ export const StakeholderOrders = () => {
                                 )}
 
                                 {/* Tree-level Table */}
-                                {group.trees.length > 0 ? (
+                                {(() => {
+                                  // Build display rows: matched trees + placeholder rows for unmatched
+                                  const matchedTrees = group.trees;
+                                  const expectedCount = group.total_trees;
+                                  const displayRows: Array<{ type: 'tree'; tree: Tree } | { type: 'placeholder'; index: number }> = 
+                                    matchedTrees.map(t => ({ type: 'tree' as const, tree: t }));
+                                  
+                                  if (matchedTrees.length < expectedCount) {
+                                    for (let i = matchedTrees.length; i < expectedCount; i++) {
+                                      displayRows.push({ type: 'placeholder' as const, index: i });
+                                    }
+                                  }
+
+                                  return displayRows.length > 0 ? (
                                   <div className="rounded-lg border bg-background overflow-x-auto">
                                     <Table>
                                       <TableHeader>
                                         <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
-                                          <TableHead className="text-xs">OTOT ID</TableHead>
+                                          <TableHead className="text-xs">Tree ID</TableHead>
                                           <TableHead className="text-xs">Trees</TableHead>
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
@@ -625,42 +638,63 @@ export const StakeholderOrders = () => {
                                         </TableRow>
                                       </TableHeader>
                                       <TableBody>
-                                        {group.trees.map((tree, index) => (
-                                          <TableRow key={tree.id}>
-                                            <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                            <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                                            <TableCell>{tree.num_trees}</TableCell>
-                                            <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                                            <TableCell>{formatDate(tree.created_at)}</TableCell>
-                                            <TableCell>
-                                              {hasEdit ? (
-                                                <Select
-                                                  value={tree.planting_status || 'pending_allocation'}
-                                                  onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
-                                                >
-                                                  <SelectTrigger className="w-[180px]">
-                                                    <SelectValue />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    {PLANTING_STATUSES.map(s => (
-                                                      <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                                    ))}
-                                                  </SelectContent>
-                                                </Select>
-                                              ) : (
-                                                <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
-                                                  {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
-                                                </Badge>
-                                              )}
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
+                                        {displayRows.map((row, index) => {
+                                          if (row.type === 'tree') {
+                                            const tree = row.tree;
+                                            return (
+                                              <TableRow key={tree.id}>
+                                                <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                                <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                                <TableCell>{tree.num_trees}</TableCell>
+                                                <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
+                                                <TableCell>{formatDate(tree.created_at)}</TableCell>
+                                                <TableCell>
+                                                  {hasEdit ? (
+                                                    <Select
+                                                      value={tree.planting_status || 'pending_allocation'}
+                                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                                    >
+                                                      <SelectTrigger className="w-[180px]">
+                                                        <SelectValue />
+                                                      </SelectTrigger>
+                                                      <SelectContent>
+                                                        {PLANTING_STATUSES.map(s => (
+                                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                                                        ))}
+                                                      </SelectContent>
+                                                    </Select>
+                                                  ) : (
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
+                                                      {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                                                    </Badge>
+                                                  )}
+                                                </TableCell>
+                                              </TableRow>
+                                            );
+                                          } else {
+                                            return (
+                                              <TableRow key={`placeholder-${index}`} className="opacity-60">
+                                                <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
+                                                <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
+                                                <TableCell>1</TableCell>
+                                                <TableCell>-</TableCell>
+                                                <TableCell>-</TableCell>
+                                                <TableCell>
+                                                  <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['pending_allocation']}`}>
+                                                    {STATUS_LABELS['pending_allocation']}
+                                                  </Badge>
+                                                </TableCell>
+                                              </TableRow>
+                                            );
+                                          }
+                                        })}
                                       </TableBody>
                                     </Table>
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground py-2">No tree records linked to this contribution.</p>
-                                )}
+                                );
+                                })()}
                               </div>
                             </TableCell>
                           </TableRow>
