@@ -415,9 +415,18 @@ export const StakeholderFinancial = () => {
     </TableHead>
   );
 
-  const StaticHead = ({ label, className = "" }: { label: string; className?: string }) => (
+  const StaticHead = ({ label, className = "", tooltip }: { label: string; className?: string; tooltip?: string }) => (
     <TableHead className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${className}`}>
-      {label}
+      {tooltip ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-1 cursor-help">{label}<Info className="h-3 w-3 opacity-50" /></span>
+            </TooltipTrigger>
+            <TooltipContent><p className="text-xs max-w-[200px]">{tooltip}</p></TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : label}
     </TableHead>
   );
 
