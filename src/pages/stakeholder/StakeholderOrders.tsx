@@ -688,9 +688,9 @@ export const StakeholderOrders = () => {
                                                 <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                 <TableCell>
-                                                  {hasEdit ? (
+                                                  {canEditPlantingStatus ? (
                                                     <Select
-                                                      value={tree.planting_status || 'pending_allocation'}
+                                                      value={tree.planting_status || 'waiting_to_be_assigned'}
                                                       onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
                                                     >
                                                       <SelectTrigger className="w-[180px]">
@@ -703,8 +703,8 @@ export const StakeholderOrders = () => {
                                                       </SelectContent>
                                                     </Select>
                                                   ) : (
-                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
-                                                      {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
+                                                      {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                     </Badge>
                                                   )}
                                                 </TableCell>
