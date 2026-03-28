@@ -83,16 +83,16 @@ const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
   contribution_received: "Received",
   contribution_confirmed: "Confirmed",
   received_by_ktb: "Received by KTB",
-  transferred_for_planting: "Transferred",
-  received_for_planting: "Received for Planting",
+  transferred_for_planting: "Transferred for Plantation",
+  received_for_planting: "Received for Plantation",
 };
 
 const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
-  contribution_received: "bg-gray-500/10 text-gray-700 border-gray-500/20",
-  contribution_confirmed: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  received_by_ktb: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
-  transferred_for_planting: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  received_for_planting: "bg-green-500/10 text-green-700 border-green-500/20",
+  contribution_received: "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-50",
+  contribution_confirmed: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-50",
+  received_by_ktb: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50",
+  transferred_for_planting: "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-50",
+  received_for_planting: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50",
 };
 
 type SortField = "contribution_id" | "payment_date" | "contribution_type" | "num_trees" | "amount_transferred" | "planting_status" | "payment_status";
@@ -483,7 +483,7 @@ export default function TreesAll() {
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
                     <SortableHead field="payment_date" label="Date" />
-                    <SortableHead field="contribution_type" label="Contri Type" />
+                    <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
                     <SortableHead field="amount_transferred" label="Allocated for Planting" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
@@ -513,9 +513,9 @@ export default function TreesAll() {
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
                           <TableCell className="text-sm">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal whitespace-nowrap">
-                              {getContriTypeLabel(group.contribution_type)}
-                            </Badge>
+                            {group.contribution_type === "travel_agent"
+                              ? <span className="text-xs font-medium text-indigo-600">Agent</span>
+                              : <span className="text-xs font-medium text-teal-600">Tourist</span>}
                           </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
                           <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
@@ -731,8 +731,12 @@ export default function TreesAll() {
                           <p className="font-medium">{viewSheet.country || "-"}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs">Contri Type</span>
-                          <p className="font-medium">{getContriTypeLabel(viewSheet.contribution_type)}</p>
+                          <span className="text-muted-foreground text-xs">Type</span>
+                          <p className="font-medium">
+                            {viewSheet.contribution_type === "travel_agent"
+                              ? <span className="text-xs font-medium text-indigo-600">Agent</span>
+                              : <span className="text-xs font-medium text-teal-600">Tourist</span>}
+                          </p>
                         </div>
                         <div className="text-right">
                           <span className="text-muted-foreground text-xs">Trees</span>
