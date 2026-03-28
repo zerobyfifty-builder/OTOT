@@ -518,9 +518,9 @@ export const StakeholderOrders = () => {
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
                           <TableCell className="text-sm">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal whitespace-nowrap">
-                              {getContriTypeLabel(group.contribution_type)}
-                            </Badge>
+                            {group.contribution_type === "travel_agent"
+                              ? <span className="text-xs font-medium text-indigo-600">Agent</span>
+                              : <span className="text-xs font-medium text-teal-600">Tourist</span>}
                           </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
                           <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
