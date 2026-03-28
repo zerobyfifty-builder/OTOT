@@ -43,6 +43,7 @@ interface ContributionRow {
   trip_id: string | null;
   num_trees: number;
   amount_paid: number;
+  amount_transferred: number | null;
   status: string;
   created_at: string;
   payment_date: string | null;
@@ -80,7 +81,23 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   monitored: "bg-accent/10 text-accent border-accent/20",
 };
 
-type SortField = "contribution_id" | "tourist_name" | "country" | "num_trees" | "amount_paid" | "payment_date" | "planting_status";
+const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
+  contribution_received: "Received",
+  contribution_confirmed: "Confirmed",
+  received_by_ktb: "Received by KTB",
+  transferred_for_planting: "Transferred",
+  received_for_planting: "Received for Planting",
+};
+
+const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
+  contribution_received: "bg-gray-500/10 text-gray-700 border-gray-500/20",
+  contribution_confirmed: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  received_by_ktb: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  transferred_for_planting: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  received_for_planting: "bg-green-500/10 text-green-700 border-green-500/20",
+};
+
+type SortField = "contribution_id" | "payment_date" | "contribution_type" | "num_trees" | "amount_transferred" | "planting_status" | "payment_status";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 15;
 
@@ -92,6 +109,7 @@ interface ContributionGroup {
   trip_id: string | null;
   total_trees: number;
   total_amount: number;
+  amount_transferred: number;
   payment_date: string | null;
   created_at: string;
   currency: string | null;
@@ -99,6 +117,7 @@ interface ContributionGroup {
   trees: Tree[];
   trip: Trip | null;
   planting_status: string;
+  payment_status: string;
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
@@ -131,6 +150,13 @@ const getPlantingStatusOrder = (status: string) => {
   return order[status] ?? 0;
 };
 
+const getContriTypeLabel = (type: string | null): string => {
+  if (!type) return "-";
+  if (type === "tourist") return "Tourist";
+  if (type === "travel_agent") return "Travel Agent";
+  return type;
+};
+
 export const StakeholderOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -153,7 +179,6 @@ export const StakeholderOrders = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch contributions
   const { data: contributions, isLoading, refetch } = useQuery({
     queryKey: ["stakeholderOrderContributions"],
     queryFn: async () => {
@@ -167,7 +192,6 @@ export const StakeholderOrders = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch all trees
   const { data: trees } = useQuery({
     queryKey: ["stakeholderOrderTrees"],
     queryFn: async () => {
@@ -181,7 +205,6 @@ export const StakeholderOrders = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch trips
   const { data: tripsData } = useQuery({
     queryKey: ["stakeholderOrderTrips", contributions],
     queryFn: async () => {
@@ -242,12 +265,9 @@ export const StakeholderOrders = () => {
     onError: () => toast.error("Failed to bulk update status"),
   });
 
-  // Build tree lookup by contribution_id (direct column on trees table)
   const treesByContribution = useMemo(() => {
     if (!trees || !contributions) return {};
     const grouped: Record<string, Tree[]> = {};
-
-    // Group trees by their contribution_id column
     trees.forEach(t => {
       const cid = (t as any).contribution_id as string | null;
       if (cid) {
@@ -255,11 +275,9 @@ export const StakeholderOrders = () => {
         grouped[cid].push(t);
       }
     });
-
     return grouped;
   }, [trees, contributions]);
 
-  // Group contributions by contribution_id
   const contributionGroups = useMemo<ContributionGroup[]>(() => {
     if (!contributions) return [];
     const grouped: Record<string, ContributionRow[]> = {};
@@ -279,6 +297,7 @@ export const StakeholderOrders = () => {
         trip_id: first.trip_id,
         total_trees: rows.reduce((s, r) => s + Number(r.num_trees), 0),
         total_amount: rows.reduce((s, r) => s + Number(r.amount_paid), 0),
+        amount_transferred: rows.reduce((s, r) => s + Number(r.amount_transferred || 0), 0),
         payment_date: first.payment_date,
         created_at: first.created_at,
         currency: first.currency,
@@ -286,11 +305,11 @@ export const StakeholderOrders = () => {
         trees: groupTrees,
         trip: first.trip_id ? (trips[first.trip_id] || null) : null,
         planting_status: getGroupPlantingStatus(groupTrees),
+        payment_status: first.status,
       };
     });
   }, [contributions, treesByContribution, trips]);
 
-  // Sorting
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -306,7 +325,6 @@ export const StakeholderOrders = () => {
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
   };
 
-  // Filtering & sorting
   const filtered = useMemo(() => {
     let result = contributionGroups.filter(g => {
       const matchSearch = !search ||
@@ -320,12 +338,12 @@ export const StakeholderOrders = () => {
       let cmp = 0;
       switch (sortField) {
         case "contribution_id": cmp = (a.contribution_id || "").localeCompare(b.contribution_id || ""); break;
-        case "tourist_name": cmp = (a.tourist_name || "").localeCompare(b.tourist_name || ""); break;
-        case "country": cmp = (a.country || "").localeCompare(b.country || ""); break;
-        case "num_trees": cmp = a.total_trees - b.total_trees; break;
-        case "amount_paid": cmp = a.total_amount - b.total_amount; break;
         case "payment_date": cmp = (a.payment_date || a.created_at || "").localeCompare(b.payment_date || b.created_at || ""); break;
+        case "contribution_type": cmp = (a.contribution_type || "").localeCompare(b.contribution_type || ""); break;
+        case "num_trees": cmp = a.total_trees - b.total_trees; break;
+        case "amount_transferred": cmp = a.amount_transferred - b.amount_transferred; break;
         case "planting_status": cmp = getPlantingStatusOrder(a.planting_status) - getPlantingStatusOrder(b.planting_status); break;
+        case "payment_status": cmp = (a.payment_status || "").localeCompare(b.payment_status || ""); break;
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -349,7 +367,6 @@ export const StakeholderOrders = () => {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
-  // Stats
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
   const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
@@ -471,10 +488,11 @@ export const StakeholderOrders = () => {
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
                     <SortableHead field="payment_date" label="Date" />
-                    <SortableHead field="tourist_name" label="Contributor" />
-                    <SortableHead field="country" label="Country" />
+                    <SortableHead field="contribution_type" label="Contri Type" />
                     <SortableHead field="num_trees" label="Trees" />
-                    <SortableHead field="amount_paid" label="Amount" />
+                    <SortableHead field="amount_transferred" label="Allocated for Planting" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
+                    <SortableHead field="payment_status" label="Payment Status" />
                     <SortableHead field="planting_status" label="Planting Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
@@ -487,7 +505,6 @@ export const StakeholderOrders = () => {
 
                     return (
                       <>
-                        {/* Main Row */}
                         <TableRow
                           key={group.contribution_id}
                           className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -500,10 +517,19 @@ export const StakeholderOrders = () => {
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
-                          <TableCell className="text-sm">{group.tourist_name || "-"}</TableCell>
-                          <TableCell className="text-sm">{group.country || "-"}</TableCell>
+                          <TableCell className="text-sm">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal whitespace-nowrap">
+                              {getContriTypeLabel(group.contribution_type)}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
-                          <TableCell className="text-sm font-medium">${group.total_amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
+                          <TableCell>
+                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[group.payment_status] || "bg-muted text-muted-foreground"}`}>
+                              {CONTRIBUTION_STATUS_LABELS[group.payment_status] || group.payment_status}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
@@ -533,7 +559,7 @@ export const StakeholderOrders = () => {
                         {/* Expanded Tree Details */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={9} className="p-0">
+                            <TableCell colSpan={10} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 {/* Bulk Update */}
                                 {hasEdit && group.trees.length > 0 && (
@@ -572,7 +598,6 @@ export const StakeholderOrders = () => {
 
                                 {/* Tree-level Table */}
                                 {(() => {
-                                  // Build display rows: matched trees + placeholder rows for unmatched
                                   const matchedTrees = group.trees;
                                   const expectedCount = group.total_trees;
                                   const displayRows: Array<{ type: 'tree'; tree: Tree } | { type: 'placeholder'; index: number }> = 
@@ -717,16 +742,36 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">{viewSheet.country || "-"}</p>
                         </div>
                         <div>
+                          <span className="text-muted-foreground text-xs">Contri Type</span>
+                          <p className="font-medium">{getContriTypeLabel(viewSheet.contribution_type)}</p>
+                        </div>
+                        <div className="text-right">
                           <span className="text-muted-foreground text-xs">Trees</span>
                           <p className="font-medium">{viewSheet.total_trees}</p>
                         </div>
-                        <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Amount</span>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Total Amount</span>
                           <p className="font-medium">${viewSheet.total_amount.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Allocated for Planting</span>
+                          <p className="font-medium">${viewSheet.amount_transferred.toFixed(2)}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground text-xs">Date</span>
                           <p className="font-medium">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Planted By</span>
+                          <p className="font-medium">MFC-ICLIP</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Payment Status</span>
+                          <div className="mt-0.5">
+                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[viewSheet.payment_status] || "bg-muted text-muted-foreground"}`}>
+                              {CONTRIBUTION_STATUS_LABELS[viewSheet.payment_status] || viewSheet.payment_status}
+                            </Badge>
+                          </div>
                         </div>
                         <div className="text-right">
                           <span className="text-muted-foreground text-xs">Planting Status</span>
