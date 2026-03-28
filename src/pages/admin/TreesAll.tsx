@@ -50,33 +50,52 @@ interface ContributionRow {
 }
 
 const PLANTING_STATUSES = [
-  'pending_allocation',
-  'allocated',
-  'funds_pending',
-  'funds_received',
-  'planting_in_progress',
+  'waiting_to_be_assigned',
+  'assigned',
+  'site_prepared',
+  'saplings_ready',
+  'planting_scheduled',
+  'sapling_planted',
+  'being_mapped',
+  'verified',
   'planted',
-  'monitored',
+  'dead',
 ] as const;
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_allocation: 'Pending Allocation',
-  allocated: 'Allocated',
-  funds_pending: 'Funds Pending',
-  funds_received: 'Funds Received',
-  planting_in_progress: 'Planting In Progress',
+  waiting_to_be_assigned: 'Waiting to be Assigned',
+  assigned: 'Assigned',
+  site_prepared: 'Site Prepared',
+  saplings_ready: 'Saplings Ready',
+  planting_scheduled: 'Planting Scheduled',
+  sapling_planted: 'Sapling Planted',
+  being_mapped: 'Being Mapped',
+  verified: 'Verified',
   planted: 'Planted',
-  monitored: 'Monitored',
+  dead: 'Dead',
+  pending_allocation: 'Waiting to be Assigned',
+  funds_pending: 'Planting Scheduled',
+  funds_received: 'Saplings Ready',
+  planting_in_progress: 'Sapling Planted',
+  monitored: 'Verified',
 };
 
 const PLANTING_STATUS_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  assigned: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  site_prepared: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  saplings_ready: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  planting_scheduled: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  sapling_planted: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+  being_mapped: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  verified: "bg-teal-500/10 text-teal-700 border-teal-500/20",
+  planted: "bg-green-500/10 text-green-700 border-green-500/20",
+  dead: "bg-red-500/10 text-red-700 border-red-500/20",
   pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
-  allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
-  funds_pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  funds_pending: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
   funds_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   planting_in_progress: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
-  planted: "bg-green-500/10 text-green-700 border-green-500/20",
-  monitored: "bg-accent/10 text-accent border-accent/20",
+  monitored: "bg-teal-500/10 text-teal-700 border-teal-500/20",
 };
 
 const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
