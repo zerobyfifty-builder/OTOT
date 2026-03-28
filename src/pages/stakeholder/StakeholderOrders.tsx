@@ -52,33 +52,54 @@ interface ContributionRow {
 }
 
 const PLANTING_STATUSES = [
-  'pending_allocation',
-  'allocated',
-  'funds_pending',
-  'funds_received',
-  'planting_in_progress',
+  'waiting_to_be_assigned',
+  'assigned',
+  'site_prepared',
+  'saplings_ready',
+  'planting_scheduled',
+  'sapling_planted',
+  'being_mapped',
+  'verified',
   'planted',
-  'monitored',
+  'dead',
 ] as const;
 
 const STATUS_LABELS: Record<string, string> = {
-  pending_allocation: 'Pending Allocation',
-  allocated: 'Allocated',
-  funds_pending: 'Funds Pending',
-  funds_received: 'Funds Received',
-  planting_in_progress: 'Planting In Progress',
+  waiting_to_be_assigned: 'Waiting to be Assigned',
+  assigned: 'Assigned',
+  site_prepared: 'Site Prepared',
+  saplings_ready: 'Saplings Ready',
+  planting_scheduled: 'Planting Scheduled',
+  sapling_planted: 'Sapling Planted',
+  being_mapped: 'Being Mapped',
+  verified: 'Verified',
   planted: 'Planted',
-  monitored: 'Monitored',
+  dead: 'Dead',
+  // Legacy mappings for any old data
+  pending_allocation: 'Waiting to be Assigned',
+  funds_pending: 'Planting Scheduled',
+  funds_received: 'Saplings Ready',
+  planting_in_progress: 'Sapling Planted',
+  monitored: 'Verified',
 };
 
 const PLANTING_STATUS_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  assigned: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  site_prepared: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  saplings_ready: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  planting_scheduled: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  sapling_planted: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+  being_mapped: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  verified: "bg-teal-500/10 text-teal-700 border-teal-500/20",
+  planted: "bg-green-500/10 text-green-700 border-green-500/20",
+  dead: "bg-red-500/10 text-red-700 border-red-500/20",
+  // Legacy mappings
   pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
-  allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
-  funds_pending: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  funds_pending: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
   funds_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   planting_in_progress: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
-  planted: "bg-green-500/10 text-green-700 border-green-500/20",
-  monitored: "bg-accent/10 text-accent border-accent/20",
+  monitored: "bg-teal-500/10 text-teal-700 border-teal-500/20",
 };
 
 const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
@@ -121,15 +142,19 @@ interface ContributionGroup {
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
-  if (!trees.length) return "pending_allocation";
-  const statuses = trees.map(t => t.planting_status || 'pending_allocation');
-  if (statuses.every(s => s === "planted" || s === "monitored")) return "planted";
-  if (statuses.some(s => s === "planted" || s === "monitored")) return "partially_planted";
-  if (statuses.every(s => s === "pending_allocation")) return "pending_allocation";
-  if (statuses.some(s => s === "planting_in_progress")) return "planting_in_progress";
-  if (statuses.some(s => s === "funds_received")) return "funds_received";
-  if (statuses.some(s => s === "allocated")) return "allocated";
-  return statuses[0] || "pending_allocation";
+  if (!trees.length) return "waiting_to_be_assigned";
+  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
+  if (statuses.every(s => s === "planted" || s === "verified")) return "planted";
+  if (statuses.some(s => s === "planted" || s === "verified")) return "partially_planted";
+  if (statuses.every(s => s === "waiting_to_be_assigned")) return "waiting_to_be_assigned";
+  if (statuses.some(s => s === "dead")) return "dead";
+  if (statuses.some(s => s === "being_mapped")) return "being_mapped";
+  if (statuses.some(s => s === "sapling_planted")) return "sapling_planted";
+  if (statuses.some(s => s === "planting_scheduled")) return "planting_scheduled";
+  if (statuses.some(s => s === "saplings_ready")) return "saplings_ready";
+  if (statuses.some(s => s === "site_prepared")) return "site_prepared";
+  if (statuses.some(s => s === "assigned")) return "assigned";
+  return statuses[0] || "waiting_to_be_assigned";
 };
 
 const getGroupStatusLabel = (status: string): string => {
@@ -144,8 +169,9 @@ const getGroupStatusColor = (status: string): string => {
 
 const getPlantingStatusOrder = (status: string) => {
   const order: Record<string, number> = {
-    pending_allocation: 0, allocated: 1, funds_pending: 2, funds_received: 3,
-    planting_in_progress: 4, partially_planted: 5, planted: 6, monitored: 7,
+    waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
+    planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
+    partially_planted: 8, planted: 9, dead: 10,
   };
   return order[status] ?? 0;
 };
@@ -369,8 +395,36 @@ export const StakeholderOrders = () => {
 
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
-  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
   const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
+
+  // Check if current stakeholder is plantation type (not institutional)
+  const { data: isPlantationType } = useQuery({
+    queryKey: ["isPlantationStakeholder", orgId],
+    queryFn: async () => {
+      if (!orgId) return false;
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("category, partner_type_id")
+        .eq("id", orgId)
+        .single();
+      if (!org) return false;
+      // Institutional partners have category 'institutional' or partner type containing 'institutional'/'ktb'
+      if (org.category === 'institutional') return false;
+      if (org.partner_type_id) {
+        const { data: pt } = await supabase
+          .from("partner_types")
+          .select("name")
+          .eq("id", org.partner_type_id)
+          .single();
+        if (pt?.name?.toLowerCase().includes('institutional') || pt?.name?.toLowerCase().includes('ktb')) return false;
+      }
+      return true;
+    },
+    enabled: !!orgId,
+  });
+
+  const canEditPlantingStatus = hasEdit && !!isPlantationType;
 
   const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
     <TableHead
@@ -491,8 +545,8 @@ export const StakeholderOrders = () => {
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
                     <SortableHead field="amount_transferred" label="Allocated for Planting" />
-                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planted By</TableHead>
                     <SortableHead field="payment_status" label="Payment Status" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting By</TableHead>
                     <SortableHead field="planting_status" label="Planting Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
@@ -500,7 +554,7 @@ export const StakeholderOrders = () => {
                 <TableBody>
                   {paginated.map((group) => {
                     const isExpanded = expandedRows.has(group.contribution_id);
-                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'monitored').reduce((s, t) => s + t.num_trees, 0);
+                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
                     const progressPct = group.total_trees > 0 ? Math.min(100, (plantedInGroup / group.total_trees) * 100) : 0;
 
                     return (
@@ -524,12 +578,12 @@ export const StakeholderOrders = () => {
                           </TableCell>
                           <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
                           <TableCell className="text-sm font-medium">${group.amount_transferred.toFixed(2)}</TableCell>
-                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[group.payment_status] || "bg-muted text-muted-foreground"}`}>
                               {CONTRIBUTION_STATUS_LABELS[group.payment_status] || group.payment_status}
                             </Badge>
                           </TableCell>
+                          <TableCell className="text-sm">MFC-ICLIP</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
@@ -562,7 +616,7 @@ export const StakeholderOrders = () => {
                             <TableCell colSpan={10} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 {/* Bulk Update */}
-                                {hasEdit && group.trees.length > 0 && (
+                                {canEditPlantingStatus && group.trees.length > 0 && (
                                   <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
                                     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                                       <Layers className="h-4 w-4 text-primary" />
@@ -634,9 +688,9 @@ export const StakeholderOrders = () => {
                                                 <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                 <TableCell>
-                                                  {hasEdit ? (
+                                                  {canEditPlantingStatus ? (
                                                     <Select
-                                                      value={tree.planting_status || 'pending_allocation'}
+                                                      value={tree.planting_status || 'waiting_to_be_assigned'}
                                                       onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
                                                     >
                                                       <SelectTrigger className="w-[180px]">
@@ -649,8 +703,8 @@ export const StakeholderOrders = () => {
                                                       </SelectContent>
                                                     </Select>
                                                   ) : (
-                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation'] || ''}`}>
-                                                      {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
+                                                      {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                     </Badge>
                                                   )}
                                                 </TableCell>
@@ -665,8 +719,8 @@ export const StakeholderOrders = () => {
                                                 <TableCell>-</TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell>
-                                                  <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['pending_allocation']}`}>
-                                                    {STATUS_LABELS['pending_allocation']}
+                                                  <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
+                                                    {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
                                               </TableRow>
@@ -766,7 +820,7 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</p>
                         </div>
                         <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Planted By</span>
+                          <span className="text-muted-foreground text-xs">Planting By</span>
                           <p className="font-medium">MFC-ICLIP</p>
                         </div>
                         <div>
@@ -802,8 +856,8 @@ export const StakeholderOrders = () => {
                           <div key={tree.id} className="rounded-lg border bg-card p-3">
                             <div className="flex justify-between items-start mb-2">
                               <span className="font-mono text-xs text-muted-foreground">#{i + 1} · {tree.otot_id}</span>
-                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'pending_allocation']}`}>
-                                {STATUS_LABELS[tree.planting_status || 'pending_allocation']}
+                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned']}`}>
+                                {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                               </Badge>
                             </div>
                             <div className="grid grid-cols-2 gap-y-1 text-sm">
