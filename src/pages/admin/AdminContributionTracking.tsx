@@ -679,6 +679,78 @@ export default function AdminContributionTracking() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Contextual fields based on selected status */}
+            {newStatus === "funds_received" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Receipt Details</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Receipt ID</label>
+                  <Input
+                    placeholder="e.g. REC-001"
+                    value={statusFields.ktb_receipt_id || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, ktb_receipt_id: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Received Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.ktb_received_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, ktb_received_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            {newStatus === "transferred_for_planting" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer Details</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Reference</label>
+                  <Input
+                    placeholder="e.g. TRF-001"
+                    value={statusFields.transfer_reference || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, transfer_reference: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.transfer_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, transfer_date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Mode</label>
+                  <Select value={statusFields.transfer_mode || ""} onValueChange={v => setStatusFields(f => ({ ...f, transfer_mode: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select mode" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                      <SelectItem value="Cheque">Cheque</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {newStatus === "received_for_planting" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plantation Receipt</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Received Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.partner_received_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, partner_received_date: e.target.value }))}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Partner receipt confirmation will be set to <strong>Yes</strong> automatically.</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
