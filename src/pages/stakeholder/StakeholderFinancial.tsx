@@ -797,15 +797,15 @@ export const StakeholderFinancial = () => {
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">Contribution Details</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                     <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Trip ID</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Trees</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Trees</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
                     <div><span className="text-muted-foreground text-xs">Amount</span><p className="font-semibold">${Number(selectedRow.amount_paid).toFixed(2)}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Currency</span><p>{selectedRow.currency}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Currency</span><p>{selectedRow.currency}</p></div>
                     <div><span className="text-muted-foreground text-xs">Payment Date</span><p>{formatDate(selectedRow.payment_date)}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Method</span><p>{selectedRow.payment_method || "-"}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Method</span><p>{selectedRow.payment_method || "-"}</p></div>
                     <div className="col-span-2"><span className="text-muted-foreground text-xs">Reference</span><p>{selectedRow.transaction_reference || "-"}</p></div>
                   </div>
                 </div>
