@@ -142,15 +142,19 @@ interface ContributionGroup {
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
-  if (!trees.length) return "pending_allocation";
-  const statuses = trees.map(t => t.planting_status || 'pending_allocation');
-  if (statuses.every(s => s === "planted" || s === "monitored")) return "planted";
-  if (statuses.some(s => s === "planted" || s === "monitored")) return "partially_planted";
-  if (statuses.every(s => s === "pending_allocation")) return "pending_allocation";
-  if (statuses.some(s => s === "planting_in_progress")) return "planting_in_progress";
-  if (statuses.some(s => s === "funds_received")) return "funds_received";
-  if (statuses.some(s => s === "allocated")) return "allocated";
-  return statuses[0] || "pending_allocation";
+  if (!trees.length) return "waiting_to_be_assigned";
+  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
+  if (statuses.every(s => s === "planted" || s === "verified")) return "planted";
+  if (statuses.some(s => s === "planted" || s === "verified")) return "partially_planted";
+  if (statuses.every(s => s === "waiting_to_be_assigned")) return "waiting_to_be_assigned";
+  if (statuses.some(s => s === "dead")) return "dead";
+  if (statuses.some(s => s === "being_mapped")) return "being_mapped";
+  if (statuses.some(s => s === "sapling_planted")) return "sapling_planted";
+  if (statuses.some(s => s === "planting_scheduled")) return "planting_scheduled";
+  if (statuses.some(s => s === "saplings_ready")) return "saplings_ready";
+  if (statuses.some(s => s === "site_prepared")) return "site_prepared";
+  if (statuses.some(s => s === "assigned")) return "assigned";
+  return statuses[0] || "waiting_to_be_assigned";
 };
 
 const getGroupStatusLabel = (status: string): string => {
@@ -165,8 +169,9 @@ const getGroupStatusColor = (status: string): string => {
 
 const getPlantingStatusOrder = (status: string) => {
   const order: Record<string, number> = {
-    pending_allocation: 0, allocated: 1, funds_pending: 2, funds_received: 3,
-    planting_in_progress: 4, partially_planted: 5, planted: 6, monitored: 7,
+    waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
+    planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
+    partially_planted: 8, planted: 9, dead: 10,
   };
   return order[status] ?? 0;
 };
