@@ -102,6 +102,8 @@ export default function AdminContributionTracking() {
   const [statusTarget, setStatusTarget] = useState<ContributionRow | null>(null);
   const [newStatus, setNewStatus] = useState("");
   const [updating, setUpdating] = useState(false);
+  // Contextual fields for status updates
+  const [statusFields, setStatusFields] = useState<Record<string, string>>({});
 
   const queryClient = useQueryClient();
 
@@ -162,18 +164,33 @@ export default function AdminContributionTracking() {
     if (!statusTarget || !newStatus) return;
     setUpdating(true);
     try {
+      const updatePayload: Record<string, any> = { status: newStatus, updated_at: new Date().toISOString() };
+
+      // Add contextual fields based on status
+      if (newStatus === "funds_received") {
+        if (statusFields.ktb_receipt_id) updatePayload.ktb_receipt_id = statusFields.ktb_receipt_id;
+        if (statusFields.ktb_received_date) updatePayload.ktb_received_date = statusFields.ktb_received_date;
+      } else if (newStatus === "transferred_for_planting") {
+        if (statusFields.transfer_reference) updatePayload.transfer_reference = statusFields.transfer_reference;
+        if (statusFields.transfer_date) updatePayload.transfer_date = statusFields.transfer_date;
+        if (statusFields.transfer_mode) updatePayload.transfer_mode = statusFields.transfer_mode;
+      } else if (newStatus === "received_for_planting") {
+        updatePayload.partner_receipt_confirmation = true;
+        if (statusFields.partner_received_date) updatePayload.partner_received_date = statusFields.partner_received_date;
+      }
+
       const { error } = await supabase
         .from("contribution_tracking" as any)
-        .update({ status: newStatus, updated_at: new Date().toISOString() } as any)
+        .update(updatePayload as any)
         .eq("id", statusTarget.id);
       if (error) throw error;
       toast.success(`Status updated to "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"`);
       queryClient.invalidateQueries({ queryKey: ["adminContributionTracking"] });
       setStatusDialogOpen(false);
       setStatusTarget(null);
-      // Also update the sheet if open
+      setStatusFields({});
       if (selectedRow?.id === statusTarget.id) {
-        setSelectedRow({ ...selectedRow, status: newStatus });
+        setSelectedRow({ ...selectedRow, status: newStatus, ...updatePayload });
       }
     } catch (err: any) {
       toast.error("Failed to update status: " + err.message);
@@ -185,6 +202,14 @@ export default function AdminContributionTracking() {
   const openStatusDialog = (c: ContributionRow) => {
     setStatusTarget(c);
     setNewStatus(c.status);
+    setStatusFields({
+      ktb_receipt_id: c.ktb_receipt_id || "",
+      ktb_received_date: c.ktb_received_date || new Date().toISOString().split("T")[0],
+      transfer_reference: c.transfer_reference || "",
+      transfer_date: c.transfer_date || new Date().toISOString().split("T")[0],
+      transfer_mode: c.transfer_mode || "",
+      partner_received_date: c.partner_received_date || new Date().toISOString().split("T")[0],
+    });
     setStatusDialogOpen(true);
   };
 
@@ -654,6 +679,78 @@ export default function AdminContributionTracking() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Contextual fields based on selected status */}
+            {newStatus === "funds_received" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Receipt Details</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Receipt ID</label>
+                  <Input
+                    placeholder="e.g. REC-001"
+                    value={statusFields.ktb_receipt_id || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, ktb_receipt_id: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Received Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.ktb_received_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, ktb_received_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            {newStatus === "transferred_for_planting" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer Details</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Reference</label>
+                  <Input
+                    placeholder="e.g. TRF-001"
+                    value={statusFields.transfer_reference || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, transfer_reference: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.transfer_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, transfer_date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Transfer Mode</label>
+                  <Select value={statusFields.transfer_mode || ""} onValueChange={v => setStatusFields(f => ({ ...f, transfer_mode: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select mode" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                      <SelectItem value="Cheque">Cheque</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {newStatus === "received_for_planting" && (
+              <div className="space-y-3 border-t pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Plantation Receipt</p>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Received Date</label>
+                  <Input
+                    type="date"
+                    value={statusFields.partner_received_date || ""}
+                    onChange={e => setStatusFields(f => ({ ...f, partner_received_date: e.target.value }))}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Partner receipt confirmation will be set to <strong>Yes</strong> automatically.</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
