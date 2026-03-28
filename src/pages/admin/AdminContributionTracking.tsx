@@ -165,9 +165,11 @@ export default function AdminContributionTracking() {
     return s ? Number(s.setting_value) : 40;
   }, [walletSettings]);
 
-  const getTechFee = (c: ContributionRow) => Number(c.amount_paid) * techFeePercent / 100;
+  const getRowTechFee = (c: ContributionRow) => c.tech_fee_percent ?? techFeePercent;
+  const getRowKtbFee = (c: ContributionRow) => c.ktb_fee_percent ?? ktbFeePercent;
+  const getTechFee = (c: ContributionRow) => Number(c.amount_paid) * getRowTechFee(c) / 100;
   const getToBeReceived = (c: ContributionRow) => Number(c.amount_paid) - getTechFee(c);
-  const getRetained = (c: ContributionRow) => getToBeReceived(c) * ktbFeePercent / 100;
+  const getRetained = (c: ContributionRow) => getToBeReceived(c) * getRowKtbFee(c) / 100;
   const getToBeTransferred = (c: ContributionRow) => getToBeReceived(c) - getRetained(c);
 
   const plantationPercent = 100 - ktbFeePercent;
