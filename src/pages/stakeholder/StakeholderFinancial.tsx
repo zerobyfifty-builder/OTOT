@@ -862,9 +862,9 @@ export const StakeholderFinancial = () => {
                   <h3 className="font-semibold text-xs text-muted-foreground mb-3 uppercase tracking-wider">KTB Receipt & Transfer</h3>
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                     <div><span className="text-muted-foreground text-xs">Receipt ID/Ref</span><p>{selectedRow.institution_receipt_id || selectedRow.ktb_receipt_id || "-"}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.institution_received_date || selectedRow.ktb_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Received Date</span><p>{formatDate(selectedRow.institution_received_date || selectedRow.ktb_received_date || selectedRow.payment_date || selectedRow.created_at)}</p></div>
                     <div><span className="text-muted-foreground text-xs">Transfer Date</span><p>{formatDate(selectedRow.transfer_date)}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Transfer Ref</span><p>{selectedRow.transfer_reference || "-"}</p></div>
+                    <div className="text-right"><span className="text-muted-foreground text-xs">Transfer Ref</span><p>{selectedRow.transfer_reference || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Mode</span><p>{selectedRow.transfer_mode || "-"}</p></div>
                   </div>
                 </div>
