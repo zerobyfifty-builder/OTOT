@@ -317,7 +317,7 @@ export const TreePurchase = () => {
       console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
 
       // Create batch-level contribution tracking entry
-      const { error: contribError } = await supabase
+      const { data: contribData, error: contribError } = await supabase
         .from('contribution_tracking' as any)
         .insert({
           tree_id: insertedTrees[0].id,
@@ -331,10 +331,21 @@ export const TreePurchase = () => {
           transaction_reference: paymentReference,
           plantation_partner_id: insertedTrees[0].stakeholder_org_id || null,
           status: 'contribution_confirmed',
-        } as any);
+        } as any)
+        .select('contribution_id')
+        .single();
 
       if (contribError) {
         console.error('Error creating contribution tracking:', contribError);
+      }
+
+      // Link trees to the contribution_id for direct lookups
+      if (contribData && (contribData as any).contribution_id) {
+        const treeIds = insertedTrees.map(t => t.id);
+        await supabase
+          .from('trees')
+          .update({ contribution_id: (contribData as any).contribution_id } as any)
+          .in('id', treeIds);
       }
 
       // Generate certificate - use dedication name if dedicated
