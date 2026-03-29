@@ -390,174 +390,183 @@ export function StakeholderMdmNurseries() {
     return form.block_name;
   }, [form.block_name, form.block_id, blockOptions]);
 
+  const [activeTab, setActiveTab] = useState('details');
+
   const renderForm = () => (
     <ScrollArea className="h-[calc(100vh-80px)] px-6 pb-6">
       <div className="space-y-4 pb-6">
-        {/* Name + Type side by side */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>Nursery / CBO Name *</Label>
-            <Input value={form.cbo_name} onChange={e => setForm({ ...form, cbo_name: e.target.value })} placeholder="Community group / nursery name" disabled={isReadOnly} />
-          </div>
-          <div className="space-y-2">
-            <Label>Type</Label>
-            {isReadOnly ? (
-              <Input value={form.nursery_type || '—'} disabled />
-            ) : (
-              <Select value={form.nursery_type} onValueChange={v => setForm({ ...form, nursery_type: v })}>
-                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                <SelectContent>
-                  {NURSERY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
+        <p className="text-sm text-muted-foreground">Fill in the nursery details below</p>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="species">Species</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-3 pt-2">
+            {/* Name + Type */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Nursery / CBO Name *</Label>
+                <Input value={form.cbo_name} onChange={e => setForm({ ...form, cbo_name: e.target.value })} placeholder="Community group / nursery name" disabled={isReadOnly} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Type</Label>
+                {isReadOnly ? (
+                  <Input value={form.nursery_type || '—'} disabled className="h-9" />
+                ) : (
+                  <Select value={form.nursery_type} onValueChange={v => setForm({ ...form, nursery_type: v })}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      {NURSERY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+
+            {/* KEFRI */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Checkbox id="kefri" checked={form.is_kefri_certified} onCheckedChange={(checked) => setForm({ ...form, is_kefri_certified: !!checked, kefri_reg_no: checked ? form.kefri_reg_no : '' })} disabled={isReadOnly} />
+                <Label htmlFor="kefri" className="cursor-pointer text-xs">KEFRI Certified</Label>
+              </div>
+              {form.is_kefri_certified && (
+                <div className="flex-1">
+                  <Input value={form.kefri_reg_no} onChange={e => setForm({ ...form, kefri_reg_no: e.target.value })} placeholder="KEFRI Reg No" disabled={isReadOnly} className="h-8 text-xs" />
+                </div>
+              )}
+            </div>
+
+            {/* Block */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Block Name *</Label>
+              {isReadOnly ? (
+                <Input value={selectedBlockLabel} disabled className="h-9" />
+              ) : (
+                <Popover open={blockPopoverOpen} onOpenChange={setBlockPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-9 text-sm">
+                      {selectedBlockLabel || 'Select block...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <div className="p-2">
+                      <Input placeholder="Search blocks..." value={blockSearch} onChange={e => setBlockSearch(e.target.value)} className="h-8" />
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
+                      {filteredBlocks.length === 0 ? (
+                        <p className="text-sm text-muted-foreground p-3 text-center">No blocks found</p>
+                      ) : (
+                        filteredBlocks.map(block => (
+                          <div key={block.id} className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer text-sm" onClick={() => handleBlockSelect(block)}>
+                            <Check className={`h-4 w-4 ${form.block_id === block.id ? 'opacity-100' : 'opacity-0'}`} />
+                            <span>{block.name} ({block.subcounty_name}) - {block.county_name}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
+
+            {/* Auto-filled location */}
+            {(form.county || form.sub_county) && (
+              <div className="rounded-md border border-border bg-muted/30 p-2.5 space-y-0.5 text-xs">
+                {form.county && <p><span className="font-medium text-muted-foreground">County:</span> {form.county}</p>}
+                {form.sub_county && <p><span className="font-medium text-muted-foreground">Sub-County:</span> {form.sub_county}</p>}
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* KEFRI + Reg No */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Checkbox id="kefri" checked={form.is_kefri_certified} onCheckedChange={(checked) => setForm({ ...form, is_kefri_certified: !!checked, kefri_reg_no: checked ? form.kefri_reg_no : '' })} disabled={isReadOnly} />
-            <Label htmlFor="kefri" className="cursor-pointer text-sm">KEFRI Certified Nursery</Label>
-          </div>
-          {form.is_kefri_certified && (
-            <div className="flex-1">
-              <Input value={form.kefri_reg_no} onChange={e => setForm({ ...form, kefri_reg_no: e.target.value })} placeholder="KEFRI Reg No" disabled={isReadOnly} className="h-8" />
+            {/* Address */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-1.5">
+                <Label className="text-xs font-medium">Address</Label>
+                <Input value={form.address_line} onChange={e => setForm({ ...form, address_line: e.target.value })} placeholder="Street address" disabled={isReadOnly} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">ZIP Code</Label>
+                <Input value={form.zip_code} onChange={e => setForm({ ...form, zip_code: e.target.value })} placeholder="00100" disabled={isReadOnly} className="h-9" />
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Block Name - Searchable from Forest Locations */}
-        <div className="space-y-2">
-          <Label>Block Name *</Label>
-          {isReadOnly ? (
-            <Input value={selectedBlockLabel} disabled />
-          ) : (
-            <Popover open={blockPopoverOpen} onOpenChange={setBlockPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
-                  {selectedBlockLabel || 'Select block...'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <div className="p-2">
-                  <Input
-                    placeholder="Search blocks..."
-                    value={blockSearch}
-                    onChange={e => setBlockSearch(e.target.value)}
-                    className="h-8"
-                  />
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {filteredBlocks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground p-3 text-center">No blocks found</p>
-                  ) : (
-                    filteredBlocks.map(block => (
-                      <div
-                        key={block.id}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer text-sm"
-                        onClick={() => handleBlockSelect(block)}
-                      >
-                        <Check className={`h-4 w-4 ${form.block_id === block.id ? 'opacity-100' : 'opacity-0'}`} />
-                        <span>{block.name} ({block.subcounty_name}) - {block.county_name}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-
-        {/* Auto-filled location display (not editable inputs) */}
-        {(form.county || form.sub_county || form.location) && (
-          <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1 text-sm">
-            {form.county && <p><span className="font-medium text-muted-foreground">County:</span> {form.county}</p>}
-            {form.sub_county && <p><span className="font-medium text-muted-foreground">Sub-County:</span> {form.sub_county}</p>}
-            {form.location && <p><span className="font-medium text-muted-foreground">Location:</span> {form.location}</p>}
-          </div>
-        )}
-
-        {/* Address fields */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2 space-y-2">
-            <Label>Address</Label>
-            <Input value={form.address_line} onChange={e => setForm({ ...form, address_line: e.target.value })} placeholder="Street address" disabled={isReadOnly} />
-          </div>
-          <div className="space-y-2">
-            <Label>ZIP Code</Label>
-            <Input value={form.zip_code} onChange={e => setForm({ ...form, zip_code: e.target.value })} placeholder="00100" disabled={isReadOnly} />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Manager</Label>
-          <Input value={form.manager_name} onChange={e => setForm({ ...form, manager_name: e.target.value })} placeholder="Manager name" disabled={isReadOnly} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>Contact No</Label>
-            <Input value={form.manager_phone} onChange={e => setForm({ ...form, manager_phone: e.target.value })} placeholder="+254..." disabled={isReadOnly} />
-          </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" value={form.manager_email} onChange={e => setForm({ ...form, manager_email: e.target.value })} placeholder="email@example.com" disabled={isReadOnly} />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Capacity (seedlings)</Label>
-          <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="0" disabled={isReadOnly} />
-        </div>
-
-        {/* Species Multi-Select */}
-        <div className="space-y-2">
-          <Label>Species</Label>
-          {!isReadOnly && (
-            <Input value={speciesSearch} onChange={e => setSpeciesSearch(e.target.value)} placeholder="Search species..." />
-          )}
-          {selectedSpeciesNames.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {selectedSpeciesNames.map(sp => (
-                <Badge key={sp.id} variant="secondary" className="gap-1 text-xs">
-                  {sp.species_name.split(' (')[0]}
-                  {!isReadOnly && <X className="h-3 w-3 cursor-pointer" onClick={() => toggleSpecies(sp.id)} />}
-                </Badge>
-              ))}
+            {/* Manager */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Manager</Label>
+              <Input value={form.manager_name} onChange={e => setForm({ ...form, manager_name: e.target.value })} placeholder="Manager name" disabled={isReadOnly} className="h-9" />
             </div>
-          )}
-          {!isReadOnly && (
-            <div className="border rounded-md max-h-48 overflow-y-auto">
-              {filteredSpecies.map(sp => (
-                <div key={sp.id} className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer text-sm" onClick={() => toggleSpecies(sp.id)}>
-                  <Checkbox checked={form.selected_species.includes(sp.id)} />
-                  <span>{sp.species_name}</span>
-                </div>
-              ))}
-              {filteredSpecies.length === 0 && <p className="text-xs text-muted-foreground p-3">No species found</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Contact No</Label>
+                <Input value={form.manager_phone} onChange={e => setForm({ ...form, manager_phone: e.target.value })} placeholder="+254..." disabled={isReadOnly} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Email</Label>
+                <Input type="email" value={form.manager_email} onChange={e => setForm({ ...form, manager_email: e.target.value })} placeholder="email@example.com" disabled={isReadOnly} className="h-9" />
+              </div>
             </div>
-          )}
-          {isReadOnly && selectedSpeciesNames.length === 0 && (
-            <p className="text-sm text-muted-foreground">No species assigned</p>
-          )}
-        </div>
+
+            {/* Capacity */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Capacity (seedlings)</Label>
+              <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="0" disabled={isReadOnly} className="h-9" />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="species" className="space-y-3 pt-2">
+            {!isReadOnly && (
+              <Input value={speciesSearch} onChange={e => setSpeciesSearch(e.target.value)} placeholder="Search species..." className="h-9" />
+            )}
+            {selectedSpeciesNames.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {selectedSpeciesNames.map(sp => (
+                  <Badge key={sp.id} variant="secondary" className="gap-1 text-xs">
+                    {sp.species_name.split(' (')[0]}
+                    {!isReadOnly && <X className="h-3 w-3 cursor-pointer" onClick={() => toggleSpecies(sp.id)} />}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {!isReadOnly && (
+              <div className="border rounded-md max-h-64 overflow-y-auto">
+                {filteredSpecies.map(sp => (
+                  <div key={sp.id} className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer text-sm" onClick={() => toggleSpecies(sp.id)}>
+                    <Checkbox checked={form.selected_species.includes(sp.id)} />
+                    <span>{sp.species_name}</span>
+                  </div>
+                ))}
+                {filteredSpecies.length === 0 && <p className="text-xs text-muted-foreground p-3">No species found</p>}
+              </div>
+            )}
+            {isReadOnly && selectedSpeciesNames.length === 0 && (
+              <p className="text-sm text-muted-foreground">No species assigned</p>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Actions */}
-        {sheetMode === 'add' && (
-          <Button onClick={() => addMutation.mutate()} disabled={!form.cbo_name || !form.block_name || addMutation.isPending} className="w-full">
-            {addMutation.isPending ? 'Adding...' : 'Add Nursery'}
-          </Button>
-        )}
-        {sheetMode === 'edit' && (
-          <Button onClick={() => editMutation.mutate()} disabled={!form.cbo_name || !form.block_name || editMutation.isPending} className="w-full">
-            {editMutation.isPending ? 'Saving...' : 'Save Changes'}
-          </Button>
-        )}
-        {sheetMode === 'view' && (
-          <Button variant="outline" onClick={() => setSheetMode('edit')} className="w-full">
-            <Pencil className="h-4 w-4 mr-2" />Switch to Edit
-          </Button>
-        )}
+        <div className="flex gap-2 pt-2">
+          {sheetMode === 'add' && (
+            <Button onClick={() => addMutation.mutate()} disabled={!form.cbo_name || !form.block_name || addMutation.isPending} className="flex-1">
+              {addMutation.isPending ? 'Adding...' : 'Add Nursery'}
+            </Button>
+          )}
+          {sheetMode === 'edit' && (
+            <>
+              <Button onClick={() => editMutation.mutate()} disabled={!form.cbo_name || !form.block_name || editMutation.isPending} className="flex-1">
+                {editMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button variant="outline" onClick={closeSheet}>Cancel</Button>
+            </>
+          )}
+          {sheetMode === 'view' && (
+            <Button variant="outline" onClick={() => setSheetMode('edit')} className="flex-1">
+              <Pencil className="h-4 w-4 mr-2" />Switch to Edit
+            </Button>
+          )}
+        </div>
       </div>
     </ScrollArea>
   );
