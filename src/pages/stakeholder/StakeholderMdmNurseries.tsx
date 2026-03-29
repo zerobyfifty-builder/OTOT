@@ -747,10 +747,14 @@ export function StakeholderMdmNurseries() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map(item => (
-                    <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
+                     <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
                       <TableCell className="font-medium">{item.cbo_name}</TableCell>
+                      <TableCell>
+                        {(item as any).nursery_type ? (
+                          <Badge variant="outline" className="text-xs">{(item as any).nursery_type}</Badge>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                       <TableCell>{item.block_name}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.county || '—'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3 text-muted-foreground" />
