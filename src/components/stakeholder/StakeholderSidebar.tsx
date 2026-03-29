@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, Map, CreditCard, MapPin, Leaf, Users } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, Map, CreditCard, MapPin, Leaf, Users, Pickaxe } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,16 +48,20 @@ const coreMenuItems = [
 // Lower sort_order = inserted first. insertAfter controls position relative to core items.
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string; sortOrder: number }> = {
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Financial', sortOrder: 1 },
-  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Tree Orders', sortOrder: 2 },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Management', sortOrder: 3 },
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Management', sortOrder: 4 },
-  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, insertAfter: 'Nurseries', sortOrder: 5 },
-  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, insertAfter: 'Planting', sortOrder: 6 },
-  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, insertAfter: 'Monitoring', sortOrder: 7 },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Community Impact', sortOrder: 8 },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Orders', sortOrder: 3 },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Orders', sortOrder: 4 },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Tree Orders', sortOrder: 8 },
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
+};
+
+// Tree Operations modules that appear under collapsible group
+const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, sortOrder: 1 },
+  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, sortOrder: 2 },
+  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
+  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
 
 // MDM modules that appear under "Forest Registry" collapsible
@@ -157,6 +161,15 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
       }
     }
     return items;
+  }, [assignedModules]);
+
+  // Build Tree Operations sub-items from assigned modules
+  const treeOpsItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(treeOpsModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+      .map(([, val]) => val);
   }, [assignedModules]);
 
   // Build Forest Registry sub-items from assigned MDM modules
@@ -259,6 +272,38 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 );
               })}
+              {treeOpsItems.length > 0 && (
+                <Collapsible asChild defaultOpen={treeOpsItems.some(i => location.pathname === i.url)}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
+                        <Pickaxe className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>Tree Operations</span>}
+                        {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {treeOpsItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
+                              <NavLink
+                                to={subItem.url}
+                                className={({ isActive }) =>
+                                  isActive ? 'bg-white/20 text-white font-medium' : ''
+                                }
+                              >
+                                <subItem.icon className="h-4 w-4" />
+                                <span>{subItem.title}</span>
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
               {forestRegistryItems.length > 0 && (
                 <Collapsible asChild defaultOpen={false}>
                   <SidebarMenuItem>
