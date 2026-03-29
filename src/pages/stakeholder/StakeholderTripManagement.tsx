@@ -36,6 +36,11 @@ interface Trip {
   from_date: string;
   to_date: string | null;
   created_at: string;
+  user_id: string;
+}
+
+interface UserCountryMap {
+  [userId: string]: string | null;
 }
 
 interface ContributionRow {
@@ -71,6 +76,28 @@ const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
   received_for_planting: "bg-emerald-50 text-emerald-700 border-emerald-200",
 };
 
+const COUNTRY_BADGE_COLORS = [
+  "bg-blue-100 text-blue-700 border-blue-200",
+  "bg-purple-100 text-purple-700 border-purple-200",
+  "bg-teal-100 text-teal-700 border-teal-200",
+  "bg-orange-100 text-orange-700 border-orange-200",
+  "bg-pink-100 text-pink-700 border-pink-200",
+  "bg-cyan-100 text-cyan-700 border-cyan-200",
+  "bg-rose-100 text-rose-700 border-rose-200",
+  "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "bg-lime-100 text-lime-700 border-lime-200",
+  "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
+];
+const countryColorCache: Record<string, string> = {};
+let colorIndex = 0;
+const getCountryBadgeColor = (country: string) => {
+  if (!countryColorCache[country]) {
+    countryColorCache[country] = COUNTRY_BADGE_COLORS[colorIndex % COUNTRY_BADGE_COLORS.length];
+    colorIndex++;
+  }
+  return countryColorCache[country];
+};
+
 type SortField = "friendly_trip_id" | "created_at" | "total_co2" | "trees_needed" | "status";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 15;
@@ -99,6 +126,7 @@ export function StakeholderTripManagement() {
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [statusFilter, setStatusFilter] = useState("all");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
@@ -112,12 +140,18 @@ export function StakeholderTripManagement() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [tripsRes, contribRes] = await Promise.all([
+    const [tripsRes, contribRes, usersRes] = await Promise.all([
       supabase.from("trips").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("contribution_tracking" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("users").select("user_id, country"),
     ]);
     if (tripsRes.data) setTrips(tripsRes.data as any);
     if (contribRes.data) setContributions(contribRes.data as unknown as ContributionRow[]);
+    if (usersRes.data) {
+      const map: UserCountryMap = {};
+      for (const u of usersRes.data) map[u.user_id] = u.country;
+      setUserCountries(map);
+    }
     setLoading(false);
   };
 
@@ -362,13 +396,14 @@ export function StakeholderTripManagement() {
                     <StaticHead label="Class" />
                     <StaticHead label="Return" />
                     <StaticHead label="Travelers" />
+                    <StaticHead label="Country" />
                     <StaticHead label="Flight CO₂" />
                     <StaticHead label="Hotel CO₂" />
                     <SortableHead field="total_co2" label="Total CO₂" />
                     <SortableHead field="trees_needed" label="Trees Needed" />
                     <StaticHead label="Trees Committed" />
                     <StaticHead label="Trees Due" />
-                    <StaticHead label="Contributions" />
+                    <StaticHead label="Payments" />
                     <StaticHead label="Total Amount" />
                     <SortableHead field="status" label="Status" />
                     <StaticHead label="Action" className="text-right" />
@@ -401,6 +436,13 @@ export function StakeholderTripManagement() {
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>
                           <TableCell className="text-sm">{trip.num_travelers}</TableCell>
+                          <TableCell>
+                            {userCountries[trip.user_id] ? (
+                              <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(userCountries[trip.user_id]!)}`}>
+                                {userCountries[trip.user_id]}
+                              </Badge>
+                            ) : <span className="text-sm text-muted-foreground">-</span>}
+                          </TableCell>
                           <TableCell className="text-sm tabular-nums">{Number(trip.flight_co2).toFixed(1)} kg</TableCell>
                           <TableCell className="text-sm tabular-nums">{Number(trip.accommodation_co2).toFixed(1)} kg</TableCell>
                           <TableCell className="text-sm font-medium tabular-nums">{(Number(trip.flight_co2) + Number(trip.accommodation_co2)).toFixed(1)} kg</TableCell>
@@ -434,11 +476,11 @@ export function StakeholderTripManagement() {
                         </TableRow>
                         {isExpanded && tripContribs.length > 0 && (
                           <TableRow key={`${trip.id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={17} className="p-0">
+                            <TableCell colSpan={19} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                   <FileText className="h-3.5 w-3.5" />
-                                  Contributions for {trip.friendly_trip_id || trip.id.slice(0, 8)}
+                                  Payments for {trip.friendly_trip_id || trip.id.slice(0, 8)}
                                 </h4>
                                 <div className="rounded-lg border bg-background overflow-hidden">
                                   <Table>
