@@ -229,15 +229,22 @@ export function StakeholderForestLocations() {
     setFormParentId(parentId);
     setFormMode('add');
     setFormData({});
+    setInitialFormData({});
     setFormOpen(true);
   };
 
   const openEditForm = (level: LevelType, data: any) => {
     setFormLevel(level);
     setFormMode('edit');
-    setFormData(data);
+    setFormData({ ...data });
+    setInitialFormData({ ...data });
     setFormOpen(true);
   };
+
+  const isFormDirty = useMemo(() => {
+    if (formMode === 'add') return true;
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData, formMode]);
 
   const handleSave = async () => {
     const table = TABLE_MAP[formLevel];
