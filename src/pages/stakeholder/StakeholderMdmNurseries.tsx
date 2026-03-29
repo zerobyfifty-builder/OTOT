@@ -18,7 +18,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User, Info, Check, ChevronsUpDown } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User, Info, Check, ChevronsUpDown, Download, MapPin, Filter } from 'lucide-react';
 
 interface BlockOption {
   id: string;
@@ -48,13 +49,17 @@ interface NurseryForm {
   manager_email: string;
   is_kefri_certified: boolean;
   kefri_reg_no: string;
+  gps_latitude: string;
+  gps_longitude: string;
+  notes: string;
   selected_species: string[];
 }
 
 const emptyForm: NurseryForm = {
   cbo_name: '', nursery_type: '', block_name: '', block_id: '', location: '', capacity: '',
   county: '', sub_county: '', address_line: '', zip_code: '', manager_name: '',
-  manager_phone: '', manager_email: '', is_kefri_certified: false, kefri_reg_no: '', selected_species: [],
+  manager_phone: '', manager_email: '', is_kefri_certified: false, kefri_reg_no: '',
+  gps_latitude: '', gps_longitude: '', notes: '', selected_species: [],
 };
 
 type SheetMode = 'add' | 'view' | 'edit';
@@ -63,6 +68,9 @@ export function StakeholderMdmNurseries() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterCounty, setFilterCounty] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>('add');
   const [selectedNurseryId, setSelectedNurseryId] = useState<string | null>(null);
@@ -199,11 +207,22 @@ export function StakeholderMdmNurseries() {
     }));
   };
 
-  const filtered = nurseries.filter(n =>
-    n.cbo_name.toLowerCase().includes(search.toLowerCase()) ||
-    n.block_name.toLowerCase().includes(search.toLowerCase()) ||
-    (n.county || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = nurseries.filter(n => {
+    const matchesSearch = n.cbo_name.toLowerCase().includes(search.toLowerCase()) ||
+      n.block_name.toLowerCase().includes(search.toLowerCase()) ||
+      (n.county || '').toLowerCase().includes(search.toLowerCase());
+    const matchesType = filterType === 'all' || (n as any).nursery_type === filterType;
+    const matchesCounty = filterCounty === 'all' || n.county === filterCounty;
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && n.is_active) ||
+      (filterStatus === 'inactive' && !n.is_active);
+    return matchesSearch && matchesType && matchesCounty && matchesStatus;
+  });
+
+  const uniqueCounties = useMemo(() => {
+    const counties = nurseries.map(n => n.county).filter(Boolean) as string[];
+    return [...new Set(counties)].sort();
+  }, [nurseries]);
 
   const openSheet = (mode: SheetMode, nursery?: any) => {
     setSheetMode(mode);
@@ -227,6 +246,9 @@ export function StakeholderMdmNurseries() {
         manager_email: (nursery as any).manager_email || '',
         is_kefri_certified: nursery.is_kefri_certified || false,
         kefri_reg_no: (nursery as any).kefri_reg_no || '',
+        gps_latitude: String((nursery as any).gps_latitude || ''),
+        gps_longitude: String((nursery as any).gps_longitude || ''),
+        notes: (nursery as any).notes || '',
         selected_species: []
       });
     } else {
@@ -514,6 +536,37 @@ export function StakeholderMdmNurseries() {
               <Label className="text-xs font-medium">Capacity (seedlings)</Label>
               <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="0" disabled={isReadOnly} className="h-9" />
             </div>
+
+            {/* GPS */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">GPS Coordinates (optional)</Label>
+                {!isReadOnly && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => setForm(prev => ({ ...prev, gps_latitude: String(pos.coords.latitude), gps_longitude: String(pos.coords.longitude) })),
+                        () => toast.error('Unable to get location')
+                      );
+                    } else {
+                      toast.error('Geolocation not supported');
+                    }
+                  }}>
+                    <MapPin className="h-3 w-3" /> Use my location
+                  </Button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input type="number" step="any" value={form.gps_latitude} onChange={e => setForm({ ...form, gps_latitude: e.target.value })} placeholder="Latitude" disabled={isReadOnly} className="h-9" />
+                <Input type="number" step="any" value={form.gps_longitude} onChange={e => setForm({ ...form, gps_longitude: e.target.value })} placeholder="Longitude" disabled={isReadOnly} className="h-9" />
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Additional notes..." disabled={isReadOnly} className="min-h-[60px] text-sm" />
+            </div>
           </TabsContent>
 
           <TabsContent value="species" className="space-y-3 pt-2">
@@ -609,11 +662,50 @@ export function StakeholderMdmNurseries() {
       {/* Table */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search nurseries..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[140px] h-9"><Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {NURSERY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterCounty} onValueChange={setFilterCounty}>
+              <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="County" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Counties</SelectItem>
+                {uniqueCounties.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" className="gap-1.5 h-9" onClick={() => {
+              const headers = ['Name', 'Type', 'Block', 'County', 'Sub-County', 'Manager', 'Phone', 'Email', 'Capacity', 'KEFRI', 'Status'];
+              const rows = filtered.map(n => [
+                n.cbo_name, (n as any).nursery_type || '', n.block_name, n.county || '', n.sub_county || '',
+                n.manager_name || '', n.manager_phone || '', (n as any).manager_email || '',
+                String(n.capacity || 0), n.is_kefri_certified ? 'Yes' : 'No', n.is_active ? 'Active' : 'Inactive'
+              ]);
+              const csv = [headers, ...rows].map(r => r.map(c => `"${(c || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'nurseries_export.csv'; a.click();
+              URL.revokeObjectURL(url);
+              toast.success('CSV exported');
+            }}>
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
             <Badge variant="outline">{filtered.length} nurseries</Badge>
           </div>
         </CardHeader>
@@ -643,8 +735,9 @@ export function StakeholderMdmNurseries() {
                         </Tooltip>
                       </div>
                     </TableHead>
-                    <TableHead>Block</TableHead>
-                    <TableHead>County</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Block</TableHead>
+                     <TableHead>County</TableHead>
                     <TableHead>Manager</TableHead>
                     <TableHead>Contact No</TableHead>
                     <TableHead>Capacity</TableHead>
@@ -655,8 +748,13 @@ export function StakeholderMdmNurseries() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map(item => (
-                    <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
+                     <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
                       <TableCell className="font-medium">{item.cbo_name}</TableCell>
+                      <TableCell>
+                        {(item as any).nursery_type ? (
+                          <Badge variant="outline" className="text-xs">{(item as any).nursery_type}</Badge>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                       <TableCell>{item.block_name}</TableCell>
                       <TableCell className="text-muted-foreground">{item.county || '—'}</TableCell>
                       <TableCell>
