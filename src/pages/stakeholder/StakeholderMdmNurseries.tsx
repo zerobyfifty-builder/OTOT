@@ -384,14 +384,38 @@ export function StakeholderMdmNurseries() {
   const renderForm = () => (
     <ScrollArea className="h-[calc(100vh-80px)] px-6 pb-6">
       <div className="space-y-4 pb-6">
-        {/* CBO Name + KEFRI side by side */}
-        <div className="space-y-2">
-          <Label>Nursery / CBO Name *</Label>
-          <Input value={form.cbo_name} onChange={e => setForm({ ...form, cbo_name: e.target.value })} placeholder="Community group / nursery name" disabled={isReadOnly} />
+        {/* Name + Type side by side */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Nursery / CBO Name *</Label>
+            <Input value={form.cbo_name} onChange={e => setForm({ ...form, cbo_name: e.target.value })} placeholder="Community group / nursery name" disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Type</Label>
+            {isReadOnly ? (
+              <Input value={form.nursery_type || '—'} disabled />
+            ) : (
+              <Select value={form.nursery_type} onValueChange={v => setForm({ ...form, nursery_type: v })}>
+                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                <SelectContent>
+                  {NURSERY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Checkbox id="kefri" checked={form.is_kefri_certified} onCheckedChange={(checked) => setForm({ ...form, is_kefri_certified: !!checked })} disabled={isReadOnly} />
-          <Label htmlFor="kefri" className="cursor-pointer text-sm">KEFRI Certified Nursery</Label>
+
+        {/* KEFRI + Reg No */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox id="kefri" checked={form.is_kefri_certified} onCheckedChange={(checked) => setForm({ ...form, is_kefri_certified: !!checked, kefri_reg_no: checked ? form.kefri_reg_no : '' })} disabled={isReadOnly} />
+            <Label htmlFor="kefri" className="cursor-pointer text-sm">KEFRI Certified Nursery</Label>
+          </div>
+          {form.is_kefri_certified && (
+            <div className="flex-1">
+              <Input value={form.kefri_reg_no} onChange={e => setForm({ ...form, kefri_reg_no: e.target.value })} placeholder="KEFRI Reg No" disabled={isReadOnly} className="h-8" />
+            </div>
+          )}
         </div>
 
         {/* Block Name - Searchable from Forest Locations */}
@@ -437,32 +461,41 @@ export function StakeholderMdmNurseries() {
           )}
         </div>
 
-        {/* Auto-filled location fields (read-only when block is selected) */}
-        <div className="space-y-2">
-          <Label>Location</Label>
-          <Input value={form.location} disabled className="bg-muted/50" />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>County</Label>
-            <Input value={form.county} disabled className="bg-muted/50" />
+        {/* Auto-filled location display (not editable inputs) */}
+        {(form.county || form.sub_county || form.location) && (
+          <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1 text-sm">
+            {form.county && <p><span className="font-medium text-muted-foreground">County:</span> {form.county}</p>}
+            {form.sub_county && <p><span className="font-medium text-muted-foreground">Sub-County:</span> {form.sub_county}</p>}
+            {form.location && <p><span className="font-medium text-muted-foreground">Location:</span> {form.location}</p>}
+          </div>
+        )}
+
+        {/* Address fields */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2 space-y-2">
+            <Label>Address</Label>
+            <Input value={form.address_line} onChange={e => setForm({ ...form, address_line: e.target.value })} placeholder="Street address" disabled={isReadOnly} />
           </div>
           <div className="space-y-2">
-            <Label>Sub-County</Label>
-            <Input value={form.sub_county} disabled className="bg-muted/50" />
+            <Label>ZIP Code</Label>
+            <Input value={form.zip_code} onChange={e => setForm({ ...form, zip_code: e.target.value })} placeholder="00100" disabled={isReadOnly} />
           </div>
         </div>
-        <div className="space-y-2">
-          <Label>Address</Label>
-          <Input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Physical address" disabled={isReadOnly} />
-        </div>
+
         <div className="space-y-2">
           <Label>Manager</Label>
           <Input value={form.manager_name} onChange={e => setForm({ ...form, manager_name: e.target.value })} placeholder="Manager name" disabled={isReadOnly} />
         </div>
-        <div className="space-y-2">
-          <Label>Manager's Contact No</Label>
-          <Input value={form.manager_phone} onChange={e => setForm({ ...form, manager_phone: e.target.value })} placeholder="+254..." disabled={isReadOnly} />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label>Contact No</Label>
+            <Input value={form.manager_phone} onChange={e => setForm({ ...form, manager_phone: e.target.value })} placeholder="+254..." disabled={isReadOnly} />
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input type="email" value={form.manager_email} onChange={e => setForm({ ...form, manager_email: e.target.value })} placeholder="email@example.com" disabled={isReadOnly} />
+          </div>
+        </div>
         </div>
         <div className="space-y-2">
           <Label>Capacity (seedlings)</Label>
