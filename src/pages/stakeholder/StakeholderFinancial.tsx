@@ -162,6 +162,21 @@ export const StakeholderFinancial = () => {
 
   const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser && !isTechPartner;
 
+  // Fetch trips for Trip ID display
+  const { data: tripsMap } = useQuery({
+    queryKey: ["financialTrips", contributions],
+    queryFn: async () => {
+      const tripIds = [...new Set(contributions?.map(c => c.trip_id).filter(Boolean) || [])];
+      if (tripIds.length === 0) return {} as Record<string, string>;
+      const { data } = await supabase.from("trips").select("id, friendly_trip_id").in("id", tripIds);
+      return (data || []).reduce((acc, t) => {
+        acc[t.id] = t.friendly_trip_id || t.id.slice(0, 8);
+        return acc;
+      }, {} as Record<string, string>);
+    },
+    enabled: !!contributions && contributions.length > 0,
+  });
+
   // Fetch wallet settings for fee calculations
   const { data: walletSettings } = useQuery({
     queryKey: ["walletSettings"],
@@ -324,11 +339,13 @@ export const StakeholderFinancial = () => {
 
   const filtered = useMemo(() => {
     let result = contributions?.filter((c) => {
+      const tripFriendlyId = c.trip_id && tripsMap ? (tripsMap[c.trip_id] || "") : "";
       const matchSearch =
         !search ||
         c.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
         c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
-        c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
+        c.transaction_reference?.toLowerCase().includes(search.toLowerCase()) ||
+        tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
       return matchSearch && matchStatus;
     }) || [];
@@ -365,7 +382,7 @@ export const StakeholderFinancial = () => {
     });
 
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir]);
+  }, [contributions, search, statusFilter, sortField, sortDir, tripsMap]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -617,6 +634,7 @@ export const StakeholderFinancial = () => {
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
                       <SortableHead field="contribution_id" label="Contri Id" />
+                      <StaticHead label="Trip ID" />
                       {(isTechPartner || isKtbUser) && <SortableHead field="payment_date" label="Contri Date" />}
                       <SortableHead field="contribution_type" label="Type" />
                       <SortableHead field="tourist_name" label="Contributor" />
@@ -647,6 +665,7 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{c.trip_id && tripsMap ? (tripsMap[c.trip_id] || c.trip_id.slice(0, 8)) : "-"}</TableCell>
                         {(isTechPartner || isKtbUser) && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>

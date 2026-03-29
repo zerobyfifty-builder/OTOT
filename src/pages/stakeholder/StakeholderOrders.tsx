@@ -356,9 +356,11 @@ export const StakeholderOrders = () => {
 
   const filtered = useMemo(() => {
     let result = contributionGroups.filter(g => {
+      const tripFriendlyId = g.trip?.friendly_trip_id || "";
       const matchSearch = !search ||
         g.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
-        g.tourist_name?.toLowerCase().includes(search.toLowerCase());
+        g.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
+        tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || g.planting_status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -544,6 +546,7 @@ export const StakeholderOrders = () => {
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trip ID</TableHead>
                     <SortableHead field="payment_date" label="Date" />
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
@@ -573,6 +576,7 @@ export const StakeholderOrders = () => {
                               : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{group.trip ? (group.trip.friendly_trip_id || group.trip_id?.slice(0, 8)) : "-"}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
                           <TableCell className="text-sm">
                             {group.contribution_type === "travel_agent"
@@ -616,7 +620,7 @@ export const StakeholderOrders = () => {
                         {/* Expanded Tree Details */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={10} className="p-0">
+                            <TableCell colSpan={11} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 {/* Bulk Update */}
                                 {canEditPlantingStatus && group.trees.length > 0 && (
