@@ -103,6 +103,9 @@ import StakeholderTripManagement from "@/pages/stakeholder/StakeholderTripManage
 import StakeholderAnalytics from "@/pages/stakeholder/StakeholderAnalytics";
 import StakeholderPayments from "@/pages/stakeholder/StakeholderPayments";
 import { StakeholderForestLocations } from "@/pages/stakeholder/StakeholderForestLocations";
+import { StakeholderMdmSpecies } from "@/pages/stakeholder/StakeholderMdmSpecies";
+import { StakeholderMdmNurseries } from "@/pages/stakeholder/StakeholderMdmNurseries";
+import { StakeholderMdmPlanters } from "@/pages/stakeholder/StakeholderMdmPlanters";
 import WalletSettings from "@/pages/admin/WalletSettings";
 import NotFound from "./pages/NotFound";
 
@@ -523,6 +526,15 @@ const App = () => (
             } />
             <Route path="/stakeholder/locations" element={
               <StakeholderRoute><StakeholderLayout><StakeholderForestLocations /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/mdm-species" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmSpecies /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/mdm-nurseries" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmNurseries /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/mdm-planters" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmPlanters /></StakeholderLayout></StakeholderRoute>
             } />
 
             {/* Legacy Admin routes */}
