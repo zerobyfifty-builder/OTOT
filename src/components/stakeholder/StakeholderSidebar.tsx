@@ -35,25 +35,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-// Core menu items always visible
+// Core menu items always visible (Dashboard, Financial are fixed top)
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
-  { title: 'Admin', url: '/stakeholder/admin', icon: Settings },
-  { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
-// Module-based menu items: keyed by module name from the modules table
-// Module-based menu items with sort_order for deterministic ordering
-// Lower sort_order = inserted first. insertAfter controls position relative to core items.
-const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string; sortOrder: number }> = {
-  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Financial', sortOrder: 1 },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Orders', sortOrder: 3 },
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Orders', sortOrder: 4 },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Tree Orders', sortOrder: 8 },
-  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
-  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
+// Module-based menu items that appear as flat items after core + collapsible groups
+// sortOrder determines the display order among flat module items
+const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
+  // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, sortOrder: 5 },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 6 },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, sortOrder: 7 },
+  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, sortOrder: 8 },
+  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
 };
 
 // Tree Operations modules that appear under collapsible group
