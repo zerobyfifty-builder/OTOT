@@ -590,7 +590,7 @@ export const StakeholderOrders = () => {
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">{group.trip ? (group.trip.friendly_trip_id || group.trip_id?.slice(0, 8)) : "-"}</TableCell>
-                          <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
+                          <TableCell><DateTimeCell value={group.payment_date || group.created_at} /></TableCell>
                           <TableCell className="text-sm">
                             {group.contribution_type === "travel_agent"
                               ? <span className="text-xs font-medium text-indigo-600">Agent</span>

@@ -700,7 +700,7 @@ export const StakeholderFinancial = () => {
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${isKtbUser ? getTransferred(c).toFixed(2) : Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
                         {isPlantationPartner && <TableCell><DateTimeCell value={c.transfer_date} /></TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>}
-                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.partner_received_date)}</TableCell>}
+                        {isPlantationPartner && <TableCell><DateTimeCell value={c.partner_received_date} /></TableCell>}
                         <TableCell>{getStatusBadge(c.status)}</TableCell>
                         <TableCell className="text-right">
                           {isPlantationPartner ? (
