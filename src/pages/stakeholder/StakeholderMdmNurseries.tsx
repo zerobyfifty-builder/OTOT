@@ -18,7 +18,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User, Info, Check, ChevronsUpDown } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User, Info, Check, ChevronsUpDown, Download, MapPin, Filter } from 'lucide-react';
 
 interface BlockOption {
   id: string;
