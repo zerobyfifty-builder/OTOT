@@ -1143,12 +1143,16 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_kefri_certified: boolean | null
+          kefri_reg_no: string | null
           location: string | null
+          manager_email: string | null
           manager_name: string | null
           manager_phone: string | null
+          nursery_type: string | null
           stakeholder_org_id: string
           sub_county: string | null
           updated_at: string | null
+          zip_code: string | null
         }
         Insert: {
           address?: string | null
@@ -1160,12 +1164,16 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_kefri_certified?: boolean | null
+          kefri_reg_no?: string | null
           location?: string | null
+          manager_email?: string | null
           manager_name?: string | null
           manager_phone?: string | null
+          nursery_type?: string | null
           stakeholder_org_id: string
           sub_county?: string | null
           updated_at?: string | null
+          zip_code?: string | null
         }
         Update: {
           address?: string | null
@@ -1177,12 +1185,16 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_kefri_certified?: boolean | null
+          kefri_reg_no?: string | null
           location?: string | null
+          manager_email?: string | null
           manager_name?: string | null
           manager_phone?: string | null
+          nursery_type?: string | null
           stakeholder_org_id?: string
           sub_county?: string | null
           updated_at?: string | null
+          zip_code?: string | null
         }
         Relationships: [
           {
