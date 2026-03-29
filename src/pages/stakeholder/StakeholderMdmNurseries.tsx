@@ -391,7 +391,6 @@ export function StakeholderMdmNurseries() {
     return form.block_name;
   }, [form.block_name, form.block_id, blockOptions]);
 
-  const [activeTab, setActiveTab] = useState('details');
 
   const renderForm = () => (
     <ScrollArea className="h-[calc(100vh-80px)] px-6 pb-6">
