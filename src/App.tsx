@@ -102,6 +102,7 @@ import StakeholderTreeManagement from "@/pages/stakeholder/StakeholderTreeManage
 import StakeholderTripManagement from "@/pages/stakeholder/StakeholderTripManagement";
 import StakeholderAnalytics from "@/pages/stakeholder/StakeholderAnalytics";
 import StakeholderPayments from "@/pages/stakeholder/StakeholderPayments";
+import { StakeholderForestLocations } from "@/pages/stakeholder/StakeholderForestLocations";
 import WalletSettings from "@/pages/admin/WalletSettings";
 import NotFound from "./pages/NotFound";
 
@@ -519,6 +520,9 @@ const App = () => (
             } />
             <Route path="/stakeholder/payments" element={
               <StakeholderRoute><StakeholderLayout><StakeholderPayments /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/locations" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderForestLocations /></StakeholderLayout></StakeholderRoute>
             } />
 
             {/* Legacy Admin routes */}
