@@ -80,6 +80,19 @@ const formatDate = (d: string | null) => {
   try { return format(new Date(d), "dd MMM yyyy"); } catch { return "-"; }
 };
 
+const DateTimeCell = ({ value }: { value: string | null }) => {
+  if (!value) return <span>-</span>;
+  try {
+    const date = new Date(value);
+    return (
+      <div className="leading-tight">
+        <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>
+        <div className="text-[11px] text-muted-foreground">{format(date, "hh:mm:ss a")}</div>
+      </div>
+    );
+  } catch { return <span>-</span>; }
+};
+
 export function StakeholderTripManagement() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("trip_management");
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -383,7 +396,7 @@ export function StakeholderTripManagement() {
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
-                          <TableCell className="text-sm">{formatDate(trip.created_at)}</TableCell>
+                          <TableCell><DateTimeCell value={trip.created_at} /></TableCell>
                           <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>

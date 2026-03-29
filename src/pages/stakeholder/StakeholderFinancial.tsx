@@ -440,6 +440,19 @@ export const StakeholderFinancial = () => {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
+  const DateTimeCell = ({ value }: { value: string | null }) => {
+    if (!value) return <span>-</span>;
+    try {
+      const date = new Date(value);
+      return (
+        <div className="leading-tight">
+          <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>
+          <div className="text-[11px] text-muted-foreground">{format(date, "hh:mm:ss a")}</div>
+        </div>
+      );
+    } catch { return <span>-</span>; }
+  };
+
   const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
     <TableHead
       className={`cursor-pointer select-none text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors ${className}`}
@@ -666,7 +679,7 @@ export const StakeholderFinancial = () => {
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
                         <TableCell className="font-mono text-xs text-muted-foreground">{c.trip_id && tripsMap ? (tripsMap[c.trip_id] || c.trip_id.slice(0, 8)) : "-"}</TableCell>
-                        {(isTechPartner || isKtbUser) && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
+                        {(isTechPartner || isKtbUser) && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
                         <TableCell className="text-sm">{c.country || "-"}</TableCell>
@@ -674,20 +687,20 @@ export const StakeholderFinancial = () => {
                         {isTechPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-primary font-medium text-sm tabular-nums">${(Number(c.amount_paid) * techFeePercent / 100).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)).toFixed(2)}</TableCell>}
-                        {isTechPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
+                        {isTechPartner && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
-                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
+                        {isPlantationPartner && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-primary font-medium text-sm tabular-nums">${getToBeReceived(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${getAmntReceived(c).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at)}</TableCell>}
+                        {isKtbUser && <TableCell><DateTimeCell value={c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at} /></TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${getRetained(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-blue-700 font-medium text-sm tabular-nums">${getToBeTransferred(c).toFixed(2)}</TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${isKtbUser ? getTransferred(c).toFixed(2) : Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
-                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.transfer_date)}</TableCell>}
+                        {isPlantationPartner && <TableCell><DateTimeCell value={c.transfer_date} /></TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>}
-                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.partner_received_date)}</TableCell>}
+                        {isPlantationPartner && <TableCell><DateTimeCell value={c.partner_received_date} /></TableCell>}
                         <TableCell>{getStatusBadge(c.status)}</TableCell>
                         <TableCell className="text-right">
                           {isPlantationPartner ? (

@@ -398,6 +398,19 @@ export const StakeholderOrders = () => {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
+  const DateTimeCell = ({ value }: { value: string | null }) => {
+    if (!value) return <span>-</span>;
+    try {
+      const date = new Date(value);
+      return (
+        <div className="leading-tight">
+          <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>
+          <div className="text-[11px] text-muted-foreground">{format(date, "hh:mm:ss a")}</div>
+        </div>
+      );
+    } catch { return <span>-</span>; }
+  };
+
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
   const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
@@ -577,7 +590,7 @@ export const StakeholderOrders = () => {
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">{group.trip ? (group.trip.friendly_trip_id || group.trip_id?.slice(0, 8)) : "-"}</TableCell>
-                          <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
+                          <TableCell><DateTimeCell value={group.payment_date || group.created_at} /></TableCell>
                           <TableCell className="text-sm">
                             {group.contribution_type === "travel_agent"
                               ? <span className="text-xs font-medium text-indigo-600">Agent</span>
