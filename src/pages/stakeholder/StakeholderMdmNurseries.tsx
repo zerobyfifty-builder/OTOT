@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,21 +7,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User } from 'lucide-react';
+import { Search, Plus, Sprout, CheckCircle2, XCircle, MoreVertical, Eye, Pencil, Trash2, Power, X, User, Info, Check, ChevronsUpDown } from 'lucide-react';
 
-const BLOCK_OPTIONS = ["Eastern", "Molo", "Western", "South-West Mau"];
+interface BlockOption {
+  id: string;
+  name: string;
+  code: string | null;
+  subcounty_name: string;
+  county_name: string;
+  subcounty_id: string;
+  county_id: string;
+}
 
 interface NurseryForm {
   cbo_name: string;
   block_name: string;
+  block_id: string;
   location: string;
   capacity: string;
   county: string;
@@ -34,7 +44,7 @@ interface NurseryForm {
 }
 
 const emptyForm: NurseryForm = {
-  cbo_name: '', block_name: '', location: '', capacity: '',
+  cbo_name: '', block_name: '', block_id: '', location: '', capacity: '',
   county: '', sub_county: '', address: '', manager_name: '',
   manager_phone: '', is_kefri_certified: false, selected_species: [],
 };
@@ -50,6 +60,8 @@ export function StakeholderMdmNurseries() {
   const [selectedNurseryId, setSelectedNurseryId] = useState<string | null>(null);
   const [form, setForm] = useState<NurseryForm>(emptyForm);
   const [speciesSearch, setSpeciesSearch] = useState('');
+  const [blockSearch, setBlockSearch] = useState('');
+  const [blockPopoverOpen, setBlockPopoverOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [statusTarget, setStatusTarget] = useState<{ id: string; name: string; is_active: boolean } | null>(null);
 
@@ -85,6 +97,71 @@ export function StakeholderMdmNurseries() {
       return data;
     },
   });
+
+  // Fetch blocks with subcounty and county info for searchable dropdown
+  const { data: blockOptions = [] } = useQuery({
+    queryKey: ['mdm_blocks_with_location'],
+    queryFn: async () => {
+      const { data: blocks, error: blocksError } = await supabase
+        .from('mdm_location_blocks')
+        .select('id, name, code, subcounty_id')
+        .eq('is_active', true)
+        .order('name');
+      if (blocksError) throw blocksError;
+      if (!blocks || blocks.length === 0) return [];
+
+      const subcountyIds = [...new Set(blocks.map(b => b.subcounty_id))];
+      const { data: subcounties } = await supabase
+        .from('mdm_location_subcounties')
+        .select('id, name, county_id')
+        .in('id', subcountyIds);
+
+      const countyIds = [...new Set((subcounties || []).map(s => s.county_id))];
+      const { data: counties } = await supabase
+        .from('mdm_location_counties')
+        .select('id, name')
+        .in('id', countyIds);
+
+      const countyMap = new Map((counties || []).map(c => [c.id, c.name]));
+      const subcountyMap = new Map((subcounties || []).map(s => [s.id, { name: s.name, county_id: s.county_id }]));
+
+      return blocks.map(b => {
+        const sc = subcountyMap.get(b.subcounty_id);
+        return {
+          id: b.id,
+          name: b.name,
+          code: b.code,
+          subcounty_id: b.subcounty_id,
+          subcounty_name: sc?.name || '',
+          county_id: sc?.county_id || '',
+          county_name: sc ? (countyMap.get(sc.county_id) || '') : '',
+        } as BlockOption;
+      });
+    },
+  });
+
+  const filteredBlocks = useMemo(() => {
+    if (!blockSearch) return blockOptions;
+    const q = blockSearch.toLowerCase();
+    return blockOptions.filter(b =>
+      b.name.toLowerCase().includes(q) ||
+      b.subcounty_name.toLowerCase().includes(q) ||
+      b.county_name.toLowerCase().includes(q)
+    );
+  }, [blockOptions, blockSearch]);
+
+  const handleBlockSelect = (block: BlockOption) => {
+    setForm(prev => ({
+      ...prev,
+      block_id: block.id,
+      block_name: block.name,
+      county: block.county_name,
+      sub_county: block.subcounty_name,
+      location: `${block.name}, ${block.subcounty_name}`,
+    }));
+    setBlockPopoverOpen(false);
+    setBlockSearch('');
+  };
 
   // Fetch species for the currently selected nursery
   const { data: nurserySpeciesLinks } = useQuery({
@@ -123,9 +200,12 @@ export function StakeholderMdmNurseries() {
     setSheetMode(mode);
     if (nursery) {
       setSelectedNurseryId(nursery.id);
+      // Try to find matching block from blockOptions
+      const matchedBlock = blockOptions.find(b => b.name === nursery.block_name);
       setForm({
         cbo_name: nursery.cbo_name || '',
         block_name: nursery.block_name || '',
+        block_id: matchedBlock?.id || '',
         location: nursery.location || '',
         capacity: String(nursery.capacity || 0),
         county: nursery.county || '',
@@ -141,6 +221,7 @@ export function StakeholderMdmNurseries() {
       setForm(emptyForm);
     }
     setSpeciesSearch('');
+    setBlockSearch('');
     setSheetOpen(true);
   };
 
@@ -156,6 +237,7 @@ export function StakeholderMdmNurseries() {
     setSelectedNurseryId(null);
     setForm(emptyForm);
     setSpeciesSearch('');
+    setBlockSearch('');
   };
 
   const addMutation = useMutation({
@@ -281,12 +363,19 @@ export function StakeholderMdmNurseries() {
   const isReadOnly = sheetMode === 'view';
   const sheetTitle = sheetMode === 'add' ? 'Add New Nursery' : sheetMode === 'edit' ? 'Edit Nursery' : 'View Nursery';
 
+  const selectedBlockLabel = useMemo(() => {
+    if (!form.block_name) return '';
+    const block = blockOptions.find(b => b.id === form.block_id || b.name === form.block_name);
+    if (block) return `${block.name} (${block.subcounty_name}) - ${block.county_name}`;
+    return form.block_name;
+  }, [form.block_name, form.block_id, blockOptions]);
+
   const renderForm = () => (
     <ScrollArea className="h-[calc(100vh-80px)] px-6 pb-6">
       <div className="space-y-4 pb-6">
         {/* CBO Name + KEFRI side by side */}
         <div className="space-y-2">
-          <Label>CBO Name / Nursery *</Label>
+          <Label>Nursery / CBO Name *</Label>
           <Input value={form.cbo_name} onChange={e => setForm({ ...form, cbo_name: e.target.value })} placeholder="Community group / nursery name" disabled={isReadOnly} />
         </div>
         <div className="flex items-center gap-2">
@@ -294,28 +383,62 @@ export function StakeholderMdmNurseries() {
           <Label htmlFor="kefri" className="cursor-pointer text-sm">KEFRI Certified Nursery</Label>
         </div>
 
+        {/* Block Name - Searchable from Forest Locations */}
         <div className="space-y-2">
           <Label>Block Name *</Label>
-          <Select value={form.block_name} onValueChange={v => setForm({ ...form, block_name: v })} disabled={isReadOnly}>
-            <SelectTrigger><SelectValue placeholder="Select block" /></SelectTrigger>
-            <SelectContent>
-              {BLOCK_OPTIONS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {isReadOnly ? (
+            <Input value={selectedBlockLabel} disabled />
+          ) : (
+            <Popover open={blockPopoverOpen} onOpenChange={setBlockPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                  {selectedBlockLabel || 'Select block...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <div className="p-2">
+                  <Input
+                    placeholder="Search blocks..."
+                    value={blockSearch}
+                    onChange={e => setBlockSearch(e.target.value)}
+                    className="h-8"
+                  />
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {filteredBlocks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3 text-center">No blocks found</p>
+                  ) : (
+                    filteredBlocks.map(block => (
+                      <div
+                        key={block.id}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer text-sm"
+                        onClick={() => handleBlockSelect(block)}
+                      >
+                        <Check className={`h-4 w-4 ${form.block_id === block.id ? 'opacity-100' : 'opacity-0'}`} />
+                        <span>{block.name} ({block.subcounty_name}) - {block.county_name}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
+        {/* Auto-filled location fields (read-only when block is selected) */}
         <div className="space-y-2">
           <Label>Location</Label>
-          <Input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="Location details" disabled={isReadOnly} />
+          <Input value={form.location} disabled className="bg-muted/50" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>County</Label>
-            <Input value={form.county} onChange={e => setForm({ ...form, county: e.target.value })} placeholder="e.g. Nakuru" disabled={isReadOnly} />
+            <Input value={form.county} disabled className="bg-muted/50" />
           </div>
           <div className="space-y-2">
             <Label>Sub-County</Label>
-            <Input value={form.sub_county} onChange={e => setForm({ ...form, sub_county: e.target.value })} placeholder="e.g. Molo" disabled={isReadOnly} />
+            <Input value={form.sub_county} disabled className="bg-muted/50" />
           </div>
         </div>
         <div className="space-y-2">
@@ -441,75 +564,91 @@ export function StakeholderMdmNurseries() {
               <p className="text-muted-foreground">No nurseries found</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>CBO Name</TableHead>
-                  <TableHead>Block</TableHead>
-                  <TableHead>County</TableHead>
-                  <TableHead>Manager</TableHead>
-                  <TableHead>Capacity</TableHead>
-                  <TableHead>KEFRI</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map(item => (
-                  <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
-                    <TableCell className="font-medium">{item.cbo_name}</TableCell>
-                    <TableCell>{item.block_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{item.county || '—'}</TableCell>
-                    <TableCell>
+            <TooltipProvider>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
                       <div className="flex items-center gap-1">
-                        <User className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">{item.manager_name || '—'}</span>
+                        Nursery/CBO
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Community Based Organizations (CBOs)</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
-                    </TableCell>
-                    <TableCell>{(item.capacity || 0).toLocaleString()}</TableCell>
-                    <TableCell>
-                      {item.is_kefri_certified ? (
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Yes</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">No</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={item.is_active
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                      }>
-                        {item.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openSheet('view', item)}>
-                            <Eye className="h-4 w-4 mr-2" />View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openSheet('edit', item)}>
-                            <Pencil className="h-4 w-4 mr-2" />Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setStatusTarget({ id: item.id, name: item.cbo_name, is_active: item.is_active ?? true })}>
-                            <Power className="h-4 w-4 mr-2" />{item.is_active ? 'Deactivate' : 'Activate'}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: item.cbo_name })}>
-                            <Trash2 className="h-4 w-4 mr-2" />Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Block</TableHead>
+                    <TableHead>County</TableHead>
+                    <TableHead>Manager</TableHead>
+                    <TableHead>Contact No</TableHead>
+                    <TableHead>Capacity</TableHead>
+                    <TableHead>KEFRI</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(item => (
+                    <TableRow key={item.id} className={!item.is_active ? 'opacity-50' : ''}>
+                      <TableCell className="font-medium">{item.cbo_name}</TableCell>
+                      <TableCell>{item.block_name}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.county || '—'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">{item.manager_name || '—'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm">{item.manager_phone || '—'}</TableCell>
+                      <TableCell>{(item.capacity || 0).toLocaleString()}</TableCell>
+                      <TableCell>
+                        {item.is_kefri_certified ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Yes</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">No</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={item.is_active
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }>
+                          {item.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openSheet('view', item)}>
+                              <Eye className="h-4 w-4 mr-2" />View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openSheet('edit', item)}>
+                              <Pencil className="h-4 w-4 mr-2" />Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setStatusTarget({ id: item.id, name: item.cbo_name, is_active: item.is_active ?? true })}>
+                              <Power className="h-4 w-4 mr-2" />{item.is_active ? 'Deactivate' : 'Activate'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: item.cbo_name })}>
+                              <Trash2 className="h-4 w-4 mr-2" />Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TooltipProvider>
           )}
         </CardContent>
       </Card>
