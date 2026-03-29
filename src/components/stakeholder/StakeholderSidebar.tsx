@@ -235,7 +235,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         <SidebarGroup style={{ backgroundColor: sidebarColor }}>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {/* 1. Core items: Dashboard, Financial */}
+              {coreMenuItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -255,6 +256,30 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 );
               })}
+
+              {/* 2. Tree Orders (flat, if assigned) */}
+              {flatModuleItems.filter(i => i.title === 'Tree Orders').map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              {/* 3. Tree Operations (collapsible) */}
               {treeOpsItems.length > 0 && (
                 <Collapsible asChild defaultOpen={treeOpsItems.some(i => location.pathname === i.url)}>
                   <SidebarMenuItem>
@@ -287,8 +312,10 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 </Collapsible>
               )}
+
+              {/* 4. Forest Registry (collapsible) */}
               {forestRegistryItems.length > 0 && (
-                <Collapsible asChild defaultOpen={false}>
+                <Collapsible asChild defaultOpen={forestRegistryItems.some(i => location.pathname === i.url)}>
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
@@ -319,6 +346,28 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 </Collapsible>
               )}
+
+              {/* 5. Remaining flat module items: Analytics, Outcomes, etc. */}
+              {flatModuleItems.filter(i => i.title !== 'Tree Orders').map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
