@@ -683,7 +683,7 @@ export function StakeholderForestLocations() {
               </div>
             )}
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={!formData.name || (formLevel === 'beat' && !formData.beat_code)}>
+              <Button onClick={handleSave} disabled={!formData.name || (formLevel === 'beat' && !formData.beat_code) || !isFormDirty}>
                 {formMode === 'add' ? 'Create' : 'Save Changes'}
               </Button>
               <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
