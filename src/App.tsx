@@ -313,7 +313,7 @@ const App = () => (
             <Route path="/institutional/trees" element={
               <InstitutionalRoute>
                 <InstitutionalLayout>
-                  <RecentTrees />
+                  <StakeholderOrders />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
