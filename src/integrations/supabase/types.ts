@@ -682,6 +682,248 @@ export type Database = {
         }
         Relationships: []
       }
+      mdm_audit_log: {
+        Row: {
+          action: string
+          changed_at: string | null
+          changed_by_user_id: string | null
+          id: string
+          module_id: string
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string | null
+          changed_by_user_id?: string | null
+          id?: string
+          module_id: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string | null
+          changed_by_user_id?: string | null
+          id?: string
+          module_id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string
+        }
+        Relationships: []
+      }
+      mdm_location_beats: {
+        Row: {
+          area_ha: number | null
+          beat_code: string
+          centroid_latitude: number | null
+          centroid_longitude: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          station_id: string
+          target_trees: number | null
+          trees_planted: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          area_ha?: number | null
+          beat_code: string
+          centroid_latitude?: number | null
+          centroid_longitude?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          station_id: string
+          target_trees?: number | null
+          trees_planted?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          area_ha?: number | null
+          beat_code?: string
+          centroid_latitude?: number | null
+          centroid_longitude?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          station_id?: string
+          target_trees?: number | null
+          trees_planted?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mdm_location_beats_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "mdm_location_stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mdm_location_blocks: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subcounty_id: string
+          total_area_ha: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subcounty_id: string
+          total_area_ha?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subcounty_id?: string
+          total_area_ha?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mdm_location_blocks_subcounty_id_fkey"
+            columns: ["subcounty_id"]
+            isOneToOne: false
+            referencedRelation: "mdm_location_subcounties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mdm_location_counties: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      mdm_location_stations: {
+        Row: {
+          block_id: string
+          code: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          station_officer_name: string | null
+          station_officer_phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          block_id: string
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          station_officer_name?: string | null
+          station_officer_phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          block_id?: string
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          station_officer_name?: string | null
+          station_officer_phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mdm_location_stations_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "mdm_location_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mdm_location_subcounties: {
+        Row: {
+          code: string | null
+          county_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          county_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          county_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mdm_location_subcounties_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "mdm_location_counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_permissions: {
         Row: {
           action: string
