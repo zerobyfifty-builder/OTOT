@@ -527,6 +527,15 @@ const App = () => (
             <Route path="/stakeholder/locations" element={
               <StakeholderRoute><StakeholderLayout><StakeholderForestLocations /></StakeholderLayout></StakeholderRoute>
             } />
+            <Route path="/stakeholder/mdm-species" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmSpecies /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/mdm-nurseries" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmNurseries /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/mdm-planters" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderMdmPlanters /></StakeholderLayout></StakeholderRoute>
+            } />
 
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
