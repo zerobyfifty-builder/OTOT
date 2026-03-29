@@ -232,7 +232,7 @@ export function StakeholderMdmPlanters() {
         });
         toast.success('Planter updated');
       } else {
-        const { data, error } = await supabase.from('tree_carers').insert({ ...payload, status: 'active', assigned_beats: [] }).select('id').single();
+        const { data, error } = await supabase.from('tree_carers').insert({ ...payload, status: 'Active', assigned_beats: [] }).select('id').single();
         if (error) throw error;
         await supabase.from('mdm_audit_log').insert({
           module_id: 'mdm_planters', record_id: data.id, action: 'CREATE',
