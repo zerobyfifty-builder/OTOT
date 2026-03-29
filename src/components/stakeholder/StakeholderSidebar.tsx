@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, SlidersHorizontal, Plane, Map, CreditCard, MapPin, Leaf, Users } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, Map, CreditCard, MapPin, Leaf, Users } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,9 +14,17 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,10 +58,14 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
-  mdm_locations: { title: 'Forest Locations', url: '/stakeholder/locations', icon: MapPin, insertAfter: 'Analytics', sortOrder: 12 },
-  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout, insertAfter: 'Forest Locations', sortOrder: 13 },
-  mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf, insertAfter: 'Nurseries & CBOs', sortOrder: 14 },
-  mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users, insertAfter: 'Species & Seedlings', sortOrder: 15 },
+};
+
+// MDM modules that appear under "Forest Registry" collapsible
+const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideIcon }> = {
+  mdm_locations: { title: 'Forest Locations', url: '/stakeholder/locations', icon: MapPin },
+  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout },
+  mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf },
+  mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users },
 };
 
 interface StakeholderSidebarProps {
@@ -145,6 +157,14 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
       }
     }
     return items;
+  }, [assignedModules]);
+
+  // Build Forest Registry sub-items from assigned MDM modules
+  const forestRegistryItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(mdmModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .map(([, val]) => val);
   }, [assignedModules]);
 
   const organizationName = orgName || undefined;
@@ -239,6 +259,38 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 );
               })}
+              {forestRegistryItems.length > 0 && (
+                <Collapsible asChild defaultOpen={false}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
+                        <TreePine className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>Forest Registry</span>}
+                        {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {forestRegistryItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
+                              <NavLink
+                                to={subItem.url}
+                                className={({ isActive }) =>
+                                  isActive ? 'bg-white/20 text-white font-medium' : ''
+                                }
+                              >
+                                <subItem.icon className="h-4 w-4" />
+                                <span>{subItem.title}</span>
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
