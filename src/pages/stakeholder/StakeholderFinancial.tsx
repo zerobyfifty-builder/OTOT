@@ -492,7 +492,7 @@ export const StakeholderFinancial = () => {
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Financial - Contribution Tracking</h1>
+         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Contribution Tracking</h1>
           <p className="text-sm text-muted-foreground mt-1">End-to-end contribution lifecycle from payment to partner confirmation</p>
         </div>
         <Button variant="outline" size="icon" onClick={() => refetch()}>
