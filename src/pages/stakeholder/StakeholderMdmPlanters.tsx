@@ -176,7 +176,7 @@ export function StakeholderMdmPlanters() {
       const matchesType = filterType === 'all' || p.planter_type === filterType;
       const matchesCounty = filterCounty === 'all' || p.county === filterCounty;
       const matchesStatus = filterStatus === 'all' ||
-        (filterStatus === 'active' ? p.status === 'active' : p.status !== 'active');
+        (filterStatus === 'active' ? p.status === 'Active' : p.status !== 'Active');
       return matchesSearch && matchesType && matchesCounty && matchesStatus;
     });
   }, [planters, search, filterType, filterCounty, filterStatus]);
