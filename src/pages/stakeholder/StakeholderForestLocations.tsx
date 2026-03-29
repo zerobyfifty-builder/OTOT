@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,6 +56,7 @@ export function StakeholderForestLocations() {
   const [formLevel, setFormLevel] = useState<LevelType>('county');
   const [formParentId, setFormParentId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [initialFormData, setInitialFormData] = useState<any>({});
   const [activeTab, setActiveTab] = useState('details');
 
   // Fetch all location data
@@ -228,15 +229,22 @@ export function StakeholderForestLocations() {
     setFormParentId(parentId);
     setFormMode('add');
     setFormData({});
+    setInitialFormData({});
     setFormOpen(true);
   };
 
   const openEditForm = (level: LevelType, data: any) => {
     setFormLevel(level);
     setFormMode('edit');
-    setFormData(data);
+    setFormData({ ...data });
+    setInitialFormData({ ...data });
     setFormOpen(true);
   };
+
+  const isFormDirty = useMemo(() => {
+    if (formMode === 'add') return true;
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData, formMode]);
 
   const handleSave = async () => {
     const table = TABLE_MAP[formLevel];
@@ -675,7 +683,7 @@ export function StakeholderForestLocations() {
               </div>
             )}
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={!formData.name || (formLevel === 'beat' && !formData.beat_code)}>
+              <Button onClick={handleSave} disabled={!formData.name || (formLevel === 'beat' && !formData.beat_code) || !isFormDirty}>
                 {formMode === 'add' ? 'Create' : 'Save Changes'}
               </Button>
               <Button variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
