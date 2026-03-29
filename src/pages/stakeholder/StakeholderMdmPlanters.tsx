@@ -444,7 +444,7 @@ export function StakeholderMdmPlanters() {
                             <MapPin className="h-4 w-4 mr-2" /> Assigned Beats
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => toggleStatus(item)}>
-                            {item.status === 'active'
+                            {item.status === 'Active'
                               ? <><XCircle className="h-4 w-4 mr-2 text-destructive" /> Deactivate</>
                               : <><CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Reactivate</>
                             }
