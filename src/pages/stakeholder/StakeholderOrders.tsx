@@ -544,6 +544,7 @@ export const StakeholderOrders = () => {
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-10" />
                     <SortableHead field="contribution_id" label="Contri ID" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trip ID</TableHead>
                     <SortableHead field="payment_date" label="Date" />
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
