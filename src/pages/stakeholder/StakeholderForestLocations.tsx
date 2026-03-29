@@ -388,8 +388,8 @@ export function StakeholderForestLocations() {
       {/* Summary cards */}
       <div className="grid grid-cols-4 gap-3">
         <Card><CardContent className="p-3">
-          <p className="text-xs text-muted-foreground">Counties</p>
-          <p className="text-xl font-bold">{totalCounties}</p>
+          <p className="text-xs text-muted-foreground">Blocks</p>
+          <p className="text-xl font-bold">{blocks.length}</p>
         </CardContent></Card>
         <Card><CardContent className="p-3">
           <p className="text-xs text-muted-foreground">Beats</p>
