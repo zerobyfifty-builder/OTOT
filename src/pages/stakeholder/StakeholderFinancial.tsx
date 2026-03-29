@@ -689,7 +689,7 @@ export const StakeholderFinancial = () => {
                         {isTechPartner && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${Number(c.tech_fee_received || (Number(c.amount_paid) * techFeePercent / 100)).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         {isTechPartner && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
-                        {isPlantationPartner && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
+                        {isPlantationPartner && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-primary font-medium text-sm tabular-nums">${getToBeReceived(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${getAmntReceived(c).toFixed(2)}</TableCell>}
