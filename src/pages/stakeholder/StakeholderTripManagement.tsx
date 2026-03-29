@@ -191,6 +191,7 @@ export function StakeholderTripManagement() {
                     <TableHead>Trees Committed</TableHead>
                     <TableHead>Trees Due</TableHead>
                     <TableHead>Contributions</TableHead>
+                    <TableHead>Total Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
