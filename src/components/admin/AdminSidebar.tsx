@@ -7,6 +7,7 @@ import {
   BarChart3,
   DollarSign,
   Trees,
+  TreePine,
   Activity,
   FileText,
   Settings,
@@ -73,6 +74,16 @@ const menuItems = [
       { title: "All Stakeholders", url: "/admin/stakeholders" },
       { title: "Create New", url: "/admin/stakeholders/create" },
       { title: "Module Assignment", url: "/admin/stakeholders/modules" },
+    ],
+  },
+  {
+    title: "Forest Registry",
+    icon: TreePine,
+    items: [
+      { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
+      { title: "Species & Seedlings", url: "/admin/mdm/species" },
+      { title: "Forest Locations", url: "/admin/mdm/locations" },
+      { title: "Planters & Farmers", url: "/admin/mdm/planters" },
     ],
   },
   {
