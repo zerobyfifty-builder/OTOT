@@ -49,7 +49,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
   outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, sortOrder: 5 },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 6 },
+  
   nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, sortOrder: 7 },
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, sortOrder: 8 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
