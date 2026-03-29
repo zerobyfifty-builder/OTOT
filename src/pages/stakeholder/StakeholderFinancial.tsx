@@ -704,7 +704,13 @@ export const StakeholderFinancial = () => {
                         {(isTechPartner || isKtbUser) && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
-                        <TableCell className="text-sm">{c.country || "-"}</TableCell>
+                        <TableCell>
+                          {c.country ? (
+                            <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(c.country)}`}>
+                              {c.country}
+                            </Badge>
+                          ) : <span className="text-sm text-muted-foreground">-</span>}
+                        </TableCell>
                         <TableCell className="font-semibold text-sm tabular-nums">{c.num_trees}</TableCell>
                         {isTechPartner && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isTechPartner && <TableCell className="text-primary font-medium text-sm tabular-nums">${(Number(c.amount_paid) * techFeePercent / 100).toFixed(2)}</TableCell>}
