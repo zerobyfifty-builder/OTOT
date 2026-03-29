@@ -230,6 +230,9 @@ export function StakeholderTripManagement() {
                             <TableCell>
                               <Badge variant="secondary" className="text-xs">{tripContribs.length}</Badge>
                             </TableCell>
+                            <TableCell className="font-medium">
+                              ${tripContribs.reduce((sum, c) => sum + Number(c.amount_paid || 0), 0).toFixed(2)}
+                            </TableCell>
                             <TableCell>
                               {(() => {
                                 const committed = treesCommittedByTrip[trip.id] || 0;
