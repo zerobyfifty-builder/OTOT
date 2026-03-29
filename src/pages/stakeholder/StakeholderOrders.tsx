@@ -892,8 +892,8 @@ export const StakeholderOrders = () => {
                     // Calculate total trees planted across ALL contributions for this trip
                     const tripId = viewSheet.trip_id;
                     const allTripGroups = tripId ? contributionGroups.filter(g => g.trip_id === tripId) : [viewSheet];
-                    const allTripTrees = allTripGroups.flatMap(g => g.trees);
-                    const treesPlanted = allTripTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
+                    // Total trees contributed/purchased across all contributions for this trip
+                    const treesPlanted = allTripGroups.reduce((s, g) => s + g.total_trees, 0);
                     const treesNeeded = trip ? trip.trees_needed : viewSheet.total_trees;
                     const progressPct = treesNeeded > 0 ? Math.round((treesPlanted / treesNeeded) * 100) : 0;
                     return (
