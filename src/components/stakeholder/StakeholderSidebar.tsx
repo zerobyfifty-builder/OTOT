@@ -119,21 +119,24 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     enabled: !!orgId,
   });
 
-  // Build final menu items by inserting module-based items
+  // Build final menu items by inserting module-based items in sortOrder
   const menuItems = React.useMemo(() => {
     const items = [...coreMenuItems];
     if (assignedModules) {
-      for (const moduleName of assignedModules) {
+      // Sort assigned modules by their sortOrder to ensure deterministic insertion
+      const sorted = [...assignedModules]
+        .filter(m => moduleMenuItems[m])
+        .sort((a, b) => moduleMenuItems[a].sortOrder - moduleMenuItems[b].sortOrder);
+
+      for (const moduleName of sorted) {
         const moduleItem = moduleMenuItems[moduleName];
-        if (moduleItem) {
-          const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
-          if (insertIndex !== -1) {
-            items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-          } else {
-            // Insert before Settings items
-            const settingsIndex = items.findIndex(i => i.title === 'Admin');
-            items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-          }
+        const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
+        if (insertIndex !== -1) {
+          items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
+        } else {
+          // Insert before Admin/Settings items
+          const settingsIndex = items.findIndex(i => i.title === 'Admin');
+          items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
         }
       }
     }
