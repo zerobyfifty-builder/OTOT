@@ -663,6 +663,7 @@ export const StakeholderFinancial = () => {
                     {paginated.map((c) => (
                       <TableRow key={c.id} className="group hover:bg-muted/20 transition-colors">
                         <TableCell className="font-mono text-xs font-medium">{c.contribution_id}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{c.trip_id && tripsMap ? (tripsMap[c.trip_id] || c.trip_id.slice(0, 8)) : "-"}</TableCell>
                         {(isTechPartner || isKtbUser) && <TableCell className="text-sm">{formatDate(c.payment_date || c.created_at)}</TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
                         <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>

@@ -574,6 +574,7 @@ export const StakeholderOrders = () => {
                               : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{group.contribution_id}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{group.trip ? (group.trip.friendly_trip_id || group.trip_id?.slice(0, 8)) : "-"}</TableCell>
                           <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
                           <TableCell className="text-sm">
                             {group.contribution_type === "travel_agent"
