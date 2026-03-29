@@ -1208,20 +1208,26 @@ export type Database = {
       }
       nursery_species: {
         Row: {
+          availability_status: string
           created_at: string | null
           id: string
+          notes: string | null
           nursery_id: string
           species_id: string
         }
         Insert: {
+          availability_status?: string
           created_at?: string | null
           id?: string
+          notes?: string | null
           nursery_id: string
           species_id: string
         }
         Update: {
+          availability_status?: string
           created_at?: string | null
           id?: string
+          notes?: string | null
           nursery_id?: string
           species_id?: string
         }
@@ -1644,25 +1650,49 @@ export type Database = {
       }
       seed_species: {
         Row: {
+          avg_height_mature_m: number | null
           category: string | null
           certification_source: string | null
+          co2_sequestration_kg_year: number | null
+          common_name: string | null
           created_at: string | null
+          description: string | null
+          growing_zone: string | null
           id: string
+          is_active: boolean
+          scientific_name: string | null
           species_name: string
+          updated_at: string | null
         }
         Insert: {
+          avg_height_mature_m?: number | null
           category?: string | null
           certification_source?: string | null
+          co2_sequestration_kg_year?: number | null
+          common_name?: string | null
           created_at?: string | null
+          description?: string | null
+          growing_zone?: string | null
           id?: string
+          is_active?: boolean
+          scientific_name?: string | null
           species_name: string
+          updated_at?: string | null
         }
         Update: {
+          avg_height_mature_m?: number | null
           category?: string | null
           certification_source?: string | null
+          co2_sequestration_kg_year?: number | null
+          common_name?: string | null
           created_at?: string | null
+          description?: string | null
+          growing_zone?: string | null
           id?: string
+          is_active?: boolean
+          scientific_name?: string | null
           species_name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
