@@ -262,7 +262,7 @@ export function StakeholderMdmNurseries() {
         capacity: parseInt(form.capacity) || 0,
         county: form.county || null,
         sub_county: form.sub_county || null,
-        address: form.address || null,
+        address: form.address_line ? `${form.address_line}${form.zip_code ? ', ' + form.zip_code : ''}` : null,
         manager_name: form.manager_name || null,
         manager_phone: form.manager_phone || null,
         is_kefri_certified: form.is_kefri_certified,
