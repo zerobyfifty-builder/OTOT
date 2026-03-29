@@ -632,6 +632,7 @@ export const StakeholderFinancial = () => {
                   <TableHeader>
                     <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
                       <SortableHead field="contribution_id" label="Contri Id" />
+                      <StaticHead label="Trip ID" />
                       {(isTechPartner || isKtbUser) && <SortableHead field="payment_date" label="Contri Date" />}
                       <SortableHead field="contribution_type" label="Type" />
                       <SortableHead field="tourist_name" label="Contributor" />
