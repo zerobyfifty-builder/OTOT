@@ -246,6 +246,9 @@ export function StakeholderMdmNurseries() {
         manager_email: (nursery as any).manager_email || '',
         is_kefri_certified: nursery.is_kefri_certified || false,
         kefri_reg_no: (nursery as any).kefri_reg_no || '',
+        gps_latitude: String((nursery as any).gps_latitude || ''),
+        gps_longitude: String((nursery as any).gps_longitude || ''),
+        notes: (nursery as any).notes || '',
         selected_species: []
       });
     } else {
