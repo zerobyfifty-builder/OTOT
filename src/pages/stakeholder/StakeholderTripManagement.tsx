@@ -179,22 +179,25 @@ export function StakeholderTripManagement() {
                   <TableRow>
                     <TableHead className="w-8"></TableHead>
                     <TableHead>Trip ID</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Route</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Return</TableHead>
                     <TableHead>Travelers</TableHead>
                     <TableHead>Flight CO₂</TableHead>
+                    <TableHead>Hotel CO₂</TableHead>
                     <TableHead>Total CO₂</TableHead>
                     <TableHead>Trees Needed</TableHead>
+                    <TableHead>Trees Committed</TableHead>
+                    <TableHead>Trees Due</TableHead>
                     <TableHead>Contributions</TableHead>
-                    <TableHead>Travel Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
+                      <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((trip) => {
@@ -211,26 +214,29 @@ export function StakeholderTripManagement() {
                               )}
                             </TableCell>
                             <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
+                            <TableCell className="text-sm">{formatDate(trip.created_at)}</TableCell>
                             <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                             <TableCell><Badge variant="outline">{trip.travel_class}</Badge></TableCell>
                             <TableCell>{trip.is_return ? "Yes" : "No"}</TableCell>
                             <TableCell>{trip.num_travelers}</TableCell>
                             <TableCell>{Number(trip.flight_co2).toFixed(1)} kg</TableCell>
-                            <TableCell className="font-medium">{Number(trip.total_co2).toFixed(1)} kg</TableCell>
+                            <TableCell>{Number(trip.accommodation_co2).toFixed(1)} kg</TableCell>
+                            <TableCell className="font-medium">{(Number(trip.flight_co2) + Number(trip.accommodation_co2)).toFixed(1)} kg</TableCell>
                             <TableCell>{trip.trees_needed}</TableCell>
+                            <TableCell>{treesCommittedByTrip[trip.id] || 0}</TableCell>
+                            <TableCell>{Math.max(0, trip.trees_needed - (treesCommittedByTrip[trip.id] || 0))}</TableCell>
                             <TableCell>
                               <Badge variant="secondary" className="text-xs">{tripContribs.length}</Badge>
                             </TableCell>
-                            <TableCell className="text-sm">{format(new Date(trip.from_date), "dd MMM yyyy")}</TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm" className="h-7 px-2 gap-1" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
-                                <Eye className="h-3.5 w-3.5" /> View
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
+                                <Eye className="h-4 w-4" />
                               </Button>
                             </TableCell>
                           </TableRow>
                           {isExpanded && tripContribs.length > 0 && (
                             <TableRow key={`${trip.id}-expanded`}>
-                              <TableCell colSpan={12} className="p-0">
+                              <TableCell colSpan={15} className="p-0">
                                 <div className="bg-muted/20 border-t border-b px-6 py-3">
                                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <FileText className="h-3.5 w-3.5" />
