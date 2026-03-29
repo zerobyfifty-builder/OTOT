@@ -403,6 +403,12 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               <p className="text-sm font-medium">{organizationName || 'Stakeholder'}</p>
               <p className="text-xs text-muted-foreground">{partnerTypeName}</p>
             </div>
+            {partnerCategory !== 'plantation' && (
+              <DropdownMenuItem onClick={() => navigate('/stakeholder/admin')} className="flex items-center gap-2 cursor-pointer">
+                <Settings className="h-4 w-4" />
+                <span>Admin</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
               <SlidersHorizontal className="h-4 w-4" />
               <span>Settings</span>
