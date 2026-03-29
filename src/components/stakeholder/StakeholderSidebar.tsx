@@ -35,25 +35,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-// Core menu items always visible
+// Core menu items always visible (Dashboard, Financial are fixed top)
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
-  { title: 'Admin', url: '/stakeholder/admin', icon: Settings },
-  { title: 'Settings', url: '/stakeholder/settings', icon: SlidersHorizontal },
 ];
 
-// Module-based menu items: keyed by module name from the modules table
-// Module-based menu items with sort_order for deterministic ordering
-// Lower sort_order = inserted first. insertAfter controls position relative to core items.
-const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string; sortOrder: number }> = {
-  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Financial', sortOrder: 1 },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Orders', sortOrder: 3 },
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Orders', sortOrder: 4 },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Tree Orders', sortOrder: 8 },
-  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
-  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
+// Module-based menu items that appear as flat items after core + collapsible groups
+// sortOrder determines the display order among flat module items
+const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
+  // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, sortOrder: 5 },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 6 },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, sortOrder: 7 },
+  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, sortOrder: 8 },
+  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
 };
 
 // Tree Operations modules that appear under collapsible group
@@ -139,28 +137,13 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     enabled: !!orgId,
   });
 
-  // Build final menu items by inserting module-based items in sortOrder
-  const menuItems = React.useMemo(() => {
-    const items = [...coreMenuItems];
-    if (assignedModules) {
-      // Sort assigned modules by their sortOrder to ensure deterministic insertion
-      const sorted = [...assignedModules]
-        .filter(m => moduleMenuItems[m])
-        .sort((a, b) => moduleMenuItems[a].sortOrder - moduleMenuItems[b].sortOrder);
-
-      for (const moduleName of sorted) {
-        const moduleItem = moduleMenuItems[moduleName];
-        const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
-        if (insertIndex !== -1) {
-          items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-        } else {
-          // Insert before Admin/Settings items
-          const settingsIndex = items.findIndex(i => i.title === 'Admin');
-          items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-        }
-      }
-    }
-    return items;
+  // Build flat menu items: core items + assigned module items sorted by sortOrder
+  const flatModuleItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(moduleMenuItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+      .map(([, val]) => ({ title: val.title, url: val.url, icon: val.icon }));
   }, [assignedModules]);
 
   // Build Tree Operations sub-items from assigned modules
@@ -252,7 +235,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         <SidebarGroup style={{ backgroundColor: sidebarColor }}>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {/* 1. Core items: Dashboard, Financial */}
+              {coreMenuItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -272,6 +256,30 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 );
               })}
+
+              {/* 2. Tree Orders (flat, if assigned) */}
+              {flatModuleItems.filter(i => i.title === 'Tree Orders').map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              {/* 3. Tree Operations (collapsible) */}
               {treeOpsItems.length > 0 && (
                 <Collapsible asChild defaultOpen={treeOpsItems.some(i => location.pathname === i.url)}>
                   <SidebarMenuItem>
@@ -304,8 +312,10 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 </Collapsible>
               )}
+
+              {/* 4. Forest Registry (collapsible) */}
               {forestRegistryItems.length > 0 && (
-                <Collapsible asChild defaultOpen={false}>
+                <Collapsible asChild defaultOpen={forestRegistryItems.some(i => location.pathname === i.url)}>
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
@@ -336,6 +346,28 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 </Collapsible>
               )}
+
+              {/* 5. Remaining flat module items: Analytics, Outcomes, etc. */}
+              {flatModuleItems.filter(i => i.title !== 'Tree Orders').map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -371,6 +403,10 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               <p className="text-sm font-medium">{organizationName || 'Stakeholder'}</p>
               <p className="text-xs text-muted-foreground">{partnerTypeName}</p>
             </div>
+            <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
               <span>Sign out</span>
