@@ -216,7 +216,7 @@ export function StakeholderMdmPlanters() {
         gender: formData.gender,
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
-        cbo_nursery_id: formData.cbo_nursery_id || null,
+        cbo_nursery_id: formData.cbo_nursery_id && formData.cbo_nursery_id !== 'none' ? formData.cbo_nursery_id : null,
         county: formData.county.trim() || null,
         sub_county: formData.sub_county.trim() || null,
         date_registered: formData.date_registered || null,
