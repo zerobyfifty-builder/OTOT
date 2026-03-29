@@ -214,20 +214,23 @@ export function StakeholderTripManagement() {
                               )}
                             </TableCell>
                             <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
+                            <TableCell className="text-sm">{formatDate(trip.created_at)}</TableCell>
                             <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                             <TableCell><Badge variant="outline">{trip.travel_class}</Badge></TableCell>
                             <TableCell>{trip.is_return ? "Yes" : "No"}</TableCell>
                             <TableCell>{trip.num_travelers}</TableCell>
                             <TableCell>{Number(trip.flight_co2).toFixed(1)} kg</TableCell>
-                            <TableCell className="font-medium">{Number(trip.total_co2).toFixed(1)} kg</TableCell>
+                            <TableCell>{Number(trip.accommodation_co2).toFixed(1)} kg</TableCell>
+                            <TableCell className="font-medium">{(Number(trip.flight_co2) + Number(trip.accommodation_co2)).toFixed(1)} kg</TableCell>
                             <TableCell>{trip.trees_needed}</TableCell>
+                            <TableCell>{treesCommittedByTrip[trip.id] || 0}</TableCell>
+                            <TableCell>{Math.max(0, trip.trees_needed - (treesCommittedByTrip[trip.id] || 0))}</TableCell>
                             <TableCell>
                               <Badge variant="secondary" className="text-xs">{tripContribs.length}</Badge>
                             </TableCell>
-                            <TableCell className="text-sm">{format(new Date(trip.from_date), "dd MMM yyyy")}</TableCell>
                             <TableCell>
-                              <Button variant="ghost" size="sm" className="h-7 px-2 gap-1" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
-                                <Eye className="h-3.5 w-3.5" /> View
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
+                                <Eye className="h-4 w-4" />
                               </Button>
                             </TableCell>
                           </TableRow>
