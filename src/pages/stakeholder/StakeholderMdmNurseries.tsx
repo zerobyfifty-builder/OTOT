@@ -254,12 +254,12 @@ export function StakeholderMdmNurseries() {
       const newState = !is_active;
       const { error } = await supabase.from('nurseries').update({ is_active: newState } as any).eq('id', id);
       if (error) throw error;
-      await supabase.from('mdm_audit_log').insert({
+      await supabase.from('mdm_audit_log').insert([{
         module_id: 'mdm_nurseries', record_id: id,
         action: newState ? 'REACTIVATE' : 'DEACTIVATE',
         changed_by_user_id: user?.id,
-        old_values: { is_active }, new_values: { is_active: newState },
-      });
+        old_values: { is_active } as any, new_values: { is_active: newState } as any,
+      }]);
     },
     onSuccess: () => {
       toast.success(`Nursery ${statusTarget?.is_active ? 'deactivated' : 'activated'} successfully`);
