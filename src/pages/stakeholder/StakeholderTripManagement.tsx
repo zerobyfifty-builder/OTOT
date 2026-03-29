@@ -104,7 +104,7 @@ export function StakeholderTripManagement() {
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
