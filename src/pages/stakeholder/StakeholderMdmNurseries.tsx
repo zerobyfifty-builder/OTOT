@@ -662,11 +662,50 @@ export function StakeholderMdmNurseries() {
       {/* Table */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search nurseries..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
             </div>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-[140px] h-9"><Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {NURSERY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterCounty} onValueChange={setFilterCounty}>
+              <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="County" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Counties</SelectItem>
+                {uniqueCounties.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" className="gap-1.5 h-9" onClick={() => {
+              const headers = ['Name', 'Type', 'Block', 'County', 'Sub-County', 'Manager', 'Phone', 'Email', 'Capacity', 'KEFRI', 'Status'];
+              const rows = filtered.map(n => [
+                n.cbo_name, (n as any).nursery_type || '', n.block_name, n.county || '', n.sub_county || '',
+                n.manager_name || '', n.manager_phone || '', (n as any).manager_email || '',
+                String(n.capacity || 0), n.is_kefri_certified ? 'Yes' : 'No', n.is_active ? 'Active' : 'Inactive'
+              ]);
+              const csv = [headers, ...rows].map(r => r.map(c => `"${(c || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'nurseries_export.csv'; a.click();
+              URL.revokeObjectURL(url);
+              toast.success('CSV exported');
+            }}>
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
             <Badge variant="outline">{filtered.length} nurseries</Badge>
           </div>
         </CardHeader>
