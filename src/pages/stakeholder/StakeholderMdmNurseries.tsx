@@ -72,6 +72,7 @@ export function StakeholderMdmNurseries() {
   const [blockPopoverOpen, setBlockPopoverOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [statusTarget, setStatusTarget] = useState<{ id: string; name: string; is_active: boolean } | null>(null);
+  const [activeTab, setActiveTab] = useState('details');
 
   // Get org id
   const { data: orgId } = useQuery({
