@@ -339,11 +339,13 @@ export const StakeholderFinancial = () => {
 
   const filtered = useMemo(() => {
     let result = contributions?.filter((c) => {
+      const tripFriendlyId = c.trip_id && tripsMap ? (tripsMap[c.trip_id] || "") : "";
       const matchSearch =
         !search ||
         c.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
         c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
-        c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
+        c.transaction_reference?.toLowerCase().includes(search.toLowerCase()) ||
+        tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
       return matchSearch && matchStatus;
     }) || [];
