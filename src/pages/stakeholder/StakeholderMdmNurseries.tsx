@@ -29,25 +29,31 @@ interface BlockOption {
   county_id: string;
 }
 
+const NURSERY_TYPES = ['CBO', 'Private', 'Government', 'International', 'Other'] as const;
+
 interface NurseryForm {
   cbo_name: string;
+  nursery_type: string;
   block_name: string;
   block_id: string;
   location: string;
   capacity: string;
   county: string;
   sub_county: string;
-  address: string;
+  address_line: string;
+  zip_code: string;
   manager_name: string;
   manager_phone: string;
+  manager_email: string;
   is_kefri_certified: boolean;
+  kefri_reg_no: string;
   selected_species: string[];
 }
 
 const emptyForm: NurseryForm = {
-  cbo_name: '', block_name: '', block_id: '', location: '', capacity: '',
-  county: '', sub_county: '', address: '', manager_name: '',
-  manager_phone: '', is_kefri_certified: false, selected_species: [],
+  cbo_name: '', nursery_type: '', block_name: '', block_id: '', location: '', capacity: '',
+  county: '', sub_county: '', address_line: '', zip_code: '', manager_name: '',
+  manager_phone: '', manager_email: '', is_kefri_certified: false, kefri_reg_no: '', selected_species: [],
 };
 
 type SheetMode = 'add' | 'view' | 'edit';
