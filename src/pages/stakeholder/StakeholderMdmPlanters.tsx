@@ -176,7 +176,7 @@ export function StakeholderMdmPlanters() {
       const matchesType = filterType === 'all' || p.planter_type === filterType;
       const matchesCounty = filterCounty === 'all' || p.county === filterCounty;
       const matchesStatus = filterStatus === 'all' ||
-        (filterStatus === 'active' ? p.status === 'active' : p.status !== 'active');
+        (filterStatus === 'active' ? p.status === 'Active' : p.status !== 'Active');
       return matchesSearch && matchesType && matchesCounty && matchesStatus;
     });
   }, [planters, search, filterType, filterCounty, filterStatus]);
@@ -232,7 +232,7 @@ export function StakeholderMdmPlanters() {
         });
         toast.success('Planter updated');
       } else {
-        const { data, error } = await supabase.from('tree_carers').insert({ ...payload, status: 'active', assigned_beats: [] }).select('id').single();
+        const { data, error } = await supabase.from('tree_carers').insert({ ...payload, status: 'Active', assigned_beats: [] }).select('id').single();
         if (error) throw error;
         await supabase.from('mdm_audit_log').insert({
           module_id: 'mdm_planters', record_id: data.id, action: 'CREATE',
@@ -248,16 +248,16 @@ export function StakeholderMdmPlanters() {
   };
 
   const toggleStatus = async (item: any) => {
-    const newStatus = item.status === 'active' ? 'inactive' : 'active';
+    const newStatus = item.status === 'Active' ? 'Inactive' : 'Active';
     await supabase.from('tree_carers').update({ status: newStatus }).eq('id', item.id);
     await supabase.from('mdm_audit_log').insert({
       module_id: 'mdm_planters', record_id: item.id,
-      action: newStatus === 'active' ? 'REACTIVATE' : 'DEACTIVATE',
+      action: newStatus === 'Active' ? 'REACTIVATE' : 'DEACTIVATE',
       changed_by_user_id: user?.id,
       old_values: { status: item.status }, new_values: { status: newStatus },
     });
     queryClient.invalidateQueries({ queryKey: ['mdm_planters'] });
-    toast.success(`Planter ${newStatus === 'active' ? 'reactivated' : 'deactivated'}`);
+    toast.success(`Planter ${newStatus === 'Active' ? 'reactivated' : 'deactivated'}`);
   };
 
   // Beat assignment
@@ -307,7 +307,7 @@ export function StakeholderMdmPlanters() {
     toast.success('CSV exported');
   };
 
-  const activeCount = planters.filter((p: any) => p.status === 'active').length;
+  const activeCount = planters.filter((p: any) => p.status === 'Active').length;
   const maleCount = planters.filter((p: any) => p.gender === 'Male').length;
   const femaleCount = planters.filter((p: any) => p.gender === 'Female').length;
 
@@ -424,11 +424,11 @@ export function StakeholderMdmPlanters() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={item.status === 'active'
+                      <Badge className={item.status === 'Active'
                         ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
                         : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }>
-                        {item.status === 'active' ? 'Active' : 'Inactive'}
+                        {item.status === 'Active' ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -444,7 +444,7 @@ export function StakeholderMdmPlanters() {
                             <MapPin className="h-4 w-4 mr-2" /> Assigned Beats
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => toggleStatus(item)}>
-                            {item.status === 'active'
+                            {item.status === 'Active'
                               ? <><XCircle className="h-4 w-4 mr-2 text-destructive" /> Deactivate</>
                               : <><CheckCircle2 className="h-4 w-4 mr-2 text-green-600" /> Reactivate</>
                             }
