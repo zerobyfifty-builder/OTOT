@@ -236,10 +236,10 @@ export function StakeholderMdmNurseries() {
       await supabase.from('nursery_species' as any).delete().eq('nursery_id', id);
       const { error } = await supabase.from('nurseries').delete().eq('id', id);
       if (error) throw error;
-      await supabase.from('mdm_audit_log').insert({
+      await supabase.from('mdm_audit_log').insert([{
         module_id: 'mdm_nurseries', record_id: id, action: 'DELETE',
         changed_by_user_id: user?.id,
-      });
+      }]);
     },
     onSuccess: () => {
       toast.success('Nursery deleted');
