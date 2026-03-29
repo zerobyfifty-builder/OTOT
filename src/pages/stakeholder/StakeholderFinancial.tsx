@@ -382,7 +382,7 @@ export const StakeholderFinancial = () => {
     });
 
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir]);
+  }, [contributions, search, statusFilter, sortField, sortDir, tripsMap]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
