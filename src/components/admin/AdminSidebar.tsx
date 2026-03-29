@@ -77,6 +77,16 @@ const menuItems = [
     ],
   },
   {
+    title: "Forest Registry",
+    icon: TreePine,
+    items: [
+      { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
+      { title: "Species & Seedlings", url: "/admin/mdm/species" },
+      { title: "Forest Locations", url: "/admin/mdm/locations" },
+      { title: "Planters & Farmers", url: "/admin/mdm/planters" },
+    ],
+  },
+  {
     title: "Partners",
     icon: Building2,
     items: [
