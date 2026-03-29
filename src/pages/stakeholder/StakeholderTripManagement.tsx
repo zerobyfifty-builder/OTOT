@@ -476,11 +476,11 @@ export function StakeholderTripManagement() {
                         </TableRow>
                         {isExpanded && tripContribs.length > 0 && (
                           <TableRow key={`${trip.id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={17} className="p-0">
+                            <TableCell colSpan={19} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                   <FileText className="h-3.5 w-3.5" />
-                                  Contributions for {trip.friendly_trip_id || trip.id.slice(0, 8)}
+                                  Payments for {trip.friendly_trip_id || trip.id.slice(0, 8)}
                                 </h4>
                                 <div className="rounded-lg border bg-background overflow-hidden">
                                   <Table>
