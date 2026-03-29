@@ -1888,44 +1888,71 @@ export type Database = {
       tree_carers: {
         Row: {
           age: number | null
+          assigned_beats: string[] | null
           associated_partner_id: string | null
+          cbo_nursery_id: string | null
           conservancy: string | null
           county: string | null
           created_at: string | null
+          date_registered: string | null
+          email: string | null
           gender: string
           id: string
+          id_number: string | null
           marital_status: string | null
           name: string
+          notes: string | null
           number_of_kids: number | null
+          phone: string | null
+          planter_type: string | null
           status: string
+          sub_county: string | null
           updated_at: string | null
         }
         Insert: {
           age?: number | null
+          assigned_beats?: string[] | null
           associated_partner_id?: string | null
+          cbo_nursery_id?: string | null
           conservancy?: string | null
           county?: string | null
           created_at?: string | null
+          date_registered?: string | null
+          email?: string | null
           gender: string
           id?: string
+          id_number?: string | null
           marital_status?: string | null
           name: string
+          notes?: string | null
           number_of_kids?: number | null
+          phone?: string | null
+          planter_type?: string | null
           status?: string
+          sub_county?: string | null
           updated_at?: string | null
         }
         Update: {
           age?: number | null
+          assigned_beats?: string[] | null
           associated_partner_id?: string | null
+          cbo_nursery_id?: string | null
           conservancy?: string | null
           county?: string | null
           created_at?: string | null
+          date_registered?: string | null
+          email?: string | null
           gender?: string
           id?: string
+          id_number?: string | null
           marital_status?: string | null
           name?: string
+          notes?: string | null
           number_of_kids?: number | null
+          phone?: string | null
+          planter_type?: string | null
           status?: string
+          sub_county?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1934,6 +1961,13 @@ export type Database = {
             columns: ["associated_partner_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_carers_cbo_nursery_id_fkey"
+            columns: ["cbo_nursery_id"]
+            isOneToOne: false
+            referencedRelation: "nurseries"
             referencedColumns: ["id"]
           },
         ]
