@@ -356,9 +356,11 @@ export const StakeholderOrders = () => {
 
   const filtered = useMemo(() => {
     let result = contributionGroups.filter(g => {
+      const tripFriendlyId = g.trip?.friendly_trip_id || "";
       const matchSearch = !search ||
         g.contribution_id?.toLowerCase().includes(search.toLowerCase()) ||
-        g.tourist_name?.toLowerCase().includes(search.toLowerCase());
+        g.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
+        tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || g.planting_status === statusFilter;
       return matchSearch && matchStatus;
     });
