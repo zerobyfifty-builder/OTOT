@@ -307,7 +307,7 @@ export function StakeholderMdmPlanters() {
     toast.success('CSV exported');
   };
 
-  const activeCount = planters.filter((p: any) => p.status === 'active').length;
+  const activeCount = planters.filter((p: any) => p.status === 'Active').length;
   const maleCount = planters.filter((p: any) => p.gender === 'Male').length;
   const femaleCount = planters.filter((p: any) => p.gender === 'Female').length;
 
