@@ -36,18 +36,20 @@ const coreMenuItems = [
 ];
 
 // Module-based menu items: keyed by module name from the modules table
-const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string }> = {
-  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Settings' },
-  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Dashboard' },
-  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Dashboard' },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Dashboard' },
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Settings' },
-  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Financial' },
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Financial' },
-  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, insertAfter: 'Financial' },
-  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, insertAfter: 'Financial' },
-  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, insertAfter: 'Financial' },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Financial' },
+// Module-based menu items with sort_order for deterministic ordering
+// Lower sort_order = inserted first. insertAfter controls position relative to core items.
+const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string; sortOrder: number }> = {
+  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Financial', sortOrder: 1 },
+  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Tree Orders', sortOrder: 2 },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Management', sortOrder: 3 },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Management', sortOrder: 4 },
+  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, insertAfter: 'Nurseries', sortOrder: 5 },
+  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, insertAfter: 'Planting', sortOrder: 6 },
+  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, insertAfter: 'Monitoring', sortOrder: 7 },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Community Impact', sortOrder: 8 },
+  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
+  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
 };
 
 interface StakeholderSidebarProps {
@@ -117,21 +119,24 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     enabled: !!orgId,
   });
 
-  // Build final menu items by inserting module-based items
+  // Build final menu items by inserting module-based items in sortOrder
   const menuItems = React.useMemo(() => {
     const items = [...coreMenuItems];
     if (assignedModules) {
-      for (const moduleName of assignedModules) {
+      // Sort assigned modules by their sortOrder to ensure deterministic insertion
+      const sorted = [...assignedModules]
+        .filter(m => moduleMenuItems[m])
+        .sort((a, b) => moduleMenuItems[a].sortOrder - moduleMenuItems[b].sortOrder);
+
+      for (const moduleName of sorted) {
         const moduleItem = moduleMenuItems[moduleName];
-        if (moduleItem) {
-          const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
-          if (insertIndex !== -1) {
-            items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-          } else {
-            // Insert before Settings items
-            const settingsIndex = items.findIndex(i => i.title === 'Admin');
-            items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-          }
+        const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
+        if (insertIndex !== -1) {
+          items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
+        } else {
+          // Insert before Admin/Settings items
+          const settingsIndex = items.findIndex(i => i.title === 'Admin');
+          items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
         }
       }
     }
