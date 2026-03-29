@@ -424,11 +424,11 @@ export function StakeholderMdmPlanters() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={item.status === 'active'
+                      <Badge className={item.status === 'Active'
                         ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
                         : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                       }>
-                        {item.status === 'active' ? 'Active' : 'Inactive'}
+                        {item.status === 'Active' ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell>
