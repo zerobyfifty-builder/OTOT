@@ -496,7 +496,6 @@ export function StakeholderMdmNurseries() {
             <Input type="email" value={form.manager_email} onChange={e => setForm({ ...form, manager_email: e.target.value })} placeholder="email@example.com" disabled={isReadOnly} />
           </div>
         </div>
-        </div>
         <div className="space-y-2">
           <Label>Capacity (seedlings)</Label>
           <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="0" disabled={isReadOnly} />
