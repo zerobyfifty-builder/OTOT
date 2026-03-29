@@ -207,11 +207,22 @@ export function StakeholderMdmNurseries() {
     }));
   };
 
-  const filtered = nurseries.filter(n =>
-    n.cbo_name.toLowerCase().includes(search.toLowerCase()) ||
-    n.block_name.toLowerCase().includes(search.toLowerCase()) ||
-    (n.county || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = nurseries.filter(n => {
+    const matchesSearch = n.cbo_name.toLowerCase().includes(search.toLowerCase()) ||
+      n.block_name.toLowerCase().includes(search.toLowerCase()) ||
+      (n.county || '').toLowerCase().includes(search.toLowerCase());
+    const matchesType = filterType === 'all' || (n as any).nursery_type === filterType;
+    const matchesCounty = filterCounty === 'all' || n.county === filterCounty;
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && n.is_active) ||
+      (filterStatus === 'inactive' && !n.is_active);
+    return matchesSearch && matchesType && matchesCounty && matchesStatus;
+  });
+
+  const uniqueCounties = useMemo(() => {
+    const counties = nurseries.map(n => n.county).filter(Boolean) as string[];
+    return [...new Set(counties)].sort();
+  }, [nurseries]);
 
   const openSheet = (mode: SheetMode, nursery?: any) => {
     setSheetMode(mode);
