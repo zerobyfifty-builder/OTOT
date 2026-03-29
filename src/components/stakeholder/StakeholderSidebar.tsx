@@ -163,6 +163,15 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     return items;
   }, [assignedModules]);
 
+  // Build Tree Operations sub-items from assigned modules
+  const treeOpsItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(treeOpsModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+      .map(([, val]) => val);
+  }, [assignedModules]);
+
   // Build Forest Registry sub-items from assigned MDM modules
   const forestRegistryItems = React.useMemo(() => {
     if (!assignedModules) return [];
