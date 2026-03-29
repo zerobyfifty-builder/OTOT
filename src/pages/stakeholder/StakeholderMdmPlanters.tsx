@@ -216,7 +216,7 @@ export function StakeholderMdmPlanters() {
         gender: formData.gender,
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
-        cbo_nursery_id: formData.cbo_nursery_id || null,
+        cbo_nursery_id: formData.cbo_nursery_id && formData.cbo_nursery_id !== 'none' ? formData.cbo_nursery_id : null,
         county: formData.county.trim() || null,
         sub_county: formData.sub_county.trim() || null,
         date_registered: formData.date_registered || null,
@@ -518,7 +518,7 @@ export function StakeholderMdmPlanters() {
                 <Select value={formData.cbo_nursery_id} onValueChange={v => setFormData(p => ({ ...p, cbo_nursery_id: v }))}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="None (optional)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {nurseries.map((n: any) => <SelectItem key={n.id} value={n.id}>{n.cbo_name} — {n.block_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
