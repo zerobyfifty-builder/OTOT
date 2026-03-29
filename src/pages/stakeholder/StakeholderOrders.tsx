@@ -908,7 +908,7 @@ export const StakeholderOrders = () => {
                           </div>
                           <Progress value={progressPct} className="h-2 bg-emerald-100 [&>div]:bg-emerald-500" />
                           <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                            <span className="text-emerald-600 font-medium">{treesPlanted} planted</span>
+                            <span className="text-emerald-600 font-medium">{treesPlanted} committed</span>
                             <span>{treesNeeded} needed</span>
                           </div>
                         </div>
