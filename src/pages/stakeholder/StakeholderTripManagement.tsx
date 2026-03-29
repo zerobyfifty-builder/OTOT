@@ -118,12 +118,18 @@ export function StakeholderTripManagement() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [tripsRes, contribRes] = await Promise.all([
+    const [tripsRes, contribRes, usersRes] = await Promise.all([
       supabase.from("trips").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("contribution_tracking" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("users").select("user_id, country"),
     ]);
     if (tripsRes.data) setTrips(tripsRes.data as any);
     if (contribRes.data) setContributions(contribRes.data as unknown as ContributionRow[]);
+    if (usersRes.data) {
+      const map: UserCountryMap = {};
+      for (const u of usersRes.data) map[u.user_id] = u.country;
+      setUserCountries(map);
+    }
     setLoading(false);
   };
 
