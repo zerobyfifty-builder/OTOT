@@ -39,6 +39,7 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
+  { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
