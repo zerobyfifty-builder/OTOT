@@ -436,6 +436,13 @@ export function StakeholderTripManagement() {
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>
                           <TableCell className="text-sm">{trip.num_travelers}</TableCell>
+                          <TableCell>
+                            {userCountries[trip.user_id] ? (
+                              <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(userCountries[trip.user_id]!)}`}>
+                                {userCountries[trip.user_id]}
+                              </Badge>
+                            ) : <span className="text-sm text-muted-foreground">-</span>}
+                          </TableCell>
                           <TableCell className="text-sm tabular-nums">{Number(trip.flight_co2).toFixed(1)} kg</TableCell>
                           <TableCell className="text-sm tabular-nums">{Number(trip.accommodation_co2).toFixed(1)} kg</TableCell>
                           <TableCell className="text-sm font-medium tabular-nums">{(Number(trip.flight_co2) + Number(trip.accommodation_co2)).toFixed(1)} kg</TableCell>
