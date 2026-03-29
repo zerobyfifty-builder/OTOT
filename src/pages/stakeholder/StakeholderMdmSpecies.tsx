@@ -129,21 +129,31 @@ export function StakeholderMdmSpecies() {
   };
 
   const handleEdit = (item: any) => {
-    setFormData({
+    // Capitalize category to match Select options (DB stores lowercase)
+    const rawCat = item.category || 'indigenous';
+    const matchedCategory = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || 'Indigenous';
+    const data: SpeciesFormData = {
       common_name: item.common_name || item.species_name || '',
       scientific_name: item.scientific_name || '',
-      species_category: item.category || 'Indigenous',
+      species_category: matchedCategory,
       seed_source_type: item.certification_source || 'KFS Certified',
       growing_zone: item.growing_zone || '',
       avg_height_mature_m: item.avg_height_mature_m?.toString() || '',
       co2_sequestration_kg_year: item.co2_sequestration_kg_year?.toString() || '',
       description: item.description || '',
-    });
+    };
+    setFormData(data);
+    setInitialFormData(data);
     setEditingId(item.id);
     setDetailSpeciesId(item.id);
     setActiveTab('details');
     setShowForm(true);
   };
+
+  const isFormDirty = useMemo(() => {
+    if (!editingId) return true; // Always enabled for new species
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData, editingId]);
 
   const handleSave = async () => {
     if (!formData.common_name.trim()) {
