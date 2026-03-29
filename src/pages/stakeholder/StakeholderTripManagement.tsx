@@ -36,6 +36,11 @@ interface Trip {
   from_date: string;
   to_date: string | null;
   created_at: string;
+  user_id: string;
+}
+
+interface UserCountryMap {
+  [userId: string]: string | null;
 }
 
 interface ContributionRow {
