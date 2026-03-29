@@ -68,7 +68,7 @@ import { PlantTree } from "@/pages/lodge/PlantTree";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import PlantationPartners from "@/pages/institutional/PlantationPartners";
 import RecentTrips from "@/pages/institutional/RecentTrips";
-import RecentTrees from "@/pages/institutional/RecentTrees";
+// RecentTrees removed - institutional now uses StakeholderOrders
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
@@ -313,7 +313,7 @@ const App = () => (
             <Route path="/institutional/trees" element={
               <InstitutionalRoute>
                 <InstitutionalLayout>
-                  <RecentTrees />
+                  <StakeholderOrders />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
