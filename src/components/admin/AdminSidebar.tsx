@@ -7,6 +7,7 @@ import {
   BarChart3,
   DollarSign,
   Trees,
+  TreePine,
   Activity,
   FileText,
   Settings,
