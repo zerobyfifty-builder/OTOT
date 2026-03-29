@@ -737,6 +737,7 @@ export function StakeholderMdmNurseries() {
                     </TableHead>
                      <TableHead>Type</TableHead>
                      <TableHead>Block</TableHead>
+                     <TableHead>County</TableHead>
                     <TableHead>Manager</TableHead>
                     <TableHead>Contact No</TableHead>
                     <TableHead>Capacity</TableHead>
