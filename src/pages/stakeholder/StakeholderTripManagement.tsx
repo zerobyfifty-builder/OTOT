@@ -374,13 +374,14 @@ export function StakeholderTripManagement() {
                     <StaticHead label="Class" />
                     <StaticHead label="Return" />
                     <StaticHead label="Travelers" />
+                    <StaticHead label="Country" />
                     <StaticHead label="Flight CO₂" />
                     <StaticHead label="Hotel CO₂" />
                     <SortableHead field="total_co2" label="Total CO₂" />
                     <SortableHead field="trees_needed" label="Trees Needed" />
                     <StaticHead label="Trees Committed" />
                     <StaticHead label="Trees Due" />
-                    <StaticHead label="Contributions" />
+                    <StaticHead label="Payments" />
                     <StaticHead label="Total Amount" />
                     <SortableHead field="status" label="Status" />
                     <StaticHead label="Action" className="text-right" />
