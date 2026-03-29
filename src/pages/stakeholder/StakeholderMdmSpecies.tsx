@@ -535,7 +535,7 @@ export function StakeholderMdmSpecies() {
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button onClick={handleSave} className="flex-1">{editingId ? 'Update' : 'Add'} Species</Button>
+                <Button onClick={handleSave} className="flex-1" disabled={!isFormDirty}>{editingId ? 'Update' : 'Add'} Species</Button>
                 <Button variant="outline" onClick={resetForm}>Cancel</Button>
               </div>
             </TabsContent>
