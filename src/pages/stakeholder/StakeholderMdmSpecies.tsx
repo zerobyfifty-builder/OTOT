@@ -62,6 +62,7 @@ export function StakeholderMdmSpecies() {
   const [selectedNurseries, setSelectedNurseries] = useState<Record<string, string>>({});
   // Detail view
   const [detailSpeciesId, setDetailSpeciesId] = useState<string | null>(null);
+  const [initialFormData, setInitialFormData] = useState<SpeciesFormData>(emptyForm);
 
   // Fetch species
   const { data: species = [], isLoading } = useQuery({
