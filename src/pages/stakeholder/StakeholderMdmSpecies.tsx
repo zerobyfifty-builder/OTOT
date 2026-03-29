@@ -62,6 +62,7 @@ export function StakeholderMdmSpecies() {
   const [selectedNurseries, setSelectedNurseries] = useState<Record<string, string>>({});
   // Detail view
   const [detailSpeciesId, setDetailSpeciesId] = useState<string | null>(null);
+  const [initialFormData, setInitialFormData] = useState<SpeciesFormData>(emptyForm);
 
   // Fetch species
   const { data: species = [], isLoading } = useQuery({
@@ -128,21 +129,31 @@ export function StakeholderMdmSpecies() {
   };
 
   const handleEdit = (item: any) => {
-    setFormData({
+    // Capitalize category to match Select options (DB stores lowercase)
+    const rawCat = item.category || 'indigenous';
+    const matchedCategory = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || 'Indigenous';
+    const data: SpeciesFormData = {
       common_name: item.common_name || item.species_name || '',
       scientific_name: item.scientific_name || '',
-      species_category: item.category || 'Indigenous',
+      species_category: matchedCategory,
       seed_source_type: item.certification_source || 'KFS Certified',
       growing_zone: item.growing_zone || '',
       avg_height_mature_m: item.avg_height_mature_m?.toString() || '',
       co2_sequestration_kg_year: item.co2_sequestration_kg_year?.toString() || '',
       description: item.description || '',
-    });
+    };
+    setFormData(data);
+    setInitialFormData(data);
     setEditingId(item.id);
     setDetailSpeciesId(item.id);
     setActiveTab('details');
     setShowForm(true);
   };
+
+  const isFormDirty = useMemo(() => {
+    if (!editingId) return true; // Always enabled for new species
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData, editingId]);
 
   const handleSave = async () => {
     if (!formData.common_name.trim()) {
@@ -524,7 +535,7 @@ export function StakeholderMdmSpecies() {
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button onClick={handleSave} className="flex-1">{editingId ? 'Update' : 'Add'} Species</Button>
+                <Button onClick={handleSave} className="flex-1" disabled={!isFormDirty}>{editingId ? 'Update' : 'Add'} Species</Button>
                 <Button variant="outline" onClick={resetForm}>Cancel</Button>
               </div>
             </TabsContent>
