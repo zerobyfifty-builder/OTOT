@@ -179,15 +179,18 @@ export function StakeholderTripManagement() {
                   <TableRow>
                     <TableHead className="w-8"></TableHead>
                     <TableHead>Trip ID</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Route</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Return</TableHead>
                     <TableHead>Travelers</TableHead>
                     <TableHead>Flight CO₂</TableHead>
+                    <TableHead>Hotel CO₂</TableHead>
                     <TableHead>Total CO₂</TableHead>
                     <TableHead>Trees Needed</TableHead>
+                    <TableHead>Trees Committed</TableHead>
+                    <TableHead>Trees Due</TableHead>
                     <TableHead>Contributions</TableHead>
-                    <TableHead>Travel Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
