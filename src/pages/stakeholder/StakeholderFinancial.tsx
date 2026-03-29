@@ -693,7 +693,7 @@ export const StakeholderFinancial = () => {
                         {isKtbUser && <TableCell className="font-semibold text-sm tabular-nums">${Number(c.amount_paid).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-primary font-medium text-sm tabular-nums">${getToBeReceived(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-emerald-700 font-medium text-sm tabular-nums">${getAmntReceived(c).toFixed(2)}</TableCell>}
-                        {isKtbUser && <TableCell className="text-sm">{formatDate(c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at)}</TableCell>}
+                        {isKtbUser && <TableCell><DateTimeCell value={c.institution_received_date || c.ktb_received_date || c.payment_date || c.created_at} /></TableCell>}
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${getRetained(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-blue-700 font-medium text-sm tabular-nums">${getToBeTransferred(c).toFixed(2)}</TableCell>}
