@@ -889,8 +889,12 @@ export const StakeholderOrders = () => {
 
                   {/* Offset Progress */}
                   {(() => {
-                    const treesPlanted = viewSheet.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
-                    const treesNeeded = viewSheet.total_trees;
+                    // Calculate total trees planted across ALL contributions for this trip
+                    const tripId = viewSheet.trip_id;
+                    const allTripGroups = tripId ? contributionGroups.filter(g => g.trip_id === tripId) : [viewSheet];
+                    const allTripTrees = allTripGroups.flatMap(g => g.trees);
+                    const treesPlanted = allTripTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
+                    const treesNeeded = trip ? trip.trees_needed : viewSheet.total_trees;
                     const progressPct = treesNeeded > 0 ? Math.round((treesPlanted / treesNeeded) * 100) : 0;
                     return (
                       <div className="space-y-3">
@@ -914,39 +918,49 @@ export const StakeholderOrders = () => {
 
                   <Separator />
 
-                  {/* Contributions */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Contributions ({viewSheet.trees.length || 1})
-                    </h3>
-                    <div className="rounded-lg border bg-card overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/30">
-                            <TableHead className="text-xs font-semibold">Date</TableHead>
-                            <TableHead className="text-xs font-semibold">Trees</TableHead>
-                            <TableHead className="text-xs font-semibold">Method</TableHead>
-                            <TableHead className="text-xs font-semibold text-right">Amount</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="text-sm">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</TableCell>
-                            <TableCell className="text-sm font-medium">{viewSheet.total_trees}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{viewSheet.payment_method || "-"}</TableCell>
-                            <TableCell className="text-sm font-semibold text-right">${viewSheet.total_amount.toFixed(2)}</TableCell>
-                          </TableRow>
-                          <TableRow className="border-t-2">
-                            <TableCell className="text-sm font-bold">Total</TableCell>
-                            <TableCell className="text-sm font-bold">{viewSheet.total_trees}</TableCell>
-                            <TableCell></TableCell>
-                            <TableCell className="text-sm font-bold text-right">${viewSheet.total_amount.toFixed(2)}</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
+                  {/* All Contributions for this trip */}
+                  {(() => {
+                    const tripId = viewSheet.trip_id;
+                    const allTripGroups = tripId ? contributionGroups.filter(g => g.trip_id === tripId) : [viewSheet];
+                    const totalTrees = allTripGroups.reduce((s, g) => s + g.total_trees, 0);
+                    const totalAmount = allTripGroups.reduce((s, g) => s + g.total_amount, 0);
+                    return (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          All Contributions ({allTripGroups.length})
+                        </h3>
+                        <div className="rounded-lg border bg-card overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/30">
+                                <TableHead className="text-xs font-semibold">Date</TableHead>
+                                <TableHead className="text-xs font-semibold">Trees</TableHead>
+                                <TableHead className="text-xs font-semibold">Method</TableHead>
+                                <TableHead className="text-xs font-semibold text-right">Amount</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {allTripGroups.map((group, idx) => (
+                                <TableRow key={idx}>
+                                  <TableCell className="text-sm">{formatDate(group.payment_date || group.created_at)}</TableCell>
+                                  <TableCell className="text-sm font-medium">{group.total_trees}</TableCell>
+                                  <TableCell className="text-sm text-muted-foreground">{group.payment_method || "-"}</TableCell>
+                                  <TableCell className="text-sm font-semibold text-right">${group.total_amount.toFixed(2)}</TableCell>
+                                </TableRow>
+                              ))}
+                              <TableRow className="border-t-2">
+                                <TableCell className="text-sm font-bold">Total</TableCell>
+                                <TableCell className="text-sm font-bold">{totalTrees}</TableCell>
+                                <TableCell></TableCell>
+                                <TableCell className="text-sm font-bold text-right">${totalAmount.toFixed(2)}</TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </>
             );
