@@ -259,6 +259,38 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 );
               })}
+              {forestRegistryItems.length > 0 && (
+                <Collapsible asChild defaultOpen={false}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
+                        <TreePine className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>Forest Registry</span>}
+                        {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {forestRegistryItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
+                              <NavLink
+                                to={subItem.url}
+                                className={({ isActive }) =>
+                                  isActive ? 'bg-white/20 text-white font-medium' : ''
+                                }
+                              >
+                                <subItem.icon className="h-4 w-4" />
+                                <span>{subItem.title}</span>
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
