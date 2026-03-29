@@ -48,16 +48,20 @@ const coreMenuItems = [
 // Lower sort_order = inserted first. insertAfter controls position relative to core items.
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; insertAfter: string; sortOrder: number }> = {
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, insertAfter: 'Financial', sortOrder: 1 },
-  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, insertAfter: 'Tree Orders', sortOrder: 2 },
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Management', sortOrder: 3 },
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Management', sortOrder: 4 },
-  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, insertAfter: 'Nurseries', sortOrder: 5 },
-  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, insertAfter: 'Planting', sortOrder: 6 },
-  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, insertAfter: 'Monitoring', sortOrder: 7 },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Community Impact', sortOrder: 8 },
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, insertAfter: 'Tree Orders', sortOrder: 3 },
+  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, insertAfter: 'Tree Orders', sortOrder: 4 },
+  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, insertAfter: 'Tree Orders', sortOrder: 8 },
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
+};
+
+// Tree Operations modules that appear under collapsible group
+const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, sortOrder: 1 },
+  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, sortOrder: 2 },
+  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
+  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
 
 // MDM modules that appear under "Forest Registry" collapsible
