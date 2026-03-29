@@ -159,6 +159,14 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     return items;
   }, [assignedModules]);
 
+  // Build Forest Registry sub-items from assigned MDM modules
+  const forestRegistryItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(mdmModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .map(([, val]) => val);
+  }, [assignedModules]);
+
   const organizationName = orgName || undefined;
 
   // Dynamic sidebar color based on stakeholder type name
