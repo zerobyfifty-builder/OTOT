@@ -225,7 +225,7 @@ export function StakeholderMdmNurseries() {
         manager_email: (nursery as any).manager_email || '',
         is_kefri_certified: nursery.is_kefri_certified || false,
         kefri_reg_no: (nursery as any).kefri_reg_no || '',
-        selected_species: [],
+        selected_species: []
       });
     } else {
       setSelectedNurseryId(null);
