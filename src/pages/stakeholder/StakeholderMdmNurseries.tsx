@@ -225,7 +225,7 @@ export function StakeholderMdmNurseries() {
         manager_email: (nursery as any).manager_email || '',
         is_kefri_certified: nursery.is_kefri_certified || false,
         kefri_reg_no: (nursery as any).kefri_reg_no || '',
-        selected_species: [],
+        selected_species: []
       });
     } else {
       setSelectedNurseryId(null);
@@ -262,10 +262,14 @@ export function StakeholderMdmNurseries() {
         capacity: parseInt(form.capacity) || 0,
         county: form.county || null,
         sub_county: form.sub_county || null,
-        address: form.address_line ? `${form.address_line}${form.zip_code ? ', ' + form.zip_code : ''}` : null,
+        address: form.address_line || null,
+        zip_code: form.zip_code || null,
+        nursery_type: form.nursery_type || null,
         manager_name: form.manager_name || null,
         manager_phone: form.manager_phone || null,
+        manager_email: form.manager_email || null,
         is_kefri_certified: form.is_kefri_certified,
+        kefri_reg_no: form.is_kefri_certified ? (form.kefri_reg_no || null) : null,
       } as any).select('id').single();
       if (error) throw error;
 
@@ -297,10 +301,14 @@ export function StakeholderMdmNurseries() {
         capacity: parseInt(form.capacity) || 0,
         county: form.county || null,
         sub_county: form.sub_county || null,
-        address: form.address_line ? `${form.address_line}${form.zip_code ? ', ' + form.zip_code : ''}` : null,
+        address: form.address_line || null,
+        zip_code: form.zip_code || null,
+        nursery_type: form.nursery_type || null,
         manager_name: form.manager_name || null,
         manager_phone: form.manager_phone || null,
+        manager_email: form.manager_email || null,
         is_kefri_certified: form.is_kefri_certified,
+        kefri_reg_no: form.is_kefri_certified ? (form.kefri_reg_no || null) : null,
       } as any).eq('id', selectedNurseryId);
       if (error) throw error;
 
