@@ -68,6 +68,9 @@ export function StakeholderMdmNurseries() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterCounty, setFilterCounty] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>('add');
   const [selectedNurseryId, setSelectedNurseryId] = useState<string | null>(null);
