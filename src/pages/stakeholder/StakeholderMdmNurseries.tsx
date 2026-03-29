@@ -735,8 +735,8 @@ export function StakeholderMdmNurseries() {
                         </Tooltip>
                       </div>
                     </TableHead>
-                    <TableHead>Block</TableHead>
-                    <TableHead>County</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Block</TableHead>
                     <TableHead>Manager</TableHead>
                     <TableHead>Contact No</TableHead>
                     <TableHead>Capacity</TableHead>
