@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, Map, CreditCard, MapPin, Leaf, Users, Pickaxe } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,12 +39,12 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
   { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
-  { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
 // sortOrder determines the display order among flat module items
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
