@@ -58,10 +58,14 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, insertAfter: 'Outcomes', sortOrder: 9 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, insertAfter: 'Payments', sortOrder: 10 },
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, insertAfter: 'Travel Agents', sortOrder: 11 },
-  mdm_locations: { title: 'Forest Locations', url: '/stakeholder/locations', icon: MapPin, insertAfter: 'Analytics', sortOrder: 12 },
-  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout, insertAfter: 'Forest Locations', sortOrder: 13 },
-  mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf, insertAfter: 'Nurseries & CBOs', sortOrder: 14 },
-  mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users, insertAfter: 'Species & Seedlings', sortOrder: 15 },
+};
+
+// MDM modules that appear under "Forest Registry" collapsible
+const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideIcon }> = {
+  mdm_locations: { title: 'Forest Locations', url: '/stakeholder/locations', icon: MapPin },
+  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout },
+  mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf },
+  mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users },
 };
 
 interface StakeholderSidebarProps {
