@@ -518,7 +518,7 @@ export function StakeholderMdmPlanters() {
                 <Select value={formData.cbo_nursery_id} onValueChange={v => setFormData(p => ({ ...p, cbo_nursery_id: v }))}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="None (optional)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {nurseries.map((n: any) => <SelectItem key={n.id} value={n.id}>{n.cbo_name} — {n.block_name}</SelectItem>)}
                   </SelectContent>
                 </Select>
