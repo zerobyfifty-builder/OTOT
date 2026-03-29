@@ -536,6 +536,37 @@ export function StakeholderMdmNurseries() {
               <Label className="text-xs font-medium">Capacity (seedlings)</Label>
               <Input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: e.target.value })} placeholder="0" disabled={isReadOnly} className="h-9" />
             </div>
+
+            {/* GPS */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">GPS Coordinates (optional)</Label>
+                {!isReadOnly && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => setForm(prev => ({ ...prev, gps_latitude: String(pos.coords.latitude), gps_longitude: String(pos.coords.longitude) })),
+                        () => toast.error('Unable to get location')
+                      );
+                    } else {
+                      toast.error('Geolocation not supported');
+                    }
+                  }}>
+                    <MapPin className="h-3 w-3" /> Use my location
+                  </Button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input type="number" step="any" value={form.gps_latitude} onChange={e => setForm({ ...form, gps_latitude: e.target.value })} placeholder="Latitude" disabled={isReadOnly} className="h-9" />
+                <Input type="number" step="any" value={form.gps_longitude} onChange={e => setForm({ ...form, gps_longitude: e.target.value })} placeholder="Longitude" disabled={isReadOnly} className="h-9" />
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Additional notes..." disabled={isReadOnly} className="min-h-[60px] text-sm" />
+            </div>
           </TabsContent>
 
           <TabsContent value="species" className="space-y-3 pt-2">
