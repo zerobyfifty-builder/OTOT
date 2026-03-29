@@ -396,7 +396,7 @@ export function StakeholderTripManagement() {
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
-                          <TableCell className="text-sm">{formatDate(trip.created_at)}</TableCell>
+                          <TableCell><DateTimeCell value={trip.created_at} /></TableCell>
                           <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>
