@@ -44,6 +44,7 @@ const coreMenuItems = [
 // Module-based menu items that appear as flat items after core + collapsible groups
 // sortOrder determines the display order among flat module items
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
+  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
