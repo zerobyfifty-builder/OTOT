@@ -80,6 +80,19 @@ const formatDate = (d: string | null) => {
   try { return format(new Date(d), "dd MMM yyyy"); } catch { return "-"; }
 };
 
+const DateTimeCell = ({ value }: { value: string | null }) => {
+  if (!value) return <span>-</span>;
+  try {
+    const date = new Date(value);
+    return (
+      <div className="leading-tight">
+        <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>
+        <div className="text-[11px] text-muted-foreground">{format(date, "hh:mm:ss a")}</div>
+      </div>
+    );
+  } catch { return <span>-</span>; }
+};
+
 export function StakeholderTripManagement() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("trip_management");
   const [trips, setTrips] = useState<Trip[]>([]);

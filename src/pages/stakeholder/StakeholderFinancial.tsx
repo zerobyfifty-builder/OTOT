@@ -440,6 +440,19 @@ export const StakeholderFinancial = () => {
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
+  const DateTimeCell = ({ value }: { value: string | null }) => {
+    if (!value) return <span>-</span>;
+    try {
+      const date = new Date(value);
+      return (
+        <div className="leading-tight">
+          <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>
+          <div className="text-[11px] text-muted-foreground">{format(date, "hh:mm:ss a")}</div>
+        </div>
+      );
+    } catch { return <span>-</span>; }
+  };
+
   const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
     <TableHead
       className={`cursor-pointer select-none text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors ${className}`}
