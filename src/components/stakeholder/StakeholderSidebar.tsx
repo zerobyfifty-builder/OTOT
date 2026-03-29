@@ -137,28 +137,13 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     enabled: !!orgId,
   });
 
-  // Build final menu items by inserting module-based items in sortOrder
-  const menuItems = React.useMemo(() => {
-    const items = [...coreMenuItems];
-    if (assignedModules) {
-      // Sort assigned modules by their sortOrder to ensure deterministic insertion
-      const sorted = [...assignedModules]
-        .filter(m => moduleMenuItems[m])
-        .sort((a, b) => moduleMenuItems[a].sortOrder - moduleMenuItems[b].sortOrder);
-
-      for (const moduleName of sorted) {
-        const moduleItem = moduleMenuItems[moduleName];
-        const insertIndex = items.findIndex(i => i.title === moduleItem.insertAfter);
-        if (insertIndex !== -1) {
-          items.splice(insertIndex + 1, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-        } else {
-          // Insert before Admin/Settings items
-          const settingsIndex = items.findIndex(i => i.title === 'Admin');
-          items.splice(settingsIndex !== -1 ? settingsIndex : items.length, 0, { title: moduleItem.title, url: moduleItem.url, icon: moduleItem.icon });
-        }
-      }
-    }
-    return items;
+  // Build flat menu items: core items + assigned module items sorted by sortOrder
+  const flatModuleItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(moduleMenuItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+      .map(([, val]) => ({ title: val.title, url: val.url, icon: val.icon }));
   }, [assignedModules]);
 
   // Build Tree Operations sub-items from assigned modules
