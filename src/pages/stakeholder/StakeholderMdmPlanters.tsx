@@ -248,16 +248,16 @@ export function StakeholderMdmPlanters() {
   };
 
   const toggleStatus = async (item: any) => {
-    const newStatus = item.status === 'active' ? 'inactive' : 'active';
+    const newStatus = item.status === 'Active' ? 'Inactive' : 'Active';
     await supabase.from('tree_carers').update({ status: newStatus }).eq('id', item.id);
     await supabase.from('mdm_audit_log').insert({
       module_id: 'mdm_planters', record_id: item.id,
-      action: newStatus === 'active' ? 'REACTIVATE' : 'DEACTIVATE',
+      action: newStatus === 'Active' ? 'REACTIVATE' : 'DEACTIVATE',
       changed_by_user_id: user?.id,
       old_values: { status: item.status }, new_values: { status: newStatus },
     });
     queryClient.invalidateQueries({ queryKey: ['mdm_planters'] });
-    toast.success(`Planter ${newStatus === 'active' ? 'reactivated' : 'deactivated'}`);
+    toast.success(`Planter ${newStatus === 'Active' ? 'reactivated' : 'deactivated'}`);
   };
 
   // Beat assignment
