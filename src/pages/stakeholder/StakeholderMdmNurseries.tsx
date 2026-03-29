@@ -756,6 +756,7 @@ export function StakeholderMdmNurseries() {
                         ) : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                       <TableCell>{item.block_name}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.county || '—'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3 text-muted-foreground" />
