@@ -12,6 +12,28 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DollarSign, RefreshCw, Search, Eye, Building2, Landmark, ArrowUpDown, ArrowUp, ArrowDown, MoreVertical, Pencil, Info } from "lucide-react";
+
+const COUNTRY_BADGE_COLORS = [
+  "bg-blue-100 text-blue-700 border-blue-200",
+  "bg-purple-100 text-purple-700 border-purple-200",
+  "bg-teal-100 text-teal-700 border-teal-200",
+  "bg-orange-100 text-orange-700 border-orange-200",
+  "bg-pink-100 text-pink-700 border-pink-200",
+  "bg-cyan-100 text-cyan-700 border-cyan-200",
+  "bg-rose-100 text-rose-700 border-rose-200",
+  "bg-indigo-100 text-indigo-700 border-indigo-200",
+  "bg-lime-100 text-lime-700 border-lime-200",
+  "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
+];
+const countryColorCache: Record<string, string> = {};
+let colorIndex = 0;
+const getCountryBadgeColor = (country: string) => {
+  if (!countryColorCache[country]) {
+    countryColorCache[country] = COUNTRY_BADGE_COLORS[colorIndex % COUNTRY_BADGE_COLORS.length];
+    colorIndex++;
+  }
+  return countryColorCache[country];
+};
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
