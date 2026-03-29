@@ -618,7 +618,7 @@ export const StakeholderOrders = () => {
                         {/* Expanded Tree Details */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={10} className="p-0">
+                            <TableCell colSpan={11} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 {/* Bulk Update */}
                                 {canEditPlantingStatus && group.trees.length > 0 && (
