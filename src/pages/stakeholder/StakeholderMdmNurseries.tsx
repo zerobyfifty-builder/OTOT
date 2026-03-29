@@ -49,13 +49,17 @@ interface NurseryForm {
   manager_email: string;
   is_kefri_certified: boolean;
   kefri_reg_no: string;
+  gps_latitude: string;
+  gps_longitude: string;
+  notes: string;
   selected_species: string[];
 }
 
 const emptyForm: NurseryForm = {
   cbo_name: '', nursery_type: '', block_name: '', block_id: '', location: '', capacity: '',
   county: '', sub_county: '', address_line: '', zip_code: '', manager_name: '',
-  manager_phone: '', manager_email: '', is_kefri_certified: false, kefri_reg_no: '', selected_species: [],
+  manager_phone: '', manager_email: '', is_kefri_certified: false, kefri_reg_no: '',
+  gps_latitude: '', gps_longitude: '', notes: '', selected_species: [],
 };
 
 type SheetMode = 'add' | 'view' | 'edit';
