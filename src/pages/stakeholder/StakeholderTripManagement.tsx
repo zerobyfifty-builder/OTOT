@@ -230,6 +230,18 @@ export function StakeholderTripManagement() {
                               <Badge variant="secondary" className="text-xs">{tripContribs.length}</Badge>
                             </TableCell>
                             <TableCell>
+                              {(() => {
+                                const committed = treesCommittedByTrip[trip.id] || 0;
+                                if (committed >= trip.trees_needed) {
+                                  return <Badge className="bg-green-100 hover:bg-green-100 text-green-700 border-green-200">Fully Offset</Badge>;
+                                } else if (committed > 0) {
+                                  return <Badge className="bg-amber-100 hover:bg-amber-100 text-amber-700 border-amber-200">Partially Offset</Badge>;
+                                } else {
+                                  return <Badge className="bg-red-100 hover:bg-red-100 text-red-700 border-red-200">Not Offset</Badge>;
+                                }
+                              })()}
+                            </TableCell>
+                            <TableCell>
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
                                 <Eye className="h-4 w-4" />
                               </Button>
