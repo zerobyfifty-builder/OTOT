@@ -234,6 +234,7 @@ export function StakeholderMdmNurseries() {
     }
     setSpeciesSearch('');
     setBlockSearch('');
+    setActiveTab('details');
     setSheetOpen(true);
   };
 
