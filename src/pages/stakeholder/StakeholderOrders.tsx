@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { Progress } from "@/components/ui/progress";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
 import {
   Table,
@@ -845,47 +846,6 @@ export const StakeholderOrders = () => {
                     </div>
                   </div>
 
-                  <Separator />
-
-                  {/* Tree Records */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      Tree Records ({viewSheet.trees.length})
-                    </h3>
-                    {viewSheet.trees.length > 0 ? (
-                      <div className="space-y-2">
-                        {viewSheet.trees.map((tree, i) => (
-                          <div key={tree.id} className="rounded-lg border bg-card p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-mono text-xs text-muted-foreground">#{i + 1} · {tree.otot_id}</span>
-                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned']}`}>
-                                {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
-                              </Badge>
-                            </div>
-                            <div className="grid grid-cols-2 gap-y-1 text-sm">
-                              <div>
-                                <span className="text-muted-foreground text-xs">Trees</span>
-                                <p className="font-medium">{tree.num_trees}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-muted-foreground text-xs">Amount</span>
-                                <p className="font-medium">${Number(tree.amount_paid).toFixed(2)}</p>
-                              </div>
-                              {tree.location_name && (
-                                <div className="col-span-2">
-                                  <span className="text-muted-foreground text-xs">Location</span>
-                                  <p className="font-medium">{tree.location_name}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No tree records linked.</p>
-                    )}
-                  </div>
-
                   {trip && (
                     <>
                       <Separator />
@@ -924,6 +884,69 @@ export const StakeholderOrders = () => {
                       </div>
                     </>
                   )}
+
+                  <Separator />
+
+                  {/* Offset Progress */}
+                  {(() => {
+                    const treesPlanted = viewSheet.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
+                    const treesNeeded = viewSheet.total_trees;
+                    const progressPct = treesNeeded > 0 ? Math.round((treesPlanted / treesNeeded) * 100) : 0;
+                    return (
+                      <div className="space-y-3">
+                        <div className="rounded-lg border bg-emerald-50/50 p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Leaf className="h-5 w-5 text-emerald-600" />
+                              <span className="font-semibold text-sm">Offset Progress</span>
+                            </div>
+                            <span className="text-sm font-bold text-emerald-600">{progressPct}%</span>
+                          </div>
+                          <Progress value={progressPct} className="h-2 bg-emerald-100 [&>div]:bg-emerald-500" />
+                          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                            <span className="text-emerald-600 font-medium">{treesPlanted} planted</span>
+                            <span>{treesNeeded} needed</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <Separator />
+
+                  {/* Contributions */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Contributions ({viewSheet.trees.length || 1})
+                    </h3>
+                    <div className="rounded-lg border bg-card overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/30">
+                            <TableHead className="text-xs font-semibold">Date</TableHead>
+                            <TableHead className="text-xs font-semibold">Trees</TableHead>
+                            <TableHead className="text-xs font-semibold">Method</TableHead>
+                            <TableHead className="text-xs font-semibold text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="text-sm">{formatDate(viewSheet.payment_date || viewSheet.created_at)}</TableCell>
+                            <TableCell className="text-sm font-medium">{viewSheet.total_trees}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{viewSheet.payment_method || "-"}</TableCell>
+                            <TableCell className="text-sm font-semibold text-right">${viewSheet.total_amount.toFixed(2)}</TableCell>
+                          </TableRow>
+                          <TableRow className="border-t-2">
+                            <TableCell className="text-sm font-bold">Total</TableCell>
+                            <TableCell className="text-sm font-bold">{viewSheet.total_trees}</TableCell>
+                            <TableCell></TableCell>
+                            <TableCell className="text-sm font-bold text-right">${viewSheet.total_amount.toFixed(2)}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
                 </div>
               </>
             );
