@@ -56,6 +56,7 @@ export function StakeholderForestLocations() {
   const [formLevel, setFormLevel] = useState<LevelType>('county');
   const [formParentId, setFormParentId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [initialFormData, setInitialFormData] = useState<any>({});
   const [activeTab, setActiveTab] = useState('details');
 
   // Fetch all location data
