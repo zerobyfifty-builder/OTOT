@@ -191,13 +191,14 @@ export function StakeholderTripManagement() {
                     <TableHead>Trees Committed</TableHead>
                     <TableHead>Trees Due</TableHead>
                     <TableHead>Contributions</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
+                      <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((trip) => {
@@ -229,6 +230,18 @@ export function StakeholderTripManagement() {
                               <Badge variant="secondary" className="text-xs">{tripContribs.length}</Badge>
                             </TableCell>
                             <TableCell>
+                              {(() => {
+                                const committed = treesCommittedByTrip[trip.id] || 0;
+                                if (committed >= trip.trees_needed) {
+                                  return <Badge className="bg-green-100 hover:bg-green-100 text-green-700 border-green-200">Fully Offset</Badge>;
+                                } else if (committed > 0) {
+                                  return <Badge className="bg-amber-100 hover:bg-amber-100 text-amber-700 border-amber-200">Partially Offset</Badge>;
+                                } else {
+                                  return <Badge className="bg-red-100 hover:bg-red-100 text-red-700 border-red-200">Not Offset</Badge>;
+                                }
+                              })()}
+                            </TableCell>
+                            <TableCell>
                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setViewTrip(trip); }}>
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -236,7 +249,7 @@ export function StakeholderTripManagement() {
                           </TableRow>
                           {isExpanded && tripContribs.length > 0 && (
                             <TableRow key={`${trip.id}-expanded`}>
-                              <TableCell colSpan={15} className="p-0">
+                              <TableCell colSpan={16} className="p-0">
                                 <div className="bg-muted/20 border-t border-b px-6 py-3">
                                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <FileText className="h-3.5 w-3.5" />
