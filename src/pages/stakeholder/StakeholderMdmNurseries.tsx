@@ -211,16 +211,20 @@ export function StakeholderMdmNurseries() {
       const matchedBlock = blockOptions.find(b => b.name === nursery.block_name);
       setForm({
         cbo_name: nursery.cbo_name || '',
+        nursery_type: (nursery as any).nursery_type || '',
         block_name: nursery.block_name || '',
         block_id: matchedBlock?.id || '',
         location: nursery.location || '',
         capacity: String(nursery.capacity || 0),
         county: nursery.county || '',
         sub_county: nursery.sub_county || '',
-        address: nursery.address || '',
+        address_line: nursery.address || '',
+        zip_code: (nursery as any).zip_code || '',
         manager_name: nursery.manager_name || '',
         manager_phone: nursery.manager_phone || '',
+        manager_email: (nursery as any).manager_email || '',
         is_kefri_certified: nursery.is_kefri_certified || false,
+        kefri_reg_no: (nursery as any).kefri_reg_no || '',
         selected_species: [],
       });
     } else {
