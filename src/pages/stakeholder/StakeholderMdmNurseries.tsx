@@ -218,10 +218,10 @@ export function StakeholderMdmNurseries() {
         await supabase.from('nursery_species' as any).insert(rows);
       }
 
-      await supabase.from('mdm_audit_log').insert({
+      await supabase.from('mdm_audit_log').insert([{
         module_id: 'mdm_nurseries', record_id: selectedNurseryId, action: 'UPDATE',
-        changed_by_user_id: user?.id, new_values: form,
-      });
+        changed_by_user_id: user?.id, new_values: form as any,
+      }]);
     },
     onSuccess: () => {
       toast.success('Nursery updated');
