@@ -198,7 +198,7 @@ export function StakeholderTripManagement() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
+                      <TableCell colSpan={16} className="text-center py-8 text-muted-foreground">No trips found</TableCell>
                     </TableRow>
                   ) : (
                     filtered.map((trip) => {
