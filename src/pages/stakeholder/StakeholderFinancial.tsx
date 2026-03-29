@@ -162,6 +162,21 @@ export const StakeholderFinancial = () => {
 
   const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser && !isTechPartner;
 
+  // Fetch trips for Trip ID display
+  const { data: tripsMap } = useQuery({
+    queryKey: ["financialTrips", contributions],
+    queryFn: async () => {
+      const tripIds = [...new Set(contributions?.map(c => c.trip_id).filter(Boolean) || [])];
+      if (tripIds.length === 0) return {} as Record<string, string>;
+      const { data } = await supabase.from("trips").select("id, friendly_trip_id").in("id", tripIds);
+      return (data || []).reduce((acc, t) => {
+        acc[t.id] = t.friendly_trip_id || t.id.slice(0, 8);
+        return acc;
+      }, {} as Record<string, string>);
+    },
+    enabled: !!contributions && contributions.length > 0,
+  });
+
   // Fetch wallet settings for fee calculations
   const { data: walletSettings } = useQuery({
     queryKey: ["walletSettings"],
