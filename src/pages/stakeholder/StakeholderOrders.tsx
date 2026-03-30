@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,6 +41,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Plane } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -226,6 +232,8 @@ export const StakeholderOrders = () => {
     treeCount?: number;
     isBatch: boolean;
   } | null>(null);
+  const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [statusSliderIndex, setStatusSliderIndex] = useState(0);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
@@ -288,6 +296,21 @@ export const StakeholderOrders = () => {
       return data;
     },
     enabled: !!orgId,
+  });
+
+  // Query status transitions for the selected tree
+  const { data: treeTransitions } = useQuery({
+    queryKey: ["treeStatusTransitions", statusHistoryTree?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("*")
+        .eq("tree_id", statusHistoryTree!.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!statusHistoryTree?.id,
   });
 
   const updateStatus = useMutation({
@@ -856,6 +879,7 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
                                       <TableBody>
@@ -908,6 +932,21 @@ export const StakeholderOrders = () => {
                                                     </Badge>
                                                   )}
                                                 </TableCell>
+                                                <TableCell>
+                                                  <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                        <MoreVertical className="h-3.5 w-3.5" />
+                                                      </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusSliderIndex(0); }}>
+                                                        <Eye className="h-3.5 w-3.5 mr-2" />
+                                                        View Status History
+                                                      </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                  </DropdownMenu>
+                                                </TableCell>
                                               </TableRow>
                                             );
                                           } else {
@@ -923,6 +962,7 @@ export const StakeholderOrders = () => {
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell></TableCell>
                                               </TableRow>
                                             );
                                           }
@@ -1244,6 +1284,140 @@ export const StakeholderOrders = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Status History Sheet */}
+      <Sheet open={!!statusHistoryTree} onOpenChange={(open) => !open && setStatusHistoryTree(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {statusHistoryTree && (() => {
+            const currentStatus = statusHistoryTree.planting_status || 'waiting_to_be_assigned';
+            const currentOrder = getPlantingStatusOrder(currentStatus);
+            
+            // Build full status timeline - all statuses up to current
+            const allStatuses = PLANTING_STATUSES.filter(s => {
+              const order = getPlantingStatusOrder(s);
+              return order <= currentOrder;
+            });
+            
+            const safeIndex = Math.min(statusSliderIndex, allStatuses.length - 1);
+            const activeStatus = allStatuses[safeIndex];
+            const activeTransition = treeTransitions?.find(t => t.to_status === activeStatus);
+            const transitionData = activeTransition?.transition_data || {};
+            const photos = activeTransition?.photos || [];
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <TreePine className="h-5 w-5 text-primary" />
+                    Status History
+                  </SheetTitle>
+                  <p className="text-sm text-muted-foreground">{statusHistoryTree.otot_id}</p>
+                </SheetHeader>
+
+                <div className="mt-6 space-y-5">
+                  {/* Horizontal status slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        disabled={safeIndex === 0}
+                        onClick={() => setStatusSliderIndex(i => Math.max(0, i - 1))}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm font-semibold">
+                        {STATUS_LABELS[activeStatus]} ({safeIndex + 1}/{allStatuses.length})
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        disabled={safeIndex >= allStatuses.length - 1}
+                        onClick={() => setStatusSliderIndex(i => Math.min(allStatuses.length - 1, i + 1))}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Status dots / progress bar */}
+                    <div className="flex items-center gap-1 px-2">
+                      {allStatuses.map((s, idx) => (
+                        <button
+                          key={s}
+                          onClick={() => setStatusSliderIndex(idx)}
+                          className={`flex-1 h-2 rounded-full transition-colors ${
+                            idx <= safeIndex ? 'bg-primary' : 'bg-muted'
+                          } ${idx === safeIndex ? 'ring-2 ring-primary ring-offset-1' : ''}`}
+                          title={STATUS_LABELS[s]}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Status details card */}
+                  <div className="rounded-lg border bg-card p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Badge className={`px-2.5 py-1 text-xs font-medium ${PLANTING_STATUS_COLORS[activeStatus] || 'bg-muted text-muted-foreground'}`}>
+                        {STATUS_LABELS[activeStatus]}
+                      </Badge>
+                      {activeTransition?.created_at && (
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(activeTransition.created_at), "dd MMM yyyy, hh:mm a")}
+                        </span>
+                      )}
+                    </div>
+
+                    {activeTransition ? (
+                      <div className="space-y-3">
+                        {activeTransition.from_status && (
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                            <span className="text-muted-foreground">From:</span>
+                            <span className="font-medium">{STATUS_LABELS[activeTransition.from_status] || activeTransition.from_status}</span>
+                          </div>
+                        )}
+
+                        {/* Render transition_data fields */}
+                        {Object.keys(transitionData).length > 0 && (
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                            {Object.entries(transitionData).map(([key, value]) => {
+                              if (value === null || value === undefined || value === '') return null;
+                              const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                              return (
+                                <React.Fragment key={key}>
+                                  <span className="text-muted-foreground">{label}:</span>
+                                  <span className="font-medium">{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</span>
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Photos */}
+                        {photos.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-sm text-muted-foreground">Photos:</span>
+                            <div className="grid grid-cols-3 gap-2">
+                              {photos.map((url: string, i: number) => (
+                                <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No transition record captured for this status.</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
