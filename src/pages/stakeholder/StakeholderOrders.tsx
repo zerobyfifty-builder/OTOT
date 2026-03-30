@@ -997,7 +997,7 @@ export const StakeholderOrders = () => {
                                           return next;
                                         })}
                                       >
-                                        <X className="h-3 w-3" />
+                                        <XIcon className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   )}
