@@ -56,11 +56,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Location cascade state
-  const [selectedCounty, setSelectedCounty] = useState("");
-  const [selectedSubcounty, setSelectedSubcounty] = useState("");
-  const [selectedBlock, setSelectedBlock] = useState("");
-  const [selectedStation, setSelectedStation] = useState("");
+  // Beat search state
+  const [beatSearch, setBeatSearch] = useState("");
 
   // Reset form when request changes
   useEffect(() => {
@@ -88,10 +85,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       }
       setFormData(defaults);
       setPhotos([]);
-      setSelectedCounty("");
-      setSelectedSubcounty("");
-      setSelectedBlock("");
-      setSelectedStation("");
+      setBeatSearch("");
     }
   }, [request]);
 
@@ -105,50 +99,34 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     enabled: open && !!request && ["assigned", "planting_scheduled", "sapling_planted", "verified"].includes(request.toStatus),
   });
 
-  const { data: counties } = useQuery({
-    queryKey: ["transitionCounties"],
+  const { data: allBeats } = useQuery({
+    queryKey: ["transitionAllBeats"],
     queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_counties").select("id, name").eq("is_active", true).order("name");
-      return data || [];
+      const { data } = await supabase
+        .from("mdm_location_beats")
+        .select("id, name, station:mdm_location_stations(name, block:mdm_location_blocks(name, subcounty:mdm_location_subcounties(name, county:mdm_location_counties(name))))")
+        .eq("is_active", true)
+        .order("name");
+      return (data || []).map((b: any) => {
+        const station = b.station;
+        const block = station?.block;
+        const subcounty = block?.subcounty;
+        const county = subcounty?.county;
+        return {
+          id: b.id,
+          label: `${b.name} – ${block?.name || ""} (${station?.name || ""}) – ${subcounty?.name || ""} (${county?.name || ""})`,
+        };
+      });
     },
     enabled: open && !!request && request.toStatus === "assigned",
   });
 
-  const { data: subcounties } = useQuery({
-    queryKey: ["transitionSubcounties", selectedCounty],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_subcounties").select("id, name").eq("county_id", selectedCounty).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedCounty,
-  });
-
-  const { data: blocks } = useQuery({
-    queryKey: ["transitionBlocks", selectedSubcounty],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_blocks").select("id, name").eq("subcounty_id", selectedSubcounty).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedSubcounty,
-  });
-
-  const { data: stations } = useQuery({
-    queryKey: ["transitionStations", selectedBlock],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_stations").select("id, name").eq("block_id", selectedBlock).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedBlock,
-  });
-
-  const { data: beats } = useQuery({
-    queryKey: ["transitionBeats", selectedStation],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_beats").select("id, name, beat_code").eq("station_id", selectedStation).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedStation,
-  });
+  const filteredBeats = useMemo(() => {
+    if (!allBeats) return [];
+    if (!beatSearch) return allBeats;
+    const q = beatSearch.toLowerCase();
+    return allBeats.filter(b => b.label.toLowerCase().includes(q));
+  }, [allBeats, beatSearch]);
 
   const { data: nurseries } = useQuery({
     queryKey: ["transitionNurseries"],
@@ -288,11 +266,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       // Build full transition data including location cascade info
       const fullData = { ...formData };
       if (request.toStatus === "assigned") {
-        // Include location names for display
-        const county = counties?.find(c => c.id === selectedCounty);
-        const beat = beats?.find(b => b.id === formData.target_beat);
-        if (county) fullData.county_name = county.name;
-        if (beat) fullData.beat_name = beat.name;
+        // beat label already stored in formData.target_beat_label
         const planter = planters?.find(p => p.id === formData.assigned_to);
         if (planter) fullData.assigned_to_name = planter.name;
       }
@@ -375,43 +349,38 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       case "assigned":
         return (
           <div className="space-y-4">
-            {renderPlanterSelect("assigned_to", "Assigned to")}
-            
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label className="text-sm font-medium">Target Beat <span className="text-destructive">*</span></Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Select value={selectedCounty} onValueChange={(v) => { setSelectedCounty(v); setSelectedSubcounty(""); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="County" /></SelectTrigger>
-                  <SelectContent>
-                    {(counties || []).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedSubcounty} onValueChange={(v) => { setSelectedSubcounty(v); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedCounty}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Sub-county" /></SelectTrigger>
-                  <SelectContent>
-                    {(subcounties || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedBlock} onValueChange={(v) => { setSelectedBlock(v); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedSubcounty}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Block" /></SelectTrigger>
-                  <SelectContent>
-                    {(blocks || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedStation} onValueChange={(v) => { setSelectedStation(v); setField("target_beat", ""); }} disabled={!selectedBlock}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Station" /></SelectTrigger>
-                  <SelectContent>
-                    {(stations || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Select value={formData.target_beat || ""} onValueChange={(v) => setField("target_beat", v)} disabled={!selectedStation}>
-                <SelectTrigger className="text-xs"><SelectValue placeholder="Select Beat" /></SelectTrigger>
+              <Select value={formData.target_beat || ""} onValueChange={(v) => {
+                setField("target_beat", v);
+                const beat = allBeats?.find(b => b.id === v);
+                if (beat) setField("target_beat_label", beat.label);
+              }}>
+                <SelectTrigger><SelectValue placeholder="Search and select beat..." /></SelectTrigger>
                 <SelectContent>
-                  {(beats || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name} ({b.beat_code})</SelectItem>)}
+                  <div className="p-2">
+                    <Input
+                      placeholder="Type to search..."
+                      value={beatSearch}
+                      onChange={(e) => setBeatSearch(e.target.value)}
+                      className="h-8 text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  {filteredBeats.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-3">No beats found</p>
+                  )}
+                  {filteredBeats.map(b => (
+                    <SelectItem key={b.id} value={b.id} className="text-xs">
+                      {b.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {renderPlanterSelect("assigned_to", "Assigned to")}
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Assigned Date <span className="text-destructive">*</span></Label>
@@ -727,7 +696,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
             {title}
           </SheetTitle>
           <p className="text-sm text-muted-foreground">
-            Updating {treeLabel} • {request.contributionId || ""}
+            {request.contributionId || ""} – updating {treeLabel}
           </p>
         </SheetHeader>
 
