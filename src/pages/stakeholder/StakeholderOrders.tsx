@@ -1354,9 +1354,26 @@ export const StakeholderOrders = () => {
                   <p className="text-sm text-muted-foreground">Tree ID: {statusHistoryTree.otot_id}</p>
                 </SheetHeader>
 
-                <div className="mt-6">
-                  <Accordion type="single" collapsible className="w-full">
-                    {allLifecycleStatuses.map((status, idx) => {
+                <div className="mt-6 divide-y">
+                  {/* Waiting to be assigned - non-expandable */}
+                  {(() => {
+                    const purchaseDate = statusHistoryTree.created_at;
+                    return (
+                      <div className="flex items-center gap-3 py-3">
+                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                        <div className="flex flex-col items-start min-w-0">
+                          <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Remaining statuses as accordion */}
+                  <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                    {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
                       const statusOrder = getPlantingStatusOrder(status);
                       const isCompleted = statusOrder < currentOrder;
                       const isCurrent = statusOrder === currentOrder;
@@ -1364,39 +1381,21 @@ export const StakeholderOrders = () => {
                       const transition = treeTransitions?.find(t => t.to_status === status);
                       const transitionData = transition?.transition_data || {};
                       const photos = transition?.photos || [];
-                      const isWaiting = status === 'waiting_to_be_assigned';
 
-                      // Build filtered entries
                       const skipKeys = new Set<string>(['reverted']);
                       for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                         if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                       }
-                      const sortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                      const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
                       const entries = Object.entries(transitionData)
                         .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
-                        .sort((a, b) => (sortOrder[a[0]] ?? 99) - (sortOrder[b[0]] ?? 99));
-
-                      // For waiting_to_be_assigned, show as non-expandable row with purchase date
-                      if (isWaiting) {
-                        const purchaseDate = statusHistoryTree.created_at;
-                        return (
-                          <div key={status} className={`flex items-center gap-3 py-3 ${idx < allLifecycleStatuses.length - 1 ? 'border-b' : ''}`}>
-                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                            <div className="flex flex-col items-start min-w-0">
-                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS[status]}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      }
+                        .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
 
                       return (
                         <AccordionItem
                           key={status}
                           value={status}
-                          className={`border-b last:border-b-0 border-x-0 border-t-0 ${isFuture ? 'opacity-50' : ''}`}
+                          className={`border-0 ${isFuture ? 'opacity-50' : ''}`}
                         >
                           <AccordionTrigger className="hover:no-underline py-3">
                             <div className="flex items-center gap-3 w-full">
