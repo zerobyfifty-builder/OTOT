@@ -2112,25 +2112,33 @@ export const StakeholderOrders = () => {
 
                   {/* Growth Tab - Survival + Growth Metrics */}
                   <TabsContent value="growth">
-                    <div className="space-y-6 pt-2">
+                    <div className="space-y-5 pt-2">
                       {/* Survival Tracking */}
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
                           <Activity className="h-4 w-4" /> Survival Tracking
                         </h4>
                         {treeSurvival && treeSurvival.length > 0 ? (
-                          treeSurvival.map((record: any) => (
-                            <div key={record.id} className="rounded-lg border bg-card p-3 space-y-1">
-                              <div className="flex justify-between items-center">
-                                <Badge className={record.survival_status === 'Alive' ? 'bg-green-100 text-green-700' : record.survival_status === 'Dead' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
-                                  {record.survival_status}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">{record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}</span>
+                          <div className="divide-y">
+                            {treeSurvival.map((record: any) => (
+                              <div key={record.id} className="py-2.5">
+                                <div className="flex items-center gap-3 text-sm">
+                                  <span className="text-muted-foreground shrink-0">
+                                    {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
+                                  </span>
+                                  <Badge variant="outline" className={`text-xs px-1.5 py-0 shrink-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                    {record.survival_status}
+                                  </Badge>
+                                  {record.survival_rate !== null && (
+                                    <span className="font-medium shrink-0">{record.survival_rate}%</span>
+                                  )}
+                                </div>
+                                {record.notes && (
+                                  <p className="text-xs text-muted-foreground mt-1 pl-0">{record.notes}</p>
+                                )}
                               </div>
-                              {record.survival_rate !== null && <p className="text-sm">Survival Rate: <span className="font-medium">{record.survival_rate}%</span></p>}
-                              {record.notes && <p className="text-sm text-muted-foreground">{record.notes}</p>}
-                            </div>
-                          ))
+                            ))}
+                          </div>
                         ) : (
                           <p className="text-sm text-muted-foreground italic text-center py-4">No survival records yet.</p>
                         )}
@@ -2139,36 +2147,46 @@ export const StakeholderOrders = () => {
                       <Separator />
 
                       {/* Growth Metrics */}
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
                           <TrendingUp className="h-4 w-4" /> Growth Metrics
                         </h4>
                         {treeGrowth && treeGrowth.length > 0 ? (
-                          treeGrowth.map((record: any) => (
-                            <div key={record.id} className="rounded-lg border bg-card p-3 space-y-1.5">
-                              <div className="flex justify-between items-center">
-                                <Badge className="bg-primary/10 text-primary">{record.growth_stage}</Badge>
-                                <span className="text-xs text-muted-foreground">{record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}</span>
-                              </div>
-                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-                                {record.tree_height && <><span className="text-muted-foreground">Height:</span><span className="font-medium">{record.tree_height}</span></>}
-                                {record.tree_age && <><span className="text-muted-foreground">Age:</span><span className="font-medium">{record.tree_age}</span></>}
-                              </div>
-                              {record.notes && <p className="text-sm text-muted-foreground">{record.notes}</p>}
-                              {record.photos && record.photos.length > 0 && (
-                                <div className="flex gap-2 flex-wrap mt-1">
-                                  {record.photos.map((url: string, pi: number) => (
-                                    <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
-                                      <img src={url} alt={`Photo ${pi + 1}`} className="w-14 h-14 object-cover rounded-md border" />
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                                        <ZoomIn className="h-3.5 w-3.5 text-white" />
-                                      </div>
-                                    </div>
-                                  ))}
+                          <div className="divide-y">
+                            {treeGrowth.map((record: any) => (
+                              <div key={record.id} className="py-2.5">
+                                <div className="flex items-center gap-3 text-sm flex-wrap">
+                                  <span className="text-muted-foreground shrink-0">
+                                    {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5 shrink-0">
+                                    {record.growth_stage}
+                                  </Badge>
+                                  {record.tree_age && (
+                                    <span className="text-sm shrink-0">Age: <span className="font-medium">{record.tree_age}</span></span>
+                                  )}
+                                  {record.tree_height && (
+                                    <span className="text-sm shrink-0">Ht: <span className="font-medium">{record.tree_height}</span></span>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))
+                                {record.notes && (
+                                  <p className="text-xs text-muted-foreground mt-1 pl-0">{record.notes}</p>
+                                )}
+                                {record.photos && record.photos.length > 0 && (
+                                  <div className="flex gap-1.5 flex-wrap mt-1.5">
+                                    {record.photos.map((url: string, pi: number) => (
+                                      <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                        <img src={url} alt={`Photo ${pi + 1}`} className="w-10 h-10 object-cover rounded border" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                                          <ZoomIn className="h-3 w-3 text-white" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         ) : (
                           <p className="text-sm text-muted-foreground italic text-center py-4">No growth records yet.</p>
                         )}
