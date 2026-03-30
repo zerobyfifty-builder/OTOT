@@ -110,6 +110,7 @@ const STATUS_LABELS: Record<string, string> = {
   verified: 'Verified',
   planted: 'Planted',
   dead: 'Dead',
+  re_planted: 'Re-planted',
   // Legacy mappings for any old data
   pending_allocation: 'Waiting to be Assigned',
   allocated: 'Assigned',
