@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -233,7 +234,7 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
-  const [statusSliderIndex, setStatusSliderIndex] = useState(0);
+  
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
@@ -940,7 +941,7 @@ export const StakeholderOrders = () => {
                                                       </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusSliderIndex(0); }}>
+                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); }}>
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
                                                         View Status History
                                                       </DropdownMenuItem>
@@ -1285,225 +1286,173 @@ export const StakeholderOrders = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Status History Sheet */}
+      {/* Status History Sheet - Accordion Design */}
       <Sheet open={!!statusHistoryTree} onOpenChange={(open) => !open && setStatusHistoryTree(null)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {statusHistoryTree && (() => {
             const currentStatus = statusHistoryTree.planting_status || 'waiting_to_be_assigned';
             const currentOrder = getPlantingStatusOrder(currentStatus);
-            
-            // Build full status timeline - all statuses up to current
-            const allStatuses = PLANTING_STATUSES.filter(s => {
-              const order = getPlantingStatusOrder(s);
-              return order <= currentOrder;
-            });
-            
-            const safeIndex = Math.min(statusSliderIndex, allStatuses.length - 1);
-            const activeStatus = allStatuses[safeIndex];
-            const activeTransition = treeTransitions?.find(t => t.to_status === activeStatus);
-            const transitionData = activeTransition?.transition_data || {};
-            const photos = activeTransition?.photos || [];
+
+            // All statuses in lifecycle order
+            const allLifecycleStatuses = PLANTING_STATUSES;
+
+            // Friendly labels map
+            const friendlyLabels: Record<string, string> = {
+              target_beat_label: 'Location (Target Beat)',
+              assigned_to_name: 'Planter',
+              assigned_date: 'Assigned Date',
+              nursery_name: 'Nursery / CBO',
+              species_name: 'Species',
+              tree_carer_name: 'Tree Carer',
+              soil_type: 'Soil Type',
+              rainfall_mm: 'Rainfall (mm)',
+              site_prep_date: 'Site Preparation Date',
+              site_notes: 'Site Notes',
+              sapling_ready_date: 'Sapling Ready Date',
+              sapling_source: 'Sapling Source',
+              scheduled_date: 'Scheduled Date',
+              planting_team_size: 'Team Size',
+              planting_date: 'Planting Date',
+              planting_method: 'Planting Method',
+              planting_notes: 'Planting Notes',
+              latitude: 'Latitude',
+              longitude: 'Longitude',
+              mapping_date: 'Mapping Date',
+              mapping_method: 'Mapping Method',
+              mapping_notes: 'Mapping Notes',
+              gps_accuracy: 'GPS Accuracy',
+              verification_date: 'Verification Date',
+              verified_by: 'Verified By',
+              verification_method: 'Verification Method',
+              verification_notes: 'Verification Notes',
+              health_status: 'Health Status',
+              planted_confirmed_date: 'Confirmed Date',
+              date_confirmed_dead: 'Date Confirmed Dead',
+              cause_of_death: 'Cause of Death',
+              replacement_planned: 'Replacement Planned',
+              replacement_target_date: 'Replacement Target Date',
+              notes: 'Notes',
+              reason: 'Reason',
+              batch_notice: 'Notice',
+            };
+
+            const idToLabelMap: Record<string, string> = {
+              assigned_to: 'assigned_to_name',
+              target_beat: 'target_beat_label',
+              nursery_id: 'nursery_name',
+              species_id: 'species_name',
+              tree_carer_id: 'tree_carer_name',
+            };
 
             return (
               <>
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Current Status: {(() => {
-                      const statusLabels: Record<string, string> = {
-                        waiting_to_be_assigned: 'Waiting to be Assigned',
-                        assigned: 'Assigned',
-                        site_prepared: 'Site Prepared',
-                        saplings_ready: 'Saplings Ready',
-                        planting_scheduled: 'Planting Scheduled',
-                        sapling_planted: 'Sapling Planted',
-                        being_mapped: 'Being Mapped',
-                        verified: 'Verified',
-                        planted: 'Planted',
-                        dead: 'Dead',
-                      };
-                      return statusLabels[statusHistoryTree.planting_status || ''] || statusHistoryTree.planting_status || 'Unknown';
-                    })()}
+                    Current Status: {STATUS_LABELS[currentStatus] || currentStatus}
                   </SheetTitle>
                   <p className="text-sm text-muted-foreground">Tree ID: {statusHistoryTree.otot_id}</p>
                 </SheetHeader>
 
-                <div className="mt-6 space-y-5">
-                  {/* Horizontal status slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        disabled={safeIndex === 0}
-                        onClick={() => setStatusSliderIndex(i => Math.max(0, i - 1))}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm font-semibold">
-                        {STATUS_LABELS[activeStatus]} ({safeIndex + 1}/{allStatuses.length})
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        disabled={safeIndex >= allStatuses.length - 1}
-                        onClick={() => setStatusSliderIndex(i => Math.min(allStatuses.length - 1, i + 1))}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <div className="mt-6">
+                  <Accordion type="single" collapsible className="space-y-2">
+                    {allLifecycleStatuses.map((status) => {
+                      const statusOrder = getPlantingStatusOrder(status);
+                      const isCompleted = statusOrder < currentOrder;
+                      const isCurrent = statusOrder === currentOrder;
+                      const isFuture = statusOrder > currentOrder;
+                      const transition = treeTransitions?.find(t => t.to_status === status);
+                      const transitionData = transition?.transition_data || {};
+                      const photos = transition?.photos || [];
 
-                    {/* Status dots / progress bar */}
-                    <div className="flex items-center gap-1 px-2">
-                      {allStatuses.map((s, idx) => (
-                        <button
-                          key={s}
-                          onClick={() => setStatusSliderIndex(idx)}
-                          className={`flex-1 h-2 rounded-full transition-colors ${
-                            idx <= safeIndex ? 'bg-primary' : 'bg-muted'
-                          } ${idx === safeIndex ? 'ring-2 ring-primary ring-offset-1' : ''}`}
-                          title={STATUS_LABELS[s]}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                      // Build filtered entries
+                      const skipKeys = new Set<string>(['reverted']);
+                      for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
+                        if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
+                      }
+                      const sortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                      const entries = Object.entries(transitionData)
+                        .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
+                        .sort((a, b) => (sortOrder[a[0]] ?? 99) - (sortOrder[b[0]] ?? 99));
 
-                  <Separator />
-
-                  {/* Status details card */}
-                  <div className="rounded-lg border bg-card p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Badge className={`px-2.5 py-1 text-xs font-medium ${PLANTING_STATUS_COLORS[activeStatus] || 'bg-muted text-muted-foreground'}`}>
-                        {STATUS_LABELS[activeStatus]}
-                      </Badge>
-                      {activeTransition?.created_at && (
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(activeTransition.created_at), "dd MMM yyyy, hh:mm a")}
-                        </span>
-                      )}
-                    </div>
-
-                    {activeTransition ? (
-                      <div className="space-y-3">
-                        {activeTransition.from_status && (
-                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                            <span className="text-muted-foreground">From:</span>
-                            <span className="font-medium">{STATUS_LABELS[activeTransition.from_status] || activeTransition.from_status}</span>
-                          </div>
-                        )}
-
-                        {/* Render transition_data fields */}
-                        {Object.keys(transitionData).length > 0 && (() => {
-                          // Map of raw ID keys to their friendly label keys
-                          const idToLabelMap: Record<string, string> = {
-                            assigned_to: 'assigned_to_name',
-                            target_beat: 'target_beat_label',
-                            nursery_id: 'nursery_name',
-                            species_id: 'species_name',
-                            tree_carer_id: 'tree_carer_name',
-                          };
-                          // Keys to skip (raw IDs when a friendly label exists, and internal flags)
-                          const skipKeys = new Set<string>();
-                          for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
-                            if (transitionData[labelKey] !== undefined) {
-                              skipKeys.add(idKey);
-                            }
-                          }
-                          // Also skip 'reverted' internal flag
-                          skipKeys.add('reverted');
-
-                          // Friendly display labels
-                          const friendlyLabels: Record<string, string> = {
-                            target_beat_label: 'Location (Target Beat)',
-                            assigned_to_name: 'Planter',
-                            assigned_date: 'Assigned Date',
-                            nursery_name: 'Nursery / CBO',
-                            species_name: 'Species',
-                            tree_carer_name: 'Tree Carer',
-                            soil_type: 'Soil Type',
-                            rainfall_mm: 'Rainfall (mm)',
-                            site_prep_date: 'Site Preparation Date',
-                            site_notes: 'Site Notes',
-                            sapling_ready_date: 'Sapling Ready Date',
-                            sapling_source: 'Sapling Source',
-                            scheduled_date: 'Scheduled Date',
-                            planting_team_size: 'Team Size',
-                            planting_date: 'Planting Date',
-                            planting_method: 'Planting Method',
-                            planting_notes: 'Planting Notes',
-                            latitude: 'Latitude',
-                            longitude: 'Longitude',
-                            mapping_date: 'Mapping Date',
-                            mapping_method: 'Mapping Method',
-                            mapping_notes: 'Mapping Notes',
-                            gps_accuracy: 'GPS Accuracy',
-                            verification_date: 'Verification Date',
-                            verified_by: 'Verified By',
-                            verification_method: 'Verification Method',
-                            verification_notes: 'Verification Notes',
-                            health_status: 'Health Status',
-                            planted_confirmed_date: 'Confirmed Date',
-                            date_confirmed_dead: 'Date Confirmed Dead',
-                            cause_of_death: 'Cause of Death',
-                            replacement_planned: 'Replacement Planned',
-                            replacement_target_date: 'Replacement Target Date',
-                            notes: 'Notes',
-                            reason: 'Reason',
-                            batch_notice: 'Notice',
-                          };
-
-                          const rawEntries = Object.entries(transitionData).filter(
-                            ([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== ''
-                          );
-                          // Sort: target_beat_label before assigned_to_name
-                          const sortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
-                          const entries = rawEntries.sort((a, b) => {
-                            const oa = sortOrder[a[0]] ?? 99;
-                            const ob = sortOrder[b[0]] ?? 99;
-                            return oa - ob;
-                          });
-
-                          if (entries.length === 0) return null;
-
-                          return (
-                            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                              {entries.map(([key, value]) => {
-                                const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                                let displayValue: string;
-                                if (typeof value === 'boolean') {
-                                  displayValue = value ? 'Yes' : 'No';
-                                } else {
-                                  displayValue = String(value);
-                                }
-                                return (
-                                  <React.Fragment key={key}>
-                                    <span className="text-muted-foreground">{label}:</span>
-                                    <span className="font-medium">{displayValue}</span>
-                                  </React.Fragment>
-                                );
-                              })}
+                      return (
+                        <AccordionItem
+                          key={status}
+                          value={status}
+                          className={`rounded-lg border px-4 ${
+                            isFuture ? 'opacity-50 bg-muted/30' : 'bg-card'
+                          }`}
+                        >
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <div className="flex items-center gap-3 w-full">
+                              {/* Status icon */}
+                              {isCompleted ? (
+                                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                              ) : isCurrent ? (
+                                <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" />
+                              ) : (
+                                <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />
+                              )}
+                              <div className="flex flex-col items-start text-left min-w-0">
+                                <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                  {STATUS_LABELS[status]}
+                                </span>
+                                {transition?.created_at ? (
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}
+                                  </span>
+                                ) : isFuture ? (
+                                  <span className="text-xs text-muted-foreground italic">Pending</span>
+                                ) : null}
+                              </div>
                             </div>
-                          );
-                        })()}
-
-                        {/* Photos */}
-                        {photos.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-sm text-muted-foreground">Photos:</span>
-                            <div className="grid grid-cols-3 gap-2">
-                              {photos.map((url: string, i: number) => (
-                                <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">No transition record captured for this status.</p>
-                    )}
-                  </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            {transition ? (
+                              <div className="space-y-3 pt-1 pb-2">
+                                {entries.length > 0 && (
+                                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                    {entries.map(([key, value]) => {
+                                      const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                      let displayValue: string;
+                                      if (typeof value === 'boolean') {
+                                        displayValue = value ? 'Yes' : 'No';
+                                      } else {
+                                        displayValue = String(value);
+                                      }
+                                      return (
+                                        <React.Fragment key={key}>
+                                          <span className="text-muted-foreground">{label}:</span>
+                                          <span className="font-medium">{displayValue}</span>
+                                        </React.Fragment>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                {photos.length > 0 && (
+                                  <div className="space-y-2">
+                                    <span className="text-sm text-muted-foreground">Photos:</span>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {photos.map((url: string, i: number) => (
+                                        <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {entries.length === 0 && photos.length === 0 && (
+                                  <p className="text-sm text-muted-foreground italic">Status recorded with no additional details.</p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic py-1">
+                                {isFuture ? 'This status has not been reached yet.' : 'No transition record captured for this status.'}
+                              </p>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
                 </div>
               </>
             );
