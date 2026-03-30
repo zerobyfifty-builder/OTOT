@@ -105,6 +105,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       } else if (request.toStatus === "dead") {
         defaults.date_confirmed_dead = format(new Date(), "yyyy-MM-dd");
         defaults.replacement_planned = false;
+      } else if (request.toStatus === "re_planted") {
+        defaults.re_planted_date = format(new Date(), "yyyy-MM-dd");
       }
       setFormData(defaults);
       setPhotos([]);
