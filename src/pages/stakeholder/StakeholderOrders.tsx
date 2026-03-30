@@ -1168,6 +1168,42 @@ export const StakeholderOrders = () => {
           toast.success(`Updated ${req.treeIds.length} tree(s) to ${STATUS_LABELS[req.toStatus]}`);
         }}
       />
+
+      {/* Status Reversion Confirmation Dialog */}
+      <AlertDialog open={!!reversionDialog} onOpenChange={(open) => !open && setReversionDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Confirm Status Reversion
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                You are about to revert {reversionDialog?.treeIds.length === 1 ? "1 tree" : `${reversionDialog?.treeIds.length} trees`} from{" "}
+                <span className="font-semibold text-foreground">{STATUS_LABELS[reversionDialog?.fromStatus || ""]}</span> back to{" "}
+                <span className="font-semibold text-foreground">{STATUS_LABELS[reversionDialog?.toStatus || ""]}</span>.
+              </p>
+              <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm space-y-1">
+                <p className="font-medium text-destructive">⚠️ This action will:</p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
+                  <li>Delete all status transition records beyond the selected stage</li>
+                  <li>Remove any associated data captured during forward transitions</li>
+                  <li>This may result in <span className="font-medium text-foreground">permanent data loss</span></li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel (recommended)</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleReversionConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Proceed with Reversion
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
