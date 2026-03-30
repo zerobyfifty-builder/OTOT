@@ -2413,6 +2413,7 @@ export const StakeholderOrders = () => {
                         if (error) { toast.error(error.message); return; }
                         toast.success("Survival data saved");
                         refetchSurvival();
+                        queryClient.invalidateQueries({ queryKey: ["allSurvivalStatuses"] });
                         setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
                       }}
                     >
