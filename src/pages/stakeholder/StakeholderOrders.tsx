@@ -1381,20 +1381,91 @@ export const StakeholderOrders = () => {
                         )}
 
                         {/* Render transition_data fields */}
-                        {Object.keys(transitionData).length > 0 && (
-                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                            {Object.entries(transitionData).map(([key, value]) => {
-                              if (value === null || value === undefined || value === '') return null;
-                              const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                              return (
-                                <React.Fragment key={key}>
-                                  <span className="text-muted-foreground">{label}:</span>
-                                  <span className="font-medium">{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</span>
-                                </React.Fragment>
-                              );
-                            })}
-                          </div>
-                        )}
+                        {Object.keys(transitionData).length > 0 && (() => {
+                          // Map of raw ID keys to their friendly label keys
+                          const idToLabelMap: Record<string, string> = {
+                            assigned_to: 'assigned_to_name',
+                            target_beat: 'target_beat_label',
+                            nursery_id: 'nursery_name',
+                            species_id: 'species_name',
+                            tree_carer_id: 'tree_carer_name',
+                          };
+                          // Keys to skip (raw IDs when a friendly label exists, and internal flags)
+                          const skipKeys = new Set<string>();
+                          for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
+                            if (transitionData[labelKey] !== undefined) {
+                              skipKeys.add(idKey);
+                            }
+                          }
+                          // Also skip 'reverted' internal flag
+                          skipKeys.add('reverted');
+
+                          // Friendly display labels
+                          const friendlyLabels: Record<string, string> = {
+                            assigned_to_name: 'Assigned To',
+                            target_beat_label: 'Target Beat',
+                            assigned_date: 'Assigned Date',
+                            nursery_name: 'Nursery / CBO',
+                            species_name: 'Species',
+                            tree_carer_name: 'Tree Carer',
+                            soil_type: 'Soil Type',
+                            rainfall_mm: 'Rainfall (mm)',
+                            site_prep_date: 'Site Preparation Date',
+                            site_notes: 'Site Notes',
+                            sapling_ready_date: 'Sapling Ready Date',
+                            sapling_source: 'Sapling Source',
+                            scheduled_date: 'Scheduled Date',
+                            planting_team_size: 'Team Size',
+                            planting_date: 'Planting Date',
+                            planting_method: 'Planting Method',
+                            planting_notes: 'Planting Notes',
+                            latitude: 'Latitude',
+                            longitude: 'Longitude',
+                            mapping_date: 'Mapping Date',
+                            mapping_method: 'Mapping Method',
+                            mapping_notes: 'Mapping Notes',
+                            gps_accuracy: 'GPS Accuracy',
+                            verification_date: 'Verification Date',
+                            verified_by: 'Verified By',
+                            verification_method: 'Verification Method',
+                            verification_notes: 'Verification Notes',
+                            health_status: 'Health Status',
+                            planted_confirmed_date: 'Confirmed Date',
+                            date_confirmed_dead: 'Date Confirmed Dead',
+                            cause_of_death: 'Cause of Death',
+                            replacement_planned: 'Replacement Planned',
+                            replacement_target_date: 'Replacement Target Date',
+                            notes: 'Notes',
+                            reason: 'Reason',
+                            batch_notice: 'Notice',
+                          };
+
+                          const entries = Object.entries(transitionData).filter(
+                            ([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== ''
+                          );
+
+                          if (entries.length === 0) return null;
+
+                          return (
+                            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                              {entries.map(([key, value]) => {
+                                const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                let displayValue: string;
+                                if (typeof value === 'boolean') {
+                                  displayValue = value ? 'Yes' : 'No';
+                                } else {
+                                  displayValue = String(value);
+                                }
+                                return (
+                                  <React.Fragment key={key}>
+                                    <span className="text-muted-foreground">{label}:</span>
+                                    <span className="font-medium">{displayValue}</span>
+                                  </React.Fragment>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
 
                         {/* Photos */}
                         {photos.length > 0 && (
