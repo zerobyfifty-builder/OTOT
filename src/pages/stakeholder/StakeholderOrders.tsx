@@ -962,12 +962,15 @@ export const StakeholderOrders = () => {
                                         const sOrder = getPlantingStatusOrder(s);
                                         const isPassed = commonStatus && sOrder < commonStatusOrder;
                                         const isCurrent = s === commonStatus;
+                                        const isNextStep = commonStatus && sOrder === commonStatusOrder + 1;
+                                        const isFutureSkip = commonStatus && sOrder > commonStatusOrder + 1;
                                         return (
-                                          <SelectItem key={s} value={s}>
-                                            <span className="flex items-center gap-2">
+                                          <SelectItem key={s} value={s} disabled={isFutureSkip || false}>
+                                            <span className={`flex items-center gap-2 ${isFutureSkip ? 'opacity-40' : ''}`}>
                                               {isPassed && <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />}
                                               {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
-                                              {!isPassed && !isCurrent && <span className="w-3 shrink-0" />}
+                                              {isNextStep && <Circle className="h-3 w-3 text-primary shrink-0" />}
+                                              {!isPassed && !isCurrent && !isNextStep && <span className="w-3 shrink-0" />}
                                               <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
                                           </SelectItem>
