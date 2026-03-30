@@ -2472,6 +2472,7 @@ export const StakeholderOrders = () => {
                         if (error) { toast.error(error.message); return; }
                         toast.success("Growth data saved");
                         refetchGrowth();
+                        queryClient.invalidateQueries({ queryKey: ["allGrowthStages"] });
                         setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
                       }}
                     >
