@@ -1025,6 +1025,50 @@ export const StakeholderOrders = () => {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Status Transition Panel */}
+      <StatusTransitionPanel
+        open={transitionPanelOpen}
+        onClose={() => {
+          setTransitionPanelOpen(false);
+          setTransitionRequest(null);
+        }}
+        request={transitionRequest}
+        onConfirm={async (req, transitionData, photoUrls) => {
+          // 1. Update planting status for all trees
+          const { error: updateError } = await supabase
+            .from("trees")
+            .update({ 
+              planting_status: req.toStatus as any,
+              ...(req.toStatus === "being_mapped" && !req.isBatch && transitionData.latitude ? {
+                latitude: parseFloat(transitionData.latitude),
+                longitude: parseFloat(transitionData.longitude),
+              } : {}),
+            })
+            .in("id", req.treeIds);
+          if (updateError) throw updateError;
+
+          // 2. Save transition records for each tree
+          const records = req.treeIds.map(treeId => ({
+            tree_id: treeId,
+            contribution_id: req.contributionId || null,
+            from_status: req.fromStatus,
+            to_status: req.toStatus,
+            transition_data: transitionData,
+            photos: photoUrls,
+            created_by: user?.id || null,
+          }));
+          const { error: insertError } = await supabase
+            .from("tree_status_transitions" as any)
+            .insert(records);
+          if (insertError) throw insertError;
+
+          // 3. Refresh data
+          queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+          setBulkSelections({});
+          toast.success(`Updated ${req.treeIds.length} tree(s) to ${STATUS_LABELS[req.toStatus]}`);
+        }}
+      />
     </div>
   );
 };
