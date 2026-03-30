@@ -1346,6 +1346,7 @@ export const StakeholderOrders = () => {
               tree_carer_id: 'tree_carer_name',
               planted_by: 'planter_name',
               planting_team_lead: 'planter_name',
+              verified_by: 'planter_name',
             };
 
             return (
