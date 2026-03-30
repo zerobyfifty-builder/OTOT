@@ -40,6 +40,7 @@ const STATUS_TITLES: Record<string, string> = {
   verified: "Record verification",
   planted: "Confirm planted",
   dead: "Record tree loss",
+  re_planted: "Record re-planting",
 };
 
 const SOIL_TYPES = ["Loam", "Clay", "Sandy", "Volcanic", "Mixed"];
@@ -104,6 +105,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       } else if (request.toStatus === "dead") {
         defaults.date_confirmed_dead = format(new Date(), "yyyy-MM-dd");
         defaults.replacement_planned = false;
+      } else if (request.toStatus === "re_planted") {
+        defaults.re_planted_date = format(new Date(), "yyyy-MM-dd");
       }
       setFormData(defaults);
       setPhotos([]);
@@ -283,6 +286,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     } else if (s === "dead") {
       if (!formData.date_confirmed_dead) return "Date is required";
       if (!formData.cause_of_death) return "Please select cause of death";
+    } else if (s === "re_planted") {
+      if (!formData.re_planted_date) return "Re-planted date is required";
     }
     return null;
   };
@@ -701,6 +706,27 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Notes</Label>
               <Textarea placeholder="Optional notes..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
+      case "re_planted":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Re-planted Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.re_planted_date || ""} onChange={(e) => setField("re_planted_date", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Re-planting Method</Label>
+              <Select value={formData.re_planting_method || ""} onValueChange={(v) => setField("re_planting_method", v)}>
+                <SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger>
+                <SelectContent>{PLANTING_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea placeholder="Optional notes about re-planting..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
             </div>
           </div>
         );

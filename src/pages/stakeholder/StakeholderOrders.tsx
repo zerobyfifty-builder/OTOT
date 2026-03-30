@@ -81,7 +81,23 @@ const PLANTING_STATUSES = [
   'verified',
   'planted',
   'dead',
+  're_planted',
 ] as const;
+
+// Statuses available only for batch (bulk) updates
+const BATCH_STATUSES = [
+  'waiting_to_be_assigned',
+  'assigned',
+  'site_prepared',
+  'saplings_ready',
+  'planting_scheduled',
+  'sapling_planted',
+  'verified',
+  'planted',
+] as const;
+
+// Statuses available only for individual tree updates
+const INDIVIDUAL_ONLY_STATUSES = new Set(['being_mapped', 'dead', 're_planted']);
 
 const STATUS_LABELS: Record<string, string> = {
   waiting_to_be_assigned: 'Waiting to be Assigned',
@@ -94,6 +110,7 @@ const STATUS_LABELS: Record<string, string> = {
   verified: 'Verified',
   planted: 'Planted',
   dead: 'Dead',
+  re_planted: 'Re-planted',
   // Legacy mappings for any old data
   pending_allocation: 'Waiting to be Assigned',
   allocated: 'Assigned',
@@ -114,6 +131,7 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   verified: "bg-teal-500/10 text-teal-700 border-teal-500/20",
   planted: "bg-green-500/10 text-green-700 border-green-500/20",
   dead: "bg-red-500/10 text-red-700 border-red-500/20",
+  re_planted: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   // Legacy mappings
   pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
@@ -192,7 +210,7 @@ const getPlantingStatusOrder = (status: string) => {
   const order: Record<string, number> = {
     waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
     planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
-    partially_planted: 8, planted: 9, dead: 10,
+    partially_planted: 8, planted: 9, dead: 10, re_planted: 11,
   };
   return order[status] ?? 0;
 };
@@ -842,7 +860,7 @@ export const StakeholderOrders = () => {
                                         <SelectValue placeholder="Select status…" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {PLANTING_STATUSES.map(s => {
+                                        {BATCH_STATUSES.map(s => {
                                           const sOrder = getPlantingStatusOrder(s);
                                           const isPassed = commonStatus && sOrder < commonStatusOrder;
                                           const isCurrent = s === commonStatus;
@@ -1348,6 +1366,8 @@ export const StakeholderOrders = () => {
               cause_of_death: 'Cause of Death',
               replacement_planned: 'Replacement Planned',
               replacement_target_date: 'Replacement Target Date',
+              re_planted_date: 'Re-planted Date',
+              re_planting_method: 'Re-planting Method',
               notes: 'Notes',
               reason: 'Reason',
               batch_notice: 'Notice',
