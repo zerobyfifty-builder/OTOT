@@ -1335,6 +1335,7 @@ export const StakeholderOrders = () => {
               notes: 'Notes',
               reason: 'Reason',
               batch_notice: 'Notice',
+              planter_name: 'Planter',
             };
 
             const idToLabelMap: Record<string, string> = {
