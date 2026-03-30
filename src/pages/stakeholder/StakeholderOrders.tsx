@@ -1346,7 +1346,12 @@ export const StakeholderOrders = () => {
               tree_carer_id: 'tree_carer_name',
               planted_by: 'planter_name',
               planting_team_lead: 'planter_name',
-              verified_by: 'planter_name',
+            };
+            // For verified_by, resolve UUID to planter_name stored in transition data
+            const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
+              if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
+              if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+              return String(value);
             };
 
             return (
