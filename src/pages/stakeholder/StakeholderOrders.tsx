@@ -976,16 +976,30 @@ export const StakeholderOrders = () => {
                                     </SelectContent>
                                   </Select>
                                   {bulkSelections[group.contribution_id] && (
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      className="h-7 px-2 text-xs gap-1"
-                                      disabled={bulkUpdateStatus.isPending}
-                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
-                                    >
-                                      <CheckCheck className="h-3 w-3" />
-                                      Apply
-                                    </Button>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-7 px-2 text-xs gap-1"
+                                        disabled={bulkUpdateStatus.isPending}
+                                        onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
+                                      >
+                                        <CheckCheck className="h-3 w-3" />
+                                        Apply
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 px-1.5 text-xs text-muted-foreground hover:text-destructive"
+                                        onClick={() => setBulkSelections(prev => {
+                                          const next = { ...prev };
+                                          delete next[group.contribution_id];
+                                          return next;
+                                        })}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
                                   )}
                                   <TooltipProvider>
                                     <Tooltip>
