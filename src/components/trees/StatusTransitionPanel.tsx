@@ -1,0 +1,749 @@
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, MapPin, Upload, X, AlertTriangle, Info } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+interface TransitionRequest {
+  treeIds: string[];
+  fromStatus: string;
+  toStatus: string;
+  contributionId?: string;
+  treeCount?: number;
+  isBatch: boolean;
+}
+
+interface StatusTransitionPanelProps {
+  open: boolean;
+  onClose: () => void;
+  request: TransitionRequest | null;
+  onConfirm: (request: TransitionRequest, transitionData: Record<string, any>, photos: string[]) => Promise<void>;
+}
+
+const STATUS_TITLES: Record<string, string> = {
+  assigned: "Assign planting resources",
+  site_prepared: "Record site preparation",
+  saplings_ready: "Link nursery & species",
+  planting_scheduled: "Schedule planting event",
+  sapling_planted: "Record planting event",
+  being_mapped: "Capture GPS geotag",
+  verified: "Record verification",
+  planted: "Confirm planted",
+  dead: "Record tree loss",
+};
+
+const SOIL_TYPES = ["Loam", "Clay", "Sandy", "Volcanic", "Mixed"];
+const RAINFALL_ZONES = ["Arid", "Semi-arid", "Sub-humid", "Humid"];
+const PLANTING_SEASONS = ["Long Rains (Mar–May)", "Short Rains (Oct–Dec)", "Dry Season"];
+const LAND_TYPES = ["Degraded Forest", "Restoration Area", "Agroforestry", "Riverbank", "Open Land"];
+const PLANTING_METHODS = ["Manual Pit", "Mechanical", "Broadcast Seeding", "Transplant"];
+const VERIFICATION_METHODS = ["Field Visit", "Photo Review", "GPS Confirmation", "Satellite"];
+const DEATH_CAUSES = ["Drought", "Disease", "Fire", "Grazing", "Flooding", "Unknown", "Other"];
+
+export function StatusTransitionPanel({ open, onClose, request, onConfirm }: StatusTransitionPanelProps) {
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Location cascade state
+  const [selectedCounty, setSelectedCounty] = useState("");
+  const [selectedSubcounty, setSelectedSubcounty] = useState("");
+  const [selectedBlock, setSelectedBlock] = useState("");
+  const [selectedStation, setSelectedStation] = useState("");
+
+  // Reset form when request changes
+  useEffect(() => {
+    if (request) {
+      const defaults: Record<string, any> = {};
+      if (request.toStatus === "assigned") {
+        defaults.assigned_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "site_prepared") {
+        defaults.site_prepared_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "saplings_ready") {
+        defaults.sapling_count = request.treeCount || 1;
+        defaults.nursery_ready_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "planting_scheduled") {
+        defaults.scheduled_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "sapling_planted") {
+        defaults.actual_planting_date = format(new Date(), "yyyy-MM-dd");
+        defaults.trees_actually_planted = request.treeCount || request.treeIds.length;
+      } else if (request.toStatus === "being_mapped") {
+        defaults.geo_tag_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "verified") {
+        defaults.verification_date = format(new Date(), "yyyy-MM-dd");
+      } else if (request.toStatus === "dead") {
+        defaults.date_confirmed_dead = format(new Date(), "yyyy-MM-dd");
+        defaults.replacement_planned = false;
+      }
+      setFormData(defaults);
+      setPhotos([]);
+      setSelectedCounty("");
+      setSelectedSubcounty("");
+      setSelectedBlock("");
+      setSelectedStation("");
+    }
+  }, [request]);
+
+  // Queries for reference data
+  const { data: planters } = useQuery({
+    queryKey: ["transitionPlanters"],
+    queryFn: async () => {
+      const { data } = await supabase.from("tree_carers").select("id, name, planter_type").eq("status", "Active").order("name");
+      return data || [];
+    },
+    enabled: open && !!request && ["assigned", "planting_scheduled", "sapling_planted", "verified"].includes(request.toStatus),
+  });
+
+  const { data: counties } = useQuery({
+    queryKey: ["transitionCounties"],
+    queryFn: async () => {
+      const { data } = await supabase.from("mdm_location_counties").select("id, name").eq("is_active", true).order("name");
+      return data || [];
+    },
+    enabled: open && !!request && request.toStatus === "assigned",
+  });
+
+  const { data: subcounties } = useQuery({
+    queryKey: ["transitionSubcounties", selectedCounty],
+    queryFn: async () => {
+      const { data } = await supabase.from("mdm_location_subcounties").select("id, name").eq("county_id", selectedCounty).eq("is_active", true).order("name");
+      return data || [];
+    },
+    enabled: !!selectedCounty,
+  });
+
+  const { data: blocks } = useQuery({
+    queryKey: ["transitionBlocks", selectedSubcounty],
+    queryFn: async () => {
+      const { data } = await supabase.from("mdm_location_blocks").select("id, name").eq("subcounty_id", selectedSubcounty).eq("is_active", true).order("name");
+      return data || [];
+    },
+    enabled: !!selectedSubcounty,
+  });
+
+  const { data: stations } = useQuery({
+    queryKey: ["transitionStations", selectedBlock],
+    queryFn: async () => {
+      const { data } = await supabase.from("mdm_location_stations").select("id, name").eq("block_id", selectedBlock).eq("is_active", true).order("name");
+      return data || [];
+    },
+    enabled: !!selectedBlock,
+  });
+
+  const { data: beats } = useQuery({
+    queryKey: ["transitionBeats", selectedStation],
+    queryFn: async () => {
+      const { data } = await supabase.from("mdm_location_beats").select("id, name, beat_code").eq("station_id", selectedStation).eq("is_active", true).order("name");
+      return data || [];
+    },
+    enabled: !!selectedStation,
+  });
+
+  const { data: nurseries } = useQuery({
+    queryKey: ["transitionNurseries"],
+    queryFn: async () => {
+      const { data } = await supabase.from("nurseries").select("id, cbo_name, block_name").eq("is_active", true).order("cbo_name");
+      return data || [];
+    },
+    enabled: open && !!request && request.toStatus === "saplings_ready",
+  });
+
+  const { data: speciesForNursery } = useQuery({
+    queryKey: ["transitionSpecies", formData.nursery_id],
+    queryFn: async () => {
+      if (!formData.nursery_id) return [];
+      const { data: links } = await supabase.from("nursery_species").select("species_id").eq("nursery_id", formData.nursery_id);
+      if (!links?.length) return [];
+      const speciesIds = links.map(l => l.species_id);
+      const { data: species } = await supabase.from("seed_species").select("id, species_name, common_name, certification_source").in("id", speciesIds).eq("is_active", true);
+      return species || [];
+    },
+    enabled: !!formData.nursery_id,
+  });
+
+  // Get seed source for selected species
+  const selectedSpeciesData = useMemo(() => {
+    if (!speciesForNursery || !formData.species_id) return null;
+    return speciesForNursery.find(s => s.id === formData.species_id);
+  }, [speciesForNursery, formData.species_id]);
+
+  const setField = (key: string, value: any) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const maxFiles = request?.toStatus === "sapling_planted" ? 10 : 5;
+    const combined = [...photos, ...files].slice(0, maxFiles);
+    setPhotos(combined);
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPhotos = async (): Promise<string[]> => {
+    if (!photos.length) return [];
+    const urls: string[] = [];
+    for (const file of photos) {
+      const ext = file.name.split('.').pop();
+      const path = `${request?.toStatus}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("planting-photos").upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("planting-photos").getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: pos.coords.latitude.toFixed(8),
+          longitude: pos.coords.longitude.toFixed(8),
+          gps_accuracy: pos.coords.accuracy ? Math.round(pos.coords.accuracy) : undefined,
+        }));
+        toast.success("Location captured");
+      },
+      (err) => toast.error("Could not get location: " + err.message),
+      { enableHighAccuracy: true }
+    );
+  };
+
+  const validate = (): string | null => {
+    if (!request) return "No request";
+    const s = request.toStatus;
+    if (s === "assigned") {
+      if (!formData.assigned_to) return "Please select a planter";
+      if (!formData.target_beat) return "Please select a target beat";
+      if (!formData.assigned_date) return "Please set an assigned date";
+    } else if (s === "site_prepared") {
+      if (!formData.site_prepared_date) return "Please set a date";
+      if (!formData.soil_type) return "Please select soil type";
+      if (!formData.rainfall_zone) return "Please select rainfall zone";
+      if (!formData.planting_season) return "Please select planting season";
+      if (!formData.land_type) return "Please select land type";
+    } else if (s === "saplings_ready") {
+      if (!formData.nursery_id) return "Please select a nursery";
+      if (!formData.species_id) return "Please select a species";
+      if (!formData.sapling_count || formData.sapling_count < 1) return "Sapling count must be at least 1";
+      if (!formData.nursery_ready_date) return "Please set nursery ready date";
+    } else if (s === "planting_scheduled") {
+      if (!formData.scheduled_date) return "Please set a scheduled date";
+      if (!formData.planting_team_lead) return "Please select a team lead";
+    } else if (s === "sapling_planted") {
+      if (!formData.actual_planting_date) return "Please set actual planting date";
+      if (!formData.planted_by) return "Please select planted by";
+      if (!formData.trees_actually_planted || formData.trees_actually_planted < 1) return "Enter trees actually planted";
+      if (!formData.planting_method) return "Please select planting method";
+      if (photos.length === 0) return "At least 1 planting photo is required";
+    } else if (s === "being_mapped") {
+      if (!request.isBatch) {
+        if (!formData.latitude) return "Latitude is required";
+        if (!formData.longitude) return "Longitude is required";
+        if (!formData.geo_tag_date) return "Geo tag date is required";
+      }
+    } else if (s === "verified") {
+      if (!formData.verified_by) return "Please select verifier";
+      if (!formData.verification_date) return "Verification date is required";
+      if (!formData.verification_method) return "Please select verification method";
+    } else if (s === "dead") {
+      if (!formData.date_confirmed_dead) return "Date is required";
+      if (!formData.cause_of_death) return "Please select cause of death";
+    }
+    return null;
+  };
+
+  const handleSave = async () => {
+    const error = validate();
+    if (error) { toast.error(error); return; }
+    if (!request) return;
+
+    setSaving(true);
+    try {
+      let photoUrls: string[] = [];
+      if (photos.length > 0) {
+        setUploading(true);
+        photoUrls = await uploadPhotos();
+        setUploading(false);
+      }
+
+      // Build full transition data including location cascade info
+      const fullData = { ...formData };
+      if (request.toStatus === "assigned") {
+        // Include location names for display
+        const county = counties?.find(c => c.id === selectedCounty);
+        const beat = beats?.find(b => b.id === formData.target_beat);
+        if (county) fullData.county_name = county.name;
+        if (beat) fullData.beat_name = beat.name;
+        const planter = planters?.find(p => p.id === formData.assigned_to);
+        if (planter) fullData.assigned_to_name = planter.name;
+      }
+      if (request.toStatus === "saplings_ready") {
+        const nursery = nurseries?.find(n => n.id === formData.nursery_id);
+        if (nursery) fullData.nursery_name = nursery.cbo_name;
+        if (selectedSpeciesData) {
+          fullData.species_name = selectedSpeciesData.species_name;
+          fullData.seed_source = selectedSpeciesData.certification_source || "Not specified";
+        }
+      }
+      if (["planting_scheduled", "sapling_planted", "verified"].includes(request.toStatus)) {
+        const planter = planters?.find(p => p.id === (formData.planting_team_lead || formData.planted_by || formData.verified_by));
+        if (planter) fullData.planter_name = planter.name;
+      }
+
+      await onConfirm(request, fullData, photoUrls);
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save transition");
+    } finally {
+      setSaving(false);
+      setUploading(false);
+    }
+  };
+
+  if (!request) return null;
+
+  const title = STATUS_TITLES[request.toStatus] || request.toStatus;
+  const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
+
+  const renderPlanterSelect = (fieldKey: string, label: string, required = true) => (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium">{label} {required && <span className="text-destructive">*</span>}</Label>
+      <Select value={formData[fieldKey] || ""} onValueChange={(v) => setField(fieldKey, v)}>
+        <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
+        <SelectContent>
+          {(planters || []).map(p => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.name} {p.planter_type ? `(${p.planter_type})` : ""}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const renderPhotoUpload = (maxFiles: number, required = false) => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">
+        Photos {required && <span className="text-destructive">*</span>}
+        <span className="text-muted-foreground font-normal ml-1">(max {maxFiles})</span>
+      </Label>
+      <div className="flex flex-wrap gap-2">
+        {photos.map((file, i) => (
+          <div key={i} className="relative group">
+            <div className="w-16 h-16 rounded-lg border bg-muted flex items-center justify-center overflow-hidden">
+              <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+            </div>
+            <button
+              onClick={() => removePhoto(i)}
+              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+        {photos.length < maxFiles && (
+          <label className="w-16 h-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+            <Upload className="h-5 w-5 text-muted-foreground" />
+            <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoAdd} />
+          </label>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderFormFields = () => {
+    switch (request.toStatus) {
+      case "assigned":
+        return (
+          <div className="space-y-4">
+            {renderPlanterSelect("assigned_to", "Assigned to")}
+            
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Target Beat <span className="text-destructive">*</span></Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={selectedCounty} onValueChange={(v) => { setSelectedCounty(v); setSelectedSubcounty(""); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }}>
+                  <SelectTrigger className="text-xs"><SelectValue placeholder="County" /></SelectTrigger>
+                  <SelectContent>
+                    {(counties || []).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedSubcounty} onValueChange={(v) => { setSelectedSubcounty(v); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedCounty}>
+                  <SelectTrigger className="text-xs"><SelectValue placeholder="Sub-county" /></SelectTrigger>
+                  <SelectContent>
+                    {(subcounties || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedBlock} onValueChange={(v) => { setSelectedBlock(v); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedSubcounty}>
+                  <SelectTrigger className="text-xs"><SelectValue placeholder="Block" /></SelectTrigger>
+                  <SelectContent>
+                    {(blocks || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedStation} onValueChange={(v) => { setSelectedStation(v); setField("target_beat", ""); }} disabled={!selectedBlock}>
+                  <SelectTrigger className="text-xs"><SelectValue placeholder="Station" /></SelectTrigger>
+                  <SelectContent>
+                    {(stations || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Select value={formData.target_beat || ""} onValueChange={(v) => setField("target_beat", v)} disabled={!selectedStation}>
+                <SelectTrigger className="text-xs"><SelectValue placeholder="Select Beat" /></SelectTrigger>
+                <SelectContent>
+                  {(beats || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name} ({b.beat_code})</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Assigned Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.assigned_date || ""} onChange={(e) => setField("assigned_date", e.target.value)} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
+      case "site_prepared":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Site Prepared Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.site_prepared_date || ""} onChange={(e) => setField("site_prepared_date", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Soil Type <span className="text-destructive">*</span></Label>
+              <Select value={formData.soil_type || ""} onValueChange={(v) => setField("soil_type", v)}>
+                <SelectTrigger><SelectValue placeholder="Select soil type..." /></SelectTrigger>
+                <SelectContent>{SOIL_TYPES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Rainfall Zone <span className="text-destructive">*</span></Label>
+              <Select value={formData.rainfall_zone || ""} onValueChange={(v) => setField("rainfall_zone", v)}>
+                <SelectTrigger><SelectValue placeholder="Select zone..." /></SelectTrigger>
+                <SelectContent>{RAINFALL_ZONES.map(z => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Planting Season <span className="text-destructive">*</span></Label>
+              <Select value={formData.planting_season || ""} onValueChange={(v) => setField("planting_season", v)}>
+                <SelectTrigger><SelectValue placeholder="Select season..." /></SelectTrigger>
+                <SelectContent>{PLANTING_SEASONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Land Type <span className="text-destructive">*</span></Label>
+              <Select value={formData.land_type || ""} onValueChange={(v) => setField("land_type", v)}>
+                <SelectTrigger><SelectValue placeholder="Select land type..." /></SelectTrigger>
+                <SelectContent>{LAND_TYPES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Site Preparation Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.site_notes || ""} onChange={(e) => setField("site_notes", e.target.value)} rows={3} />
+            </div>
+            {renderPhotoUpload(5)}
+          </div>
+        );
+
+      case "saplings_ready":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Nursery / CBO <span className="text-destructive">*</span></Label>
+              <Select value={formData.nursery_id || ""} onValueChange={(v) => { setField("nursery_id", v); setField("species_id", ""); }}>
+                <SelectTrigger><SelectValue placeholder="Select nursery..." /></SelectTrigger>
+                <SelectContent>
+                  {(nurseries || []).map(n => <SelectItem key={n.id} value={n.id}>{n.cbo_name} — {n.block_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Species <span className="text-destructive">*</span></Label>
+              <Select value={formData.species_id || ""} onValueChange={(v) => setField("species_id", v)} disabled={!formData.nursery_id}>
+                <SelectTrigger><SelectValue placeholder={formData.nursery_id ? "Select species..." : "Select nursery first"} /></SelectTrigger>
+                <SelectContent>
+                  {(speciesForNursery || []).map(s => <SelectItem key={s.id} value={s.id}>{s.species_name} {s.common_name ? `(${s.common_name})` : ""}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Sapling Count Allocated <span className="text-destructive">*</span></Label>
+              <Input type="number" min={1} value={formData.sapling_count || ""} onChange={(e) => setField("sapling_count", parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Sapling Age (weeks)</Label>
+              <Input type="number" min={0} value={formData.sapling_age_weeks || ""} onChange={(e) => setField("sapling_age_weeks", parseInt(e.target.value) || undefined)} placeholder="Optional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Nursery Ready Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.nursery_ready_date || ""} onChange={(e) => setField("nursery_ready_date", e.target.value)} />
+            </div>
+            {selectedSpeciesData && (
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <Label className="text-xs text-muted-foreground">Seed Source (auto-filled)</Label>
+                <p className="text-sm font-medium mt-0.5">{selectedSpeciesData.certification_source || "Not specified"}</p>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
+      case "planting_scheduled":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Scheduled Planting Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.scheduled_date || ""} onChange={(e) => setField("scheduled_date", e.target.value)} />
+            </div>
+            {renderPlanterSelect("planting_team_lead", "Planting Team Lead")}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Community Participants Expected</Label>
+              <Input type="number" min={0} value={formData.community_participants_expected || ""} onChange={(e) => setField("community_participants_expected", parseInt(e.target.value) || undefined)} placeholder="Optional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Event Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.event_notes || ""} onChange={(e) => setField("event_notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
+      case "sapling_planted":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Actual Planting Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.actual_planting_date || ""} onChange={(e) => setField("actual_planting_date", e.target.value)} />
+            </div>
+            {renderPlanterSelect("planted_by", "Planted By")}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Number of Trees Actually Planted <span className="text-destructive">*</span></Label>
+              <Input type="number" min={1} value={formData.trees_actually_planted || ""} onChange={(e) => setField("trees_actually_planted", parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Community Participants</Label>
+              <Input type="number" min={0} value={formData.community_participants || ""} onChange={(e) => setField("community_participants", parseInt(e.target.value) || undefined)} placeholder="Optional" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Planting Method <span className="text-destructive">*</span></Label>
+              <Select value={formData.planting_method || ""} onValueChange={(v) => setField("planting_method", v)}>
+                <SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger>
+                <SelectContent>{PLANTING_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Planting Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.planting_notes || ""} onChange={(e) => setField("planting_notes", e.target.value)} rows={3} />
+            </div>
+            {renderPhotoUpload(10, true)}
+          </div>
+        );
+
+      case "being_mapped":
+        if (request.isBatch) {
+          return (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                  <p className="text-sm text-blue-800">
+                    GPS coordinates will be captured individually per tree in the Tree Operations page. 
+                    Click Save to proceed — individual geotagging is required within 7 days.
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Latitude <span className="text-destructive">*</span></Label>
+                <Input type="number" step="0.00000001" value={formData.latitude || ""} onChange={(e) => setField("latitude", e.target.value)} placeholder="-1.28638200" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Longitude <span className="text-destructive">*</span></Label>
+                <Input type="number" step="0.00000001" value={formData.longitude || ""} onChange={(e) => setField("longitude", e.target.value)} placeholder="36.81723400" />
+              </div>
+            </div>
+            <Button type="button" variant="outline" size="sm" className="gap-2" onClick={handleUseLocation}>
+              <MapPin className="h-4 w-4" />
+              Use my current location
+            </Button>
+            {formData.gps_accuracy && (
+              <div className="text-xs text-muted-foreground">GPS Accuracy: ~{formData.gps_accuracy}m</div>
+            )}
+            {formData.latitude && formData.longitude && (
+              <div className="rounded-lg border bg-muted/30 p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Map Preview</p>
+                <div className="aspect-video rounded-md bg-muted flex items-center justify-center">
+                  <img
+                    src={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+22c55e(${formData.longitude},${formData.latitude})/${formData.longitude},${formData.latitude},14,0/300x200@2x?access_token=pk.placeholder`}
+                    alt="Map preview"
+                    className="w-full h-full object-cover rounded-md"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute text-xs text-muted-foreground">
+                    📍 {Number(formData.latitude).toFixed(6)}, {Number(formData.longitude).toFixed(6)}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Geo Tag Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.geo_tag_date || ""} onChange={(e) => setField("geo_tag_date", e.target.value)} />
+            </div>
+          </div>
+        );
+
+      case "verified":
+        return (
+          <div className="space-y-4">
+            {renderPlanterSelect("verified_by", "Verified By")}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Verification Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.verification_date || ""} onChange={(e) => setField("verification_date", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Verification Method <span className="text-destructive">*</span></Label>
+              <Select value={formData.verification_method || ""} onValueChange={(v) => setField("verification_method", v)}>
+                <SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger>
+                <SelectContent>{VERIFICATION_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Verification Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.verification_notes || ""} onChange={(e) => setField("verification_notes", e.target.value)} rows={3} />
+            </div>
+            {renderPhotoUpload(5)}
+          </div>
+        );
+
+      case "dead":
+        return (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-red-200 bg-red-50/50 p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-red-700">Marking trees as dead will decrement the Planted counter.</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Date Confirmed Dead <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.date_confirmed_dead || ""} onChange={(e) => setField("date_confirmed_dead", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Cause of Death <span className="text-destructive">*</span></Label>
+              <Select value={formData.cause_of_death || ""} onValueChange={(v) => setField("cause_of_death", v)}>
+                <SelectTrigger><SelectValue placeholder="Select cause..." /></SelectTrigger>
+                <SelectContent>{DEATH_CAUSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <Label className="text-sm font-medium">Replacement Planned?</Label>
+              <Switch checked={formData.replacement_planned || false} onCheckedChange={(v) => setField("replacement_planned", v)} />
+            </div>
+            {formData.replacement_planned && (
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Replacement Target Date</Label>
+                <Input type="date" value={formData.replacement_target_date || ""} onChange={(e) => setField("replacement_target_date", e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea placeholder="Optional notes..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // "Planted" status shows a confirmation dialog instead
+  if (request.toStatus === "planted") {
+    return (
+      <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent className="w-full sm:max-w-md flex flex-col">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-green-600" />
+              Confirm Planted
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 py-6">
+            <div className="rounded-lg border bg-green-50/50 border-green-200 p-4">
+              <p className="text-sm text-green-800">
+                Mark <strong>{treeLabel}</strong> as fully planted and verified? This will update the Planted counter in the summary header.
+              </p>
+            </div>
+          </div>
+          <SheetFooter className="flex gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button onClick={handleSave} disabled={saving} className="flex-1 bg-green-600 hover:bg-green-700">
+              {saving ? "Saving..." : "Confirm"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full sm:max-w-md flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2 text-lg">
+            <Calendar className="h-5 w-5 text-primary" />
+            {title}
+          </SheetTitle>
+          <p className="text-sm text-muted-foreground">
+            Updating {treeLabel} • {request.contributionId || ""}
+          </p>
+        </SheetHeader>
+
+        <Separator className="my-2" />
+
+        <div className="flex-1 overflow-y-auto py-4 pr-1">
+          {renderFormFields()}
+        </div>
+
+        <SheetFooter className="flex gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose} className="flex-1" disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving || uploading} className="flex-1">
+            {uploading ? "Uploading photos..." : saving ? "Saving..." : "Save"}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
