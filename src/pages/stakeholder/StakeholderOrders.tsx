@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { Progress } from "@/components/ui/progress";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
+import { StatusTransitionPanel } from "@/components/trees/StatusTransitionPanel";
 import {
   Table,
   TableBody,
@@ -198,7 +199,15 @@ export const StakeholderOrders = () => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewSheet, setViewSheet] = useState<ContributionGroup | null>(null);
   const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
-
+  const [transitionRequest, setTransitionRequest] = useState<{
+    treeIds: string[];
+    fromStatus: string;
+    toStatus: string;
+    contributionId?: string;
+    treeCount?: number;
+    isBatch: boolean;
+  } | null>(null);
+  const [transitionPanelOpen, setTransitionPanelOpen] = useState(false);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
@@ -456,8 +465,25 @@ export const StakeholderOrders = () => {
   const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
     const status = bulkSelections[contribId];
     if (!status) { toast.error("Please select a status first"); return; }
-    bulkUpdateStatus.mutate({ treeIds, status });
-  }, [bulkSelections, bulkUpdateStatus]);
+    // "waiting_to_be_assigned" saves immediately (no panel)
+    if (status === "waiting_to_be_assigned") {
+      bulkUpdateStatus.mutate({ treeIds, status });
+      return;
+    }
+    // Find current trees to get from status
+    const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
+    const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
+    const group = contributionGroups.find(g => g.contribution_id === contribId);
+    setTransitionRequest({
+      treeIds,
+      fromStatus,
+      toStatus: status,
+      contributionId: contribId,
+      treeCount: group?.total_trees || treeIds.length,
+      isBatch: true,
+    });
+    setTransitionPanelOpen(true);
+  }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -711,7 +737,22 @@ export const StakeholderOrders = () => {
                                                   {canEditPlantingStatus ? (
                                                     <Select
                                                       value={tree.planting_status || 'waiting_to_be_assigned'}
-                                                      onValueChange={(value) => updateStatus.mutate({ treeId: tree.id, status: value })}
+                                                      onValueChange={(value) => {
+                                                        if (value === "waiting_to_be_assigned") {
+                                                          updateStatus.mutate({ treeId: tree.id, status: value });
+                                                          return;
+                                                        }
+                                                        const contribId = (tree as any).contribution_id;
+                                                        setTransitionRequest({
+                                                          treeIds: [tree.id],
+                                                          fromStatus: tree.planting_status || "waiting_to_be_assigned",
+                                                          toStatus: value,
+                                                          contributionId: contribId || undefined,
+                                                          treeCount: tree.num_trees,
+                                                          isBatch: false,
+                                                        });
+                                                        setTransitionPanelOpen(true);
+                                                      }}
                                                     >
                                                       <SelectTrigger className="w-[180px]">
                                                         <SelectValue />
@@ -984,6 +1025,50 @@ export const StakeholderOrders = () => {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Status Transition Panel */}
+      <StatusTransitionPanel
+        open={transitionPanelOpen}
+        onClose={() => {
+          setTransitionPanelOpen(false);
+          setTransitionRequest(null);
+        }}
+        request={transitionRequest}
+        onConfirm={async (req, transitionData, photoUrls) => {
+          // 1. Update planting status for all trees
+          const { error: updateError } = await supabase
+            .from("trees")
+            .update({ 
+              planting_status: req.toStatus as any,
+              ...(req.toStatus === "being_mapped" && !req.isBatch && transitionData.latitude ? {
+                latitude: parseFloat(transitionData.latitude),
+                longitude: parseFloat(transitionData.longitude),
+              } : {}),
+            })
+            .in("id", req.treeIds);
+          if (updateError) throw updateError;
+
+          // 2. Save transition records for each tree
+          const records = req.treeIds.map(treeId => ({
+            tree_id: treeId,
+            contribution_id: req.contributionId || null,
+            from_status: req.fromStatus,
+            to_status: req.toStatus,
+            transition_data: transitionData,
+            photos: photoUrls,
+            created_by: user?.id || null,
+          }));
+          const { error: insertError } = await supabase
+            .from("tree_status_transitions" as any)
+            .insert(records);
+          if (insertError) throw insertError;
+
+          // 3. Refresh data
+          queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+          setBulkSelections({});
+          toast.success(`Updated ${req.treeIds.length} tree(s) to ${STATUS_LABELS[req.toStatus]}`);
+        }}
+      />
     </div>
   );
 };
