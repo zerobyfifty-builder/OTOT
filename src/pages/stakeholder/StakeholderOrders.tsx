@@ -1152,6 +1152,7 @@ export const StakeholderOrders = () => {
                                                 <TableCell>1</TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell>-</TableCell>
+                                                <TableCell>-</TableCell>
                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
