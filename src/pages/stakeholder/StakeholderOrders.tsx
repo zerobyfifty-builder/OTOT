@@ -199,7 +199,15 @@ export const StakeholderOrders = () => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewSheet, setViewSheet] = useState<ContributionGroup | null>(null);
   const [bulkSelections, setBulkSelections] = useState<Record<string, string>>({});
-
+  const [transitionRequest, setTransitionRequest] = useState<{
+    treeIds: string[];
+    fromStatus: string;
+    toStatus: string;
+    contributionId?: string;
+    treeCount?: number;
+    isBatch: boolean;
+  } | null>(null);
+  const [transitionPanelOpen, setTransitionPanelOpen] = useState(false);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
