@@ -59,6 +59,28 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
 
+  // Query to fetch assigned planter from previous "assigned" transition
+  const { data: assignedPlanterData } = useQuery({
+    queryKey: ["assignedPlanterForTrees", request?.treeIds],
+    queryFn: async () => {
+      if (!request?.treeIds?.length) return null;
+      // Get the most recent "assigned" transition for the first tree
+      const { data } = await supabase
+        .from("tree_status_transitions")
+        .select("transition_data")
+        .eq("tree_id", request.treeIds[0])
+        .eq("to_status", "assigned")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (data && data.length > 0) {
+        const td = data[0].transition_data as Record<string, any>;
+        return { planterId: td?.assigned_to, planterName: td?.planter_name };
+      }
+      return null;
+    },
+    enabled: open && !!request && ["planting_scheduled", "sapling_planted"].includes(request.toStatus),
+  });
+
   // Reset form when request changes
   useEffect(() => {
     if (request) {
@@ -88,6 +110,17 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       setBeatSearch("");
     }
   }, [request]);
+
+  // Pre-fill planter from assigned status when data is available
+  useEffect(() => {
+    if (assignedPlanterData?.planterId && request) {
+      if (request.toStatus === "planting_scheduled" && !formData.planting_team_lead) {
+        setFormData(prev => ({ ...prev, planting_team_lead: assignedPlanterData.planterId }));
+      } else if (request.toStatus === "sapling_planted" && !formData.planted_by) {
+        setFormData(prev => ({ ...prev, planted_by: assignedPlanterData.planterId }));
+      }
+    }
+  }, [assignedPlanterData, request?.toStatus]);
 
   // Queries for reference data
   const { data: planters } = useQuery({
