@@ -465,8 +465,25 @@ export const StakeholderOrders = () => {
   const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
     const status = bulkSelections[contribId];
     if (!status) { toast.error("Please select a status first"); return; }
-    bulkUpdateStatus.mutate({ treeIds, status });
-  }, [bulkSelections, bulkUpdateStatus]);
+    // "waiting_to_be_assigned" saves immediately (no panel)
+    if (status === "waiting_to_be_assigned") {
+      bulkUpdateStatus.mutate({ treeIds, status });
+      return;
+    }
+    // Find current trees to get from status
+    const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
+    const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
+    const group = contributionGroups.find(g => g.contribution_id === contribId);
+    setTransitionRequest({
+      treeIds,
+      fromStatus,
+      toStatus: status,
+      contributionId: contribId,
+      treeCount: group?.total_trees || treeIds.length,
+      isBatch: true,
+    });
+    setTransitionPanelOpen(true);
+  }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
