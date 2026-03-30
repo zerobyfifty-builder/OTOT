@@ -710,6 +710,27 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
           </div>
         );
 
+      case "re_planted":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Re-planted Date <span className="text-destructive">*</span></Label>
+              <Input type="date" value={formData.re_planted_date || ""} onChange={(e) => setField("re_planted_date", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Re-planting Method</Label>
+              <Select value={formData.re_planting_method || ""} onValueChange={(v) => setField("re_planting_method", v)}>
+                <SelectTrigger><SelectValue placeholder="Select method..." /></SelectTrigger>
+                <SelectContent>{PLANTING_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea placeholder="Optional notes about re-planting..." value={formData.notes || ""} onChange={(e) => setField("notes", e.target.value)} rows={3} />
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
