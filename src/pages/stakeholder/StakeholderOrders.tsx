@@ -1416,8 +1416,8 @@ export const StakeholderOrders = () => {
 
                           // Friendly display labels
                           const friendlyLabels: Record<string, string> = {
-                            assigned_to_name: 'Assigned To',
-                            target_beat_label: 'Target Beat',
+                            target_beat_label: 'Location (Target Beat)',
+                            assigned_to_name: 'Planter',
                             assigned_date: 'Assigned Date',
                             nursery_name: 'Nursery / CBO',
                             species_name: 'Species',
