@@ -932,6 +932,21 @@ export const StakeholderOrders = () => {
                                                     </Badge>
                                                   )}
                                                 </TableCell>
+                                                <TableCell>
+                                                  <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                        <MoreVertical className="h-3.5 w-3.5" />
+                                                      </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusSliderIndex(0); }}>
+                                                        <Eye className="h-3.5 w-3.5 mr-2" />
+                                                        View Status History
+                                                      </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                  </DropdownMenu>
+                                                </TableCell>
                                               </TableRow>
                                             );
                                           } else {
