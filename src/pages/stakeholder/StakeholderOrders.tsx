@@ -232,6 +232,8 @@ export const StakeholderOrders = () => {
     treeCount?: number;
     isBatch: boolean;
   } | null>(null);
+  const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [statusSliderIndex, setStatusSliderIndex] = useState(0);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
