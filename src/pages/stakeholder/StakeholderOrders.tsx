@@ -941,7 +941,7 @@ export const StakeholderOrders = () => {
                                                       </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusSliderIndex(0); }}>
+                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); }}>
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
                                                         View Status History
                                                       </DropdownMenuItem>
