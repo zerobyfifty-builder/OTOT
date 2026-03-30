@@ -6,8 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
@@ -252,7 +255,12 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [statusHistoryGroup, setStatusHistoryGroup] = useState<ContributionGroup | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+  const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
+  const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
+  const [monitoringForm, setMonitoringForm] = useState({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+  const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
@@ -331,6 +339,38 @@ export const StakeholderOrders = () => {
       return data as any[];
     },
     enabled: !!statusHistoryTree?.id,
+  });
+
+  // Query monitoring logs for batch status & monitoring sheet
+  const batchContribId = statusHistoryGroup?.contribution_id || monitoringSheet?.contribution_id;
+  const { data: monitoringLogs, refetch: refetchMonitoring } = useQuery({
+    queryKey: ["monitoringLogs", batchContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("monitoring_logs" as any)
+        .select("*")
+        .eq("contribution_id", batchContribId!)
+        .order("inspection_date", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!batchContribId,
+  });
+
+  // Query impact metrics for batch status & impact sheet
+  const impactContribId = statusHistoryGroup?.contribution_id || impactSheet?.contribution_id;
+  const { data: impactMetrics, refetch: refetchImpact } = useQuery({
+    queryKey: ["impactMetrics", impactContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("impact_metrics" as any)
+        .select("*")
+        .eq("contribution_id", impactContribId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!impactContribId,
   });
 
   const updateStatus = useMutation({
@@ -815,14 +855,31 @@ export const StakeholderOrders = () => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => setViewSheet(group)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Contribution
+                                  Contribution Info
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                   const firstTree = group.trees[0];
-                                  if (firstTree) setStatusHistoryTree(firstTree);
+                                  if (firstTree) {
+                                    setStatusHistoryTree(firstTree);
+                                    setStatusHistoryGroup(group);
+                                  }
                                 }}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Status History
+                                  Batch Status & Info
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMonitoringSheet(group);
+                                  setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                                }}>
+                                  <ClipboardList className="h-3.5 w-3.5 mr-2" />
+                                  Monitoring Logs
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setImpactSheet(group);
+                                  setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
+                                }}>
+                                  <BarChart3 className="h-3.5 w-3.5 mr-2" />
+                                  Impact Generated
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -976,7 +1033,7 @@ export const StakeholderOrders = () => {
                                                       </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); }}>
+                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusHistoryGroup(group); }}>
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
                                                         View Status History
                                                       </DropdownMenuItem>
@@ -1321,69 +1378,36 @@ export const StakeholderOrders = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Status History Sheet - Accordion Design */}
-      <Sheet open={!!statusHistoryTree} onOpenChange={(open) => !open && setStatusHistoryTree(null)}>
+      {/* Batch Status & Info Sheet - 3 Tabs */}
+      <Sheet open={!!statusHistoryTree} onOpenChange={(open) => { if (!open) { setStatusHistoryTree(null); setStatusHistoryGroup(null); } }}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {statusHistoryTree && (() => {
             const currentStatus = statusHistoryTree.planting_status || 'waiting_to_be_assigned';
             const currentOrder = getPlantingStatusOrder(currentStatus);
-
-            // All statuses in lifecycle order
+            const treeCount = statusHistoryGroup?.total_trees || 1;
             const allLifecycleStatuses = PLANTING_STATUSES;
 
-            // Friendly labels map
             const friendlyLabels: Record<string, string> = {
-              target_beat_label: 'Location (Target Beat)',
-              assigned_to_name: 'Planter',
-              assigned_date: 'Assigned Date',
-              nursery_name: 'Nursery / CBO',
-              species_name: 'Species',
-              tree_carer_name: 'Tree Carer',
-              soil_type: 'Soil Type',
-              rainfall_mm: 'Rainfall (mm)',
-              site_prep_date: 'Site Preparation Date',
-              site_notes: 'Site Notes',
-              sapling_ready_date: 'Sapling Ready Date',
-              sapling_source: 'Sapling Source',
-              scheduled_date: 'Scheduled Date',
-              planting_team_size: 'Team Size',
-              planting_date: 'Planting Date',
-              planting_method: 'Planting Method',
-              planting_notes: 'Planting Notes',
-              latitude: 'Latitude',
-              longitude: 'Longitude',
-              mapping_date: 'Mapping Date',
-              mapping_method: 'Mapping Method',
-              mapping_notes: 'Mapping Notes',
-              gps_accuracy: 'GPS Accuracy',
-              verification_date: 'Verification Date',
-              verified_by: 'Verified By',
-              verification_method: 'Verification Method',
-              verification_notes: 'Verification Notes',
-              health_status: 'Health Status',
-              planted_confirmed_date: 'Confirmed Date',
-              date_confirmed_dead: 'Date Confirmed Dead',
-              cause_of_death: 'Cause of Death',
-              replacement_planned: 'Replacement Planned',
-              replacement_target_date: 'Replacement Target Date',
-              re_planted_date: 'Re-planted Date',
-              re_planting_method: 'Re-planting Method',
-              notes: 'Notes',
-              reason: 'Reason',
-              batch_notice: 'Notice',
-              planter_name: 'Planter',
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
+              nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
+              soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
+              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+              scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
+              planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
+              latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
+              verification_date: 'Verification Date', verified_by: 'Verified By', verification_method: 'Verification Method', verification_notes: 'Verification Notes', health_status: 'Health Status',
+              planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
+              replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
+              re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
+              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
             };
 
             const idToLabelMap: Record<string, string> = {
-              assigned_to: 'assigned_to_name',
-              target_beat: 'target_beat_label',
-              nursery_id: 'nursery_name',
-              species_id: 'species_name',
-              tree_carer_id: 'tree_carer_name',
-              planted_by: 'planter_name',
-              planting_team_lead: 'planter_name',
+              assigned_to: 'assigned_to_name', target_beat: 'target_beat_label',
+              nursery_id: 'nursery_name', species_id: 'species_name', tree_carer_id: 'tree_carer_name',
+              planted_by: 'planter_name', planting_team_lead: 'planter_name',
             };
-            // For verified_by, resolve UUID to planter_name stored in transition data
+
             const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
               if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
               if (typeof value === 'boolean') return value ? 'Yes' : 'No';
@@ -1395,131 +1419,397 @@ export const StakeholderOrders = () => {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Current Status: {STATUS_LABELS[currentStatus] || currentStatus}
+                    Batch Status & Info ({treeCount} tree{treeCount !== 1 ? 's' : ''})
                   </SheetTitle>
-                  <p className="text-sm text-muted-foreground">Tree ID: {statusHistoryTree.otot_id}</p>
                 </SheetHeader>
 
-                <div className="mt-6 divide-y">
-                  {/* Waiting to be assigned - non-expandable */}
-                  {(() => {
-                    const purchaseDate = statusHistoryTree.created_at;
-                    return (
-                      <div className="flex items-center gap-3 py-3">
-                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                        <div className="flex flex-col items-start min-w-0">
-                          <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                <Tabs defaultValue="planting" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="planting">Planting</TabsTrigger>
+                    <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                    <TabsTrigger value="impact">Impact</TabsTrigger>
+                  </TabsList>
 
-                  {/* Remaining statuses as accordion */}
-                  <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
-                    {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
-                      const statusOrder = getPlantingStatusOrder(status);
-                      const isCompleted = statusOrder < currentOrder;
-                      const isCurrent = statusOrder === currentOrder;
-                      const isFuture = statusOrder > currentOrder;
-                      const transition = treeTransitions?.find(t => t.to_status === status);
-                      const transitionData = transition?.transition_data || {};
-                      const photos = transition?.photos || [];
+                  {/* Planting Tab - existing status history */}
+                  <TabsContent value="planting">
+                    <div className="divide-y">
+                      {/* Waiting to be assigned - non-expandable */}
+                      {(() => {
+                        const purchaseDate = statusHistoryTree.created_at;
+                        return (
+                          <div className="flex items-center gap-3 py-3">
+                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
-                      const skipKeys = new Set<string>(['reverted']);
-                      for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
-                        if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
-                      }
-                      // For verified status, hide the planter_name key since it's used to resolve verified_by
-                      if (status === 'verified' && transitionData['planter_name'] !== undefined) {
-                        skipKeys.add('planter_name');
-                      }
-                      const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
-                      const entries = Object.entries(transitionData)
-                        .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
-                        .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
+                      <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                        {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
+                          const statusOrder = getPlantingStatusOrder(status);
+                          const isCompleted = statusOrder < currentOrder;
+                          const isCurrent = statusOrder === currentOrder;
+                          const isFuture = statusOrder > currentOrder;
+                          const transition = treeTransitions?.find(t => t.to_status === status);
+                          const transitionData = transition?.transition_data || {};
+                          const photos = transition?.photos || [];
 
-                      return (
-                        <AccordionItem
-                          key={status}
-                          value={status}
-                          className={`border-0 ${isFuture ? 'opacity-50' : ''}`}
-                        >
-                          <AccordionTrigger className="hover:no-underline py-3">
-                            <div className="flex items-center gap-3 w-full">
-                              {isCompleted ? (
-                                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                              ) : isCurrent ? (
-                                <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" />
-                              ) : (
-                                <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />
+                          const skipKeys = new Set<string>(['reverted']);
+                          for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
+                            if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
+                          }
+                          if (status === 'verified' && transitionData['planter_name'] !== undefined) {
+                            skipKeys.add('planter_name');
+                          }
+                          const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entries = Object.entries(transitionData)
+                            .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
+                            .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
+
+                          return (
+                            <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
+                              <AccordionTrigger className="hover:no-underline py-3">
+                                <div className="flex items-center gap-3 w-full">
+                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  <div className="flex flex-col items-start text-left min-w-0">
+                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                      {STATUS_LABELS[status]}
+                                    </span>
+                                    {transition?.created_at ? (
+                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                    ) : isFuture ? (
+                                      <span className="text-xs text-muted-foreground italic">Pending</span>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                {transition ? (
+                                  <div className="space-y-3 pt-1 pb-2 pl-8">
+                                    {entries.length > 0 && (
+                                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                        {entries.map(([key, value]) => {
+                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                          const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
+                                          return (
+                                            <React.Fragment key={key}>
+                                              <span className="text-muted-foreground">{label}:</span>
+                                              <span className="font-medium">{displayValue}</span>
+                                            </React.Fragment>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                    {photos.length > 0 && (
+                                      <div className="space-y-2">
+                                        <span className="text-sm text-muted-foreground">Photos:</span>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          {photos.map((url: string, i: number) => (
+                                            <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                              <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                                <ZoomIn className="h-5 w-5 text-white" />
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entries.length === 0 && photos.length === 0 && (
+                                      <p className="text-sm text-muted-foreground italic">Status recorded with no additional details.</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground italic py-1 pl-8">
+                                    {isFuture ? 'This status has not been reached yet.' : 'No transition record captured for this status.'}
+                                  </p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        })}
+                      </Accordion>
+                    </div>
+                  </TabsContent>
+
+                  {/* Monitoring Tab */}
+                  <TabsContent value="monitoring">
+                    <div className="space-y-4 py-2">
+                      {monitoringLogs && monitoringLogs.length > 0 ? (
+                        <div className="space-y-3">
+                          {monitoringLogs.map((log: any) => (
+                            <div key={log.id} className="rounded-lg border bg-card p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-semibold">{log.inspection_id}</span>
+                                <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
+                              </div>
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                                <span className="text-muted-foreground">Inspected By:</span>
+                                <span className="font-medium">{log.inspected_by}</span>
+                                {log.notes && <>
+                                  <span className="text-muted-foreground">Notes:</span>
+                                  <span>{log.notes}</span>
+                                </>}
+                              </div>
+                              {log.photos && log.photos.length > 0 && (
+                                <div className="grid grid-cols-3 gap-2 pt-1">
+                                  {log.photos.map((url: string, i: number) => (
+                                    <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                      <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-16 w-full" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                        <ZoomIn className="h-4 w-4 text-white" />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               )}
-                              <div className="flex flex-col items-start text-left min-w-0">
-                                <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
-                                  {STATUS_LABELS[status]}
-                                </span>
-                                {transition?.created_at ? (
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}
-                                  </span>
-                                ) : isFuture ? (
-                                  <span className="text-xs text-muted-foreground italic">Pending</span>
-                                ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic text-center py-6">No monitoring logs recorded yet.</p>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Impact Tab */}
+                  <TabsContent value="impact">
+                    <div className="space-y-4 py-2">
+                      {impactMetrics && impactMetrics.length > 0 ? (
+                        impactMetrics.map((metric: any) => (
+                          <div key={metric.id} className="space-y-4">
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Carbon Metrics</h4>
+                              <div className="rounded-lg border bg-card p-3">
+                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                  <span className="text-muted-foreground">CO₂ Offset (Estimated):</span>
+                                  <span className="font-medium">{metric.co2_offset_estimated || '-'} kg</span>
+                                  <span className="text-muted-foreground">CO₂ Offset (Actual):</span>
+                                  <span className="font-medium">{metric.co2_offset_actual || '-'} kg</span>
+                                  <span className="text-muted-foreground">Calculation Method:</span>
+                                  <span className="font-medium">{metric.calculation_method || '-'}</span>
+                                </div>
                               </div>
                             </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            {transition ? (
-                              <div className="space-y-3 pt-1 pb-2 pl-8">
-                                {entries.length > 0 && (
-                                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                                    {entries.map(([key, value]) => {
-                                      const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                                      const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
-                                      return (
-                                        <React.Fragment key={key}>
-                                          <span className="text-muted-foreground">{label}:</span>
-                                          <span className="font-medium">{displayValue}</span>
-                                        </React.Fragment>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                                {photos.length > 0 && (
-                                  <div className="space-y-2">
-                                    <span className="text-sm text-muted-foreground">Photos:</span>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      {photos.map((url: string, i: number) => (
-                                        <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
-                                          <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
-                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                                            <ZoomIn className="h-5 w-5 text-white" />
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                                {entries.length === 0 && photos.length === 0 && (
-                                  <p className="text-sm text-muted-foreground italic">Status recorded with no additional details.</p>
-                                )}
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ecosystem Impact</h4>
+                              <div className="rounded-lg border bg-card p-3">
+                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                  <span className="text-muted-foreground">Biodiversity Index:</span>
+                                  <span className="font-medium">{metric.biodiversity_index || '-'}</span>
+                                  <span className="text-muted-foreground">Soil Improvement:</span>
+                                  <span className="font-medium">{metric.soil_improvement_indicator || '-'}</span>
+                                  <span className="text-muted-foreground">Water Retention:</span>
+                                  <span className="font-medium">{metric.water_retention_indicator || '-'}</span>
+                                </div>
                               </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground italic py-1 pl-8">
-                                {isFuture ? 'This status has not been reached yet.' : 'No transition record captured for this status.'}
-                              </p>
-                            )}
-                          </AccordionContent>
-                        </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
-                </div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community Impact</h4>
+                              <div className="rounded-lg border bg-card p-3">
+                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                  <span className="text-muted-foreground">Jobs Created:</span>
+                                  <span className="font-medium">{metric.jobs_created || 0}</span>
+                                  <span className="text-muted-foreground">Local Participants:</span>
+                                  <span className="font-medium">{metric.local_participants_count || 0}</span>
+                                  <span className="text-muted-foreground">Community Benefits:</span>
+                                  <span className="font-medium">{metric.community_benefits || '-'}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic text-center py-6">No impact data recorded yet.</p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </>
             );
           })()}
+        </SheetContent>
+      </Sheet>
+
+      {/* Monitoring Logs Sheet */}
+      <Sheet open={!!monitoringSheet} onOpenChange={(open) => !open && setMonitoringSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {monitoringSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  Periodic Monitoring Logs
+                </SheetTitle>
+                <p className="text-sm text-muted-foreground">{monitoringSheet.contribution_id}</p>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Inspection ID *</Label>
+                  <Input value={monitoringForm.inspection_id} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_id: e.target.value }))} placeholder="e.g. INS-001" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Date *</Label>
+                  <Input type="date" value={monitoringForm.inspection_date} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_date: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Inspected By *</Label>
+                  <Input value={monitoringForm.inspected_by} onChange={(e) => setMonitoringForm(f => ({ ...f, inspected_by: e.target.value }))} placeholder="Inspector name" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Notes</Label>
+                  <Textarea value={monitoringForm.notes} onChange={(e) => setMonitoringForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Photos (comma-separated URLs)</Label>
+                  <Input value={monitoringForm.photos} onChange={(e) => setMonitoringForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." />
+                </div>
+                <Button
+                  className="w-full"
+                  disabled={!monitoringForm.inspection_id || !monitoringForm.inspection_date || !monitoringForm.inspected_by}
+                  onClick={async () => {
+                    const photos = monitoringForm.photos ? monitoringForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
+                    const { error } = await supabase.from("monitoring_logs" as any).insert({
+                      contribution_id: monitoringSheet.contribution_id,
+                      inspection_id: monitoringForm.inspection_id,
+                      inspection_date: monitoringForm.inspection_date,
+                      inspected_by: monitoringForm.inspected_by,
+                      notes: monitoringForm.notes || null,
+                      photos,
+                      created_by: user?.id || null,
+                    });
+                    if (error) { toast.error(error.message); return; }
+                    toast.success("Monitoring log saved");
+                    refetchMonitoring();
+                    setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                  }}
+                >
+                  Save Monitoring Log
+                </Button>
+
+                {/* Existing logs */}
+                {monitoringLogs && monitoringLogs.length > 0 && (
+                  <div className="space-y-3 pt-4">
+                    <Separator />
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Previous Logs</h4>
+                    {monitoringLogs.map((log: any) => (
+                      <div key={log.id} className="rounded-lg border bg-card p-3 space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-semibold">{log.inspection_id}</span>
+                          <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">By: {log.inspected_by}</p>
+                        {log.notes && <p className="text-sm">{log.notes}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Impact Generated Sheet */}
+      <Sheet open={!!impactSheet} onOpenChange={(open) => !open && setImpactSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {impactSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Impact Generated
+                </SheetTitle>
+                <p className="text-sm text-muted-foreground">{impactSheet.contribution_id}</p>
+              </SheetHeader>
+              <div className="mt-6 space-y-5">
+                {/* Carbon Metrics */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Carbon Metrics</h4>
+                  <div className="space-y-1.5">
+                    <Label>CO₂ Offset Estimated (kg)</Label>
+                    <Input type="number" value={impactForm.co2_offset_estimated} onChange={(e) => setImpactForm(f => ({ ...f, co2_offset_estimated: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>CO₂ Offset Actual (kg)</Label>
+                    <Input type="number" value={impactForm.co2_offset_actual} onChange={(e) => setImpactForm(f => ({ ...f, co2_offset_actual: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Calculation Method</Label>
+                    <Input value={impactForm.calculation_method} onChange={(e) => setImpactForm(f => ({ ...f, calculation_method: e.target.value }))} placeholder="e.g. IPCC standard" />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Ecosystem Impact */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ecosystem Impact</h4>
+                  <div className="space-y-1.5">
+                    <Label>Biodiversity Index</Label>
+                    <Input type="number" step="0.01" value={impactForm.biodiversity_index} onChange={(e) => setImpactForm(f => ({ ...f, biodiversity_index: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Soil Improvement Indicator</Label>
+                    <Input value={impactForm.soil_improvement_indicator} onChange={(e) => setImpactForm(f => ({ ...f, soil_improvement_indicator: e.target.value }))} placeholder="e.g. Improved / Stable" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Water Retention Indicator</Label>
+                    <Input value={impactForm.water_retention_indicator} onChange={(e) => setImpactForm(f => ({ ...f, water_retention_indicator: e.target.value }))} placeholder="e.g. High / Medium / Low" />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Community Impact */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community Impact</h4>
+                  <div className="space-y-1.5">
+                    <Label>Jobs Created</Label>
+                    <Input type="number" value={impactForm.jobs_created} onChange={(e) => setImpactForm(f => ({ ...f, jobs_created: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Local Participants Count</Label>
+                    <Input type="number" value={impactForm.local_participants_count} onChange={(e) => setImpactForm(f => ({ ...f, local_participants_count: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Community Benefits</Label>
+                    <Textarea value={impactForm.community_benefits} onChange={(e) => setImpactForm(f => ({ ...f, community_benefits: e.target.value }))} placeholder="Describe community benefits..." rows={3} />
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={async () => {
+                    const { error } = await supabase.from("impact_metrics" as any).insert({
+                      contribution_id: impactSheet.contribution_id,
+                      co2_offset_estimated: impactForm.co2_offset_estimated ? parseFloat(impactForm.co2_offset_estimated) : 0,
+                      co2_offset_actual: impactForm.co2_offset_actual ? parseFloat(impactForm.co2_offset_actual) : null,
+                      calculation_method: impactForm.calculation_method || null,
+                      biodiversity_index: impactForm.biodiversity_index ? parseFloat(impactForm.biodiversity_index) : null,
+                      soil_improvement_indicator: impactForm.soil_improvement_indicator || null,
+                      water_retention_indicator: impactForm.water_retention_indicator || null,
+                      jobs_created: impactForm.jobs_created ? parseInt(impactForm.jobs_created) : 0,
+                      local_participants_count: impactForm.local_participants_count ? parseInt(impactForm.local_participants_count) : 0,
+                      community_benefits: impactForm.community_benefits || null,
+                      created_by: user?.id || null,
+                    });
+                    if (error) { toast.error(error.message); return; }
+                    toast.success("Impact data saved");
+                    refetchImpact();
+                    setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
+                  }}
+                >
+                  Save Impact Data
+                </Button>
+              </div>
+            </>
+          )}
         </SheetContent>
       </Sheet>
 

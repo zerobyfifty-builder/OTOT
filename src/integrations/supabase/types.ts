@@ -512,6 +512,57 @@ export type Database = {
         }
         Relationships: []
       }
+      impact_metrics: {
+        Row: {
+          biodiversity_index: number | null
+          calculation_method: string | null
+          co2_offset_actual: number | null
+          co2_offset_estimated: number | null
+          community_benefits: string | null
+          contribution_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          jobs_created: number | null
+          local_participants_count: number | null
+          soil_improvement_indicator: string | null
+          updated_at: string
+          water_retention_indicator: string | null
+        }
+        Insert: {
+          biodiversity_index?: number | null
+          calculation_method?: string | null
+          co2_offset_actual?: number | null
+          co2_offset_estimated?: number | null
+          community_benefits?: string | null
+          contribution_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jobs_created?: number | null
+          local_participants_count?: number | null
+          soil_improvement_indicator?: string | null
+          updated_at?: string
+          water_retention_indicator?: string | null
+        }
+        Update: {
+          biodiversity_index?: number | null
+          calculation_method?: string | null
+          co2_offset_actual?: number | null
+          co2_offset_estimated?: number | null
+          community_benefits?: string | null
+          contribution_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jobs_created?: number | null
+          local_participants_count?: number | null
+          soil_improvement_indicator?: string | null
+          updated_at?: string
+          water_retention_indicator?: string | null
+        }
+        Relationships: []
+      }
       integration_logs: {
         Row: {
           api_key_id: string | null
@@ -1008,6 +1059,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      monitoring_logs: {
+        Row: {
+          contribution_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          inspected_by: string
+          inspection_date: string
+          inspection_id: string
+          notes: string | null
+          photos: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          contribution_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inspected_by: string
+          inspection_date: string
+          inspection_id: string
+          notes?: string | null
+          photos?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          contribution_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inspected_by?: string
+          inspection_date?: string
+          inspection_id?: string
+          notes?: string | null
+          photos?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       monitoring_records: {
         Row: {
