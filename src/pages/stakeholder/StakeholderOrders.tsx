@@ -483,25 +483,121 @@ export const StakeholderOrders = () => {
   const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
     const status = bulkSelections[contribId];
     if (!status) { toast.error("Please select a status first"); return; }
-    // "waiting_to_be_assigned" saves immediately (no panel)
-    if (status === "waiting_to_be_assigned") {
-      bulkUpdateStatus.mutate({ treeIds, status });
-      return;
-    }
     // Find current trees to get from status
     const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
     const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
     const group = contributionGroups.find(g => g.contribution_id === contribId);
-    setTransitionRequest({
+    
+    const targetOrder = getPlantingStatusOrder(status);
+    const currentOrder = getPlantingStatusOrder(fromStatus);
+    
+    const requestData = {
       treeIds,
       fromStatus,
       toStatus: status,
       contributionId: contribId,
       treeCount: group?.total_trees || treeIds.length,
       isBatch: true,
-    });
+    };
+
+    // Check for reversion (going backward)
+    if (targetOrder < currentOrder) {
+      setReversionDialog(requestData);
+      return;
+    }
+    
+    // "waiting_to_be_assigned" saves immediately (no panel)
+    if (status === "waiting_to_be_assigned") {
+      bulkUpdateStatus.mutate({ treeIds, status });
+      return;
+    }
+    
+    setTransitionRequest(requestData);
     setTransitionPanelOpen(true);
   }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
+
+  const handleIndividualStatusChange = useCallback((tree: Tree, newStatus: string) => {
+    const fromStatus = tree.planting_status || "waiting_to_be_assigned";
+    const targetOrder = getPlantingStatusOrder(newStatus);
+    const currentOrder = getPlantingStatusOrder(fromStatus);
+    const contribId = (tree as any).contribution_id;
+
+    const requestData = {
+      treeIds: [tree.id],
+      fromStatus,
+      toStatus: newStatus,
+      contributionId: contribId || undefined,
+      treeCount: tree.num_trees,
+      isBatch: false,
+    };
+
+    // Check for reversion
+    if (targetOrder < currentOrder) {
+      setReversionDialog(requestData);
+      return;
+    }
+
+    // "waiting_to_be_assigned" saves immediately
+    if (newStatus === "waiting_to_be_assigned") {
+      updateStatus.mutate({ treeId: tree.id, status: newStatus });
+      return;
+    }
+
+    setTransitionRequest(requestData);
+    setTransitionPanelOpen(true);
+  }, [updateStatus]);
+
+  const handleReversionConfirm = useCallback(async () => {
+    if (!reversionDialog) return;
+    const { treeIds, toStatus } = reversionDialog;
+    
+    try {
+      // 1. Delete all forward transition records beyond the target status
+      const targetOrder = getPlantingStatusOrder(toStatus);
+      const forwardStatuses = PLANTING_STATUSES.filter(s => getPlantingStatusOrder(s) > targetOrder);
+      
+      // Delete transition records where to_status is ahead of target
+      if (forwardStatuses.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("tree_status_transitions" as any)
+          .delete()
+          .in("tree_id", treeIds)
+          .in("to_status", forwardStatuses as any);
+        if (deleteError) throw deleteError;
+      }
+      
+      // Also delete the current target status records so the transition panel can create fresh ones
+      // 2. Update tree status
+      const { error: updateError } = await supabase
+        .from("trees")
+        .update({ planting_status: toStatus as any })
+        .in("id", treeIds);
+      if (updateError) throw updateError;
+
+      // 3. Save the reversion transition record
+      const records = treeIds.map(treeId => ({
+        tree_id: treeId,
+        contribution_id: reversionDialog.contributionId || null,
+        from_status: reversionDialog.fromStatus,
+        to_status: toStatus,
+        transition_data: { reverted: true, reason: "Manual reversion by user" },
+        photos: [] as string[],
+        created_by: user?.id || null,
+      }));
+      const { error: insertError } = await supabase
+        .from("tree_status_transitions" as any)
+        .insert(records);
+      if (insertError) throw insertError;
+
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+      setBulkSelections({});
+      toast.success(`Reverted ${treeIds.length} tree(s) to ${STATUS_LABELS[toStatus]}. Forward records deleted.`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to revert status");
+    } finally {
+      setReversionDialog(null);
+    }
+  }, [reversionDialog, user?.id, queryClient]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
