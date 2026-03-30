@@ -1448,7 +1448,12 @@ export const StakeholderOrders = () => {
                                     <span className="text-sm text-muted-foreground">Photos:</span>
                                     <div className="grid grid-cols-3 gap-2">
                                       {photos.map((url: string, i: number) => (
-                                        <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                        <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                          <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                            <ZoomIn className="h-5 w-5 text-white" />
+                                          </div>
+                                        </div>
                                       ))}
                                     </div>
                                   </div>
