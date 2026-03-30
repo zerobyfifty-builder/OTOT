@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
@@ -234,6 +234,7 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
@@ -1447,7 +1448,12 @@ export const StakeholderOrders = () => {
                                     <span className="text-sm text-muted-foreground">Photos:</span>
                                     <div className="grid grid-cols-3 gap-2">
                                       {photos.map((url: string, i: number) => (
-                                        <img key={i} src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                        <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                          <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-20 w-full" />
+                                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                            <ZoomIn className="h-5 w-5 text-white" />
+                                          </div>
+                                        </div>
                                       ))}
                                     </div>
                                   </div>
@@ -1472,6 +1478,33 @@ export const StakeholderOrders = () => {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Photo Lightbox */}
+      {lightboxPhoto && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+          <div className="relative max-w-3xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxPhoto} alt="Full size" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />
+            <div className="absolute top-2 right-2 flex gap-2">
+              <a
+                href={lightboxPhoto}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className="h-5 w-5" />
+              </a>
+              <button
+                onClick={() => setLightboxPhoto(null)}
+                className="p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
