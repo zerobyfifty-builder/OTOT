@@ -342,19 +342,20 @@ export const StakeholderOrders = () => {
     enabled: !!orgId,
   });
 
-  // Query status transitions for the selected tree
+  // Query status transitions for the selected tree (batch or tree-level)
+  const transitionTreeId = statusHistoryTree?.id || treeStatusSheet?.tree.id;
   const { data: treeTransitions } = useQuery({
-    queryKey: ["treeStatusTransitions", statusHistoryTree?.id],
+    queryKey: ["treeStatusTransitions", transitionTreeId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_status_transitions" as any)
         .select("*")
-        .eq("tree_id", statusHistoryTree!.id)
+        .eq("tree_id", transitionTreeId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data as any[];
     },
-    enabled: !!statusHistoryTree?.id,
+    enabled: !!transitionTreeId,
   });
 
   // Query monitoring logs for batch status & monitoring sheet
