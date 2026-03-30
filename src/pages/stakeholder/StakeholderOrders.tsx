@@ -218,6 +218,14 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [transitionPanelOpen, setTransitionPanelOpen] = useState(false);
+  const [reversionDialog, setReversionDialog] = useState<{
+    treeIds: string[];
+    fromStatus: string;
+    toStatus: string;
+    contributionId?: string;
+    treeCount?: number;
+    isBatch: boolean;
+  } | null>(null);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
