@@ -450,6 +450,28 @@ export const StakeholderOrders = () => {
     enabled: allTreeIds.length > 0,
   });
 
+  // Fetch latest survival status for all trees
+  const { data: allSurvivalStatuses } = useQuery({
+    queryKey: ["allSurvivalStatuses", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("tree_id, survival_status, last_checked_date")
+        .in("tree_id", allTreeIds)
+        .order("last_checked_date", { ascending: false });
+      if (error) throw error;
+      // Keep only the latest record per tree
+      const map = new Map<string, { survival_status: string; last_checked_date: string }>();
+      (data || []).forEach((r: any) => {
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, { survival_status: r.survival_status, last_checked_date: r.last_checked_date });
+        }
+      });
+      return map;
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
