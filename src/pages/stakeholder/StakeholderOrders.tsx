@@ -870,19 +870,37 @@ export const StakeholderOrders = () => {
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                 <TableCell>
                                                   {canEditPlantingStatus ? (
+                                                    {(() => {
+                                                      const treeCurrentStatus = tree.planting_status || 'waiting_to_be_assigned';
+                                                      const treeCurrentOrder = getPlantingStatusOrder(treeCurrentStatus);
+                                                      return (
                                                     <Select
-                                                      value={tree.planting_status || 'waiting_to_be_assigned'}
+                                                      value={treeCurrentStatus}
                                                       onValueChange={(value) => handleIndividualStatusChange(tree, value)}
                                                     >
-                                                      <SelectTrigger className="w-[180px]">
+                                                      <SelectTrigger className="w-[210px]">
                                                         <SelectValue />
                                                       </SelectTrigger>
                                                       <SelectContent>
-                                                        {PLANTING_STATUSES.map(s => (
-                                                          <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                                                        ))}
+                                                        {PLANTING_STATUSES.map(s => {
+                                                          const sOrder = getPlantingStatusOrder(s);
+                                                          const isPassed = sOrder < treeCurrentOrder;
+                                                          const isCurrent = s === treeCurrentStatus;
+                                                          return (
+                                                            <SelectItem key={s} value={s}>
+                                                              <span className="flex items-center gap-2">
+                                                                {isPassed && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                                                                {isCurrent && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
+                                                                {!isPassed && !isCurrent && <span className="w-3.5 shrink-0" />}
+                                                                <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
+                                                              </span>
+                                                            </SelectItem>
+                                                          );
+                                                        })}
                                                       </SelectContent>
                                                     </Select>
+                                                      );
+                                                    })()}
                                                   ) : (
                                                     <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                       {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
