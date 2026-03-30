@@ -2062,6 +2062,97 @@ export type Database = {
           },
         ]
       }
+      tree_geotags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          geo_accuracy: number | null
+          geo_tag_id: string
+          id: string
+          latitude: number
+          longitude: number
+          map_snapshot: string | null
+          tree_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          geo_accuracy?: number | null
+          geo_tag_id: string
+          id?: string
+          latitude: number
+          longitude: number
+          map_snapshot?: string | null
+          tree_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          geo_accuracy?: number | null
+          geo_tag_id?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          map_snapshot?: string | null
+          tree_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_geotags_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: true
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tree_growth_metrics: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          growth_stage: string
+          id: string
+          last_measured_date: string
+          notes: string | null
+          photos: string[] | null
+          tree_age: string | null
+          tree_height: string | null
+          tree_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          growth_stage?: string
+          id?: string
+          last_measured_date: string
+          notes?: string | null
+          photos?: string[] | null
+          tree_age?: string | null
+          tree_height?: string | null
+          tree_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          growth_stage?: string
+          id?: string
+          last_measured_date?: string
+          notes?: string | null
+          photos?: string[] | null
+          tree_age?: string | null
+          tree_height?: string | null
+          tree_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_growth_metrics_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tree_status_transitions: {
         Row: {
           contribution_id: string | null
@@ -2099,6 +2190,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tree_status_transitions_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tree_survival_tracking: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          last_checked_date: string
+          notes: string | null
+          survival_rate: number | null
+          survival_status: string
+          tree_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_checked_date: string
+          notes?: string | null
+          survival_rate?: number | null
+          survival_status?: string
+          tree_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_checked_date?: string
+          notes?: string | null
+          survival_rate?: number | null
+          survival_status?: string
+          tree_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_survival_tracking_tree_id_fkey"
             columns: ["tree_id"]
             isOneToOne: false
             referencedRelation: "trees"

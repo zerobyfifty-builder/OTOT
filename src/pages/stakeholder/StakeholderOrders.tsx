@@ -270,6 +270,14 @@ export const StakeholderOrders = () => {
   const [monitoringForm, setMonitoringForm] = useState({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
+  // Tree-level status & info
+  const [treeStatusSheet, setTreeStatusSheet] = useState<{ tree: Tree; group: ContributionGroup } | null>(null);
+  const [geotagDialog, setGeotagDialog] = useState<Tree | null>(null);
+  const [geotagForm, setGeotagForm] = useState({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+  const [growthSheet, setGrowthSheet] = useState<Tree | null>(null);
+  const [survivalForm, setSurvivalForm] = useState({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+  const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+  
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
