@@ -879,6 +879,7 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
                                       <TableBody>
