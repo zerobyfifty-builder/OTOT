@@ -912,8 +912,9 @@ export const StakeholderOrders = () => {
                 <TableBody>
                   {paginated.map((group) => {
                     const isExpanded = expandedRows.has(group.contribution_id);
-                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
-                    const progressPct = group.total_trees > 0 ? Math.min(100, (plantedInGroup / group.total_trees) * 100) : 0;
+                    const allSameStatus = group.trees.length > 0 && group.trees.every(t => (t.planting_status || 'waiting_to_be_assigned') === (group.trees[0].planting_status || 'waiting_to_be_assigned'));
+                    const commonStatus = allSameStatus ? (group.trees[0].planting_status || 'waiting_to_be_assigned') : null;
+                    const commonStatusOrder = commonStatus ? getPlantingStatusOrder(commonStatus) : -1;
 
                     return (
                       <>
@@ -943,17 +944,65 @@ export const StakeholderOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm">MFC-ICLIP</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
-                                {getGroupStatusLabel(group.planting_status)}
-                              </Badge>
-                              <div className="hidden lg:flex items-center gap-1.5 w-16">
-                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                  <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${progressPct}%` }} />
-                                </div>
-                                <span className="text-[10px] text-muted-foreground tabular-nums">{plantedInGroup}/{group.total_trees}</span>
-                              </div>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1.5">
+                              {canEditPlantingStatus && group.trees.length > 0 ? (
+                                <>
+                                  <Select
+                                    value={bulkSelections[group.contribution_id] || ""}
+                                    onValueChange={(value) =>
+                                      setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
+                                    }
+                                  >
+                                    <SelectTrigger className="w-[150px] h-7 text-xs bg-background">
+                                      <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {BATCH_STATUSES.map(s => {
+                                        const sOrder = getPlantingStatusOrder(s);
+                                        const isPassed = commonStatus && sOrder < commonStatusOrder;
+                                        const isCurrent = s === commonStatus;
+                                        return (
+                                          <SelectItem key={s} value={s}>
+                                            <span className="flex items-center gap-2">
+                                              {isPassed && <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />}
+                                              {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+                                              {!isPassed && !isCurrent && <span className="w-3 shrink-0" />}
+                                              <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
+                                            </span>
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                  {bulkSelections[group.contribution_id] && (
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      className="h-7 px-2 text-xs gap-1"
+                                      disabled={bulkUpdateStatus.isPending}
+                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
+                                    >
+                                      <CheckCheck className="h-3 w-3" />
+                                      Apply
+                                    </Button>
+                                  )}
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                        Batch update — changes planting status for all individual trees in this order.
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </>
+                              ) : (
+                                <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
+                                  {getGroupStatusLabel(group.planting_status)}
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
