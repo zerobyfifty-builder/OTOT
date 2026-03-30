@@ -1441,12 +1441,7 @@ export const StakeholderOrders = () => {
                                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                     {entries.map(([key, value]) => {
                                       const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                                      let displayValue: string;
-                                      if (typeof value === 'boolean') {
-                                        displayValue = value ? 'Yes' : 'No';
-                                      } else {
-                                        displayValue = String(value);
-                                      }
+                                      const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
                                       return (
                                         <React.Fragment key={key}>
                                           <span className="text-muted-foreground">{label}:</span>
