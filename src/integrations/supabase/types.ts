@@ -1972,6 +1972,50 @@ export type Database = {
           },
         ]
       }
+      tree_status_transitions: {
+        Row: {
+          contribution_id: string | null
+          created_at: string
+          created_by: string | null
+          from_status: string | null
+          id: string
+          photos: string[] | null
+          to_status: string
+          transition_data: Json
+          tree_id: string
+        }
+        Insert: {
+          contribution_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          from_status?: string | null
+          id?: string
+          photos?: string[] | null
+          to_status: string
+          transition_data?: Json
+          tree_id: string
+        }
+        Update: {
+          contribution_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          from_status?: string | null
+          id?: string
+          photos?: string[] | null
+          to_status?: string
+          transition_data?: Json
+          tree_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_status_transitions_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trees: {
         Row: {
           amount_paid: number
