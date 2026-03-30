@@ -266,11 +266,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       // Build full transition data including location cascade info
       const fullData = { ...formData };
       if (request.toStatus === "assigned") {
-        // Include location names for display
-        const county = counties?.find(c => c.id === selectedCounty);
-        const beat = beats?.find(b => b.id === formData.target_beat);
-        if (county) fullData.county_name = county.name;
-        if (beat) fullData.beat_name = beat.name;
+        // beat label already stored in formData.target_beat_label
         const planter = planters?.find(p => p.id === formData.assigned_to);
         if (planter) fullData.assigned_to_name = planter.name;
       }
