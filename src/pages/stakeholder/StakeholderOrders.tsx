@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
@@ -29,6 +29,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Plane } from "lucide-react";
 
@@ -208,6 +218,14 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [transitionPanelOpen, setTransitionPanelOpen] = useState(false);
+  const [reversionDialog, setReversionDialog] = useState<{
+    treeIds: string[];
+    fromStatus: string;
+    toStatus: string;
+    contributionId?: string;
+    treeCount?: number;
+    isBatch: boolean;
+  } | null>(null);
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
@@ -465,25 +483,121 @@ export const StakeholderOrders = () => {
   const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
     const status = bulkSelections[contribId];
     if (!status) { toast.error("Please select a status first"); return; }
-    // "waiting_to_be_assigned" saves immediately (no panel)
-    if (status === "waiting_to_be_assigned") {
-      bulkUpdateStatus.mutate({ treeIds, status });
-      return;
-    }
     // Find current trees to get from status
     const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
     const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
     const group = contributionGroups.find(g => g.contribution_id === contribId);
-    setTransitionRequest({
+    
+    const targetOrder = getPlantingStatusOrder(status);
+    const currentOrder = getPlantingStatusOrder(fromStatus);
+    
+    const requestData = {
       treeIds,
       fromStatus,
       toStatus: status,
       contributionId: contribId,
       treeCount: group?.total_trees || treeIds.length,
       isBatch: true,
-    });
+    };
+
+    // Check for reversion (going backward)
+    if (targetOrder < currentOrder) {
+      setReversionDialog(requestData);
+      return;
+    }
+    
+    // "waiting_to_be_assigned" saves immediately (no panel)
+    if (status === "waiting_to_be_assigned") {
+      bulkUpdateStatus.mutate({ treeIds, status });
+      return;
+    }
+    
+    setTransitionRequest(requestData);
     setTransitionPanelOpen(true);
   }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
+
+  const handleIndividualStatusChange = useCallback((tree: Tree, newStatus: string) => {
+    const fromStatus = tree.planting_status || "waiting_to_be_assigned";
+    const targetOrder = getPlantingStatusOrder(newStatus);
+    const currentOrder = getPlantingStatusOrder(fromStatus);
+    const contribId = (tree as any).contribution_id;
+
+    const requestData = {
+      treeIds: [tree.id],
+      fromStatus,
+      toStatus: newStatus,
+      contributionId: contribId || undefined,
+      treeCount: tree.num_trees,
+      isBatch: false,
+    };
+
+    // Check for reversion
+    if (targetOrder < currentOrder) {
+      setReversionDialog(requestData);
+      return;
+    }
+
+    // "waiting_to_be_assigned" saves immediately
+    if (newStatus === "waiting_to_be_assigned") {
+      updateStatus.mutate({ treeId: tree.id, status: newStatus });
+      return;
+    }
+
+    setTransitionRequest(requestData);
+    setTransitionPanelOpen(true);
+  }, [updateStatus]);
+
+  const handleReversionConfirm = useCallback(async () => {
+    if (!reversionDialog) return;
+    const { treeIds, toStatus } = reversionDialog;
+    
+    try {
+      // 1. Delete all forward transition records beyond the target status
+      const targetOrder = getPlantingStatusOrder(toStatus);
+      const forwardStatuses = PLANTING_STATUSES.filter(s => getPlantingStatusOrder(s) > targetOrder);
+      
+      // Delete transition records where to_status is ahead of target
+      if (forwardStatuses.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("tree_status_transitions" as any)
+          .delete()
+          .in("tree_id", treeIds)
+          .in("to_status", forwardStatuses as any);
+        if (deleteError) throw deleteError;
+      }
+      
+      // Also delete the current target status records so the transition panel can create fresh ones
+      // 2. Update tree status
+      const { error: updateError } = await supabase
+        .from("trees")
+        .update({ planting_status: toStatus as any })
+        .in("id", treeIds);
+      if (updateError) throw updateError;
+
+      // 3. Save the reversion transition record
+      const records = treeIds.map(treeId => ({
+        tree_id: treeId,
+        contribution_id: reversionDialog.contributionId || null,
+        from_status: reversionDialog.fromStatus,
+        to_status: toStatus,
+        transition_data: { reverted: true, reason: "Manual reversion by user" },
+        photos: [] as string[],
+        created_by: user?.id || null,
+      }));
+      const { error: insertError } = await supabase
+        .from("tree_status_transitions" as any)
+        .insert(records);
+      if (insertError) throw insertError;
+
+      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+      setBulkSelections({});
+      toast.success(`Reverted ${treeIds.length} tree(s) to ${STATUS_LABELS[toStatus]}. Forward records deleted.`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to revert status");
+    } finally {
+      setReversionDialog(null);
+    }
+  }, [reversionDialog, user?.id, queryClient]);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -737,22 +851,7 @@ export const StakeholderOrders = () => {
                                                   {canEditPlantingStatus ? (
                                                     <Select
                                                       value={tree.planting_status || 'waiting_to_be_assigned'}
-                                                      onValueChange={(value) => {
-                                                        if (value === "waiting_to_be_assigned") {
-                                                          updateStatus.mutate({ treeId: tree.id, status: value });
-                                                          return;
-                                                        }
-                                                        const contribId = (tree as any).contribution_id;
-                                                        setTransitionRequest({
-                                                          treeIds: [tree.id],
-                                                          fromStatus: tree.planting_status || "waiting_to_be_assigned",
-                                                          toStatus: value,
-                                                          contributionId: contribId || undefined,
-                                                          treeCount: tree.num_trees,
-                                                          isBatch: false,
-                                                        });
-                                                        setTransitionPanelOpen(true);
-                                                      }}
+                                                      onValueChange={(value) => handleIndividualStatusChange(tree, value)}
                                                     >
                                                       <SelectTrigger className="w-[180px]">
                                                         <SelectValue />
@@ -1069,6 +1168,42 @@ export const StakeholderOrders = () => {
           toast.success(`Updated ${req.treeIds.length} tree(s) to ${STATUS_LABELS[req.toStatus]}`);
         }}
       />
+
+      {/* Status Reversion Confirmation Dialog */}
+      <AlertDialog open={!!reversionDialog} onOpenChange={(open) => !open && setReversionDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Confirm Status Reversion
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                You are about to revert {reversionDialog?.treeIds.length === 1 ? "1 tree" : `${reversionDialog?.treeIds.length} trees`} from{" "}
+                <span className="font-semibold text-foreground">{STATUS_LABELS[reversionDialog?.fromStatus || ""]}</span> back to{" "}
+                <span className="font-semibold text-foreground">{STATUS_LABELS[reversionDialog?.toStatus || ""]}</span>.
+              </p>
+              <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm space-y-1">
+                <p className="font-medium text-destructive">⚠️ This action will:</p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
+                  <li>Delete all status transition records beyond the selected stage</li>
+                  <li>Remove any associated data captured during forward transitions</li>
+                  <li>This may result in <span className="font-medium text-foreground">permanent data loss</span></li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel (recommended)</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleReversionConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Proceed with Reversion
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
