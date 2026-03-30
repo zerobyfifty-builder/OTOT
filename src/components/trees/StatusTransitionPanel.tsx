@@ -85,10 +85,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       }
       setFormData(defaults);
       setPhotos([]);
-      setSelectedCounty("");
-      setSelectedSubcounty("");
-      setSelectedBlock("");
-      setSelectedStation("");
+      setBeatSearch("");
     }
   }, [request]);
 
