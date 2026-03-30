@@ -114,6 +114,11 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
         const county = subcounty?.county;
         return {
           id: b.id,
+          beatName: b.name,
+          stationName: station?.name || "",
+          blockName: block?.name || "",
+          subcountyName: subcounty?.name || "",
+          countyName: county?.name || "",
           label: `${b.name} – ${block?.name || ""} (${station?.name || ""}) – ${subcounty?.name || ""} (${county?.name || ""})`,
         };
       });
