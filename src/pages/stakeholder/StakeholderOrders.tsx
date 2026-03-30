@@ -298,6 +298,21 @@ export const StakeholderOrders = () => {
     enabled: !!orgId,
   });
 
+  // Query status transitions for the selected tree
+  const { data: treeTransitions } = useQuery({
+    queryKey: ["treeStatusTransitions", statusHistoryTree?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("*")
+        .eq("tree_id", statusHistoryTree!.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!statusHistoryTree?.id,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
