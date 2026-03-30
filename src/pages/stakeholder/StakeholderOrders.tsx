@@ -255,7 +255,12 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [statusHistoryGroup, setStatusHistoryGroup] = useState<ContributionGroup | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+  const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
+  const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
+  const [monitoringForm, setMonitoringForm] = useState({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+  const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
