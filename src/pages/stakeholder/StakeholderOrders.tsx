@@ -41,6 +41,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Plane } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
