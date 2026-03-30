@@ -871,7 +871,7 @@ export const StakeholderOrders = () => {
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                 <TableCell>
                                                   {canEditPlantingStatus ? (
-                                                    {(() => {
+                                                    (() => {
                                                       const treeCurrentStatus = tree.planting_status || 'waiting_to_be_assigned';
                                                       const treeCurrentOrder = getPlantingStatusOrder(treeCurrentStatus);
                                                       return (
@@ -901,7 +901,7 @@ export const StakeholderOrders = () => {
                                                       </SelectContent>
                                                     </Select>
                                                       );
-                                                    })()}
+                                                    })()
                                                   ) : (
                                                     <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                       {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
