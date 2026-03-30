@@ -1647,69 +1647,77 @@ export const StakeholderOrders = () => {
                   Periodic Monitoring Logs
                 </SheetTitle>
                 <p className="text-sm text-muted-foreground">{monitoringSheet.contribution_id}</p>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Inspection ID *</Label>
-                  <Input value={monitoringForm.inspection_id} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_id: e.target.value }))} placeholder="e.g. INS-001" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Date *</Label>
-                  <Input type="date" value={monitoringForm.inspection_date} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_date: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Inspected By *</Label>
-                  <Input value={monitoringForm.inspected_by} onChange={(e) => setMonitoringForm(f => ({ ...f, inspected_by: e.target.value }))} placeholder="Inspector name" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Notes</Label>
-                  <Textarea value={monitoringForm.notes} onChange={(e) => setMonitoringForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Photos (comma-separated URLs)</Label>
-                  <Input value={monitoringForm.photos} onChange={(e) => setMonitoringForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." />
-                </div>
-                <Button
-                  className="w-full"
-                  disabled={!monitoringForm.inspection_id || !monitoringForm.inspection_date || !monitoringForm.inspected_by}
-                  onClick={async () => {
-                    const photos = monitoringForm.photos ? monitoringForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
-                    const { error } = await supabase.from("monitoring_logs" as any).insert({
-                      contribution_id: monitoringSheet.contribution_id,
-                      inspection_id: monitoringForm.inspection_id,
-                      inspection_date: monitoringForm.inspection_date,
-                      inspected_by: monitoringForm.inspected_by,
-                      notes: monitoringForm.notes || null,
-                      photos,
-                      created_by: user?.id || null,
-                    });
-                    if (error) { toast.error(error.message); return; }
-                    toast.success("Monitoring log saved");
-                    refetchMonitoring();
-                    setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
-                  }}
-                >
-                  Save Monitoring Log
-                </Button>
-
-                {/* Existing logs */}
-                {monitoringLogs && monitoringLogs.length > 0 && (
-                  <div className="space-y-3 pt-4">
-                    <Separator />
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Previous Logs</h4>
-                    {monitoringLogs.map((log: any) => (
-                      <div key={log.id} className="rounded-lg border bg-card p-3 space-y-1.5">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-semibold">{log.inspection_id}</span>
-                          <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">By: {log.inspected_by}</p>
-                        {log.notes && <p className="text-sm">{log.notes}</p>}
-                      </div>
-                    ))}
+               </SheetHeader>
+               <Tabs defaultValue="new" className="mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="new">New Log</TabsTrigger>
+                  <TabsTrigger value="previous">Previous Logs{monitoringLogs && monitoringLogs.length > 0 ? ` (${monitoringLogs.length})` : ''}</TabsTrigger>
+                </TabsList>
+                <TabsContent value="new">
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-1.5">
+                      <Label>Inspection ID *</Label>
+                      <Input value={monitoringForm.inspection_id} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_id: e.target.value }))} placeholder="e.g. INS-001" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Date *</Label>
+                      <Input type="date" value={monitoringForm.inspection_date} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_date: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Inspected By *</Label>
+                      <Input value={monitoringForm.inspected_by} onChange={(e) => setMonitoringForm(f => ({ ...f, inspected_by: e.target.value }))} placeholder="Inspector name" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Notes</Label>
+                      <Textarea value={monitoringForm.notes} onChange={(e) => setMonitoringForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Photos (comma-separated URLs)</Label>
+                      <Input value={monitoringForm.photos} onChange={(e) => setMonitoringForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." />
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={!monitoringForm.inspection_id || !monitoringForm.inspection_date || !monitoringForm.inspected_by}
+                      onClick={async () => {
+                        const photos = monitoringForm.photos ? monitoringForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
+                        const { error } = await supabase.from("monitoring_logs" as any).insert({
+                          contribution_id: monitoringSheet.contribution_id,
+                          inspection_id: monitoringForm.inspection_id,
+                          inspection_date: monitoringForm.inspection_date,
+                          inspected_by: monitoringForm.inspected_by,
+                          notes: monitoringForm.notes || null,
+                          photos,
+                          created_by: user?.id || null,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Monitoring log saved");
+                        refetchMonitoring();
+                        setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                      }}
+                    >
+                      Save Monitoring Log
+                    </Button>
                   </div>
-                )}
-              </div>
+                </TabsContent>
+                <TabsContent value="previous">
+                  <div className="space-y-3 pt-2">
+                    {monitoringLogs && monitoringLogs.length > 0 ? (
+                      monitoringLogs.map((log: any) => (
+                        <div key={log.id} className="rounded-lg border bg-card p-3 space-y-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold">{log.inspection_id}</span>
+                            <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">By: {log.inspected_by}</p>
+                          {log.notes && <p className="text-sm">{log.notes}</p>}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-6">No monitoring logs recorded yet.</p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </>
           )}
         </SheetContent>
