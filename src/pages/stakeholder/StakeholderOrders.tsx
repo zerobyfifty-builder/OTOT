@@ -341,6 +341,38 @@ export const StakeholderOrders = () => {
     enabled: !!statusHistoryTree?.id,
   });
 
+  // Query monitoring logs for batch status & monitoring sheet
+  const batchContribId = statusHistoryGroup?.contribution_id || monitoringSheet?.contribution_id;
+  const { data: monitoringLogs, refetch: refetchMonitoring } = useQuery({
+    queryKey: ["monitoringLogs", batchContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("monitoring_logs" as any)
+        .select("*")
+        .eq("contribution_id", batchContribId!)
+        .order("inspection_date", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!batchContribId,
+  });
+
+  // Query impact metrics for batch status & impact sheet
+  const impactContribId = statusHistoryGroup?.contribution_id || impactSheet?.contribution_id;
+  const { data: impactMetrics, refetch: refetchImpact } = useQuery({
+    queryKey: ["impactMetrics", impactContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("impact_metrics" as any)
+        .select("*")
+        .eq("contribution_id", impactContribId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!impactContribId,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
