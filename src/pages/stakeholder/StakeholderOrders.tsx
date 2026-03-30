@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { Progress } from "@/components/ui/progress";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
+import { StatusTransitionPanel } from "@/components/trees/StatusTransitionPanel";
 import {
   Table,
   TableBody,
