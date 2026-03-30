@@ -700,7 +700,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
             {title}
           </SheetTitle>
           <p className="text-sm text-muted-foreground">
-            Updating {treeLabel} • {request.contributionId || ""}
+            {request.contributionId || ""} – updating {treeLabel}
           </p>
         </SheetHeader>
 
