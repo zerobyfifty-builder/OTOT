@@ -860,7 +860,7 @@ export const StakeholderOrders = () => {
                                         <SelectValue placeholder="Select status…" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {PLANTING_STATUSES.map(s => {
+                                        {BATCH_STATUSES.map(s => {
                                           const sOrder = getPlantingStatusOrder(s);
                                           const isPassed = commonStatus && sOrder < commonStatusOrder;
                                           const isCurrent = s === commonStatus;
