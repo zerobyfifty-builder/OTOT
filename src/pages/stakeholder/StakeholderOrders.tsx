@@ -1309,9 +1309,23 @@ export const StakeholderOrders = () => {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Status History
+                    Current Status: {(() => {
+                      const statusLabels: Record<string, string> = {
+                        waiting_to_be_assigned: 'Waiting to be Assigned',
+                        assigned: 'Assigned',
+                        site_prepared: 'Site Prepared',
+                        saplings_ready: 'Saplings Ready',
+                        planting_scheduled: 'Planting Scheduled',
+                        sapling_planted: 'Sapling Planted',
+                        being_mapped: 'Being Mapped',
+                        verified: 'Verified',
+                        planted: 'Planted',
+                        dead: 'Dead',
+                      };
+                      return statusLabels[statusHistoryTree.planting_status || ''] || statusHistoryTree.planting_status || 'Unknown';
+                    })()}
                   </SheetTitle>
-                  <p className="text-sm text-muted-foreground">{statusHistoryTree.otot_id}</p>
+                  <p className="text-sm text-muted-foreground">Tree ID: {statusHistoryTree.otot_id}</p>
                 </SheetHeader>
 
                 <div className="mt-6 space-y-5">
