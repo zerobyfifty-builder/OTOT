@@ -477,8 +477,9 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Sapling Count Allocated <span className="text-destructive">*</span></Label>
-              <Input type="number" min={1} value={formData.sapling_count || ""} onChange={(e) => setField("sapling_count", parseInt(e.target.value) || 0)} />
+              <Label className="text-sm font-medium">Sapling Count Allocated</Label>
+              <Input type="number" min={1} value={formData.sapling_count || ""} readOnly disabled className="bg-muted cursor-not-allowed" />
+              <p className="text-xs text-muted-foreground">Auto-filled from total trees in this order</p>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Sapling Age (weeks)</Label>
