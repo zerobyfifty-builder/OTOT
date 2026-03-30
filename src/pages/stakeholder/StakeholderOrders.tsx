@@ -234,6 +234,7 @@ export const StakeholderOrders = () => {
     isBatch: boolean;
   } | null>(null);
   const [statusHistoryTree, setStatusHistoryTree] = useState<Tree | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
