@@ -1355,8 +1355,8 @@ export const StakeholderOrders = () => {
                 </SheetHeader>
 
                 <div className="mt-6">
-                  <Accordion type="single" collapsible className="space-y-2">
-                    {allLifecycleStatuses.map((status) => {
+                  <Accordion type="single" collapsible className="w-full">
+                    {allLifecycleStatuses.map((status, idx) => {
                       const statusOrder = getPlantingStatusOrder(status);
                       const isCompleted = statusOrder < currentOrder;
                       const isCurrent = statusOrder === currentOrder;
@@ -1364,6 +1364,7 @@ export const StakeholderOrders = () => {
                       const transition = treeTransitions?.find(t => t.to_status === status);
                       const transitionData = transition?.transition_data || {};
                       const photos = transition?.photos || [];
+                      const isWaiting = status === 'waiting_to_be_assigned';
 
                       // Build filtered entries
                       const skipKeys = new Set<string>(['reverted']);
@@ -1375,17 +1376,30 @@ export const StakeholderOrders = () => {
                         .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
                         .sort((a, b) => (sortOrder[a[0]] ?? 99) - (sortOrder[b[0]] ?? 99));
 
+                      // For waiting_to_be_assigned, show as non-expandable row with purchase date
+                      if (isWaiting) {
+                        const purchaseDate = statusHistoryTree.created_at;
+                        return (
+                          <div key={status} className={`flex items-center gap-3 py-3 ${idx < allLifecycleStatuses.length - 1 ? 'border-b' : ''}`}>
+                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS[status]}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
                       return (
                         <AccordionItem
                           key={status}
                           value={status}
-                          className={`rounded-lg border px-4 ${
-                            isFuture ? 'opacity-50 bg-muted/30' : 'bg-card'
-                          }`}
+                          className={`border-b last:border-b-0 border-x-0 border-t-0 ${isFuture ? 'opacity-50' : ''}`}
                         >
                           <AccordionTrigger className="hover:no-underline py-3">
                             <div className="flex items-center gap-3 w-full">
-                              {/* Status icon */}
                               {isCompleted ? (
                                 <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
                               ) : isCurrent ? (
@@ -1409,7 +1423,7 @@ export const StakeholderOrders = () => {
                           </AccordionTrigger>
                           <AccordionContent>
                             {transition ? (
-                              <div className="space-y-3 pt-1 pb-2">
+                              <div className="space-y-3 pt-1 pb-2 pl-8">
                                 {entries.length > 0 && (
                                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                     {entries.map(([key, value]) => {
@@ -1444,7 +1458,7 @@ export const StakeholderOrders = () => {
                                 )}
                               </div>
                             ) : (
-                              <p className="text-sm text-muted-foreground italic py-1">
+                              <p className="text-sm text-muted-foreground italic py-1 pl-8">
                                 {isFuture ? 'This status has not been reached yet.' : 'No transition record captured for this status.'}
                               </p>
                             )}
