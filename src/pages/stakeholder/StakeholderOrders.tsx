@@ -389,6 +389,66 @@ export const StakeholderOrders = () => {
     enabled: !!impactContribId,
   });
 
+  // Tree-level queries for Tree Status & Info
+  const treeStatusTreeId = treeStatusSheet?.tree.id || geotagDialog?.id || growthSheet?.id;
+  
+  const { data: treeGeotag, refetch: refetchGeotag } = useQuery({
+    queryKey: ["treeGeotag", treeStatusTreeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("*")
+        .eq("tree_id", treeStatusTreeId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!treeStatusTreeId,
+  });
+
+  const { data: treeSurvival, refetch: refetchSurvival } = useQuery({
+    queryKey: ["treeSurvival", treeStatusSheet?.tree.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("*")
+        .eq("tree_id", treeStatusSheet!.tree.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!treeStatusSheet?.tree.id,
+  });
+
+  const { data: treeGrowth, refetch: refetchGrowth } = useQuery({
+    queryKey: ["treeGrowth", treeStatusSheet?.tree.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("*")
+        .eq("tree_id", treeStatusSheet!.tree.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!treeStatusSheet?.tree.id,
+  });
+
+  // Check geotag status for all trees displayed
+  const allTreeIds = useMemo(() => trees?.map(t => t.id) || [], [trees]);
+  const { data: allGeotags } = useQuery({
+    queryKey: ["allGeotags", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("tree_id")
+        .in("tree_id", allTreeIds);
+      if (error) throw error;
+      return new Set((data || []).map((g: any) => g.tree_id));
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
