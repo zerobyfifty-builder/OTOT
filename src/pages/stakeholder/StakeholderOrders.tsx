@@ -81,7 +81,23 @@ const PLANTING_STATUSES = [
   'verified',
   'planted',
   'dead',
+  're_planted',
 ] as const;
+
+// Statuses available only for batch (bulk) updates
+const BATCH_STATUSES = [
+  'waiting_to_be_assigned',
+  'assigned',
+  'site_prepared',
+  'saplings_ready',
+  'planting_scheduled',
+  'sapling_planted',
+  'verified',
+  'planted',
+] as const;
+
+// Statuses available only for individual tree updates
+const INDIVIDUAL_ONLY_STATUSES = new Set(['being_mapped', 'dead', 're_planted']);
 
 const STATUS_LABELS: Record<string, string> = {
   waiting_to_be_assigned: 'Waiting to be Assigned',
