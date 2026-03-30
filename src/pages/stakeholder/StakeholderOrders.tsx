@@ -851,22 +851,7 @@ export const StakeholderOrders = () => {
                                                   {canEditPlantingStatus ? (
                                                     <Select
                                                       value={tree.planting_status || 'waiting_to_be_assigned'}
-                                                      onValueChange={(value) => {
-                                                        if (value === "waiting_to_be_assigned") {
-                                                          updateStatus.mutate({ treeId: tree.id, status: value });
-                                                          return;
-                                                        }
-                                                        const contribId = (tree as any).contribution_id;
-                                                        setTransitionRequest({
-                                                          treeIds: [tree.id],
-                                                          fromStatus: tree.planting_status || "waiting_to_be_assigned",
-                                                          toStatus: value,
-                                                          contributionId: contribId || undefined,
-                                                          treeCount: tree.num_trees,
-                                                          isBatch: false,
-                                                        });
-                                                        setTransitionPanelOpen(true);
-                                                      }}
+                                                      onValueChange={(value) => handleIndividualStatusChange(tree, value)}
                                                     >
                                                       <SelectTrigger className="w-[180px]">
                                                         <SelectValue />
