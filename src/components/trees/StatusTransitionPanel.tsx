@@ -56,11 +56,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Location cascade state
-  const [selectedCounty, setSelectedCounty] = useState("");
-  const [selectedSubcounty, setSelectedSubcounty] = useState("");
-  const [selectedBlock, setSelectedBlock] = useState("");
-  const [selectedStation, setSelectedStation] = useState("");
+  // Beat search state
+  const [beatSearch, setBeatSearch] = useState("");
 
   // Reset form when request changes
   useEffect(() => {
