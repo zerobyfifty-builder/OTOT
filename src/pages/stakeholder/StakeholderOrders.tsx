@@ -1454,9 +1454,16 @@ export const StakeholderOrders = () => {
                             batch_notice: 'Notice',
                           };
 
-                          const entries = Object.entries(transitionData).filter(
+                          const rawEntries = Object.entries(transitionData).filter(
                             ([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== ''
                           );
+                          // Sort: target_beat_label before assigned_to_name
+                          const sortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entries = rawEntries.sort((a, b) => {
+                            const oa = sortOrder[a[0]] ?? 99;
+                            const ob = sortOrder[b[0]] ?? 99;
+                            return oa - ob;
+                          });
 
                           if (entries.length === 0) return null;
 
