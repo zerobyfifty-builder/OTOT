@@ -210,7 +210,7 @@ const getPlantingStatusOrder = (status: string) => {
   const order: Record<string, number> = {
     waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
     planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
-    partially_planted: 8, planted: 9, dead: 10,
+    partially_planted: 8, planted: 9, dead: 10, re_planted: 11,
   };
   return order[status] ?? 0;
 };
