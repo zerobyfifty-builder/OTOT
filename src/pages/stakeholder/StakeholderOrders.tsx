@@ -1140,20 +1140,33 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  <div className="flex items-center gap-1.5">
-                                                    <Switch
-                                                      checked={hasGeotag}
-                                                      onCheckedChange={() => {
-                                                        if (!hasGeotag) {
-                                                          setGeotagDialog(tree);
-                                                          setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-                                                        }
-                                                      }}
-                                                      disabled={hasGeotag}
-                                                      className="data-[state=checked]:bg-green-500"
-                                                    />
-                                                    {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
-                                                  </div>
+                                                  {tree.planting_status === 'planted' ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                      <Switch
+                                                        checked={hasGeotag}
+                                                        onCheckedChange={() => {
+                                                          if (!hasGeotag) {
+                                                            setGeotagDialog(tree);
+                                                            setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                          }
+                                                        }}
+                                                        disabled={hasGeotag}
+                                                        className="data-[state=checked]:bg-green-500"
+                                                      />
+                                                      {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
+                                                    </div>
+                                                  ) : (
+                                                    <TooltipProvider>
+                                                      <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                          <div className="flex items-center gap-1.5">
+                                                            <Switch checked={false} disabled className="opacity-50" />
+                                                          </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                      </Tooltip>
+                                                    </TooltipProvider>
+                                                  )}
                                                 </TableCell>
                                                 <TableCell>
                                                   <DropdownMenu>
