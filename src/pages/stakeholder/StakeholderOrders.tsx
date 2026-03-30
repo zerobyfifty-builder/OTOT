@@ -829,7 +829,8 @@ export const StakeholderOrders = () => {
                                       Apply ({group.trees.length})
                                     </Button>
                                   </div>
-                                )}
+                                  );
+                                })()}
 
                                 {/* Tree-level Table */}
                                 {(() => {
