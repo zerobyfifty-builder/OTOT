@@ -10,7 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3 } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
@@ -262,6 +270,14 @@ export const StakeholderOrders = () => {
   const [monitoringForm, setMonitoringForm] = useState({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
+  // Tree-level status & info
+  const [treeStatusSheet, setTreeStatusSheet] = useState<{ tree: Tree; group: ContributionGroup } | null>(null);
+  const [geotagDialog, setGeotagDialog] = useState<Tree | null>(null);
+  const [geotagForm, setGeotagForm] = useState({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+  const [growthSheet, setGrowthSheet] = useState<Tree | null>(null);
+  const [survivalForm, setSurvivalForm] = useState({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+  const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+  
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
     queryFn: async () => {
@@ -326,19 +342,20 @@ export const StakeholderOrders = () => {
     enabled: !!orgId,
   });
 
-  // Query status transitions for the selected tree
+  // Query status transitions for the selected tree (batch or tree-level)
+  const transitionTreeId = statusHistoryTree?.id || treeStatusSheet?.tree.id;
   const { data: treeTransitions } = useQuery({
-    queryKey: ["treeStatusTransitions", statusHistoryTree?.id],
+    queryKey: ["treeStatusTransitions", transitionTreeId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_status_transitions" as any)
         .select("*")
-        .eq("tree_id", statusHistoryTree!.id)
+        .eq("tree_id", transitionTreeId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data as any[];
     },
-    enabled: !!statusHistoryTree?.id,
+    enabled: !!transitionTreeId,
   });
 
   // Query monitoring logs for batch status & monitoring sheet
@@ -371,6 +388,66 @@ export const StakeholderOrders = () => {
       return data as any[];
     },
     enabled: !!impactContribId,
+  });
+
+  // Tree-level queries for Tree Status & Info
+  const treeStatusTreeId = treeStatusSheet?.tree.id || geotagDialog?.id || growthSheet?.id;
+  
+  const { data: treeGeotag, refetch: refetchGeotag } = useQuery({
+    queryKey: ["treeGeotag", treeStatusTreeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("*")
+        .eq("tree_id", treeStatusTreeId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!treeStatusTreeId,
+  });
+
+  const { data: treeSurvival, refetch: refetchSurvival } = useQuery({
+    queryKey: ["treeSurvival", treeStatusSheet?.tree.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("*")
+        .eq("tree_id", treeStatusSheet!.tree.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!treeStatusSheet?.tree.id,
+  });
+
+  const { data: treeGrowth, refetch: refetchGrowth } = useQuery({
+    queryKey: ["treeGrowth", treeStatusSheet?.tree.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("*")
+        .eq("tree_id", treeStatusSheet!.tree.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!treeStatusSheet?.tree.id,
+  });
+
+  // Check geotag status for all trees displayed
+  const allTreeIds = useMemo(() => trees?.map(t => t.id) || [], [trees]);
+  const { data: allGeotags } = useQuery({
+    queryKey: ["allGeotags", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("tree_id")
+        .in("tree_id", allTreeIds);
+      if (error) throw error;
+      return new Set((data || []).map((g: any) => g.tree_id));
+    },
+    enabled: allTreeIds.length > 0,
   });
 
   const updateStatus = useMutation({
@@ -971,6 +1048,7 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Trees</TableHead>
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
+                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
@@ -979,6 +1057,7 @@ export const StakeholderOrders = () => {
                                         {displayRows.map((row, index) => {
                                           if (row.type === 'tree') {
                                             const tree = row.tree;
+                                            const hasGeotag = allGeotags?.has(tree.id) || false;
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
@@ -986,6 +1065,22 @@ export const StakeholderOrders = () => {
                                                 <TableCell>{tree.num_trees}</TableCell>
                                                 <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
+                                                <TableCell>
+                                                  <div className="flex items-center gap-1.5">
+                                                    <Switch
+                                                      checked={hasGeotag}
+                                                      onCheckedChange={() => {
+                                                        if (!hasGeotag) {
+                                                          setGeotagDialog(tree);
+                                                          setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                        }
+                                                      }}
+                                                      disabled={hasGeotag}
+                                                      className="data-[state=checked]:bg-green-500"
+                                                    />
+                                                    {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
+                                                  </div>
+                                                </TableCell>
                                                 <TableCell>
                                                   {canEditPlantingStatus ? (
                                                     (() => {
@@ -1033,9 +1128,17 @@ export const StakeholderOrders = () => {
                                                       </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={() => { setStatusHistoryTree(tree); setStatusHistoryGroup(group); }}>
+                                                      <DropdownMenuItem onClick={() => setTreeStatusSheet({ tree, group })}>
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
-                                                        View Status History
+                                                        Tree Status & Info
+                                                      </DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={() => {
+                                                        setGrowthSheet(tree);
+                                                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                                                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                      }}>
+                                                        <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                        Growth
                                                       </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                   </DropdownMenu>
@@ -1048,6 +1151,7 @@ export const StakeholderOrders = () => {
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
                                                 <TableCell>1</TableCell>
+                                                <TableCell>-</TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell>
@@ -1821,7 +1925,482 @@ export const StakeholderOrders = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Photo Lightbox */}
+      {/* Tree Status & Info Sheet (individual tree level) */}
+      <Sheet open={!!treeStatusSheet} onOpenChange={(open) => { if (!open) setTreeStatusSheet(null); }}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {treeStatusSheet && (() => {
+            const tree = treeStatusSheet.tree;
+            const group = treeStatusSheet.group;
+            const currentStatus = tree.planting_status || 'waiting_to_be_assigned';
+            const currentOrder = getPlantingStatusOrder(currentStatus);
+            const allLifecycleStatuses = PLANTING_STATUSES;
+
+            const friendlyLabels: Record<string, string> = {
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
+              nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
+              soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
+              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+              scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
+              planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
+              latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
+              verification_date: 'Verification Date', verified_by: 'Verified By', verification_method: 'Verification Method', verification_notes: 'Verification Notes', health_status: 'Health Status',
+              planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
+              replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
+              re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
+              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+            };
+            const idToLabelMap: Record<string, string> = {
+              assigned_to: 'assigned_to_name', target_beat: 'target_beat_label',
+              nursery_id: 'nursery_name', species_id: 'species_name', tree_carer_id: 'tree_carer_name',
+              planted_by: 'planter_name', planting_team_lead: 'planter_name',
+            };
+            const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
+              if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
+              if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+              return String(value);
+            };
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <TreePine className="h-5 w-5 text-primary" />
+                    Tree Status & Info
+                  </SheetTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Current Status: <span className="font-medium text-foreground">{STATUS_LABELS[currentStatus]}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">Tree ID: {tree.otot_id}</p>
+                </SheetHeader>
+
+                <Tabs defaultValue="planting" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="planting">Planting</TabsTrigger>
+                    <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                    <TabsTrigger value="growth">Growth</TabsTrigger>
+                  </TabsList>
+
+                  {/* Planting Tab - same status timeline from batch */}
+                  <TabsContent value="planting">
+                    <div className="divide-y">
+                      {(() => {
+                        const purchaseDate = tree.created_at;
+                        return (
+                          <div className="flex items-center gap-3 py-3">
+                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                        {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
+                          const statusOrder = getPlantingStatusOrder(status);
+                          const isCompleted = statusOrder < currentOrder;
+                          const isCurrent = statusOrder === currentOrder;
+                          const isFuture = statusOrder > currentOrder;
+                          const transition = treeTransitions?.find(t => t.to_status === status);
+                          const transitionData = transition?.transition_data || {};
+                          const photos = transition?.photos || [];
+                          const skipKeys = new Set<string>(['reverted']);
+                          for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
+                            if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
+                          }
+                          if (status === 'verified' && transitionData['planter_name'] !== undefined) skipKeys.add('planter_name');
+                          const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entries = Object.entries(transitionData)
+                            .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
+                            .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
+                          return (
+                            <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
+                              <AccordionTrigger className="hover:no-underline py-3">
+                                <div className="flex items-center gap-3 w-full">
+                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  <div className="flex flex-col items-start text-left min-w-0">
+                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                      {STATUS_LABELS[status]}
+                                    </span>
+                                    {transition?.created_at ? (
+                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                    ) : isFuture ? (
+                                      <span className="text-xs text-muted-foreground italic">Pending</span>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                {transition ? (
+                                  <div className="space-y-3 pt-1 pb-2 pl-8">
+                                    {entries.length > 0 && (
+                                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                        {entries.map(([key, value]) => {
+                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                          return (
+                                            <React.Fragment key={key}>
+                                              <span className="text-muted-foreground whitespace-nowrap">{label}:</span>
+                                              <span className="font-medium">{resolveValue(key, value, transitionData)}</span>
+                                            </React.Fragment>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                    {photos.length > 0 && (
+                                      <div className="space-y-1.5">
+                                        <span className="text-sm text-muted-foreground">Photos:</span>
+                                        <div className="flex gap-2 flex-wrap">
+                                          {photos.map((url: string, pi: number) => (
+                                            <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                              <img src={url} alt={`Photo ${pi + 1}`} className="w-16 h-16 object-cover rounded-md border" />
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                                <ZoomIn className="h-4 w-4 text-white" />
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entries.length === 0 && photos.length === 0 && (
+                                      <p className="text-sm text-muted-foreground italic">No additional details recorded.</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground italic pl-8 pb-2">Not yet reached.</p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        })}
+                      </Accordion>
+                    </div>
+                  </TabsContent>
+
+                  {/* Tracking Tab - Geotag data */}
+                  <TabsContent value="tracking">
+                    <div className="space-y-4 pt-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <MapPin className="h-4 w-4" /> Geotag Information
+                      </h4>
+                      {treeGeotag ? (
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                            <span className="text-muted-foreground">Geo Tag ID:</span>
+                            <span className="font-medium">{treeGeotag.geo_tag_id}</span>
+                            <span className="text-muted-foreground">Latitude:</span>
+                            <span className="font-medium">{treeGeotag.latitude}</span>
+                            <span className="text-muted-foreground">Longitude:</span>
+                            <span className="font-medium">{treeGeotag.longitude}</span>
+                            <span className="text-muted-foreground">Accuracy:</span>
+                            <span className="font-medium">{treeGeotag.geo_accuracy || '-'}</span>
+                            <span className="text-muted-foreground">Captured:</span>
+                            <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                          </div>
+                          {treeGeotag.map_snapshot && (
+                            <div className="mt-3">
+                              <img src={treeGeotag.map_snapshot} alt="Map snapshot" className="w-full h-32 object-cover rounded-md border cursor-pointer" onClick={() => setLightboxPhoto(treeGeotag.map_snapshot)} />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic text-center py-6">No geotag data captured yet. Use the Geotag toggle to capture location.</p>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Growth Tab - Survival + Growth Metrics */}
+                  <TabsContent value="growth">
+                    <div className="space-y-6 pt-2">
+                      {/* Survival Tracking */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                          <Activity className="h-4 w-4" /> Survival Tracking
+                        </h4>
+                        {treeSurvival && treeSurvival.length > 0 ? (
+                          treeSurvival.map((record: any) => (
+                            <div key={record.id} className="rounded-lg border bg-card p-3 space-y-1">
+                              <div className="flex justify-between items-center">
+                                <Badge className={record.survival_status === 'Alive' ? 'bg-green-100 text-green-700' : record.survival_status === 'Dead' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}>
+                                  {record.survival_status}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">{record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}</span>
+                              </div>
+                              {record.survival_rate !== null && <p className="text-sm">Survival Rate: <span className="font-medium">{record.survival_rate}%</span></p>}
+                              {record.notes && <p className="text-sm text-muted-foreground">{record.notes}</p>}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic text-center py-4">No survival records yet.</p>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Growth Metrics */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" /> Growth Metrics
+                        </h4>
+                        {treeGrowth && treeGrowth.length > 0 ? (
+                          treeGrowth.map((record: any) => (
+                            <div key={record.id} className="rounded-lg border bg-card p-3 space-y-1.5">
+                              <div className="flex justify-between items-center">
+                                <Badge className="bg-primary/10 text-primary">{record.growth_stage}</Badge>
+                                <span className="text-xs text-muted-foreground">{record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}</span>
+                              </div>
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                                {record.tree_height && <><span className="text-muted-foreground">Height:</span><span className="font-medium">{record.tree_height}</span></>}
+                                {record.tree_age && <><span className="text-muted-foreground">Age:</span><span className="font-medium">{record.tree_age}</span></>}
+                              </div>
+                              {record.notes && <p className="text-sm text-muted-foreground">{record.notes}</p>}
+                              {record.photos && record.photos.length > 0 && (
+                                <div className="flex gap-2 flex-wrap mt-1">
+                                  {record.photos.map((url: string, pi: number) => (
+                                    <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                      <img src={url} alt={`Photo ${pi + 1}`} className="w-14 h-14 object-cover rounded-md border" />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                        <ZoomIn className="h-3.5 w-3.5 text-white" />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic text-center py-4">No growth records yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
+
+      {/* Geotag Capture Dialog */}
+      <Dialog open={!!geotagDialog} onOpenChange={(open) => !open && setGeotagDialog(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Capture Geotag
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">Tree: {geotagDialog?.otot_id}</p>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Geo Tag ID *</Label>
+              <Input value={geotagForm.geo_tag_id} onChange={(e) => setGeotagForm(f => ({ ...f, geo_tag_id: e.target.value }))} placeholder="e.g. GT-001" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Latitude *</Label>
+                <Input type="number" step="any" value={geotagForm.latitude} onChange={(e) => setGeotagForm(f => ({ ...f, latitude: e.target.value }))} placeholder="-1.2921" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Longitude *</Label>
+                <Input type="number" step="any" value={geotagForm.longitude} onChange={(e) => setGeotagForm(f => ({ ...f, longitude: e.target.value }))} placeholder="36.8219" />
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => {
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                      setGeotagForm(f => ({
+                        ...f,
+                        latitude: pos.coords.latitude.toString(),
+                        longitude: pos.coords.longitude.toString(),
+                        geo_accuracy: pos.coords.accuracy.toString(),
+                      }));
+                      toast.success("Location captured");
+                    },
+                    (err) => toast.error("Could not get location: " + err.message)
+                  );
+                } else {
+                  toast.error("Geolocation not supported");
+                }
+              }}
+            >
+              <Crosshair className="h-4 w-4" />
+              Capture from Current Location
+            </Button>
+            <div className="space-y-1.5">
+              <Label>Accuracy (m)</Label>
+              <Input type="number" step="any" value={geotagForm.geo_accuracy} onChange={(e) => setGeotagForm(f => ({ ...f, geo_accuracy: e.target.value }))} placeholder="e.g. 5" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Map Snapshot URL</Label>
+              <Input value={geotagForm.map_snapshot} onChange={(e) => setGeotagForm(f => ({ ...f, map_snapshot: e.target.value }))} placeholder="https://..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGeotagDialog(null)}>Cancel</Button>
+            <Button
+              disabled={!geotagForm.geo_tag_id || !geotagForm.latitude || !geotagForm.longitude}
+              onClick={async () => {
+                const { error } = await supabase.from("tree_geotags" as any).insert({
+                  tree_id: geotagDialog!.id,
+                  geo_tag_id: geotagForm.geo_tag_id,
+                  latitude: parseFloat(geotagForm.latitude),
+                  longitude: parseFloat(geotagForm.longitude),
+                  geo_accuracy: geotagForm.geo_accuracy ? parseFloat(geotagForm.geo_accuracy) : null,
+                  map_snapshot: geotagForm.map_snapshot || null,
+                  created_by: user?.id || null,
+                });
+                if (error) { toast.error(error.message); return; }
+                toast.success("Geotag saved");
+                queryClient.invalidateQueries({ queryKey: ["allGeotags"] });
+                refetchGeotag();
+                setGeotagDialog(null);
+              }}
+            >
+              Save Geotag
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Growth Data Entry Sheet */}
+      <Sheet open={!!growthSheet} onOpenChange={(open) => !open && setGrowthSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {growthSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Growth Data
+                </SheetTitle>
+                <p className="text-sm text-muted-foreground">Tree: {growthSheet.otot_id}</p>
+              </SheetHeader>
+
+              <Tabs defaultValue="survival" className="mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="survival">Sapling Tracking</TabsTrigger>
+                  <TabsTrigger value="growth">Growth in Progress</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="survival">
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-1.5">
+                      <Label>Survival Status *</Label>
+                      <Select value={survivalForm.survival_status} onValueChange={(v) => setSurvivalForm(f => ({ ...f, survival_status: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Alive">Alive</SelectItem>
+                          <SelectItem value="Dead">Dead</SelectItem>
+                          <SelectItem value="Replaced">Replaced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Survival Rate (%)</Label>
+                      <Input type="number" min="0" max="100" value={survivalForm.survival_rate} onChange={(e) => setSurvivalForm(f => ({ ...f, survival_rate: e.target.value }))} placeholder="e.g. 85" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Last Checked Date *</Label>
+                      <Input type="date" value={survivalForm.last_checked_date} onChange={(e) => setSurvivalForm(f => ({ ...f, last_checked_date: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Notes</Label>
+                      <Textarea value={survivalForm.notes} onChange={(e) => setSurvivalForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observations..." rows={3} />
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={!survivalForm.last_checked_date}
+                      onClick={async () => {
+                        const { error } = await supabase.from("tree_survival_tracking" as any).insert({
+                          tree_id: growthSheet.id,
+                          survival_status: survivalForm.survival_status,
+                          survival_rate: survivalForm.survival_rate ? parseFloat(survivalForm.survival_rate) : null,
+                          last_checked_date: survivalForm.last_checked_date,
+                          notes: survivalForm.notes || null,
+                          created_by: user?.id || null,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Survival data saved");
+                        refetchSurvival();
+                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                      }}
+                    >
+                      Save Survival Record
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="growth">
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-1.5">
+                      <Label>Growth Stage *</Label>
+                      <Select value={growthForm.growth_stage} onValueChange={(v) => setGrowthForm(f => ({ ...f, growth_stage: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sapling">Sapling</SelectItem>
+                          <SelectItem value="young">Young</SelectItem>
+                          <SelectItem value="mature">Mature</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Tree Height (cm/m)</Label>
+                      <Input value={growthForm.tree_height} onChange={(e) => setGrowthForm(f => ({ ...f, tree_height: e.target.value }))} placeholder="e.g. 150cm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Tree Age</Label>
+                      <Input value={growthForm.tree_age} onChange={(e) => setGrowthForm(f => ({ ...f, tree_age: e.target.value }))} placeholder="e.g. 6 months" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Photos (comma-separated URLs)</Label>
+                      <Input value={growthForm.photos} onChange={(e) => setGrowthForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Last Measured Date *</Label>
+                      <Input type="date" value={growthForm.last_measured_date} onChange={(e) => setGrowthForm(f => ({ ...f, last_measured_date: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Notes</Label>
+                      <Textarea value={growthForm.notes} onChange={(e) => setGrowthForm(f => ({ ...f, notes: e.target.value }))} placeholder="Growth observations..." rows={3} />
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={!growthForm.last_measured_date}
+                      onClick={async () => {
+                        const photos = growthForm.photos ? growthForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
+                        const { error } = await supabase.from("tree_growth_metrics" as any).insert({
+                          tree_id: growthSheet.id,
+                          growth_stage: growthForm.growth_stage,
+                          tree_height: growthForm.tree_height || null,
+                          tree_age: growthForm.tree_age || null,
+                          photos,
+                          last_measured_date: growthForm.last_measured_date,
+                          notes: growthForm.notes || null,
+                          created_by: user?.id || null,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Growth data saved");
+                        refetchGrowth();
+                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                      }}
+                    >
+                      Save Growth Record
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+
       {lightboxPhoto && (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
           <div className="relative max-w-3xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
