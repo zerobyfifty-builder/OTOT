@@ -855,14 +855,31 @@ export const StakeholderOrders = () => {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => setViewSheet(group)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Contribution
+                                  Contribution Info
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                   const firstTree = group.trees[0];
-                                  if (firstTree) setStatusHistoryTree(firstTree);
+                                  if (firstTree) {
+                                    setStatusHistoryTree(firstTree);
+                                    setStatusHistoryGroup(group);
+                                  }
                                 }}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Status History
+                                  Batch Status & Info
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMonitoringSheet(group);
+                                  setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                                }}>
+                                  <ClipboardList className="h-3.5 w-3.5 mr-2" />
+                                  Monitoring Logs
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setImpactSheet(group);
+                                  setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
+                                }}>
+                                  <BarChart3 className="h-3.5 w-3.5 mr-2" />
+                                  Impact Generated
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
