@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -467,6 +468,27 @@ export const StakeholderOrders = () => {
     enabled: allTreeIds.length > 0,
   });
 
+  // Fetch latest growth stage for all trees
+  const { data: allGrowthStages } = useQuery({
+    queryKey: ["allGrowthStages", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("tree_id, growth_stage, last_measured_date")
+        .in("tree_id", allTreeIds)
+        .order("last_measured_date", { ascending: false });
+      if (error) throw error;
+      const map = new Map<string, { growth_stage: string; last_measured_date: string }>();
+      (data || []).forEach((r: any) => {
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date });
+        }
+      });
+      return map;
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
@@ -890,8 +912,9 @@ export const StakeholderOrders = () => {
                 <TableBody>
                   {paginated.map((group) => {
                     const isExpanded = expandedRows.has(group.contribution_id);
-                    const plantedInGroup = group.trees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
-                    const progressPct = group.total_trees > 0 ? Math.min(100, (plantedInGroup / group.total_trees) * 100) : 0;
+                    const allSameStatus = group.trees.length > 0 && group.trees.every(t => (t.planting_status || 'waiting_to_be_assigned') === (group.trees[0].planting_status || 'waiting_to_be_assigned'));
+                    const commonStatus = allSameStatus ? (group.trees[0].planting_status || 'waiting_to_be_assigned') : null;
+                    const commonStatusOrder = commonStatus ? getPlantingStatusOrder(commonStatus) : -1;
 
                     return (
                       <>
@@ -921,17 +944,65 @@ export const StakeholderOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm">MFC-ICLIP</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
-                                {getGroupStatusLabel(group.planting_status)}
-                              </Badge>
-                              <div className="hidden lg:flex items-center gap-1.5 w-16">
-                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                  <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${progressPct}%` }} />
-                                </div>
-                                <span className="text-[10px] text-muted-foreground tabular-nums">{plantedInGroup}/{group.total_trees}</span>
-                              </div>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1.5">
+                              {canEditPlantingStatus && group.trees.length > 0 ? (
+                                <>
+                                  <Select
+                                    value={bulkSelections[group.contribution_id] || ""}
+                                    onValueChange={(value) =>
+                                      setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
+                                    }
+                                  >
+                                    <SelectTrigger className="w-[150px] h-7 text-xs bg-background">
+                                      <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {BATCH_STATUSES.map(s => {
+                                        const sOrder = getPlantingStatusOrder(s);
+                                        const isPassed = commonStatus && sOrder < commonStatusOrder;
+                                        const isCurrent = s === commonStatus;
+                                        return (
+                                          <SelectItem key={s} value={s}>
+                                            <span className="flex items-center gap-2">
+                                              {isPassed && <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />}
+                                              {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+                                              {!isPassed && !isCurrent && <span className="w-3 shrink-0" />}
+                                              <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
+                                            </span>
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                  {bulkSelections[group.contribution_id] && (
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      className="h-7 px-2 text-xs gap-1"
+                                      disabled={bulkUpdateStatus.isPending}
+                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
+                                    >
+                                      <CheckCheck className="h-3 w-3" />
+                                      Apply
+                                    </Button>
+                                  )}
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                        Batch update — changes planting status for all individual trees in this order.
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </>
+                              ) : (
+                                <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
+                                  {getGroupStatusLabel(group.planting_status)}
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -985,63 +1056,6 @@ export const StakeholderOrders = () => {
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
                             <TableCell colSpan={11} className="p-0">
                               <div className="px-4 py-3 space-y-3">
-                                {/* Bulk Update */}
-                                {canEditPlantingStatus && group.trees.length > 0 && (() => {
-                                  const allSameStatus = group.trees.length > 0 && group.trees.every(t => (t.planting_status || 'waiting_to_be_assigned') === (group.trees[0].planting_status || 'waiting_to_be_assigned'));
-                                  const commonStatus = allSameStatus ? (group.trees[0].planting_status || 'waiting_to_be_assigned') : null;
-                                  const commonStatusOrder = commonStatus ? getPlantingStatusOrder(commonStatus) : -1;
-                                  return (
-                                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2.5">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                      <Layers className="h-4 w-4 text-primary" />
-                                      <span>Batch update:</span>
-                                    </div>
-                                    {commonStatus && (
-                                      <Badge className={`text-[10px] px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[commonStatus] || 'bg-muted text-muted-foreground'}`}>
-                                        Current: {STATUS_LABELS[commonStatus]}
-                                      </Badge>
-                                    )}
-                                    <Select
-                                      value={bulkSelections[group.contribution_id] || ""}
-                                      onValueChange={(value) =>
-                                        setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
-                                      }
-                                    >
-                                      <SelectTrigger className="w-[210px] h-9 bg-background">
-                                        <SelectValue placeholder="Select status…" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {BATCH_STATUSES.map(s => {
-                                          const sOrder = getPlantingStatusOrder(s);
-                                          const isPassed = commonStatus && sOrder < commonStatusOrder;
-                                          const isCurrent = s === commonStatus;
-                                          return (
-                                            <SelectItem key={s} value={s}>
-                                              <span className="flex items-center gap-2">
-                                                {isPassed && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
-                                                {isCurrent && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
-                                                {!isPassed && !isCurrent && <span className="w-3.5 shrink-0" />}
-                                                <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
-                                              </span>
-                                            </SelectItem>
-                                          );
-                                        })}
-                                      </SelectContent>
-                                    </Select>
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      className="h-9 gap-1.5"
-                                      disabled={!bulkSelections[group.contribution_id] || bulkUpdateStatus.isPending}
-                                      onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
-                                    >
-                                      <CheckCheck className="h-3.5 w-3.5" />
-                                      Apply ({group.trees.length})
-                                    </Button>
-                                  </div>
-                                  );
-                                })()}
-
                                 {/* Tree-level Table */}
                                 {(() => {
                                   const matchedTrees = group.trees;
@@ -1055,6 +1069,18 @@ export const StakeholderOrders = () => {
                                     }
                                   }
 
+                                  const SURVIVAL_COLORS: Record<string, string> = {
+                                    'Alive': 'bg-green-500/10 text-green-700 border-green-500/20',
+                                    'Dead': 'bg-red-500/10 text-red-700 border-red-500/20',
+                                    'Replaced': 'bg-blue-500/10 text-blue-700 border-blue-500/20',
+                                  };
+
+                                  const GROWTH_STAGE_COLORS: Record<string, string> = {
+                                    'sapling': 'bg-lime-500/10 text-lime-700 border-lime-500/20',
+                                    'young': 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+                                    'mature': 'bg-green-500/10 text-green-700 border-green-500/20',
+                                  };
+
                                   return displayRows.length > 0 ? (
                                   <div className="rounded-lg border bg-background overflow-x-auto">
                                     <Table>
@@ -1063,10 +1089,10 @@ export const StakeholderOrders = () => {
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
                                           <TableHead className="text-xs">Trees</TableHead>
-                                          <TableHead className="text-xs">Amount</TableHead>
-                                          <TableHead className="text-xs">Purchase Date</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs">Growth Stage</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
+                                          <TableHead className="text-xs">Last Checked</TableHead>
                                           <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
@@ -1077,28 +1103,38 @@ export const StakeholderOrders = () => {
                                             const tree = row.tree;
                                             const hasGeotag = allGeotags?.has(tree.id) || false;
                                             const survivalData = allSurvivalStatuses?.get(tree.id);
-                                            const SURVIVAL_COLORS: Record<string, string> = {
-                                              'Alive': 'bg-green-500/10 text-green-700 border-green-500/20',
-                                              'Dead': 'bg-red-500/10 text-red-700 border-red-500/20',
-                                              'Replaced': 'bg-blue-500/10 text-blue-700 border-blue-500/20',
-                                            };
+                                            const growthData = allGrowthStages?.get(tree.id);
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                 <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
                                                 <TableCell>{tree.num_trees}</TableCell>
-                                                <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
-                                                <TableCell>{formatDate(tree.created_at)}</TableCell>
                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                     {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
                                                 <TableCell>
+                                                  {growthData ? (
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
+                                                      {growthData.growth_stage}
+                                                    </Badge>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
                                                   {survivalData ? (
                                                     <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${SURVIVAL_COLORS[survivalData.survival_status] || 'bg-muted text-muted-foreground'}`}>
                                                       {survivalData.survival_status}
                                                     </Badge>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
+                                                  {survivalData?.last_checked_date ? (
+                                                    <span className="text-xs text-muted-foreground">{formatDate(survivalData.last_checked_date)}</span>
                                                   ) : (
                                                     <span className="text-xs text-muted-foreground">—</span>
                                                   )}
@@ -1150,13 +1186,13 @@ export const StakeholderOrders = () => {
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
                                                 <TableCell>1</TableCell>
-                                                <TableCell>-</TableCell>
-                                                <TableCell>-</TableCell>
                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell></TableCell>
@@ -2377,6 +2413,7 @@ export const StakeholderOrders = () => {
                         if (error) { toast.error(error.message); return; }
                         toast.success("Survival data saved");
                         refetchSurvival();
+                        queryClient.invalidateQueries({ queryKey: ["allSurvivalStatuses"] });
                         setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
                       }}
                     >
@@ -2436,6 +2473,7 @@ export const StakeholderOrders = () => {
                         if (error) { toast.error(error.message); return; }
                         toast.success("Growth data saved");
                         refetchGrowth();
+                        queryClient.invalidateQueries({ queryKey: ["allGrowthStages"] });
                         setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
                       }}
                     >
