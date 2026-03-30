@@ -1346,7 +1346,12 @@ export const StakeholderOrders = () => {
               tree_carer_id: 'tree_carer_name',
               planted_by: 'planter_name',
               planting_team_lead: 'planter_name',
-              verified_by: 'planter_name',
+            };
+            // For verified_by, resolve UUID to planter_name stored in transition data
+            const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
+              if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
+              if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+              return String(value);
             };
 
             return (
@@ -1391,6 +1396,10 @@ export const StakeholderOrders = () => {
                       for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                         if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                       }
+                      // For verified status, hide the planter_name key since it's used to resolve verified_by
+                      if (status === 'verified' && transitionData['planter_name'] !== undefined) {
+                        skipKeys.add('planter_name');
+                      }
                       const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
                       const entries = Object.entries(transitionData)
                         .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
@@ -1432,12 +1441,7 @@ export const StakeholderOrders = () => {
                                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                     {entries.map(([key, value]) => {
                                       const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                                      let displayValue: string;
-                                      if (typeof value === 'boolean') {
-                                        displayValue = value ? 'Yes' : 'No';
-                                      } else {
-                                        displayValue = String(value);
-                                      }
+                                      const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
                                       return (
                                         <React.Fragment key={key}>
                                           <span className="text-muted-foreground">{label}:</span>
