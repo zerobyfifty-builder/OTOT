@@ -1478,6 +1478,33 @@ export const StakeholderOrders = () => {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Photo Lightbox */}
+      {lightboxPhoto && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+          <div className="relative max-w-3xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxPhoto} alt="Full size" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />
+            <div className="absolute top-2 right-2 flex gap-2">
+              <a
+                href={lightboxPhoto}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className="h-5 w-5" />
+              </a>
+              <button
+                onClick={() => setLightboxPhoto(null)}
+                className="p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
