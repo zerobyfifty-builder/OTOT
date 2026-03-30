@@ -286,6 +286,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     } else if (s === "dead") {
       if (!formData.date_confirmed_dead) return "Date is required";
       if (!formData.cause_of_death) return "Please select cause of death";
+    } else if (s === "re_planted") {
+      if (!formData.re_planted_date) return "Re-planted date is required";
     }
     return null;
   };
