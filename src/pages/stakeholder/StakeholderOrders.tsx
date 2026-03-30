@@ -1180,14 +1180,28 @@ export const StakeholderOrders = () => {
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
                                                         Tree Status & Info
                                                       </DropdownMenuItem>
-                                                      <DropdownMenuItem onClick={() => {
-                                                        setGrowthSheet(tree);
-                                                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                                                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
-                                                      }}>
-                                                        <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                        Growth
-                                                      </DropdownMenuItem>
+                                                      {tree.planting_status === 'planted' ? (
+                                                        <DropdownMenuItem onClick={() => {
+                                                          setGrowthSheet(tree);
+                                                          setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                                                          setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                        }}>
+                                                          <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                          Growth Metrics
+                                                        </DropdownMenuItem>
+                                                      ) : (
+                                                        <TooltipProvider>
+                                                          <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                              <DropdownMenuItem disabled className="opacity-50">
+                                                                <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                                Growth Metrics
+                                                              </DropdownMenuItem>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                          </Tooltip>
+                                                        </TooltipProvider>
+                                                      )}
                                                     </DropdownMenuContent>
                                                   </DropdownMenu>
                                                 </TableCell>
