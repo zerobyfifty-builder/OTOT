@@ -1064,14 +1064,15 @@ export const StakeholderOrders = () => {
                                   <div className="rounded-lg border bg-background overflow-x-auto">
                                     <Table>
                                       <TableHeader>
-                                        <TableRow className="bg-muted/50">
+                                         <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
                                           <TableHead className="text-xs">Trees</TableHead>
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
-                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs">Survival Status</TableHead>
+                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
