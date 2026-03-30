@@ -91,8 +91,6 @@ const PLANTING_STATUSES = [
   'being_mapped',
   'verified',
   'planted',
-  'dead',
-  're_planted',
 ] as const;
 
 // Statuses available only for batch (bulk) updates
@@ -106,9 +104,6 @@ const BATCH_STATUSES = [
   'verified',
   'planted',
 ] as const;
-
-// Statuses available only for individual tree updates
-const INDIVIDUAL_ONLY_STATUSES = new Set(['being_mapped', 'dead', 're_planted']);
 
 const STATUS_LABELS: Record<string, string> = {
   waiting_to_be_assigned: 'Waiting to be Assigned',
@@ -446,6 +441,28 @@ export const StakeholderOrders = () => {
         .in("tree_id", allTreeIds);
       if (error) throw error;
       return new Set((data || []).map((g: any) => g.tree_id));
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
+  // Fetch latest survival status for all trees
+  const { data: allSurvivalStatuses } = useQuery({
+    queryKey: ["allSurvivalStatuses", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("tree_id, survival_status, last_checked_date")
+        .in("tree_id", allTreeIds)
+        .order("last_checked_date", { ascending: false });
+      if (error) throw error;
+      // Keep only the latest record per tree
+      const map = new Map<string, { survival_status: string; last_checked_date: string }>();
+      (data || []).forEach((r: any) => {
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, { survival_status: r.survival_status, last_checked_date: r.last_checked_date });
+        }
+      });
+      return map;
     },
     enabled: allTreeIds.length > 0,
   });
@@ -1042,14 +1059,15 @@ export const StakeholderOrders = () => {
                                   <div className="rounded-lg border bg-background overflow-x-auto">
                                     <Table>
                                       <TableHeader>
-                                        <TableRow className="bg-muted/50">
+                                         <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
                                           <TableHead className="text-xs">Trees</TableHead>
                                           <TableHead className="text-xs">Amount</TableHead>
                                           <TableHead className="text-xs">Purchase Date</TableHead>
-                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs">Survival Status</TableHead>
+                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
@@ -1058,6 +1076,12 @@ export const StakeholderOrders = () => {
                                           if (row.type === 'tree') {
                                             const tree = row.tree;
                                             const hasGeotag = allGeotags?.has(tree.id) || false;
+                                            const survivalData = allSurvivalStatuses?.get(tree.id);
+                                            const SURVIVAL_COLORS: Record<string, string> = {
+                                              'Alive': 'bg-green-500/10 text-green-700 border-green-500/20',
+                                              'Dead': 'bg-red-500/10 text-red-700 border-red-500/20',
+                                              'Replaced': 'bg-blue-500/10 text-blue-700 border-blue-500/20',
+                                            };
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
@@ -1065,6 +1089,20 @@ export const StakeholderOrders = () => {
                                                 <TableCell>{tree.num_trees}</TableCell>
                                                 <TableCell>${Number(tree.amount_paid).toFixed(2)}</TableCell>
                                                 <TableCell>{formatDate(tree.created_at)}</TableCell>
+                                                <TableCell>
+                                                  <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
+                                                    {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
+                                                  </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                  {survivalData ? (
+                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${SURVIVAL_COLORS[survivalData.survival_status] || 'bg-muted text-muted-foreground'}`}>
+                                                      {survivalData.survival_status}
+                                                    </Badge>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
                                                 <TableCell>
                                                   <div className="flex items-center gap-1.5">
                                                     <Switch
@@ -1080,45 +1118,6 @@ export const StakeholderOrders = () => {
                                                     />
                                                     {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
                                                   </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                  {canEditPlantingStatus ? (
-                                                    (() => {
-                                                      const treeCurrentStatus = tree.planting_status || 'waiting_to_be_assigned';
-                                                      const treeCurrentOrder = getPlantingStatusOrder(treeCurrentStatus);
-                                                      return (
-                                                    <Select
-                                                      value={treeCurrentStatus}
-                                                      onValueChange={(value) => handleIndividualStatusChange(tree, value)}
-                                                    >
-                                                      <SelectTrigger className="w-[210px]">
-                                                        <SelectValue />
-                                                      </SelectTrigger>
-                                                      <SelectContent>
-                                                        {PLANTING_STATUSES.map(s => {
-                                                          const sOrder = getPlantingStatusOrder(s);
-                                                          const isPassed = sOrder < treeCurrentOrder;
-                                                          const isCurrent = s === treeCurrentStatus;
-                                                          return (
-                                                            <SelectItem key={s} value={s}>
-                                                              <span className="flex items-center gap-2">
-                                                                {isPassed && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
-                                                                {isCurrent && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
-                                                                {!isPassed && !isCurrent && <span className="w-3.5 shrink-0" />}
-                                                                <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
-                                                              </span>
-                                                            </SelectItem>
-                                                          );
-                                                        })}
-                                                      </SelectContent>
-                                                    </Select>
-                                                      );
-                                                    })()
-                                                  ) : (
-                                                    <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
-                                                      {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
-                                                    </Badge>
-                                                  )}
                                                 </TableCell>
                                                 <TableCell>
                                                   <DropdownMenu>
@@ -1153,12 +1152,13 @@ export const StakeholderOrders = () => {
                                                 <TableCell>1</TableCell>
                                                 <TableCell>-</TableCell>
                                                 <TableCell>-</TableCell>
-                                                <TableCell>-</TableCell>
                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
+                                                <TableCell>-</TableCell>
                                                 <TableCell></TableCell>
                                               </TableRow>
                                             );
