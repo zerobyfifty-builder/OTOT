@@ -99,50 +99,34 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     enabled: open && !!request && ["assigned", "planting_scheduled", "sapling_planted", "verified"].includes(request.toStatus),
   });
 
-  const { data: counties } = useQuery({
-    queryKey: ["transitionCounties"],
+  const { data: allBeats } = useQuery({
+    queryKey: ["transitionAllBeats"],
     queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_counties").select("id, name").eq("is_active", true).order("name");
-      return data || [];
+      const { data } = await supabase
+        .from("mdm_location_beats")
+        .select("id, name, station:mdm_location_stations(name, block:mdm_location_blocks(name, subcounty:mdm_location_subcounties(name, county:mdm_location_counties(name))))")
+        .eq("is_active", true)
+        .order("name");
+      return (data || []).map((b: any) => {
+        const station = b.station;
+        const block = station?.block;
+        const subcounty = block?.subcounty;
+        const county = subcounty?.county;
+        return {
+          id: b.id,
+          label: `${b.name} – ${block?.name || ""} (${station?.name || ""}) – ${subcounty?.name || ""} (${county?.name || ""})`,
+        };
+      });
     },
     enabled: open && !!request && request.toStatus === "assigned",
   });
 
-  const { data: subcounties } = useQuery({
-    queryKey: ["transitionSubcounties", selectedCounty],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_subcounties").select("id, name").eq("county_id", selectedCounty).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedCounty,
-  });
-
-  const { data: blocks } = useQuery({
-    queryKey: ["transitionBlocks", selectedSubcounty],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_blocks").select("id, name").eq("subcounty_id", selectedSubcounty).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedSubcounty,
-  });
-
-  const { data: stations } = useQuery({
-    queryKey: ["transitionStations", selectedBlock],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_stations").select("id, name").eq("block_id", selectedBlock).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedBlock,
-  });
-
-  const { data: beats } = useQuery({
-    queryKey: ["transitionBeats", selectedStation],
-    queryFn: async () => {
-      const { data } = await supabase.from("mdm_location_beats").select("id, name, beat_code").eq("station_id", selectedStation).eq("is_active", true).order("name");
-      return data || [];
-    },
-    enabled: !!selectedStation,
-  });
+  const filteredBeats = useMemo(() => {
+    if (!allBeats) return [];
+    if (!beatSearch) return allBeats;
+    const q = beatSearch.toLowerCase();
+    return allBeats.filter(b => b.label.toLowerCase().includes(q));
+  }, [allBeats, beatSearch]);
 
   const { data: nurseries } = useQuery({
     queryKey: ["transitionNurseries"],
