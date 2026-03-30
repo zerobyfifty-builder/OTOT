@@ -468,6 +468,27 @@ export const StakeholderOrders = () => {
     enabled: allTreeIds.length > 0,
   });
 
+  // Fetch latest growth stage for all trees
+  const { data: allGrowthStages } = useQuery({
+    queryKey: ["allGrowthStages", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("tree_id, growth_stage, last_measured_date")
+        .in("tree_id", allTreeIds)
+        .order("last_measured_date", { ascending: false });
+      if (error) throw error;
+      const map = new Map<string, { growth_stage: string; last_measured_date: string }>();
+      (data || []).forEach((r: any) => {
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date });
+        }
+      });
+      return map;
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ treeId, status }: { treeId: string; status: string }) => {
       const { error } = await supabase
