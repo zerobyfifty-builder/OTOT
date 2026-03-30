@@ -353,43 +353,38 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       case "assigned":
         return (
           <div className="space-y-4">
-            {renderPlanterSelect("assigned_to", "Assigned to")}
-            
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label className="text-sm font-medium">Target Beat <span className="text-destructive">*</span></Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Select value={selectedCounty} onValueChange={(v) => { setSelectedCounty(v); setSelectedSubcounty(""); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="County" /></SelectTrigger>
-                  <SelectContent>
-                    {(counties || []).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedSubcounty} onValueChange={(v) => { setSelectedSubcounty(v); setSelectedBlock(""); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedCounty}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Sub-county" /></SelectTrigger>
-                  <SelectContent>
-                    {(subcounties || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedBlock} onValueChange={(v) => { setSelectedBlock(v); setSelectedStation(""); setField("target_beat", ""); }} disabled={!selectedSubcounty}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Block" /></SelectTrigger>
-                  <SelectContent>
-                    {(blocks || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedStation} onValueChange={(v) => { setSelectedStation(v); setField("target_beat", ""); }} disabled={!selectedBlock}>
-                  <SelectTrigger className="text-xs"><SelectValue placeholder="Station" /></SelectTrigger>
-                  <SelectContent>
-                    {(stations || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Select value={formData.target_beat || ""} onValueChange={(v) => setField("target_beat", v)} disabled={!selectedStation}>
-                <SelectTrigger className="text-xs"><SelectValue placeholder="Select Beat" /></SelectTrigger>
+              <Select value={formData.target_beat || ""} onValueChange={(v) => {
+                setField("target_beat", v);
+                const beat = allBeats?.find(b => b.id === v);
+                if (beat) setField("target_beat_label", beat.label);
+              }}>
+                <SelectTrigger><SelectValue placeholder="Search and select beat..." /></SelectTrigger>
                 <SelectContent>
-                  {(beats || []).map(b => <SelectItem key={b.id} value={b.id}>{b.name} ({b.beat_code})</SelectItem>)}
+                  <div className="p-2">
+                    <Input
+                      placeholder="Type to search..."
+                      value={beatSearch}
+                      onChange={(e) => setBeatSearch(e.target.value)}
+                      className="h-8 text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  {filteredBeats.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-3">No beats found</p>
+                  )}
+                  {filteredBeats.map(b => (
+                    <SelectItem key={b.id} value={b.id} className="text-xs">
+                      {b.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {renderPlanterSelect("assigned_to", "Assigned to")}
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Assigned Date <span className="text-destructive">*</span></Label>
