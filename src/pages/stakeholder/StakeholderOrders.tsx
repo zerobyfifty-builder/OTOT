@@ -1343,6 +1343,8 @@ export const StakeholderOrders = () => {
               nursery_id: 'nursery_name',
               species_id: 'species_name',
               tree_carer_id: 'tree_carer_name',
+              planted_by: 'planter_name',
+              planting_team_lead: 'planter_name',
             };
 
             return (
