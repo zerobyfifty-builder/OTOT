@@ -1366,6 +1366,8 @@ export const StakeholderOrders = () => {
               cause_of_death: 'Cause of Death',
               replacement_planned: 'Replacement Planned',
               replacement_target_date: 'Replacement Target Date',
+              re_planted_date: 'Re-planted Date',
+              re_planting_method: 'Re-planting Method',
               notes: 'Notes',
               reason: 'Reason',
               batch_notice: 'Notice',
