@@ -382,7 +382,19 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              {formData.target_beat && (() => {
+                const sel = allBeats?.find(b => b.id === formData.target_beat);
+                if (!sel) return null;
+                return (
+                  <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs text-muted-foreground grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
+                    <span className="font-medium text-foreground">Beat:</span><span>{sel.beatName}</span>
+                    <span className="font-medium text-foreground">Station:</span><span>{sel.stationName}</span>
+                    <span className="font-medium text-foreground">Block:</span><span>{sel.blockName}</span>
+                    <span className="font-medium text-foreground">Sub-County:</span><span>{sel.subcountyName}</span>
+                    <span className="font-medium text-foreground">County:</span><span>{sel.countyName}</span>
+                  </div>
+                );
+              })()}
             </div>
 
             {renderPlanterSelect("assigned_to", "Assigned to")}
