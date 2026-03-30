@@ -40,6 +40,7 @@ const STATUS_TITLES: Record<string, string> = {
   verified: "Record verification",
   planted: "Confirm planted",
   dead: "Record tree loss",
+  re_planted: "Record re-planting",
 };
 
 const SOIL_TYPES = ["Loam", "Clay", "Sandy", "Volcanic", "Mixed"];
