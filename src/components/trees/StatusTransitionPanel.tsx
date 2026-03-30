@@ -114,13 +114,13 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   // Pre-fill planter from assigned status when data is available
   useEffect(() => {
     if (assignedPlanterData?.planterId && request) {
-      if (request.toStatus === "planting_scheduled" && !formData.planting_team_lead) {
-        setFormData(prev => ({ ...prev, planting_team_lead: assignedPlanterData.planterId }));
-      } else if (request.toStatus === "sapling_planted" && !formData.planted_by) {
-        setFormData(prev => ({ ...prev, planted_by: assignedPlanterData.planterId }));
+      if (request.toStatus === "planting_scheduled") {
+        setFormData(prev => ({ ...prev, planting_team_lead: prev.planting_team_lead || assignedPlanterData.planterId }));
+      } else if (request.toStatus === "sapling_planted") {
+        setFormData(prev => ({ ...prev, planted_by: prev.planted_by || assignedPlanterData.planterId }));
       }
     }
-  }, [assignedPlanterData, request?.toStatus]);
+  }, [assignedPlanterData, request]);
 
   // Queries for reference data
   const { data: planters } = useQuery({
