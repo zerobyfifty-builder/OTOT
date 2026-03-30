@@ -962,6 +962,7 @@ export const StakeholderOrders = () => {
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell></TableCell>
                                               </TableRow>
                                             );
                                           }
