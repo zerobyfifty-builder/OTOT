@@ -1140,20 +1140,33 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  <div className="flex items-center gap-1.5">
-                                                    <Switch
-                                                      checked={hasGeotag}
-                                                      onCheckedChange={() => {
-                                                        if (!hasGeotag) {
-                                                          setGeotagDialog(tree);
-                                                          setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-                                                        }
-                                                      }}
-                                                      disabled={hasGeotag}
-                                                      className="data-[state=checked]:bg-green-500"
-                                                    />
-                                                    {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
-                                                  </div>
+                                                  {tree.planting_status === 'planted' ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                      <Switch
+                                                        checked={hasGeotag}
+                                                        onCheckedChange={() => {
+                                                          if (!hasGeotag) {
+                                                            setGeotagDialog(tree);
+                                                            setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                          }
+                                                        }}
+                                                        disabled={hasGeotag}
+                                                        className="data-[state=checked]:bg-green-500"
+                                                      />
+                                                      {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
+                                                    </div>
+                                                  ) : (
+                                                    <TooltipProvider>
+                                                      <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                          <div className="flex items-center gap-1.5">
+                                                            <Switch checked={false} disabled className="opacity-50" />
+                                                          </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                      </Tooltip>
+                                                    </TooltipProvider>
+                                                  )}
                                                 </TableCell>
                                                 <TableCell>
                                                   <DropdownMenu>
@@ -1167,14 +1180,28 @@ export const StakeholderOrders = () => {
                                                         <Eye className="h-3.5 w-3.5 mr-2" />
                                                         Tree Status & Info
                                                       </DropdownMenuItem>
-                                                      <DropdownMenuItem onClick={() => {
-                                                        setGrowthSheet(tree);
-                                                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                                                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
-                                                      }}>
-                                                        <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                        Growth
-                                                      </DropdownMenuItem>
+                                                      {tree.planting_status === 'planted' ? (
+                                                        <DropdownMenuItem onClick={() => {
+                                                          setGrowthSheet(tree);
+                                                          setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                                                          setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                        }}>
+                                                          <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                          Growth Metrics
+                                                        </DropdownMenuItem>
+                                                      ) : (
+                                                        <TooltipProvider>
+                                                          <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                              <DropdownMenuItem disabled className="opacity-50">
+                                                                <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                                Growth Metrics
+                                                              </DropdownMenuItem>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                          </Tooltip>
+                                                        </TooltipProvider>
+                                                      )}
                                                     </DropdownMenuContent>
                                                   </DropdownMenu>
                                                 </TableCell>
@@ -2362,7 +2389,7 @@ export const StakeholderOrders = () => {
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  Growth Data
+                  Growth Metrics
                 </SheetTitle>
                 <p className="text-sm text-muted-foreground">Tree: {growthSheet.otot_id}</p>
               </SheetHeader>
