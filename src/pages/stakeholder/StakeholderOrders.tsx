@@ -131,6 +131,7 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   verified: "bg-teal-500/10 text-teal-700 border-teal-500/20",
   planted: "bg-green-500/10 text-green-700 border-green-500/20",
   dead: "bg-red-500/10 text-red-700 border-red-500/20",
+  re_planted: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   // Legacy mappings
   pending_allocation: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   allocated: "bg-orange-500/10 text-orange-700 border-orange-500/20",
