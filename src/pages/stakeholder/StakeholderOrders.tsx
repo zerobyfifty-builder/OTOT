@@ -1309,9 +1309,23 @@ export const StakeholderOrders = () => {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Status History
+                    Current Status: {(() => {
+                      const statusLabels: Record<string, string> = {
+                        waiting_to_be_assigned: 'Waiting to be Assigned',
+                        assigned: 'Assigned',
+                        site_prepared: 'Site Prepared',
+                        saplings_ready: 'Saplings Ready',
+                        planting_scheduled: 'Planting Scheduled',
+                        sapling_planted: 'Sapling Planted',
+                        being_mapped: 'Being Mapped',
+                        verified: 'Verified',
+                        planted: 'Planted',
+                        dead: 'Dead',
+                      };
+                      return statusLabels[statusHistoryTree.planting_status || ''] || statusHistoryTree.planting_status || 'Unknown';
+                    })()}
                   </SheetTitle>
-                  <p className="text-sm text-muted-foreground">{statusHistoryTree.otot_id}</p>
+                  <p className="text-sm text-muted-foreground">Tree ID: {statusHistoryTree.otot_id}</p>
                 </SheetHeader>
 
                 <div className="mt-6 space-y-5">
@@ -1402,8 +1416,8 @@ export const StakeholderOrders = () => {
 
                           // Friendly display labels
                           const friendlyLabels: Record<string, string> = {
-                            assigned_to_name: 'Assigned To',
-                            target_beat_label: 'Target Beat',
+                            target_beat_label: 'Location (Target Beat)',
+                            assigned_to_name: 'Planter',
                             assigned_date: 'Assigned Date',
                             nursery_name: 'Nursery / CBO',
                             species_name: 'Species',
@@ -1440,9 +1454,16 @@ export const StakeholderOrders = () => {
                             batch_notice: 'Notice',
                           };
 
-                          const entries = Object.entries(transitionData).filter(
+                          const rawEntries = Object.entries(transitionData).filter(
                             ([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== ''
                           );
+                          // Sort: target_beat_label before assigned_to_name
+                          const sortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entries = rawEntries.sort((a, b) => {
+                            const oa = sortOrder[a[0]] ?? 99;
+                            const ob = sortOrder[b[0]] ?? 99;
+                            return oa - ob;
+                          });
 
                           if (entries.length === 0) return null;
 

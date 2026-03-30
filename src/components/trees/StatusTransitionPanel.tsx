@@ -355,7 +355,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Target Beat <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">Location (Target Beat) <span className="text-destructive">*</span></Label>
               <Select value={formData.target_beat || ""} onValueChange={(v) => {
                 setField("target_beat", v);
                 const beat = allBeats?.find(b => b.id === v);
