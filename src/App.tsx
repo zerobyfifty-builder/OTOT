@@ -107,6 +107,7 @@ import { StakeholderMdmSpecies } from "@/pages/stakeholder/StakeholderMdmSpecies
 import { StakeholderMdmNurseries } from "@/pages/stakeholder/StakeholderMdmNurseries";
 import { StakeholderMdmPlanters } from "@/pages/stakeholder/StakeholderMdmPlanters";
 import WalletSettings from "@/pages/admin/WalletSettings";
+import { TreeOperations } from "@/pages/stakeholder/TreeOperations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -535,6 +536,9 @@ const App = () => (
             } />
             <Route path="/stakeholder/mdm-planters" element={
               <StakeholderRoute><StakeholderLayout><StakeholderMdmPlanters /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/orders/:contributionId/operations" element={
+              <StakeholderRoute><StakeholderLayout><TreeOperations /></StakeholderLayout></StakeholderRoute>
             } />
 
             {/* Legacy Admin routes */}

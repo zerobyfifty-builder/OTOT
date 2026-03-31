@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -230,6 +231,7 @@ const getContriTypeLabel = (type: string | null): string => {
 };
 
 export const StakeholderOrders = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { hasEdit } = useModulePermissions("tree_orders");
@@ -1035,6 +1037,10 @@ export const StakeholderOrders = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/stakeholder/orders/${group.contribution_id}/operations`)}>
+                                  <Eye className="h-3.5 w-3.5 mr-2" />
+                                  Tree Operations
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setViewSheet(group)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Contribution Info
