@@ -537,6 +537,9 @@ const App = () => (
             <Route path="/stakeholder/mdm-planters" element={
               <StakeholderRoute><StakeholderLayout><StakeholderMdmPlanters /></StakeholderLayout></StakeholderRoute>
             } />
+            <Route path="/stakeholder/orders/:contributionId/operations" element={
+              <StakeholderRoute><StakeholderLayout><TreeOperations /></StakeholderLayout></StakeholderRoute>
+            } />
 
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
