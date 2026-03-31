@@ -1037,6 +1037,10 @@ export const StakeholderOrders = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/stakeholder/orders/${group.contribution_id}/operations`)}>
+                                  <Eye className="h-3.5 w-3.5 mr-2" />
+                                  Tree Operations
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setViewSheet(group)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Contribution Info
