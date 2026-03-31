@@ -2153,6 +2153,238 @@ export type Database = {
           },
         ]
       }
+      tree_impact_records: {
+        Row: {
+          anniversary_date: string | null
+          biodiversity_index: number | null
+          calculation_method: string | null
+          certificate_id: string | null
+          certificate_issued_date: string | null
+          certificate_url: string | null
+          co2_offset_actual_kg: number | null
+          co2_offset_estimated_kg: number | null
+          community_benefits: string | null
+          contribution_id: string
+          created_at: string
+          ecosystem_notes: string | null
+          id: string
+          jobs_created: number | null
+          last_update_sent_date: string | null
+          local_participants_count: number | null
+          notification_status:
+            | Database["public"]["Enums"]["notification_status_type"]
+            | null
+          soil_improvement: string | null
+          update_frequency:
+            | Database["public"]["Enums"]["update_frequency_type"]
+            | null
+          updated_at: string
+          water_retention: string | null
+        }
+        Insert: {
+          anniversary_date?: string | null
+          biodiversity_index?: number | null
+          calculation_method?: string | null
+          certificate_id?: string | null
+          certificate_issued_date?: string | null
+          certificate_url?: string | null
+          co2_offset_actual_kg?: number | null
+          co2_offset_estimated_kg?: number | null
+          community_benefits?: string | null
+          contribution_id: string
+          created_at?: string
+          ecosystem_notes?: string | null
+          id?: string
+          jobs_created?: number | null
+          last_update_sent_date?: string | null
+          local_participants_count?: number | null
+          notification_status?:
+            | Database["public"]["Enums"]["notification_status_type"]
+            | null
+          soil_improvement?: string | null
+          update_frequency?:
+            | Database["public"]["Enums"]["update_frequency_type"]
+            | null
+          updated_at?: string
+          water_retention?: string | null
+        }
+        Update: {
+          anniversary_date?: string | null
+          biodiversity_index?: number | null
+          calculation_method?: string | null
+          certificate_id?: string | null
+          certificate_issued_date?: string | null
+          certificate_url?: string | null
+          co2_offset_actual_kg?: number | null
+          co2_offset_estimated_kg?: number | null
+          community_benefits?: string | null
+          contribution_id?: string
+          created_at?: string
+          ecosystem_notes?: string | null
+          id?: string
+          jobs_created?: number | null
+          last_update_sent_date?: string | null
+          local_participants_count?: number | null
+          notification_status?:
+            | Database["public"]["Enums"]["notification_status_type"]
+            | null
+          soil_improvement?: string | null
+          update_frequency?:
+            | Database["public"]["Enums"]["update_frequency_type"]
+            | null
+          updated_at?: string
+          water_retention?: string | null
+        }
+        Relationships: []
+      }
+      tree_monitoring_logs: {
+        Row: {
+          contribution_id: string
+          created_at: string
+          id: string
+          inspected_by: string | null
+          inspection_date: string
+          overall_health_notes: string | null
+          photos: Json | null
+          survival_rate_pct: number | null
+          trees_alive: number | null
+          trees_dead: number | null
+          trees_replaced: number | null
+        }
+        Insert: {
+          contribution_id: string
+          created_at?: string
+          id?: string
+          inspected_by?: string | null
+          inspection_date: string
+          overall_health_notes?: string | null
+          photos?: Json | null
+          survival_rate_pct?: number | null
+          trees_alive?: number | null
+          trees_dead?: number | null
+          trees_replaced?: number | null
+        }
+        Update: {
+          contribution_id?: string
+          created_at?: string
+          id?: string
+          inspected_by?: string | null
+          inspection_date?: string
+          overall_health_notes?: string | null
+          photos?: Json | null
+          survival_rate_pct?: number | null
+          trees_alive?: number | null
+          trees_dead?: number | null
+          trees_replaced?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_monitoring_logs_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "tree_carers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tree_planting_assignments: {
+        Row: {
+          actual_planting_date: string | null
+          assigned_date: string | null
+          beat_id: string | null
+          community_participants: number | null
+          contribution_id: string
+          created_at: string
+          id: string
+          land_type: string | null
+          notes: string | null
+          nursery_id: string | null
+          planter_id: string | null
+          planting_method: string | null
+          planting_season: string | null
+          rainfall_zone: string | null
+          sapling_age_weeks: number | null
+          sapling_count_allocated: number | null
+          scheduled_planting_date: string | null
+          soil_type: string | null
+          species_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_planting_date?: string | null
+          assigned_date?: string | null
+          beat_id?: string | null
+          community_participants?: number | null
+          contribution_id: string
+          created_at?: string
+          id?: string
+          land_type?: string | null
+          notes?: string | null
+          nursery_id?: string | null
+          planter_id?: string | null
+          planting_method?: string | null
+          planting_season?: string | null
+          rainfall_zone?: string | null
+          sapling_age_weeks?: number | null
+          sapling_count_allocated?: number | null
+          scheduled_planting_date?: string | null
+          soil_type?: string | null
+          species_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_planting_date?: string | null
+          assigned_date?: string | null
+          beat_id?: string | null
+          community_participants?: number | null
+          contribution_id?: string
+          created_at?: string
+          id?: string
+          land_type?: string | null
+          notes?: string | null
+          nursery_id?: string | null
+          planter_id?: string | null
+          planting_method?: string | null
+          planting_season?: string | null
+          rainfall_zone?: string | null
+          sapling_age_weeks?: number | null
+          sapling_count_allocated?: number | null
+          scheduled_planting_date?: string | null
+          soil_type?: string | null
+          species_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_planting_assignments_beat_id_fkey"
+            columns: ["beat_id"]
+            isOneToOne: false
+            referencedRelation: "mdm_location_beats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_planting_assignments_nursery_id_fkey"
+            columns: ["nursery_id"]
+            isOneToOne: false
+            referencedRelation: "nurseries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_planting_assignments_planter_id_fkey"
+            columns: ["planter_id"]
+            isOneToOne: false
+            referencedRelation: "tree_carers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tree_planting_assignments_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "seed_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tree_status_transitions: {
         Row: {
           contribution_id: string | null
@@ -2190,6 +2422,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tree_status_transitions_tree_id_fkey"
+            columns: ["tree_id"]
+            isOneToOne: false
+            referencedRelation: "trees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tree_survival_records: {
+        Row: {
+          contribution_id: string
+          growth_stage: Database["public"]["Enums"]["growth_stage_type"] | null
+          height_cm: number | null
+          id: string
+          last_checked_date: string | null
+          notes: string | null
+          survival_status:
+            | Database["public"]["Enums"]["survival_status_type"]
+            | null
+          tree_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          contribution_id: string
+          growth_stage?: Database["public"]["Enums"]["growth_stage_type"] | null
+          height_cm?: number | null
+          id?: string
+          last_checked_date?: string | null
+          notes?: string | null
+          survival_status?:
+            | Database["public"]["Enums"]["survival_status_type"]
+            | null
+          tree_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contribution_id?: string
+          growth_stage?: Database["public"]["Enums"]["growth_stage_type"] | null
+          height_cm?: number | null
+          id?: string
+          last_checked_date?: string | null
+          notes?: string | null
+          survival_status?:
+            | Database["public"]["Enums"]["survival_status_type"]
+            | null
+          tree_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tree_survival_records_tree_id_fkey"
             columns: ["tree_id"]
             isOneToOne: false
             referencedRelation: "trees"
@@ -2615,6 +2897,8 @@ export type Database = {
       app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
       entry_source_type: "Manual" | "Integration"
+      growth_stage_type: "Sapling" | "Young" | "Maturing" | "Mature"
+      notification_status_type: "Pending" | "Scheduled" | "Sent"
       planting_progress_type:
         | "pending_allocation"
         | "allocated"
@@ -2637,6 +2921,7 @@ export type Database = {
         | "confirmed"
         | "completed"
       purchase_type: "One-time" | "Subscription"
+      survival_status_type: "Alive" | "Dead" | "Replaced"
       travel_class_type: "Economy" | "Premium Economy" | "Business" | "First"
       tree_status_type:
         | "Waiting to be Assigned"
@@ -2644,6 +2929,7 @@ export type Database = {
         | "Sapling Planted"
         | "Being Mapped"
         | "Planted"
+      update_frequency_type: "Monthly" | "Quarterly" | "Annually"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2783,6 +3069,8 @@ export const Constants = {
       app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
       entry_source_type: ["Manual", "Integration"],
+      growth_stage_type: ["Sapling", "Young", "Maturing", "Mature"],
+      notification_status_type: ["Pending", "Scheduled", "Sent"],
       planting_progress_type: [
         "pending_allocation",
         "allocated",
@@ -2807,6 +3095,7 @@ export const Constants = {
         "completed",
       ],
       purchase_type: ["One-time", "Subscription"],
+      survival_status_type: ["Alive", "Dead", "Replaced"],
       travel_class_type: ["Economy", "Premium Economy", "Business", "First"],
       tree_status_type: [
         "Waiting to be Assigned",
@@ -2815,6 +3104,7 @@ export const Constants = {
         "Being Mapped",
         "Planted",
       ],
+      update_frequency_type: ["Monthly", "Quarterly", "Annually"],
     },
   },
 } as const
