@@ -231,6 +231,7 @@ const getContriTypeLabel = (type: string | null): string => {
 };
 
 export const StakeholderOrders = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { hasEdit } = useModulePermissions("tree_orders");
