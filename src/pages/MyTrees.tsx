@@ -547,9 +547,10 @@ export const MyTrees = () => {
                                 <div className="overflow-x-auto bg-background/80 rounded-b-xl">
                                   <Table>
                                     <TableHeader>
-                                      <TableRow className="bg-primary/10 border-b-2 border-primary/20">
-                                        <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
-                                        <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
+                                    <TableRow className="bg-primary/10 border-b-2 border-primary/20">
+                                         <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
+                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Contribution ID</TableHead>
+                                         <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
@@ -563,6 +564,9 @@ export const MyTrees = () => {
                                         <TableRow key={tree.id} className="border-b border-border/20 last:border-b-0 hover:bg-muted/20">
                                           <TableCell className="font-medium text-muted-foreground text-xs">
                                             {index + 1}
+                                          </TableCell>
+                                          <TableCell className="text-left text-xs font-mono text-muted-foreground">
+                                            {tree.contribution_id ? tree.contribution_id.slice(0, 8).toUpperCase() : '—'}
                                           </TableCell>
                                           <TableCell className="text-left">
                                             <button
