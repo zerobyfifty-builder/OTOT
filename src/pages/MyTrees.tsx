@@ -547,9 +547,10 @@ export const MyTrees = () => {
                                 <div className="overflow-x-auto bg-background/80 rounded-b-xl">
                                   <Table>
                                     <TableHeader>
-                                      <TableRow className="bg-primary/10 border-b-2 border-primary/20">
-                                        <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
-                                        <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
+                                    <TableRow className="bg-primary/10 border-b-2 border-primary/20">
+                                         <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
+                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Contribution ID</TableHead>
+                                         <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
