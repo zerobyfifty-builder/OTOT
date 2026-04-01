@@ -327,6 +327,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-left">Date</TableHead>
+                        <TableHead className="text-left">Contribution ID</TableHead>
                         <TableHead className="text-center">Trees</TableHead>
                         <TableHead className="text-center">Method</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
@@ -336,8 +337,11 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                     <TableBody>
                       {payments.map((batch) => (
                         <TableRow key={batch.batchIndex}>
-                          <TableCell className="text-left">
+                          <TableCell className="text-left text-xs">
                             {format(new Date(batch.date), "dd MMM yyyy")}
+                          </TableCell>
+                          <TableCell className="text-left text-xs font-mono text-muted-foreground">
+                            {batch.contributionId.slice(0, 8).toUpperCase()}
                           </TableCell>
                           <TableCell className="text-center">{batch.numTrees}</TableCell>
                           <TableCell className="text-center text-xs text-muted-foreground">{batch.paymentMethod}</TableCell>
