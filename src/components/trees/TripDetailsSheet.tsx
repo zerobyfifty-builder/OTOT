@@ -47,6 +47,7 @@ const ACCOMMODATION_LABELS: Record<Database["public"]["Enums"]["accommodation_ty
 
 interface PaymentBatch {
   batchIndex: number;
+  contributionId: string;
   date: string;
   numTrees: number;
   amount: number;
