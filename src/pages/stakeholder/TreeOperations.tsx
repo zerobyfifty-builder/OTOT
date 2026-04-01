@@ -477,60 +477,145 @@ export const TreeOperations = () => {
                 <CardDescription>Lifecycle of this tree order through planting statuses</CardDescription>
               </CardHeader>
               <CardContent>
-                {timelineTransitions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No status transitions recorded yet.</p>
-                ) : (
-                  <div className="relative pl-8 space-y-6">
-                    <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-border" />
-                    {timelineTransitions.map((t: any, idx: number) => {
-                      const transitionData = typeof t.transition_data === 'string' ? JSON.parse(t.transition_data) : (t.transition_data || {});
-                      const photos = t.photos || [];
-                      return (
-                        <div key={t.id || idx} className="relative">
-                          <div className={`absolute -left-5 top-1 h-4 w-4 rounded-full border-2 border-background ${TIMELINE_DOT_COLORS[t.to_status] || 'bg-muted'}`} />
-                          <div className="bg-muted/30 rounded-lg p-4 border">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Badge variant="outline" className={PLANTING_STATUS_COLORS[t.to_status] || ''}>
-                                {STATUS_LABELS[t.to_status] || t.to_status}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {t.created_at ? format(new Date(t.created_at), "MMM dd, yyyy 'at' hh:mm a") : "—"}
-                              </span>
-                              {t.created_by && (
-                                <span className="text-xs text-muted-foreground">by {planterMap.get(t.created_by) || t.created_by.slice(0, 8)}</span>
-                              )}
-                            </div>
-                            {/* Transition data summary */}
-                            {Object.keys(transitionData).length > 0 && (
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                {Object.entries(transitionData).map(([key, val]) => {
-                                  if (!val || key === 'photos') return null;
-                                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                                  return (
-                                    <span key={key}>{label}: <span className="font-medium text-foreground">{String(val)}</span></span>
-                                  );
-                                })}
+                {(() => {
+                  const FRIENDLY_LABELS: Record<string, string> = {
+                    target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
+                    nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
+                    soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
+                    sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+                    sapling_count_allocated: 'Saplings Allocated', sapling_age_weeks: 'Sapling Age (weeks)',
+                    scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
+                    planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
+                    planted_by: 'Planted By', planting_team_lead: 'Team Lead',
+                    latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
+                    verification_date: 'Verification Date', verified_by: 'Verified By', verification_method: 'Verification Method', verification_notes: 'Verification Notes', health_status: 'Health Status',
+                    planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
+                    replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
+                    re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
+                    notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+                  };
+
+                  const ID_TO_LABEL_MAP: Record<string, string> = {
+                    assigned_to: 'assigned_to_name', target_beat: 'target_beat_label',
+                    nursery_id: 'nursery_name', species_id: 'species_name', tree_carer_id: 'tree_carer_name',
+                  };
+
+                  const resolveTimelineValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
+                    if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
+                    if (key === 'planted_by' && data.planter_name) return String(data.planter_name);
+                    if (key === 'planting_team_lead' && data.planter_name) return String(data.planter_name);
+                    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+                    // Check if the value looks like a UUID and we have a planter name for it
+                    if (typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(value)) {
+                      const resolvedName = planterMap.get(value);
+                      if (resolvedName) return resolvedName;
+                      return '—';
+                    }
+                    return String(value);
+                  };
+
+                  // Build full lifecycle with completed/pending status
+                  const allStatuses = Object.keys(STATUS_LABELS);
+                  const transitionMap = new Map<string, any>();
+                  timelineTransitions.forEach((t: any) => transitionMap.set(t.to_status, t));
+
+                  return timelineTransitions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No status transitions recorded yet.</p>
+                  ) : (
+                    <Accordion type="multiple" className="space-y-2">
+                      {timelineTransitions.map((t: any, idx: number) => {
+                        const transitionData = typeof t.transition_data === 'string' ? JSON.parse(t.transition_data) : (t.transition_data || {});
+                        const photos = t.photos || [];
+
+                        // Build skip keys for raw IDs when label version exists
+                        const skipKeys = new Set<string>(['reverted', 'photos']);
+                        for (const [idKey, labelKey] of Object.entries(ID_TO_LABEL_MAP)) {
+                          if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
+                        }
+                        if (transitionData['planter_name'] !== undefined) {
+                          skipKeys.add('planted_by');
+                          skipKeys.add('planting_team_lead');
+                          skipKeys.add('verified_by');
+                        }
+
+                        const entries = Object.entries(transitionData)
+                          .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
+                          .sort((a, b) => {
+                            const order: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1, nursery_name: 2, species_name: 3 };
+                            return (order[a[0]] ?? 99) - (order[b[0]] ?? 99);
+                          });
+
+                        return (
+                          <AccordionItem key={t.id || idx} value={t.id || `t-${idx}`} className="border rounded-xl overflow-hidden bg-card shadow-sm">
+                            <AccordionTrigger className="hover:no-underline px-4 py-3">
+                              <div className="flex items-center gap-3 w-full">
+                                <div className="h-6 w-6 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
+                                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                </div>
+                                <Badge variant="outline" className={`text-xs ${PLANTING_STATUS_COLORS[t.to_status] || ''}`}>
+                                  {STATUS_LABELS[t.to_status] || t.to_status}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground ml-auto mr-2">
+                                  {t.created_at ? format(new Date(t.created_at), "dd MMM yyyy, hh:mm a") : "—"}
+                                </span>
                               </div>
-                            )}
-                            {/* Photos */}
-                            {photos.length > 0 && (
-                              <div className="flex gap-2 mt-2 flex-wrap">
-                                {photos.map((url: string, i: number) => (
-                                  <button key={i} onClick={() => setLightboxPhoto(url)} className="relative h-16 w-16 rounded-md overflow-hidden border hover:ring-2 ring-primary transition-all">
-                                    <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 flex items-center justify-center transition-colors">
-                                      <ZoomIn className="h-4 w-4 text-white opacity-0 hover:opacity-100" />
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="px-4 pb-4 pt-1 space-y-3">
+                                {/* Who made the change */}
+                                {t.created_by && (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <User className="h-3.5 w-3.5" />
+                                    <span>Changed by: <span className="font-medium text-foreground">{planterMap.get(t.created_by) || "System"}</span></span>
+                                  </div>
+                                )}
+
+                                {/* Transition data - each field on its own line */}
+                                {entries.length > 0 && (
+                                  <div className="rounded-lg bg-muted/40 border p-3">
+                                    <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+                                      {entries.map(([key, value]) => {
+                                        const label = FRIENDLY_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                        const displayValue = resolveTimelineValue(key, value, transitionData as Record<string, unknown>);
+                                        return (
+                                          <React.Fragment key={key}>
+                                            <span className="text-muted-foreground whitespace-nowrap">{label}:</span>
+                                            <span className="font-medium text-foreground">{displayValue}</span>
+                                          </React.Fragment>
+                                        );
+                                      })}
                                     </div>
-                                  </button>
-                                ))}
+                                  </div>
+                                )}
+
+                                {/* Photos */}
+                                {photos.length > 0 && (
+                                  <div className="space-y-1.5">
+                                    <span className="text-sm text-muted-foreground flex items-center gap-1.5"><Camera className="h-3.5 w-3.5" /> Photos</span>
+                                    <div className="flex gap-2 flex-wrap">
+                                      {photos.map((url: string, i: number) => (
+                                        <button key={i} onClick={() => setLightboxPhoto(url)} className="relative group h-16 w-16 rounded-lg overflow-hidden border hover:ring-2 ring-primary transition-all">
+                                          <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
+                                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-colors">
+                                            <ZoomIn className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {entries.length === 0 && photos.length === 0 && (
+                                  <p className="text-xs text-muted-foreground italic">No additional data captured at this transition.</p>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  );
+                })()}
               </CardContent>
             </Card>
 
