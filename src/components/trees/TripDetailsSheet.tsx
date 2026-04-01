@@ -383,6 +383,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                       ))}
                       <TableRow className="border-t-2">
                         <TableCell className="text-left font-semibold">Total</TableCell>
+                        <TableCell />
                         <TableCell className="text-center font-semibold">{totalTreesPlanted}</TableCell>
                         <TableCell />
                         <TableCell className="text-right font-bold">

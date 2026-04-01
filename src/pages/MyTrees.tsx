@@ -565,6 +565,9 @@ export const MyTrees = () => {
                                           <TableCell className="font-medium text-muted-foreground text-xs">
                                             {index + 1}
                                           </TableCell>
+                                          <TableCell className="text-left text-xs font-mono text-muted-foreground">
+                                            {tree.contribution_id ? tree.contribution_id.slice(0, 8).toUpperCase() : '—'}
+                                          </TableCell>
                                           <TableCell className="text-left">
                                             <button
                                               onClick={() => setSelectedTree(tree)}
