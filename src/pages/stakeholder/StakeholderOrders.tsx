@@ -960,12 +960,14 @@ export const StakeholderOrders = () => {
                                       <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {BATCH_STATUSES.map(s => {
+                                      {BATCH_STATUSES.map((s, idx) => {
                                         const sOrder = getPlantingStatusOrder(s);
                                         const isPassed = commonStatus && sOrder < commonStatusOrder;
                                         const isCurrent = s === commonStatus;
-                                        const isNextStep = commonStatus && sOrder === commonStatusOrder + 1;
-                                        const isFutureSkip = commonStatus && sOrder > commonStatusOrder + 1;
+                                        // Find the current status index within BATCH_STATUSES
+                                        const currentBatchIdx = commonStatus ? BATCH_STATUSES.indexOf(commonStatus as any) : -1;
+                                        const isNextStep = currentBatchIdx >= 0 && idx === currentBatchIdx + 1;
+                                        const isFutureSkip = currentBatchIdx >= 0 && idx > currentBatchIdx + 1;
                                         return (
                                           <SelectItem key={s} value={s} disabled={isFutureSkip || false}>
                                             <span className={`flex items-center gap-2 ${isFutureSkip ? 'opacity-40' : ''}`}>
