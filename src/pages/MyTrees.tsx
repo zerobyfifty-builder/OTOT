@@ -566,7 +566,7 @@ export const MyTrees = () => {
                                             {index + 1}
                                           </TableCell>
                                           <TableCell className="text-left text-xs font-mono text-muted-foreground">
-                                            {tree.contribution_id ? tree.contribution_id.slice(0, 8).toUpperCase() : '—'}
+                                            {tree.contribution_id || '—'}
                                           </TableCell>
                                           <TableCell className="text-left">
                                             <button
