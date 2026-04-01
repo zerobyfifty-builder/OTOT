@@ -123,38 +123,37 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
 
   const buildPaymentBatches = (): PaymentBatch[] => {
     if (trees.length === 0) return [];
-    const sorted = [...trees].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Group by contribution_id
+    const grouped = new Map<string, Tree[]>();
+    trees.forEach(tree => {
+      const key = tree.contribution_id || tree.id; // fallback to tree id if no contribution_id
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(tree);
+    });
+
     const batches: PaymentBatch[] = [];
-    let current: PaymentBatch = {
-      batchIndex: 1,
-      date: sorted[0].created_at,
-      numTrees: sorted[0].num_trees,
-      amount: Number(sorted[0].amount_paid),
-      treeIds: [sorted[0].id],
-      ototIds: [sorted[0].otot_id],
-      paymentMethod: (sorted[0] as any).payment_method || 'Card',
-    };
-    for (let i = 1; i < sorted.length; i++) {
-      const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
-      if (gap <= 5 * 60 * 1000) {
-        current.numTrees += sorted[i].num_trees;
-        current.amount += Number(sorted[i].amount_paid);
-        current.treeIds.push(sorted[i].id);
-        current.ototIds.push(sorted[i].otot_id);
-      } else {
-        batches.push(current);
-        current = {
-          batchIndex: batches.length + 2,
-          date: sorted[i].created_at,
-          numTrees: sorted[i].num_trees,
-          amount: Number(sorted[i].amount_paid),
-          treeIds: [sorted[i].id],
-          ototIds: [sorted[i].otot_id],
-          paymentMethod: (sorted[i] as any).payment_method || 'Card',
-        };
-      }
-    }
-    batches.push(current);
+    let idx = 1;
+    // Sort groups by earliest date
+    const sortedKeys = [...grouped.keys()].sort((a, b) => {
+      const aDate = Math.min(...grouped.get(a)!.map(t => new Date(t.created_at).getTime()));
+      const bDate = Math.min(...grouped.get(b)!.map(t => new Date(t.created_at).getTime()));
+      return aDate - bDate;
+    });
+
+    sortedKeys.forEach(contribId => {
+      const groupTrees = grouped.get(contribId)!;
+      batches.push({
+        batchIndex: idx++,
+        contributionId: contribId,
+        date: groupTrees[0].created_at,
+        numTrees: groupTrees.reduce((sum, t) => sum + t.num_trees, 0),
+        amount: groupTrees.reduce((sum, t) => sum + Number(t.amount_paid), 0),
+        treeIds: groupTrees.map(t => t.id),
+        ototIds: groupTrees.map(t => t.otot_id),
+        paymentMethod: (groupTrees[0] as any).payment_method || 'Card',
+      });
+    });
+
     return batches;
   };
 
