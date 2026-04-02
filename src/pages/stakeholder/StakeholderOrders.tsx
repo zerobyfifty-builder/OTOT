@@ -1186,7 +1186,19 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  <MapPin className={`h-4 w-4 ${hasGeotag ? 'text-green-600' : 'text-muted-foreground/40'}`} />
+                                                  {hasGeotag ? (
+                                                    <a
+                                                      href={`https://www.google.com/maps?q=${allGeotags?.get(tree.id)?.latitude},${allGeotags?.get(tree.id)?.longitude}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="inline-flex"
+                                                      title={`${allGeotags?.get(tree.id)?.latitude}, ${allGeotags?.get(tree.id)?.longitude}`}
+                                                    >
+                                                      <MapPin className="h-4 w-4 text-green-600 hover:text-green-800 cursor-pointer" />
+                                                    </a>
+                                                  ) : (
+                                                    <MapPin className="h-4 w-4 text-muted-foreground/40" />
+                                                  )}
                                                 </TableCell>
                                                 {isPlantationType && (
                                                 <TableCell>
