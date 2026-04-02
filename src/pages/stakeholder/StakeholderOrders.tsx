@@ -1642,7 +1642,7 @@ export const StakeholderOrders = () => {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Batch Status & Info ({treeCount} tree{treeCount !== 1 ? 's' : ''})
+                    Planting Overview ({treeCount} tree{treeCount !== 1 ? 's' : ''})
                   </SheetTitle>
                 </SheetHeader>
 
