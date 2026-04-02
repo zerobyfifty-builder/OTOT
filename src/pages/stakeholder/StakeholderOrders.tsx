@@ -440,10 +440,12 @@ export const StakeholderOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_geotags" as any)
-        .select("tree_id")
+        .select("tree_id, latitude, longitude")
         .in("tree_id", allTreeIds);
       if (error) throw error;
-      return new Set((data || []).map((g: any) => g.tree_id));
+      const map = new Map<string, { latitude: number; longitude: number }>();
+      (data || []).forEach((g: any) => map.set(g.tree_id, { latitude: g.latitude, longitude: g.longitude }));
+      return map;
     },
     enabled: allTreeIds.length > 0,
   });
@@ -1184,7 +1186,19 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  <MapPin className={`h-4 w-4 ${hasGeotag ? 'text-green-600' : 'text-muted-foreground/40'}`} />
+                                                  {hasGeotag ? (
+                                                    <a
+                                                      href={`https://www.google.com/maps?q=${allGeotags?.get(tree.id)?.latitude},${allGeotags?.get(tree.id)?.longitude}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="inline-flex"
+                                                      title={`${allGeotags?.get(tree.id)?.latitude}, ${allGeotags?.get(tree.id)?.longitude}`}
+                                                    >
+                                                      <MapPin className="h-4 w-4 text-green-600 hover:text-green-800 cursor-pointer" />
+                                                    </a>
+                                                  ) : (
+                                                    <MapPin className="h-4 w-4 text-muted-foreground/40" />
+                                                  )}
                                                 </TableCell>
                                                 {isPlantationType && (
                                                 <TableCell>
