@@ -1057,6 +1057,7 @@ export const StakeholderOrders = () => {
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Batch Status & Info
                                 </DropdownMenuItem>
+                                {isPlantationType && (
                                 <DropdownMenuItem onClick={() => {
                                   setMonitoringSheet(group);
                                   setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
@@ -1064,6 +1065,7 @@ export const StakeholderOrders = () => {
                                   <ClipboardList className="h-3.5 w-3.5 mr-2" />
                                   Monitoring Logs
                                 </DropdownMenuItem>
+                                )}
                                 {group.trees[0]?.planting_status === 'planted' || group.trees[0]?.planting_status === 'verified' ? (
                                   <DropdownMenuItem onClick={() => {
                                     setImpactSheet(group);
@@ -1132,7 +1134,8 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Growth Stage</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
-                                          <TableHead className="text-xs">Geotag</TableHead>
+                                          <TableHead className="text-xs">Track</TableHead>
+                                          {isPlantationType && <TableHead className="text-xs">Geotag</TableHead>}
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
@@ -1179,70 +1182,81 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
+                                                  <MapPin className={`h-4 w-4 ${hasGeotag ? 'text-green-600' : 'text-muted-foreground/40'}`} />
+                                                </TableCell>
+                                                {isPlantationType && (
+                                                <TableCell>
                                                   {tree.planting_status === 'planted' ? (
-                                                    <div className="flex items-center gap-1.5">
-                                                      <Switch
-                                                        checked={hasGeotag}
-                                                        onCheckedChange={() => {
-                                                          if (!hasGeotag) {
-                                                            setGeotagDialog(tree);
-                                                            setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-                                                          }
-                                                        }}
-                                                        disabled={hasGeotag}
-                                                        className="data-[state=checked]:bg-green-500"
-                                                      />
-                                                      {hasGeotag && <MapPin className="h-3.5 w-3.5 text-green-600" />}
-                                                    </div>
+                                                    <Switch
+                                                      checked={hasGeotag}
+                                                      onCheckedChange={() => {
+                                                        if (!hasGeotag) {
+                                                          setGeotagDialog(tree);
+                                                          setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                        }
+                                                      }}
+                                                      disabled={hasGeotag}
+                                                      className="data-[state=checked]:bg-green-500"
+                                                    />
                                                   ) : (
                                                     <TooltipProvider>
                                                       <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                          <div className="flex items-center gap-1.5">
-                                                            <Switch checked={false} disabled className="opacity-50" />
-                                                          </div>
+                                                          <Switch checked={false} disabled className="opacity-50" />
                                                         </TooltipTrigger>
                                                         <TooltipContent><p>Tree not yet planted</p></TooltipContent>
                                                       </Tooltip>
                                                     </TooltipProvider>
                                                   )}
                                                 </TableCell>
+                                                )}
                                                 <TableCell>
-                                                  <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                                                        <MoreVertical className="h-3.5 w-3.5" />
-                                                      </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={() => setTreeStatusSheet({ tree, group })}>
-                                                        <Eye className="h-3.5 w-3.5 mr-2" />
-                                                        Tree Status & Info
-                                                      </DropdownMenuItem>
-                                                      {tree.planting_status === 'planted' ? (
-                                                        <DropdownMenuItem onClick={() => {
-                                                          setGrowthSheet(tree);
-                                                          setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                                                          setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
-                                                        }}>
-                                                          <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                          Growth Metrics
+                                                  {isPlantationType ? (
+                                                    <DropdownMenu>
+                                                      <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                          <MoreVertical className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                      </DropdownMenuTrigger>
+                                                      <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => setTreeStatusSheet({ tree, group })}>
+                                                          <Eye className="h-3.5 w-3.5 mr-2" />
+                                                          Tree Status & Info
                                                         </DropdownMenuItem>
-                                                      ) : (
-                                                        <TooltipProvider>
-                                                          <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                              <DropdownMenuItem disabled className="opacity-50">
-                                                                <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                                Growth Metrics
-                                                              </DropdownMenuItem>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent><p>Tree not yet planted</p></TooltipContent>
-                                                          </Tooltip>
-                                                        </TooltipProvider>
-                                                      )}
-                                                    </DropdownMenuContent>
-                                                  </DropdownMenu>
+                                                        {tree.planting_status === 'planted' ? (
+                                                          <DropdownMenuItem onClick={() => {
+                                                            setGrowthSheet(tree);
+                                                            setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                                                            setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                          }}>
+                                                            <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                            Growth Metrics
+                                                          </DropdownMenuItem>
+                                                        ) : (
+                                                          <TooltipProvider>
+                                                            <Tooltip>
+                                                              <TooltipTrigger asChild>
+                                                                <DropdownMenuItem disabled className="opacity-50">
+                                                                  <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                                  Growth Metrics
+                                                                </DropdownMenuItem>
+                                                              </TooltipTrigger>
+                                                              <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                            </Tooltip>
+                                                          </TooltipProvider>
+                                                        )}
+                                                      </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                  ) : (
+                                                    <Button
+                                                      variant="outline"
+                                                      size="sm"
+                                                      className="h-6 text-[11px] px-2 font-medium"
+                                                      onClick={() => setTreeStatusSheet({ tree, group })}
+                                                    >
+                                                      Tree Info
+                                                    </Button>
+                                                  )}
                                                 </TableCell>
                                               </TableRow>
                                             );
@@ -1260,7 +1274,8 @@ export const StakeholderOrders = () => {
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
-                                                <TableCell>-</TableCell>
+                                                <TableCell><MapPin className="h-4 w-4 text-muted-foreground/40" /></TableCell>
+                                                {isPlantationType && <TableCell>-</TableCell>}
                                                 <TableCell></TableCell>
                                               </TableRow>
                                             );
