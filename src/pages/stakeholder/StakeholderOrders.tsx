@@ -1274,7 +1274,8 @@ export const StakeholderOrders = () => {
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
-                                                <TableCell>-</TableCell>
+                                                <TableCell><MapPin className="h-4 w-4 text-muted-foreground/40" /></TableCell>
+                                                {isPlantationType && <TableCell>-</TableCell>}
                                                 <TableCell></TableCell>
                                               </TableRow>
                                             );
