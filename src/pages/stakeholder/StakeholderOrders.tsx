@@ -1134,7 +1134,8 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Growth Stage</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
-                                          <TableHead className="text-xs">Geotag</TableHead>
+                                          <TableHead className="text-xs">Track</TableHead>
+                                          {isPlantationType && <TableHead className="text-xs">Geotag</TableHead>}
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
