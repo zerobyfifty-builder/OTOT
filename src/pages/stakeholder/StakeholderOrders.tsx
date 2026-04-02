@@ -1055,7 +1055,7 @@ export const StakeholderOrders = () => {
                                   }
                                 }}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Batch Status & Info
+                                   Planting Overview
                                 </DropdownMenuItem>
                                 {isPlantationType && (
                                 <DropdownMenuItem onClick={() => {
@@ -1066,26 +1066,28 @@ export const StakeholderOrders = () => {
                                   Monitoring Logs
                                 </DropdownMenuItem>
                                 )}
-                                {group.trees[0]?.planting_status === 'planted' || group.trees[0]?.planting_status === 'verified' ? (
-                                  <DropdownMenuItem onClick={() => {
-                                    setImpactSheet(group);
-                                    setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
-                                  }}>
-                                    <BarChart3 className="h-3.5 w-3.5 mr-2" />
-                                    Impact Generated
-                                  </DropdownMenuItem>
-                                ) : (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground/50 cursor-not-allowed">
-                                          <BarChart3 className="h-3.5 w-3.5 mr-2" />
-                                          Impact Generated
-                                        </div>
-                                      </TooltipTrigger>
-                                      <TooltipContent><p>Tree not yet planted</p></TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                {isPlantationType && (
+                                  (group.trees[0]?.planting_status === 'planted' || group.trees[0]?.planting_status === 'verified') ? (
+                                    <DropdownMenuItem onClick={() => {
+                                      setImpactSheet(group);
+                                      setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
+                                    }}>
+                                      <BarChart3 className="h-3.5 w-3.5 mr-2" />
+                                      Impact Generated
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <div className="flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground/50 cursor-not-allowed">
+                                            <BarChart3 className="h-3.5 w-3.5 mr-2" />
+                                            Impact Generated
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1640,7 +1642,7 @@ export const StakeholderOrders = () => {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Batch Status & Info ({treeCount} tree{treeCount !== 1 ? 's' : ''})
+                    Planting Overview ({treeCount} tree{treeCount !== 1 ? 's' : ''})
                   </SheetTitle>
                 </SheetHeader>
 
