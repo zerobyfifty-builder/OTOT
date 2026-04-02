@@ -440,10 +440,12 @@ export const StakeholderOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_geotags" as any)
-        .select("tree_id")
+        .select("tree_id, latitude, longitude")
         .in("tree_id", allTreeIds);
       if (error) throw error;
-      return new Set((data || []).map((g: any) => g.tree_id));
+      const map = new Map<string, { latitude: number; longitude: number }>();
+      (data || []).forEach((g: any) => map.set(g.tree_id, { latitude: g.latitude, longitude: g.longitude }));
+      return map;
     },
     enabled: allTreeIds.length > 0,
   });
