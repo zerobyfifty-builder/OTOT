@@ -1057,6 +1057,7 @@ export const StakeholderOrders = () => {
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Batch Status & Info
                                 </DropdownMenuItem>
+                                {isPlantationType && (
                                 <DropdownMenuItem onClick={() => {
                                   setMonitoringSheet(group);
                                   setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
@@ -1064,6 +1065,7 @@ export const StakeholderOrders = () => {
                                   <ClipboardList className="h-3.5 w-3.5 mr-2" />
                                   Monitoring Logs
                                 </DropdownMenuItem>
+                                )}
                                 {group.trees[0]?.planting_status === 'planted' || group.trees[0]?.planting_status === 'verified' ? (
                                   <DropdownMenuItem onClick={() => {
                                     setImpactSheet(group);
