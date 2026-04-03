@@ -7,6 +7,7 @@ import { TreePine, Sprout, DollarSign, BarChart3, TrendingUp } from "lucide-reac
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 
 const COLORS = ['hsl(142 70% 45%)', 'hsl(142 50% 60%)', 'hsl(30 70% 50%)', 'hsl(200 70% 50%)', 'hsl(280 50% 55%)'];
 
@@ -89,9 +90,23 @@ export const StakeholderDashboard = () => {
     if (userProfile) setOrgInfo(userProfile.organizations);
   }, [userProfile]);
 
+  // Determine stakeholder type
+  const stakeholderType = (() => {
+    const roleName = userProfile?.roles?.name || '';
+    if (roleName === 'institutional_partner') return 'institutional';
+    const category = userProfile?.organizations?.category || '';
+    if (category === 'institutional') return 'institutional';
+    return 'plantation';
+  })();
+
   const userName = userProfile
     ? [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name
     : null;
+
+  // Render institutional dashboard for institutional stakeholders
+  if (stakeholderType === 'institutional' && userProfile) {
+    return <InstitutionalDashboard />;
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
