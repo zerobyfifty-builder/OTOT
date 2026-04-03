@@ -21,7 +21,7 @@ export const StakeholderDashboard = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase.
       from("users").
-      select("*, roles!inner(name, display_name), organizations!inner(*)").
+      select("*, roles!inner(name, display_name), organizations!inner(*, partner_types(name))").
       eq("user_id", user.id).
       single();
       if (error) throw error;
@@ -96,6 +96,8 @@ export const StakeholderDashboard = () => {
     if (roleName === 'institutional_partner') return 'institutional';
     const category = userProfile?.organizations?.category || '';
     if (category === 'institutional') return 'institutional';
+    const partnerTypeName = (userProfile?.organizations as any)?.partner_types?.name || '';
+    if (partnerTypeName.toLowerCase().includes('institutional')) return 'institutional';
     return 'plantation';
   })();
 
