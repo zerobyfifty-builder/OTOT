@@ -21,7 +21,7 @@ export const StakeholderDashboard = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase.
       from("users").
-      select("*, roles!inner(name, display_name), organizations!inner(*)").
+      select("*, roles!inner(name, display_name), organizations!inner(*, partner_types(name))").
       eq("user_id", user.id).
       single();
       if (error) throw error;
