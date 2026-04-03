@@ -7,6 +7,7 @@ import { TreePine, Sprout, DollarSign, BarChart3, TrendingUp } from "lucide-reac
 import { useQuery } from "@tanstack/react-query";
 import { formatNumber } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 
 const COLORS = ['hsl(142 70% 45%)', 'hsl(142 50% 60%)', 'hsl(30 70% 50%)', 'hsl(200 70% 50%)', 'hsl(280 50% 55%)'];
 
