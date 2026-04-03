@@ -89,7 +89,7 @@ export const InstitutionalDashboard = () => {
         treesRes, tripsRes, agentsRes, ticketsRes, contributionsRes,
         rolesRes, communityRes, monitoringRes, survivalRes
       ] = await Promise.all([
-        supabase.from("trees").select("id, status, amount_paid, num_trees, planting_status, stakeholder_org_id, created_at, contribution_id, country"),
+        supabase.from("trees").select("id, status, amount_paid, num_trees, planting_status, stakeholder_org_id, created_at, contribution_id"),
         supabase.from("trips").select("id, flight_co2, accommodation_co2, total_co2, num_travelers, origin_airport, destination_airport, from_date, created_at"),
         supabase.from("travel_agents").select("id", { count: "exact" }),
         supabase.from("agent_tickets").select("trees_planted, offset_amount_paid, trees_needed"),
