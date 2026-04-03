@@ -96,7 +96,7 @@ export const StakeholderDashboard = () => {
     if (roleName === 'institutional_partner') return 'institutional';
     const category = userProfile?.organizations?.category || '';
     if (category === 'institutional') return 'institutional';
-    const partnerTypeName = (userProfile?.organizations?.partner_types as any)?.name || '';
+    const partnerTypeName = (userProfile?.organizations as any)?.partner_types?.name || '';
     if (partnerTypeName.toLowerCase().includes('institutional')) return 'institutional';
     return 'plantation';
   })();
