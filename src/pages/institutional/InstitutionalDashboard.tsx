@@ -185,11 +185,11 @@ export const InstitutionalDashboard = () => {
         monthlyOrders[month].revenue += Number(t.amount_paid) || 0;
       });
 
-      // Country distribution for trees
+      // Country distribution from contributions
       const countryTreeMap: Record<string, number> = {};
-      trees.forEach(t => {
-        const c = t.country || 'Unknown';
-        countryTreeMap[c] = (countryTreeMap[c] || 0) + (t.num_trees || 0);
+      contributions.forEach(c => {
+        const country = c.country || 'Unknown';
+        countryTreeMap[country] = (countryTreeMap[country] || 0) + (c.num_trees || 0);
       });
 
       return {
