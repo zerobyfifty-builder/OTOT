@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Bell, Shield, Mail, Phone, Globe } from 'lucide-react';
+import { PlantingCostsTab } from '@/components/settings/PlantingCostsTab';
+import { PlantingCostsKTBTab } from '@/components/settings/PlantingCostsKTBTab';
 
 const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
@@ -35,6 +38,7 @@ export const StakeholderSettings = () => {
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stakeholderType, setStakeholderType] = useState<'plantation' | 'institutional'>('plantation');
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -56,10 +60,10 @@ export const StakeholderSettings = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch user details
+        // Fetch user details with role and org info
         const { data: userData } = await supabase
           .from('users')
-          .select('first_name, last_name, email, phone_number, organization_id')
+          .select('first_name, last_name, email, phone_number, organization_id, roles!inner(name), organizations!inner(category, partner_types(name))')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -74,6 +78,14 @@ export const StakeholderSettings = () => {
           setLastName(userData.last_name || '');
           setPhoneNumber(userData.phone_number || '');
           setNewEmail(userData.email);
+
+          // Determine stakeholder type
+          const roleName = (userData.roles as any)?.name || '';
+          const orgCategory = (userData.organizations as any)?.category || '';
+          const ptName = (userData.organizations as any)?.partner_types?.name || '';
+          if (roleName === 'institutional_partner' || orgCategory === 'institutional' || ptName.toLowerCase().includes('institutional')) {
+            setStakeholderType('institutional');
+          }
 
           // Fetch org details
           if (userData.organization_id) {
@@ -178,6 +190,14 @@ export const StakeholderSettings = () => {
         <h1 className="text-2xl sm:text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account and organization settings</p>
       </div>
+
+      <Tabs defaultValue="account" className="w-full">
+        <TabsList>
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="planting-costs">Planting Costs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="account" className="space-y-6 mt-4">
 
       {/* Organization Info (Read-only) */}
       {orgDetails && (
@@ -409,6 +429,12 @@ export const StakeholderSettings = () => {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="planting-costs" className="mt-4">
+          {stakeholderType === 'institutional' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
