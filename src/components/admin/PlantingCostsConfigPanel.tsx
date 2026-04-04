@@ -192,12 +192,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
       {/* MoE Cost Inputs */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">MoE Cost Inputs</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClearSubmission} className="text-xs gap-1">
-              <ArrowLeft className="h-3 w-3" /> Change submission
-            </Button>
-          </div>
+          <CardTitle className="text-base">MoE Cost Inputs</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {COST_FIELDS.map(f => {
