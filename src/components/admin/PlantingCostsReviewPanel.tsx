@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const formatKES = (v: number) => `KES ${Math.round(v).toLocaleString('en-US')}`;
 
@@ -22,8 +21,6 @@ interface Props {
 }
 
 export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, selectedId }) => {
-  const [tab, setTab] = useState('pending');
-
   const { data: submissions } = useQuery({
     queryKey: ['all-planting-submissions'],
     queryFn: async () => {
@@ -35,52 +32,40 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
     },
   });
 
-  const pendingCount = submissions?.filter(s => s.status === 'pending_review').length || 0;
-
-  const filtered = tab === 'pending'
-    ? submissions?.filter(s => s.status === 'pending_review')
-    : submissions;
-
-  const renderCard = (sub: any) => (
-    <div
-      key={sub.id}
-      className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}
-      onClick={() => onSelectSubmission(sub)}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium text-sm">{sub.stakeholder_org}</p>
-          <p className="text-xs text-muted-foreground">
-            {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {statusBadge(sub.status)}
-          <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
-        </div>
-      </div>
-    </div>
-  );
+  // Auto-select the most recent submission when data loads
+  useEffect(() => {
+    if (submissions?.length && !selectedId) {
+      onSelectSubmission(submissions[0]);
+    }
+  }, [submissions, selectedId, onSelectSubmission]);
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Cost Submissions</h2>
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-          <TabsTrigger value="all">All submissions</TabsTrigger>
-        </TabsList>
-        <TabsContent value="pending" className="space-y-3 mt-3">
-          {filtered?.length ? filtered.map(renderCard) : (
-            <p className="text-sm text-muted-foreground py-4">No pending submissions.</p>
-          )}
-        </TabsContent>
-        <TabsContent value="all" className="space-y-3 mt-3">
-          {filtered?.length ? filtered.map(renderCard) : (
-            <p className="text-sm text-muted-foreground py-4">No submissions yet.</p>
-          )}
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-3">
+        {submissions?.length ? submissions.map((sub: any) => (
+          <div
+            key={sub.id}
+            className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}
+            onClick={() => onSelectSubmission(sub)}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-sm">{sub.stakeholder_org}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {statusBadge(sub.status)}
+                <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
+              </div>
+            </div>
+          </div>
+        )) : (
+          <p className="text-sm text-muted-foreground py-4">No submissions yet.</p>
+        )}
+      </div>
     </div>
   );
 };
