@@ -56,7 +56,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         .maybeSingle();
       return data;
     },
-    enabled: !!submission?.id && isApproved,
+    enabled: !!submission?.id && isReadOnly,
   });
 
   // Use saved config values for approved, otherwise use slider state
