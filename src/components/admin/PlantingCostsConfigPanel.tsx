@@ -283,10 +283,12 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
               <div className="p-3 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">MoE receives</p>
                 <p className="font-bold">{formatUSD(moeUSD)}</p>
+                <p className="text-xs text-muted-foreground">KES {formatKES(moeUSD * fxRate)}</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">MoE needs</p>
                 <p className="font-bold">{formatUSD(moeNeedUSD)}</p>
+                <p className="text-xs text-muted-foreground">KES {formatKES(totalKES)}</p>
               </div>
             </div>
 
@@ -295,7 +297,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   <div>
-                    <p className="font-medium text-emerald-800 text-sm">MoE covered. Surplus {formatUSD(surplus)} strengthens reserve.</p>
+                    <p className="font-medium text-emerald-800 text-sm">MoE receives {formatUSD(moeUSD)} — covers the KES {formatKES(totalKES)} ({formatUSD(moeNeedUSD)}) cost. Surplus {formatUSD(surplus)} strengthens MoE reserve.</p>
                   </div>
                 </div>
               </div>
