@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
-import { CornerDownLeft, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ChevronDown, CornerDownLeft, ArrowRight } from 'lucide-react';
 
 const COST_FIELDS = [
   { key: 'cost_seedling_kes', label: 'Seedling / sapling' },
@@ -42,6 +43,7 @@ interface Props {
 export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, selectedId }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [returnComment, setReturnComment] = useState('');
   const [returningId, setReturningId] = useState<string | null>(null);
   const fx = 130;
@@ -92,23 +94,15 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
     ? submissions?.filter(s => s.status === 'pending_review')
     : submissions;
 
-  const renderCard = (sub: any) => {
-    const isSelected = selectedId === sub.id;
-    const isPending = sub.status === 'pending_review';
-    const isApproved = sub.status === 'approved';
-
-    return (
-      <div
-        key={sub.id}
-        className={`border rounded-lg transition-colors ${isSelected ? 'ring-2 ring-primary border-primary' : ''} ${(isPending || isApproved) && !isSelected ? 'cursor-pointer hover:bg-muted/30' : ''}`}
-        onClick={() => {
-          if ((isPending || isApproved) && !isSelected) {
-            onSelectSubmission(sub);
-          }
-        }}
-      >
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
+  const renderCard = (sub: any) => (
+    <Collapsible
+      key={sub.id}
+      open={expandedId === sub.id}
+      onOpenChange={open => setExpandedId(open ? sub.id : null)}
+    >
+      <div className={`border rounded-lg transition-colors ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}>
+        <CollapsibleTrigger className="w-full">
+          <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors rounded-t-lg">
             <div className="text-left">
               <p className="font-medium text-sm">{sub.stakeholder_org}</p>
               <p className="text-xs text-muted-foreground">
@@ -118,70 +112,72 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
             <div className="flex items-center gap-2">
               {statusBadge(sub.status)}
               <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedId === sub.id ? 'rotate-180' : ''}`} />
             </div>
           </div>
-
-          <Separator />
-
-          {COST_FIELDS.map(f => {
-            const val = Number((sub as any)[f.key] || 0);
-            return (
-              <div key={f.key} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{f.label}</span>
-                <span>{formatKES(val)} <span className="text-muted-foreground">({formatUSD(val, fx)})</span></span>
-              </div>
-            );
-          })}
-
-          <Separator />
-          <div className="flex justify-between font-semibold text-sm">
-            <span>Total</span>
-            <span>{formatKES(Number(sub.total_cost_kes))} ({formatUSD(Number(sub.total_cost_kes), fx)})</span>
-          </div>
-
-          {isPending && (
-            <div className="flex gap-2 pt-2">
-              {returningId === sub.id ? (
-                <div className="w-full space-y-2" onClick={e => e.stopPropagation()}>
-                  <Textarea
-                    placeholder="Enter comment for plantation partner..."
-                    value={returnComment}
-                    onChange={e => setReturnComment(e.target.value)}
-                    rows={3}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={!returnComment.trim() || returnMutation.isPending}
-                      onClick={(e) => { e.stopPropagation(); returnMutation.mutate({ id: sub.id, comment: returnComment }); }}
-                    >
-                      <CornerDownLeft className="h-3 w-3 mr-1" />
-                      Confirm Return
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setReturningId(null); setReturnComment(''); }}>
-                      Cancel
-                    </Button>
-                  </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 space-y-3">
+            <Separator />
+            {COST_FIELDS.map(f => {
+              const val = Number((sub as any)[f.key] || 0);
+              return (
+                <div key={f.key} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <span>{formatKES(val)} <span className="text-muted-foreground">({formatUSD(val, fx)})</span></span>
                 </div>
-              ) : (
-                <>
-                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setReturningId(sub.id); }}>
-                    <CornerDownLeft className="h-3 w-3 mr-1" />
-                    Return with comment
-                  </Button>
-                  <Button size="sm" onClick={(e) => { e.stopPropagation(); onSelectSubmission(sub); }}>
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Approve the costs
-                  </Button>
-                </>
-              )}
+              );
+            })}
+            <Separator />
+            <div className="flex justify-between font-semibold text-sm">
+              <span>Total</span>
+              <span>{formatKES(Number(sub.total_cost_kes))} ({formatUSD(Number(sub.total_cost_kes), fx)})</span>
             </div>
-          )}
-        </div>
+
+            {sub.status === 'pending_review' && (
+              <div className="flex gap-2 pt-2">
+                {returningId === sub.id ? (
+                  <div className="w-full space-y-2">
+                    <Textarea
+                      placeholder="Enter comment for plantation partner..."
+                      value={returnComment}
+                      onChange={e => setReturnComment(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={!returnComment.trim() || returnMutation.isPending}
+                        onClick={() => returnMutation.mutate({ id: sub.id, comment: returnComment })}
+                      >
+                        <CornerDownLeft className="h-3 w-3 mr-1" />
+                        Confirm Return
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setReturningId(null); setReturnComment(''); }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => setReturningId(sub.id)}>
+                      <CornerDownLeft className="h-3 w-3 mr-1" />
+                      Return with comment
+                    </Button>
+                    <Button size="sm" onClick={() => onSelectSubmission(sub)}>
+                      <ArrowRight className="h-3 w-3 mr-1" />
+                      Use these costs
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
       </div>
-    );
-  };
+    </Collapsible>
+  );
 
   return (
     <div className="space-y-4">
