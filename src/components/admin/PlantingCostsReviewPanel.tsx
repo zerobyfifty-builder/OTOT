@@ -46,7 +46,7 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
         {submissions?.length ? submissions.map((sub: any) => (
           <div
             key={sub.id}
-            className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}
+            className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''} ${sub.status === 'approved' ? 'bg-emerald-500/5 border-emerald-300' : ''}`}
             onClick={() => onSelectSubmission(sub)}
           >
             <div className="flex items-center justify-between">
@@ -60,9 +60,6 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
               </div>
               <div className="flex items-center gap-2">
                 {statusBadge(sub.status)}
-                {sub.status === 'approved' && (
-                  <Badge className="bg-emerald-500 text-white border-emerald-600 animate-pulse text-[10px] px-1.5 py-0">Live</Badge>
-                )}
                 <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
               </div>
             </div>
