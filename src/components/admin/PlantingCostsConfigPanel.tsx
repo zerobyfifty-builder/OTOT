@@ -283,10 +283,12 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
               <div className="p-3 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">MoE receives</p>
                 <p className="font-bold">{formatUSD(moeUSD)}</p>
+                <p className="text-xs text-muted-foreground">KES {formatKES(moeUSD * fxRate)}</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">MoE needs</p>
                 <p className="font-bold">{formatUSD(moeNeedUSD)}</p>
+                <p className="text-xs text-muted-foreground">KES {formatKES(totalKES)}</p>
               </div>
             </div>
 
