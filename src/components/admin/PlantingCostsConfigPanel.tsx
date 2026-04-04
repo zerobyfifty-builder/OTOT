@@ -297,7 +297,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   <div>
-                    <p className="font-medium text-emerald-800 text-sm">MoE covered. Surplus {formatUSD(surplus)} strengthens reserve.</p>
+                    <p className="font-medium text-emerald-800 text-sm">MoE receives {formatUSD(moeUSD)} — covers the KES {formatKES(totalKES)} ({formatUSD(moeNeedUSD)}) cost. Surplus {formatUSD(surplus)} strengthens MoE reserve.</p>
                   </div>
                 </div>
               </div>
