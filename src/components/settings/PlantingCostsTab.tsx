@@ -1,17 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, AlertTriangle, ChevronDown, Send, Info, Plus } from 'lucide-react';
+import { Clock, AlertTriangle, Send, Info, Plus } from 'lucide-react';
 
 const COST_FIELDS = [
   { key: 'cost_seedling_kes', label: 'Seedling / sapling cost', helper: 'KFS subsidised avg KES 20–50; private nursery KES 50–100' },
@@ -42,8 +40,8 @@ export const PlantingCostsTab: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Get user's org name
   const { data: userOrg } = useQuery({
     queryKey: ['user-org-for-costs', user?.id],
     queryFn: async () => {
@@ -59,7 +57,6 @@ export const PlantingCostsTab: React.FC = () => {
 
   const orgName = (userOrg?.organizations as any)?.name || '';
 
-  // Active config
   const { data: activeConfig } = useQuery({
     queryKey: ['active-planting-config'],
     queryFn: async () => {
@@ -74,40 +71,34 @@ export const PlantingCostsTab: React.FC = () => {
 
   const fxRate = activeConfig?.fx_rate_kes_usd ? Number(activeConfig.fx_rate_kes_usd) : 130;
 
-  // Active approved submission (for display)
-  const { data: approvedSubmission } = useQuery({
-    queryKey: ['approved-planting-submission', activeConfig?.submission_id],
+  const { data: history } = useQuery({
+    queryKey: ['planting-cost-history', orgName],
     queryFn: async () => {
-      if (!activeConfig?.submission_id) return null;
-      const { data } = await supabase
-        .from('planting_cost_submissions')
-        .select('*')
-        .eq('id', activeConfig.submission_id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!activeConfig?.submission_id,
-  });
-
-  // Pending submission from this org
-  const { data: pendingSubmission } = useQuery({
-    queryKey: ['pending-planting-submission', orgName],
-    queryFn: async () => {
-      if (!orgName) return null;
+      if (!orgName) return [];
       const { data } = await supabase
         .from('planting_cost_submissions')
         .select('*')
         .eq('stakeholder_org', orgName)
-        .eq('status', 'pending_review')
-        .order('submitted_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data;
+        .order('submitted_at', { ascending: false });
+      return data || [];
     },
     enabled: !!orgName,
   });
 
-  // Last returned submission
+  // Auto-select the most recent submission
+  useEffect(() => {
+    if (history?.length && !selectedId) {
+      setSelectedId(history[0].id);
+    }
+  }, [history, selectedId]);
+
+  const selectedSubmission = useMemo(() => {
+    return history?.find((s: any) => s.id === selectedId) || null;
+  }, [history, selectedId]);
+
+  const hasPending = history?.some((s: any) => s.status === 'pending_review');
+
+  // Last returned submission for sheet notice
   const { data: returnedSubmission } = useQuery({
     queryKey: ['returned-planting-submission', orgName],
     queryFn: async () => {
@@ -125,30 +116,10 @@ export const PlantingCostsTab: React.FC = () => {
     enabled: !!orgName,
   });
 
-  // Submission history
-  const { data: history } = useQuery({
-    queryKey: ['planting-cost-history', orgName],
-    queryFn: async () => {
-      if (!orgName) return [];
-      const { data } = await supabase
-        .from('planting_cost_submissions')
-        .select('*')
-        .eq('stakeholder_org', orgName)
-        .order('submitted_at', { ascending: false });
-      return data || [];
-    },
-    enabled: !!orgName,
-  });
-
   // Form state
   const [formValues, setFormValues] = useState<Record<CostKey, string>>({
-    cost_seedling_kes: '',
-    cost_planting_kes: '',
-    cost_aftercare_yr1_kes: '',
-    cost_aftercare_yr2_kes: '',
-    cost_aftercare_yr3_kes: '',
-    cost_gps_mrv_kes: '',
-    cost_admin_overhead_kes: '',
+    cost_seedling_kes: '', cost_planting_kes: '', cost_aftercare_yr1_kes: '',
+    cost_aftercare_yr2_kes: '', cost_aftercare_yr3_kes: '', cost_gps_mrv_kes: '', cost_admin_overhead_kes: '',
   });
 
   const totalKES = useMemo(() => {
@@ -163,9 +134,7 @@ export const PlantingCostsTab: React.FC = () => {
         status: 'pending_review',
         total_cost_kes: totalKES,
       };
-      COST_FIELDS.forEach(f => {
-        row[f.key] = parseFloat(formValues[f.key]) || 0;
-      });
+      COST_FIELDS.forEach(f => { row[f.key] = parseFloat(formValues[f.key]) || 0; });
       const { error } = await supabase.from('planting_cost_submissions').insert(row as any);
       if (error) throw error;
       await supabase.from('planting_cost_notifications').insert({
@@ -181,16 +150,14 @@ export const PlantingCostsTab: React.FC = () => {
         cost_seedling_kes: '', cost_planting_kes: '', cost_aftercare_yr1_kes: '',
         cost_aftercare_yr2_kes: '', cost_aftercare_yr3_kes: '', cost_gps_mrv_kes: '', cost_admin_overhead_kes: '',
       });
+      setSelectedId(null);
       setSheetOpen(false);
     },
     onError: (err: any) => toast.error(err.message || 'Failed to submit'),
   });
 
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
-
-  const renderCostRows = (submission: any, showUSD = true) => (
-    <div className="space-y-2">
+  const renderCostRows = (submission: any) => (
+    <div className="space-y-3">
       {COST_FIELDS.map(f => {
         const val = Number(submission[f.key] || 0);
         return (
@@ -198,29 +165,26 @@ export const PlantingCostsTab: React.FC = () => {
             <span className="text-muted-foreground">{f.label}</span>
             <span className="font-medium">
               KES {formatKES(val)}
-              {showUSD && <span className="text-muted-foreground ml-2">({formatUSD(val / fxRate)})</span>}
+              <span className="text-muted-foreground ml-2">({formatUSD(val / fxRate)})</span>
             </span>
           </div>
         );
       })}
       <Separator />
-      <div className="flex items-center justify-between font-semibold">
+      <div className="flex items-center justify-between font-semibold text-base">
         <span>Total cost per tree</span>
         <span>
           KES {formatKES(Number(submission.total_cost_kes || 0))}
-          {showUSD && <span className="text-muted-foreground ml-2">({formatUSD(Number(submission.total_cost_kes || 0) / fxRate)})</span>}
+          <span className="text-muted-foreground ml-2">({formatUSD(Number(submission.total_cost_kes || 0) / fxRate)})</span>
         </span>
       </div>
     </div>
   );
 
-  const hasPending = !!pendingSubmission;
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header with button */}
-      <div className="flex items-center justify-between">
-        <div />
+      <div className="flex items-center justify-end">
         <Button
           onClick={() => setSheetOpen(true)}
           disabled={hasPending}
@@ -232,107 +196,89 @@ export const PlantingCostsTab: React.FC = () => {
         </Button>
       </div>
 
-      {/* Pending notice inline */}
-      {pendingSubmission && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-amber-600" />
-                <p className="font-medium text-amber-800 text-sm">
-                  Submission pending review since {new Date(pendingSubmission.submitted_at || '').toLocaleDateString()}
-                </p>
+      {/* Two-panel layout */}
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,1fr)_minmax(380px,1.5fr)] gap-6">
+        {/* Left panel — submission list */}
+        <div className="space-y-2">
+          {history?.map((sub: any) => (
+            <div
+              key={sub.id}
+              onClick={() => setSelectedId(sub.id)}
+              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                selectedId === sub.id
+                  ? 'ring-2 ring-primary bg-primary/5 border-primary/30'
+                  : 'hover:bg-muted/40'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </span>
+                {statusBadge(sub.status)}
               </div>
-              {statusBadge('pending_review')}
+              <span className="text-sm font-medium">KES {formatKES(Number(sub.total_cost_kes || 0))}</span>
             </div>
-            {renderCostRows(pendingSubmission)}
-          </CardContent>
-        </Card>
-      )}
+          ))}
+          {(!history || history.length === 0) && (
+            <p className="text-sm text-muted-foreground py-6 text-center">No submissions yet.</p>
+          )}
+        </div>
 
-      {/* SECTION A — Current approved costs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-            Current Approved Costs
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {approvedSubmission ? (
-            <div className="space-y-4">
-              {renderCostRows(approvedSubmission)}
-              <div className="flex items-center gap-2 pt-2">
-                <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200">
-                  Currently approved — effective {new Date(activeConfig?.effective_from || '').toLocaleDateString()}
-                </Badge>
-              </div>
+        {/* Right panel — selected submission detail */}
+        <div>
+          {selectedSubmission ? (
+            <div className="rounded-lg border p-6 space-y-4">
+              {/* Status banner */}
+              {selectedSubmission.status === 'pending_review' && (
+                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-5 w-5 text-amber-600" />
+                    <p className="font-medium text-amber-800 text-sm">
+                      Submission pending review since {new Date(selectedSubmission.submitted_at || '').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </p>
+                  </div>
+                  {statusBadge('pending_review')}
+                </div>
+              )}
+              {selectedSubmission.status === 'approved' && (
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <p className="text-emerald-700 text-sm font-medium">
+                    Approved — effective {activeConfig?.effective_from ? new Date(activeConfig.effective_from).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+                  </p>
+                </div>
+              )}
+              {selectedSubmission.status === 'returned' && selectedSubmission.admin_comment && (
+                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-medium text-red-800 text-sm">Admin returned this submission:</p>
+                      <p className="text-red-700 text-sm mt-1">{selectedSubmission.admin_comment}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Cost breakdown */}
+              {renderCostRows(selectedSubmission)}
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">No approved costs on record yet.</p>
+            <div className="rounded-lg border p-6 flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">Select a submission to view details</p>
+            </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Submission history */}
-      {history && history.length > 0 && (
-        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-          <Card>
-            <CollapsibleTrigger className="w-full">
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Submission history</CardTitle>
-                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${historyOpen ? 'rotate-180' : ''}`} />
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-3 pt-0">
-                {history.map((sub: any) => (
-                  <Collapsible
-                    key={sub.id}
-                    open={expandedHistoryId === sub.id}
-                    onOpenChange={open => setExpandedHistoryId(open ? sub.id : null)}
-                  >
-                    <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
-                          </span>
-                          {statusBadge(sub.status)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">KES {formatKES(Number(sub.total_cost_kes || 0))}</span>
-                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedHistoryId === sub.id ? 'rotate-180' : ''}`} />
-                        </div>
-                      </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="p-4 border border-t-0 rounded-b-lg bg-muted/10">
-                        {renderCostRows(sub, false)}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                ))}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
+        </div>
+      </div>
 
       {/* Sheet slider for submitting updated costs */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Update Planting Costs</SheetTitle>
-            <SheetDescription>
-              Enter all values in KES per tree. Submit for admin review.
-            </SheetDescription>
+            <SheetDescription>Enter all values in KES per tree. Submit for admin review.</SheetDescription>
           </SheetHeader>
 
           <div className="space-y-5 mt-6">
-            {/* Returned notice */}
             {returnedSubmission && returnedSubmission.admin_comment && (
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
                 <div className="flex items-start gap-2">
@@ -352,9 +298,7 @@ export const PlantingCostsTab: React.FC = () => {
                 <div key={f.key} className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">{f.label} (KES)</Label>
-                    {val > 0 && (
-                      <span className="text-xs text-muted-foreground">{formatUSD(val / fxRate)}</span>
-                    )}
+                    {val > 0 && <span className="text-xs text-muted-foreground">{formatUSD(val / fxRate)}</span>}
                   </div>
                   <Input
                     type="number"
