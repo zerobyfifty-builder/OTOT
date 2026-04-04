@@ -41,7 +41,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
   const [returnComment, setReturnComment] = useState('');
   const [showReturnForm, setShowReturnForm] = useState(false);
 
-  const isReadOnly = submission?.status === 'approved' || submission?.status === 'superseded';
+  const isReadOnly = submission?.status === 'approved' || submission?.status === 'superseded' || submission?.status === 'returned';
   const isApproved = isReadOnly;
 
   // Fetch saved config for approved submissions
