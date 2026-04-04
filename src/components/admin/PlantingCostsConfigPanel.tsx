@@ -177,12 +177,14 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
 
   return (
     <div className="space-y-5">
-      {/* Lock banner for approved */}
-      {isApproved && (
+      {/* Lock banner for approved / superseded */}
+      {isReadOnly && (
          <div className="p-3 rounded-lg bg-muted/60 border border-muted-foreground/20 flex items-center gap-2">
            <Lock className="h-4 w-4 text-muted-foreground" />
            <p className="text-sm text-muted-foreground">
-             This Planting Costs is approved on {submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.
+             {submission?.status === 'superseded'
+               ? 'This Planting Costs has been superseded by a newer approved configuration.'
+               : `This Planting Costs is approved on ${submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`}
            </p>
          </div>
       )}
