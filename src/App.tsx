@@ -479,6 +479,13 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            <Route path="/admin/config/planting-costs" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <PlantingCostsConfig />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             
             {/* Stakeholder Portal routes */}
             <Route path="/stakeholder/dashboard" element={
