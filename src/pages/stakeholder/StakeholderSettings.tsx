@@ -191,6 +191,14 @@ export const StakeholderSettings = () => {
         <p className="text-muted-foreground mt-1">Manage your account and organization settings</p>
       </div>
 
+      <Tabs defaultValue="account" className="w-full">
+        <TabsList>
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="planting-costs">Planting Costs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="account" className="space-y-6 mt-4">
+
       {/* Organization Info (Read-only) */}
       {orgDetails && (
         <Card>
