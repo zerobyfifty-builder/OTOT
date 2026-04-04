@@ -1,29 +1,10 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { toast } from 'sonner';
-import { ChevronDown, CornerDownLeft, ArrowRight } from 'lucide-react';
-
-const COST_FIELDS = [
-  { key: 'cost_seedling_kes', label: 'Seedling / sapling' },
-  { key: 'cost_planting_kes', label: 'Planting labour + site prep' },
-  { key: 'cost_aftercare_yr1_kes', label: 'Year 1 aftercare' },
-  { key: 'cost_aftercare_yr2_kes', label: 'Year 2 aftercare' },
-  { key: 'cost_aftercare_yr3_kes', label: 'Year 3 aftercare' },
-  { key: 'cost_gps_mrv_kes', label: 'GPS geotagging + MRV' },
-  { key: 'cost_admin_overhead_kes', label: 'MoE admin overhead' },
-];
 
 const formatKES = (v: number) => `KES ${Math.round(v).toLocaleString('en-US')}`;
-const formatUSD = (v: number, fx: number) => `$${(v / fx).toFixed(2)}`;
 
 const statusBadge = (status: string) => {
   switch (status) {
@@ -41,12 +22,7 @@ interface Props {
 }
 
 export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, selectedId }) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [returnComment, setReturnComment] = useState('');
-  const [returningId, setReturningId] = useState<string | null>(null);
-  const fx = 130;
+  const [tab, setTab] = useState('pending');
 
   const { data: submissions } = useQuery({
     queryKey: ['all-planting-submissions'],
@@ -61,122 +37,29 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
 
   const pendingCount = submissions?.filter(s => s.status === 'pending_review').length || 0;
 
-  const returnMutation = useMutation({
-    mutationFn: async ({ id, comment }: { id: string; comment: string }) => {
-      const { error } = await supabase
-        .from('planting_cost_submissions')
-        .update({
-          status: 'returned',
-          admin_comment: comment,
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user!.id,
-        } as any)
-        .eq('id', id);
-      if (error) throw error;
-      await supabase.from('planting_cost_notifications').insert({
-        submission_id: id,
-        recipient_role: 'plantation',
-        message: `Your planting cost submission has been returned. Comment: ${comment}`,
-      } as any);
-    },
-    onSuccess: () => {
-      toast.success('Submission returned with comment');
-      setReturningId(null);
-      setReturnComment('');
-      queryClient.invalidateQueries({ queryKey: ['all-planting-submissions'] });
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  const [tab, setTab] = useState('pending');
-
   const filtered = tab === 'pending'
     ? submissions?.filter(s => s.status === 'pending_review')
     : submissions;
 
   const renderCard = (sub: any) => (
-    <Collapsible
+    <div
       key={sub.id}
-      open={expandedId === sub.id}
-      onOpenChange={open => setExpandedId(open ? sub.id : null)}
+      className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}
+      onClick={() => onSelectSubmission(sub)}
     >
-      <div className={`border rounded-lg transition-colors ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''}`}>
-        <CollapsibleTrigger className="w-full">
-          <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors rounded-t-lg">
-            <div className="text-left">
-              <p className="font-medium text-sm">{sub.stakeholder_org}</p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {statusBadge(sub.status)}
-              <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
-              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedId === sub.id ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="px-4 pb-4 space-y-3">
-            <Separator />
-            {COST_FIELDS.map(f => {
-              const val = Number((sub as any)[f.key] || 0);
-              return (
-                <div key={f.key} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{f.label}</span>
-                  <span>{formatKES(val)} <span className="text-muted-foreground">({formatUSD(val, fx)})</span></span>
-                </div>
-              );
-            })}
-            <Separator />
-            <div className="flex justify-between font-semibold text-sm">
-              <span>Total</span>
-              <span>{formatKES(Number(sub.total_cost_kes))} ({formatUSD(Number(sub.total_cost_kes), fx)})</span>
-            </div>
-
-            {sub.status === 'pending_review' && (
-              <div className="flex gap-2 pt-2">
-                {returningId === sub.id ? (
-                  <div className="w-full space-y-2">
-                    <Textarea
-                      placeholder="Enter comment for plantation partner..."
-                      value={returnComment}
-                      onChange={e => setReturnComment(e.target.value)}
-                      rows={3}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={!returnComment.trim() || returnMutation.isPending}
-                        onClick={() => returnMutation.mutate({ id: sub.id, comment: returnComment })}
-                      >
-                        <CornerDownLeft className="h-3 w-3 mr-1" />
-                        Confirm Return
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setReturningId(null); setReturnComment(''); }}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => setReturningId(sub.id)}>
-                      <CornerDownLeft className="h-3 w-3 mr-1" />
-                      Return with comment
-                    </Button>
-                    <Button size="sm" onClick={() => onSelectSubmission(sub)}>
-                      <ArrowRight className="h-3 w-3 mr-1" />
-                      Use these costs
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </CollapsibleContent>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-medium text-sm">{sub.stakeholder_org}</p>
+          <p className="text-xs text-muted-foreground">
+            {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {statusBadge(sub.status)}
+          <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
+        </div>
       </div>
-    </Collapsible>
+    </div>
   );
 
   return (
