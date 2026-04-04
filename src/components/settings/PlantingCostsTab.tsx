@@ -116,11 +116,26 @@ export const PlantingCostsTab: React.FC = () => {
     enabled: !!orgName,
   });
 
-  // Form state
-  const [formValues, setFormValues] = useState<Record<CostKey, string>>({
+  // Form state — pre-fill from returned submission when opening sheet
+  const emptyForm: Record<CostKey, string> = {
     cost_seedling_kes: '', cost_planting_kes: '', cost_aftercare_yr1_kes: '',
     cost_aftercare_yr2_kes: '', cost_aftercare_yr3_kes: '', cost_gps_mrv_kes: '', cost_admin_overhead_kes: '',
-  });
+  };
+  const [formValues, setFormValues] = useState<Record<CostKey, string>>(emptyForm);
+
+  // Pre-fill form with returned submission values when sheet opens
+  useEffect(() => {
+    if (sheetOpen && returnedSubmission) {
+      const prefilled: Record<CostKey, string> = { ...emptyForm };
+      COST_FIELDS.forEach(f => {
+        const val = Number(returnedSubmission[f.key] || 0);
+        prefilled[f.key] = val > 0 ? String(val) : '';
+      });
+      setFormValues(prefilled);
+    } else if (sheetOpen && !returnedSubmission) {
+      setFormValues(emptyForm);
+    }
+  }, [sheetOpen, returnedSubmission]);
 
   const totalKES = useMemo(() => {
     return COST_FIELDS.reduce((sum, f) => sum + (parseFloat(formValues[f.key]) || 0), 0);
