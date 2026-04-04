@@ -41,7 +41,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
   const [returnComment, setReturnComment] = useState('');
   const [showReturnForm, setShowReturnForm] = useState(false);
 
-  const isReadOnly = submission?.status === 'approved' || submission?.status === 'superseded';
+  const isReadOnly = submission?.status === 'approved' || submission?.status === 'superseded' || submission?.status === 'returned';
   const isApproved = isReadOnly;
 
   // Fetch saved config for approved submissions
@@ -182,9 +182,11 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
          <div className="p-3 rounded-lg bg-muted/60 border border-muted-foreground/20 flex items-center gap-2">
            <Lock className="h-4 w-4 text-muted-foreground" />
            <p className="text-sm text-muted-foreground">
-             {submission?.status === 'superseded'
-               ? 'This Planting Costs has been superseded by an updated submission.'
-               : `This Planting Costs is approved on ${submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`}
+              {submission?.status === 'superseded'
+                ? 'This Planting Costs has been superseded by an updated submission.'
+                : submission?.status === 'returned'
+                ? 'This Planting Costs has been returned to the stakeholder for revision.'
+                : `This Planting Costs is approved on ${submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`}
            </p>
          </div>
       )}
