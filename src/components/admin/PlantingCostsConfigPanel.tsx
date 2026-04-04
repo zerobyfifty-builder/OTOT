@@ -178,10 +178,12 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
     <div className="space-y-5">
       {/* Lock banner for approved */}
       {isApproved && (
-        <div className="p-3 rounded-lg bg-muted/60 border border-muted-foreground/20 flex items-center gap-2">
-          <Lock className="h-4 w-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">This configuration is approved and locked. Values are read-only.</p>
-        </div>
+         <div className="p-3 rounded-lg bg-muted/60 border border-muted-foreground/20 flex items-center gap-2">
+           <Lock className="h-4 w-4 text-muted-foreground" />
+           <p className="text-sm text-muted-foreground">
+             This Planting Costs is approved on {submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.
+           </p>
+         </div>
       )}
 
       {/* MoE Cost Inputs */}
