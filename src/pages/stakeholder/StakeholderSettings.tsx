@@ -60,10 +60,10 @@ export const StakeholderSettings = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch user details
+        // Fetch user details with role and org info
         const { data: userData } = await supabase
           .from('users')
-          .select('first_name, last_name, email, phone_number, organization_id')
+          .select('first_name, last_name, email, phone_number, organization_id, roles!inner(name), organizations!inner(category, partner_types(name))')
           .eq('user_id', user.id)
           .maybeSingle();
 
@@ -78,6 +78,14 @@ export const StakeholderSettings = () => {
           setLastName(userData.last_name || '');
           setPhoneNumber(userData.phone_number || '');
           setNewEmail(userData.email);
+
+          // Determine stakeholder type
+          const roleName = (userData.roles as any)?.name || '';
+          const orgCategory = (userData.organizations as any)?.category || '';
+          const ptName = (userData.organizations as any)?.partner_types?.name || '';
+          if (roleName === 'institutional_partner' || orgCategory === 'institutional' || ptName.toLowerCase().includes('institutional')) {
+            setStakeholderType('institutional');
+          }
 
           // Fetch org details
           if (userData.organization_id) {
