@@ -38,6 +38,7 @@ export const StakeholderSettings = () => {
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stakeholderType, setStakeholderType] = useState<'plantation' | 'institutional'>('plantation');
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
