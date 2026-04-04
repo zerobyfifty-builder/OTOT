@@ -181,13 +181,16 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
       {isReadOnly && (
          <div className="p-3 rounded-lg bg-muted/60 border border-muted-foreground/20 flex items-center gap-2">
            <Lock className="h-4 w-4 text-muted-foreground" />
-           <p className="text-sm text-muted-foreground">
+           <p className="text-sm text-muted-foreground flex-1">
               {submission?.status === 'superseded'
                 ? 'This Planting Costs has been superseded by an updated submission.'
                 : submission?.status === 'returned'
                 ? 'This Planting Costs has been returned to the stakeholder for revision.'
                 : `This Planting Costs is approved on ${submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`}
            </p>
+           {submission?.status === 'approved' && (
+             <Badge className="bg-emerald-500 text-white border-emerald-600 animate-pulse text-[10px] px-2 py-0.5 shrink-0">Live</Badge>
+           )}
          </div>
       )}
 
