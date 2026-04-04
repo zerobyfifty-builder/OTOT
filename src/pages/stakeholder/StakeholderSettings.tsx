@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Bell, Shield, Mail, Phone, Globe } from 'lucide-react';
+import { PlantingCostsTab } from '@/components/settings/PlantingCostsTab';
+import { PlantingCostsKTBTab } from '@/components/settings/PlantingCostsKTBTab';
 
 const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
