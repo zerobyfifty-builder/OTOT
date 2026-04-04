@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, AlertTriangle, ChevronDown, Send, Info } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, ChevronDown, Send, Info, Plus } from 'lucide-react';
 
 const COST_FIELDS = [
   { key: 'cost_seedling_kes', label: 'Seedling / sapling cost', helper: 'KFS subsidised avg KES 20–50; private nursery KES 50–100' },
@@ -40,6 +41,7 @@ const statusBadge = (status: string) => {
 export const PlantingCostsTab: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Get user's org name
   const { data: userOrg } = useQuery({
@@ -166,7 +168,6 @@ export const PlantingCostsTab: React.FC = () => {
       });
       const { error } = await supabase.from('planting_cost_submissions').insert(row as any);
       if (error) throw error;
-      // Insert notification for admin
       await supabase.from('planting_cost_notifications').insert({
         recipient_role: 'admin',
         message: `${orgName} submitted updated planting costs (KES ${formatKES(totalKES)}) for review.`,
@@ -180,6 +181,7 @@ export const PlantingCostsTab: React.FC = () => {
         cost_seedling_kes: '', cost_planting_kes: '', cost_aftercare_yr1_kes: '',
         cost_aftercare_yr2_kes: '', cost_aftercare_yr3_kes: '', cost_gps_mrv_kes: '', cost_admin_overhead_kes: '',
       });
+      setSheetOpen(false);
     },
     onError: (err: any) => toast.error(err.message || 'Failed to submit'),
   });
@@ -212,8 +214,42 @@ export const PlantingCostsTab: React.FC = () => {
     </div>
   );
 
+  const hasPending = !!pendingSubmission;
+
   return (
     <div className="space-y-6">
+      {/* Header with button */}
+      <div className="flex items-center justify-between">
+        <div />
+        <Button
+          onClick={() => setSheetOpen(true)}
+          disabled={hasPending}
+          className="gap-2"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          Update Planting Costs
+        </Button>
+      </div>
+
+      {/* Pending notice inline */}
+      {pendingSubmission && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-5 w-5 text-amber-600" />
+                <p className="font-medium text-amber-800 text-sm">
+                  Submission pending review since {new Date(pendingSubmission.submitted_at || '').toLocaleDateString()}
+                </p>
+              </div>
+              {statusBadge('pending_review')}
+            </div>
+            {renderCostRows(pendingSubmission)}
+          </CardContent>
+        </Card>
+      )}
+
       {/* SECTION A — Current approved costs */}
       <Card>
         <CardHeader>
@@ -234,89 +270,6 @@ export const PlantingCostsTab: React.FC = () => {
             </div>
           ) : (
             <p className="text-muted-foreground text-sm">No approved costs on record yet.</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* SECTION B — Submission form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Submit updated planting costs</CardTitle>
-          <CardDescription>
-            Enter all values in KES per tree. Submit for admin review. You cannot edit after submitting until admin responds.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Returned notice */}
-          {returnedSubmission && returnedSubmission.admin_comment && (
-            <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-medium text-amber-800 text-sm">Admin returned your last submission with this note:</p>
-                  <p className="text-amber-700 text-sm mt-1">{returnedSubmission.admin_comment}</p>
-                  <p className="text-amber-600 text-xs mt-2">Please revise and resubmit.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {pendingSubmission ? (
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-5 w-5 text-amber-600" />
-                  <p className="font-medium text-amber-800 text-sm">
-                    You have a submission pending review since {new Date(pendingSubmission.submitted_at || '').toLocaleDateString()}
-                  </p>
-                </div>
-                {statusBadge('pending_review')}
-              </div>
-              {renderCostRows(pendingSubmission)}
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {COST_FIELDS.map(f => {
-                const val = parseFloat(formValues[f.key]) || 0;
-                return (
-                  <div key={f.key} className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">{f.label} (KES)</Label>
-                      {val > 0 && (
-                        <span className="text-xs text-muted-foreground">{formatUSD(val / fxRate)}</span>
-                      )}
-                    </div>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={formValues[f.key]}
-                      onChange={e => setFormValues(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    />
-                    <p className="text-xs text-muted-foreground flex items-start gap-1">
-                      <Info className="h-3 w-3 mt-0.5 shrink-0" />
-                      {f.helper}
-                    </p>
-                  </div>
-                );
-              })}
-
-              <Separator />
-              <div className="flex items-center justify-between text-base font-semibold p-3 rounded-lg bg-muted/50">
-                <span>Total estimated cost per tree</span>
-                <span>KES {formatKES(totalKES)} = {formatUSD(totalKES / fxRate)}</span>
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => submitMutation.mutate()}
-                  disabled={submitMutation.isPending || totalKES <= 0}
-                  className="gap-2"
-                >
-                  <Send className="h-4 w-4" />
-                  {submitMutation.isPending ? 'Submitting...' : 'Submit for Review'}
-                </Button>
-              </div>
-            </div>
           )}
         </CardContent>
       </Card>
@@ -367,6 +320,75 @@ export const PlantingCostsTab: React.FC = () => {
           </Card>
         </Collapsible>
       )}
+
+      {/* Sheet slider for submitting updated costs */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Update Planting Costs</SheetTitle>
+            <SheetDescription>
+              Enter all values in KES per tree. Submit for admin review.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-5 mt-6">
+            {/* Returned notice */}
+            {returnedSubmission && returnedSubmission.admin_comment && (
+              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-amber-800 text-sm">Admin returned your last submission:</p>
+                    <p className="text-amber-700 text-sm mt-1">{returnedSubmission.admin_comment}</p>
+                    <p className="text-amber-600 text-xs mt-2">Please revise and resubmit.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {COST_FIELDS.map(f => {
+              const val = parseFloat(formValues[f.key]) || 0;
+              return (
+                <div key={f.key} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">{f.label} (KES)</Label>
+                    {val > 0 && (
+                      <span className="text-xs text-muted-foreground">{formatUSD(val / fxRate)}</span>
+                    )}
+                  </div>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={formValues[f.key]}
+                    onChange={e => setFormValues(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1">
+                    <Info className="h-3 w-3 mt-0.5 shrink-0" />
+                    {f.helper}
+                  </p>
+                </div>
+              );
+            })}
+
+            <Separator />
+            <div className="flex items-center justify-between text-base font-semibold p-3 rounded-lg bg-muted/50">
+              <span>Total per tree</span>
+              <span>KES {formatKES(totalKES)} = {formatUSD(totalKES / fxRate)}</span>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                onClick={() => submitMutation.mutate()}
+                disabled={submitMutation.isPending || totalKES <= 0}
+                className="gap-2"
+              >
+                <Send className="h-4 w-4" />
+                {submitMutation.isPending ? 'Submitting...' : 'Submit for Review'}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
