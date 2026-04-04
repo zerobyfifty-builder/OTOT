@@ -235,16 +235,6 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
                   <Button size="sm" variant="outline" onClick={() => setShowReturnForm(true)}>
                     <CornerDownLeft className="h-3 w-3 mr-1" /> Return with comment
                   </Button>
-                   <Button size="sm" className="gap-1" disabled={!isViable || approveMutation.isPending}
-                     onClick={() => {
-                       if (!isViable) {
-                         toast.error('Cannot approve: MoE shortfall detected. Raise the donation or adjust the revenue split to cover planting costs.');
-                         return;
-                       }
-                       approveMutation.mutate();
-                     }}>
-                     <ArrowRight className="h-3 w-3" /> Approve & Publish
-                   </Button>
                 </div>
               )}
             </div>
