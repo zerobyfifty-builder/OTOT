@@ -429,6 +429,12 @@ export const StakeholderSettings = () => {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="planting-costs" className="mt-4">
+          {stakeholderType === 'institutional' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
