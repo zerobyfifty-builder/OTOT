@@ -53,7 +53,9 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
               <div>
                 <p className="font-medium text-sm">{sub.stakeholder_org}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
               <div className="flex items-center gap-2">
