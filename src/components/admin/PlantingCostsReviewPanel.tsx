@@ -53,11 +53,16 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
               <div>
                 <p className="font-medium text-sm">{sub.stakeholder_org}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString()}
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 {statusBadge(sub.status)}
+                {sub.status === 'approved' && (
+                  <Badge className="bg-emerald-500 text-white border-emerald-600 animate-pulse text-[10px] px-1.5 py-0">Live</Badge>
+                )}
                 <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
               </div>
             </div>
