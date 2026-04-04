@@ -1588,6 +1588,190 @@ export type Database = {
         }
         Relationships: []
       }
+      planting_cost_configs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          donation_usd: number
+          effective_from: string | null
+          fx_rate_kes_usd: number
+          id: string
+          is_active: boolean | null
+          ktb_share_of_balance_pct: number
+          ktb_usd_per_tree: number
+          moe_share_of_balance_pct: number
+          moe_usd_per_tree: number
+          submission_id: string | null
+          tech_share_pct: number
+          tech_usd_per_tree: number
+          tier_adopt_usd: number
+          tier_forest_usd: number
+          tier_grove_usd: number
+          tier_monthly_usd: number
+          tier_plant_usd: number
+          tier_recommit_usd: number
+          tier_seedling_usd: number
+          tier_yearly_usd: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          donation_usd?: number
+          effective_from?: string | null
+          fx_rate_kes_usd?: number
+          id?: string
+          is_active?: boolean | null
+          ktb_share_of_balance_pct?: number
+          ktb_usd_per_tree?: number
+          moe_share_of_balance_pct?: number
+          moe_usd_per_tree?: number
+          submission_id?: string | null
+          tech_share_pct?: number
+          tech_usd_per_tree?: number
+          tier_adopt_usd?: number
+          tier_forest_usd?: number
+          tier_grove_usd?: number
+          tier_monthly_usd?: number
+          tier_plant_usd?: number
+          tier_recommit_usd?: number
+          tier_seedling_usd?: number
+          tier_yearly_usd?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          donation_usd?: number
+          effective_from?: string | null
+          fx_rate_kes_usd?: number
+          id?: string
+          is_active?: boolean | null
+          ktb_share_of_balance_pct?: number
+          ktb_usd_per_tree?: number
+          moe_share_of_balance_pct?: number
+          moe_usd_per_tree?: number
+          submission_id?: string | null
+          tech_share_pct?: number
+          tech_usd_per_tree?: number
+          tier_adopt_usd?: number
+          tier_forest_usd?: number
+          tier_grove_usd?: number
+          tier_monthly_usd?: number
+          tier_plant_usd?: number
+          tier_recommit_usd?: number
+          tier_seedling_usd?: number
+          tier_yearly_usd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planting_cost_configs_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "planting_cost_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planting_cost_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          recipient_role: string
+          submission_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          recipient_role: string
+          submission_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          recipient_role?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planting_cost_notifications_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "planting_cost_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planting_cost_submissions: {
+        Row: {
+          admin_comment: string | null
+          cost_admin_overhead_kes: number
+          cost_aftercare_yr1_kes: number
+          cost_aftercare_yr2_kes: number
+          cost_aftercare_yr3_kes: number
+          cost_gps_mrv_kes: number
+          cost_planting_kes: number
+          cost_seedling_kes: number
+          created_at: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          stakeholder_org: string
+          status: string
+          submitted_at: string | null
+          submitted_by: string | null
+          total_cost_kes: number
+          updated_at: string | null
+        }
+        Insert: {
+          admin_comment?: string | null
+          cost_admin_overhead_kes?: number
+          cost_aftercare_yr1_kes?: number
+          cost_aftercare_yr2_kes?: number
+          cost_aftercare_yr3_kes?: number
+          cost_gps_mrv_kes?: number
+          cost_planting_kes?: number
+          cost_seedling_kes?: number
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stakeholder_org: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          total_cost_kes?: number
+          updated_at?: string | null
+        }
+        Update: {
+          admin_comment?: string | null
+          cost_admin_overhead_kes?: number
+          cost_aftercare_yr1_kes?: number
+          cost_aftercare_yr2_kes?: number
+          cost_aftercare_yr3_kes?: number
+          cost_gps_mrv_kes?: number
+          cost_planting_kes?: number
+          cost_seedling_kes?: number
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          stakeholder_org?: string
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
+          total_cost_kes?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       planting_records: {
         Row: {
           beat: string | null
