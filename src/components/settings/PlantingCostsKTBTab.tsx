@@ -154,7 +154,7 @@ export const PlantingCostsKTBTab: React.FC = () => {
                 {selected.status === 'superseded'
                   ? 'This Planting Costs has been superseded by an updated submission.'
                   : selected.status === 'returned'
-                  ? 'This Planting Costs has been returned to the stakeholder for revision.'
+                  ? 'This Planting Costs has been returned for revision.'
                   : selected.status === 'approved'
                   ? `This Planting Costs is approved on ${new Date(selected.reviewed_at || selected.submitted_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`
                   : 'This submission is pending admin review.'}
