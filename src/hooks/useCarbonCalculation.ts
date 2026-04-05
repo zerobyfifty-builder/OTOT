@@ -80,9 +80,9 @@ export function useCarbonCalculation(input: CarbonCalcInput | null) {
 
       if (!trees) return { planted: 0, committed: 0 };
       
-      const planted = trees.filter(t => t.status === 'Planted').length;
+      const planted = trees.filter(t => (t.status as string) === 'Planted').length;
       const committed = trees.filter(t => 
-        t.status !== 'Planted' && t.status !== 'Cancelled'
+        (t.status as string) !== 'Planted' && (t.status as string) !== 'Cancelled'
       ).length;
       
       return { planted, committed };

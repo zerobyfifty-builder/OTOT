@@ -12,7 +12,7 @@ export function StakeholderMdmSequestration() {
     if (!user) return;
     const check = async () => {
       // Check if user is super admin or has admin role
-      const { data } = await supabase.rpc('is_super_admin', { _user_id: user.id });
+      const { data } = await supabase.rpc('is_super_admin', { user_id: user.id });
       setIsAdmin(!!data);
       setLoading(false);
     };
