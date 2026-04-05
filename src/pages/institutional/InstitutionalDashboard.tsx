@@ -481,7 +481,6 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={countriesDateRange} onDateRangeChange={setCountriesDateRange} />
-                <ChartExportButton title="Countries vs Revenue" columns={[{ key: "country", label: "Country" }, { key: "tourists", label: "Tourists" }, { key: "revenue", label: "Revenue ($)" }]} data={countriesChartData} iconOnly />
               </div>
             </div>
           </CardHeader>
@@ -504,6 +503,9 @@ export const InstitutionalDashboard = () => {
                 <div className="text-center"><MapPin className="w-8 h-8 mx-auto mb-2 opacity-40" /><p className="text-sm">No country data available</p></div>
               </div>
             )}
+            <div className="flex justify-end mt-2">
+              <ChartExportButton title="Countries vs Revenue" columns={[{ key: "country", label: "Country" }, { key: "tourists", label: "Tourists" }, { key: "revenue", label: "Revenue ($)" }]} data={countriesChartData} iconOnly />
+            </div>
           </CardContent>
         </Card>
 
@@ -516,7 +518,6 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={tripsDateRange} onDateRangeChange={setTripsDateRange} />
-                <ChartExportButton title="Trips vs Revenue" columns={[{ key: "period", label: "Period" }, { key: "trips", label: "Trips" }, { key: "pax", label: "Passengers" }, { key: "revenue", label: "Revenue ($)" }]} data={tripsChartData} iconOnly />
               </div>
             </div>
           </CardHeader>
@@ -540,6 +541,9 @@ export const InstitutionalDashboard = () => {
                 <div className="text-center"><BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-40" /><p className="text-sm">No trip data available</p></div>
               </div>
             )}
+            <div className="flex justify-end mt-2">
+              <ChartExportButton title="Trips vs Revenue" columns={[{ key: "period", label: "Period" }, { key: "trips", label: "Trips" }, { key: "pax", label: "Passengers" }, { key: "revenue", label: "Revenue ($)" }]} data={tripsChartData} iconOnly />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -556,7 +560,6 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={treeOrderDateRange} onDateRangeChange={setTreeOrderDateRange} />
-                <ChartExportButton title="Tree Order Trend" columns={[{ key: "month", label: "Month" }, { key: "trees", label: "Trees" }, { key: "revenue", label: "Revenue ($)" }]} data={filteredMonthlyOrders || []} iconOnly />
               </div>
             </div>
           </CardHeader>
@@ -579,6 +582,9 @@ export const InstitutionalDashboard = () => {
                 <p className="text-sm">No tree order data yet</p>
               </div>
             )}
+            <div className="flex justify-end mt-2">
+              <ChartExportButton title="Tree Order Trend" columns={[{ key: "month", label: "Month" }, { key: "trees", label: "Trees" }, { key: "revenue", label: "Revenue ($)" }]} data={filteredMonthlyOrders || []} iconOnly />
+            </div>
           </CardContent>
         </Card>
 
@@ -594,7 +600,6 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={plantingDateRange} onDateRangeChange={setPlantingDateRange} />
-                <ChartExportButton title="Planting Pipeline" columns={[{ key: "name", label: "Stage" }, { key: "value", label: "Trees" }]} data={plantingPieData} iconOnly />
               </div>
             </div>
           </CardHeader>
@@ -650,6 +655,9 @@ export const InstitutionalDashboard = () => {
                 <p className="text-sm font-bold text-primary">{formatWholeNumber(stats?.plantedVerified || 0)}</p>
               </div>
             </div>
+            <div className="flex justify-end mt-2">
+              <ChartExportButton title="Planting Pipeline" columns={[{ key: "name", label: "Stage" }, { key: "value", label: "Trees" }]} data={plantingPieData} iconOnly />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -668,7 +676,6 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
-                <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
               </div>
             </div>
           </CardHeader>
@@ -711,6 +718,9 @@ export const InstitutionalDashboard = () => {
                 <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
                 <p className="text-sm font-bold">${formatWholeNumber(stats?.totalTransferred || 0)}</p>
               </div>
+            </div>
+            <div className="flex justify-end mt-2">
+              <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
             </div>
           </CardContent>
         </Card>
