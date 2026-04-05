@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, TreePine, MapPin, Eye } from "lucide-react";
+import { Search, TreePine, MapPin, Eye, CheckCircle2, Circle, ZoomIn, Activity, TrendingUp } from "lucide-react";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Database } from "@/integrations/supabase/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Sheet,
   SheetContent,
@@ -63,6 +65,15 @@ const PLANTING_STATUSES = [
   'planting_scheduled', 'sapling_planted', 'being_mapped', 'verified', 'planted',
 ] as const;
 
+const getPlantingStatusOrder = (status: string) => {
+  const order: Record<string, number> = {
+    waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
+    planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
+    partially_planted: 8, planted: 9, dead: 10, re_planted: 11,
+  };
+  return order[status] ?? 0;
+};
+
 const SURVIVAL_COLORS: Record<string, string> = {
   'Alive': 'bg-green-500/10 text-green-700 border-green-500/20',
   'Dead': 'bg-red-500/10 text-red-700 border-red-500/20',
@@ -100,6 +111,7 @@ export function StakeholderTreeManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [infoSheet, setInfoSheet] = useState<Tree | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
   // Fetch all trees
   const { data: trees, isLoading } = useQuery({
@@ -245,6 +257,63 @@ export function StakeholderTreeManagement() {
         .maybeSingle();
       if (error) throw error;
       return data as any;
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  // Tree-level queries for Tree Status & Info sheet
+  const { data: treeTransitions } = useQuery({
+    queryKey: ["treeStatusTransitions_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeGeotag } = useQuery({
+    queryKey: ["treeGeotag_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeSurvival } = useQuery({
+    queryKey: ["treeSurvival_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeGrowth } = useQuery({
+    queryKey: ["treeGrowth_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
     },
     enabled: !!infoSheet?.id,
   });
@@ -464,154 +533,316 @@ export function StakeholderTreeManagement() {
         </>
       )}
 
-      {/* Tree Info Sheet */}
+      {/* Tree Status & Info Sheet */}
       <Sheet open={!!infoSheet} onOpenChange={(open) => !open && setInfoSheet(null)}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {infoSheet && (() => {
-            const plantingStatus = infoSheet.planting_status || 'waiting_to_be_assigned';
-            const survivalData = allSurvivalStatuses instanceof Map ? allSurvivalStatuses.get(infoSheet.id) : undefined;
-            const growthData = allGrowthStages instanceof Map ? allGrowthStages.get(infoSheet.id) : undefined;
-            const hasGeotag = allGeotags instanceof Map && allGeotags.has(infoSheet.id);
-            const geo = hasGeotag ? allGeotags.get(infoSheet.id) : null;
+            const currentStatus = infoSheet.planting_status || 'waiting_to_be_assigned';
+            const currentOrder = getPlantingStatusOrder(currentStatus);
+            const allLifecycleStatuses = PLANTING_STATUSES;
+
+            const friendlyLabels: Record<string, string> = {
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
+              nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
+              soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
+              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+              scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
+              planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
+              latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
+              verification_date: 'Verification Date', verified_by: 'Verified By', verification_method: 'Verification Method', verification_notes: 'Verification Notes', health_status: 'Health Status',
+              planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
+              replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
+              re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
+              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+            };
+            const idToLabelMap: Record<string, string> = {
+              assigned_to: 'assigned_to_name', target_beat: 'target_beat_label',
+              nursery_id: 'nursery_name', species_id: 'species_name', tree_carer_id: 'tree_carer_name',
+              planted_by: 'planter_name', planting_team_lead: 'planter_name',
+            };
+            const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
+              if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
+              if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+              return String(value);
+            };
 
             return (
               <>
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <TreePine className="h-5 w-5 text-primary" />
-                    Tree Info
+                    Tree Status & Info
                   </SheetTitle>
-                  <p className="text-sm text-muted-foreground">{infoSheet.otot_id}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Current Status: <span className="font-medium text-foreground">{STATUS_LABELS[currentStatus]}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">Tree ID: {infoSheet.otot_id}</p>
                 </SheetHeader>
 
-                <div className="space-y-4 mt-4">
-                  {/* Basic Info */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tree Details</h4>
-                    <div className="rounded-lg border bg-card p-3">
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                        <span className="text-muted-foreground">Tree ID:</span>
-                        <span className="font-medium font-mono">{infoSheet.otot_id}</span>
-                        <span className="text-muted-foreground">Contribution ID:</span>
-                        <span className="font-medium font-mono">{infoSheetContrib?.contribution_id || infoSheet.contribution_id || "—"}</span>
-                        <span className="text-muted-foreground">Trip ID:</span>
-                        <span className="font-medium font-mono">
-                          {infoSheetContrib?.trip_id ? (tripsMap?.get(infoSheetContrib.trip_id) || infoSheetContrib.trip_id?.slice(0, 8)) : "—"}
-                        </span>
-                        <span className="text-muted-foreground">Location:</span>
-                        <span className="font-medium">{infoSheet.location_name || "—"}</span>
-                        <span className="text-muted-foreground">Tree Type:</span>
-                        <span className="font-medium">{infoSheet.tree_type || "—"}</span>
-                        <span className="text-muted-foreground">Created:</span>
-                        <span className="font-medium">{formatDate(infoSheet.created_at)}</span>
-                      </div>
+                <Tabs defaultValue="planting" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="planting">Planting</TabsTrigger>
+                    <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                    <TabsTrigger value="growth">Growth</TabsTrigger>
+                  </TabsList>
+
+                  {/* Planting Tab */}
+                  <TabsContent value="planting">
+                    <div className="divide-y">
+                      {(() => {
+                        const purchaseDate = infoSheet.created_at;
+                        return (
+                          <div className="flex items-center gap-3 py-3">
+                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                        {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
+                          const statusOrder = getPlantingStatusOrder(status);
+                          const isCompleted = statusOrder < currentOrder;
+                          const isCurrent = statusOrder === currentOrder;
+                          const isFuture = statusOrder > currentOrder;
+                          const transition = treeTransitions?.find((t: any) => t.to_status === status);
+                          const transitionData = transition?.transition_data || {};
+                          const photos = transition?.photos || [];
+                          const skipKeys = new Set<string>(['reverted']);
+                          for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
+                            if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
+                          }
+                          if (status === 'verified' && transitionData['planter_name'] !== undefined) skipKeys.add('planter_name');
+                          const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entries = Object.entries(transitionData)
+                            .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
+                            .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
+                          return (
+                            <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
+                              <AccordionTrigger className="hover:no-underline py-3">
+                                <div className="flex items-center gap-3 w-full">
+                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  <div className="flex flex-col items-start text-left min-w-0">
+                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                      {STATUS_LABELS[status]}
+                                    </span>
+                                    {transition?.created_at ? (
+                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                    ) : isFuture ? (
+                                      <span className="text-xs text-muted-foreground italic">Pending</span>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                {transition ? (
+                                  <div className="space-y-3 pt-1 pb-2 pl-8">
+                                    {entries.length > 0 && (
+                                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                        {entries.map(([key, value]) => {
+                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                          return (
+                                            <React.Fragment key={key}>
+                                              <span className="text-muted-foreground whitespace-nowrap">{label}:</span>
+                                              <span className="font-medium">{resolveValue(key, value, transitionData)}</span>
+                                            </React.Fragment>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                    {photos.length > 0 && (
+                                      <div className="space-y-1.5">
+                                        <span className="text-sm text-muted-foreground">Photos:</span>
+                                        <div className="flex gap-2 flex-wrap">
+                                          {photos.map((url: string, pi: number) => (
+                                            <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                              <img src={url} alt={`Photo ${pi + 1}`} className="w-16 h-16 object-cover rounded-md border" />
+                                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                                <ZoomIn className="h-4 w-4 text-white" />
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entries.length === 0 && photos.length === 0 && (
+                                      <p className="text-sm text-muted-foreground italic">No additional details recorded.</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground italic pl-8 pb-2">Not yet reached.</p>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        })}
+                      </Accordion>
                     </div>
-                  </div>
+                  </TabsContent>
 
-                  <Separator />
-
-                  {/* Funding Status */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Funding Status</h4>
-                    <div className="rounded-lg border bg-card p-3">
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                        <span className="text-muted-foreground">Status:</span>
-                        <span>
-                          {infoSheetContrib ? (
-                            <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${CONTRIBUTION_STATUS_COLORS[infoSheetContrib.status] || "bg-muted text-muted-foreground"}`}>
-                              {CONTRIBUTION_STATUS_LABELS[infoSheetContrib.status] || infoSheetContrib.status}
-                            </Badge>
-                          ) : "—"}
-                        </span>
-                        <span className="text-muted-foreground">Amount Paid:</span>
-                        <span className="font-medium">${Number(infoSheet.amount_paid).toFixed(2)}</span>
-                        <span className="text-muted-foreground">Payment Method:</span>
-                        <span className="font-medium">{infoSheet.payment_method || "—"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Planting Status */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting Info</h4>
-                    <div className="rounded-lg border bg-card p-3">
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                        <span className="text-muted-foreground">Planting Status:</span>
-                        <span>
-                          <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[plantingStatus] || ''}`}>
-                            {STATUS_LABELS[plantingStatus]}
-                          </Badge>
-                        </span>
-                        <span className="text-muted-foreground">Plant Date:</span>
-                        <span className="font-medium">{formatDate(infoSheet.plant_date)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Growth & Survival */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Growth & Survival</h4>
-                    <div className="rounded-lg border bg-card p-3">
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                        <span className="text-muted-foreground">Growth Stage:</span>
-                        <span>
-                          {growthData ? (
-                            <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
-                              {growthData.growth_stage}
-                            </Badge>
-                          ) : "—"}
-                        </span>
-                        <span className="text-muted-foreground">Survival Status:</span>
-                        <span>
-                          {survivalData ? (
-                            <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${SURVIVAL_COLORS[survivalData.survival_status] || 'bg-muted text-muted-foreground'}`}>
-                              {survivalData.survival_status}
-                            </Badge>
-                          ) : "—"}
-                        </span>
-                        <span className="text-muted-foreground">Last Checked:</span>
-                        <span className="font-medium">{survivalData?.last_checked_date ? formatDate(survivalData.last_checked_date) : "—"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Geolocation */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Geolocation</h4>
-                    <div className="rounded-lg border bg-card p-3">
-                      {geo ? (
-                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                          <span className="text-muted-foreground">Latitude:</span>
-                          <span className="font-medium">{geo.latitude}</span>
-                          <span className="text-muted-foreground">Longitude:</span>
-                          <span className="font-medium">{geo.longitude}</span>
-                          <span className="text-muted-foreground">Map:</span>
-                          <a
-                            href={`https://www.google.com/maps?q=${geo.latitude},${geo.longitude}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline text-sm flex items-center gap-1"
-                          >
-                            <MapPin className="h-3.5 w-3.5" /> Open in Maps
-                          </a>
+                  {/* Tracking Tab */}
+                  <TabsContent value="tracking">
+                    <div className="space-y-4 pt-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <MapPin className="h-4 w-4" /> Geotag Information
+                      </h4>
+                      {treeGeotag ? (
+                        <div className="rounded-lg border bg-card p-4 space-y-2">
+                          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                            <span className="text-muted-foreground">Geo Tag ID:</span>
+                            <span className="font-medium">{treeGeotag.geo_tag_id}</span>
+                            <span className="text-muted-foreground">Latitude:</span>
+                            <span className="font-medium">{treeGeotag.latitude}</span>
+                            <span className="text-muted-foreground">Longitude:</span>
+                            <span className="font-medium">{treeGeotag.longitude}</span>
+                            <span className="text-muted-foreground">Accuracy:</span>
+                            <span className="font-medium">{treeGeotag.geo_accuracy || '-'}</span>
+                            <span className="text-muted-foreground">Captured:</span>
+                            <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                          </div>
+                          {treeGeotag.map_snapshot && (
+                            <div className="mt-3">
+                              <img src={treeGeotag.map_snapshot} alt="Map snapshot" className="w-full h-32 object-cover rounded-md border cursor-pointer" onClick={() => setLightboxPhoto(treeGeotag.map_snapshot)} />
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground italic">No geotag recorded</p>
+                        <p className="text-sm text-muted-foreground italic text-center py-6">No geotag data captured yet.</p>
                       )}
                     </div>
-                  </div>
-                </div>
+                  </TabsContent>
+
+                  {/* Growth Tab */}
+                  <TabsContent value="growth">
+                    <div className="space-y-5 pt-2">
+                      {/* Survival Tracking */}
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
+                          <Activity className="h-4 w-4" /> Survival Tracking
+                        </h4>
+                        {treeSurvival && treeSurvival.length > 0 ? (
+                          <div className="rounded-md border overflow-hidden">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-muted/50">
+                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
+                                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Rate</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {treeSurvival.map((record: any) => (
+                                  <React.Fragment key={record.id}>
+                                    <tr>
+                                      <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                                        {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                          {record.survival_status}
+                                        </Badge>
+                                      </td>
+                                      <td className="px-3 py-2 text-right font-medium tabular-nums">
+                                        {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
+                                      </td>
+                                    </tr>
+                                    {record.notes && (
+                                      <tr>
+                                        <td colSpan={3} className="px-3 pb-2 pt-0">
+                                          <p className="text-xs text-muted-foreground italic">{record.notes}</p>
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic text-center py-4">No survival records yet.</p>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Growth Metrics */}
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
+                          <TrendingUp className="h-4 w-4" /> Growth Metrics
+                        </h4>
+                        {treeGrowth && treeGrowth.length > 0 ? (
+                          <div className="rounded-md border overflow-hidden">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-muted/50">
+                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Stage</th>
+                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Age</th>
+                                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Height</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y">
+                                {treeGrowth.map((record: any) => (
+                                  <React.Fragment key={record.id}>
+                                    <tr>
+                                      <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                                        {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                                          {record.growth_stage}
+                                        </Badge>
+                                      </td>
+                                      <td className="px-3 py-2">{record.tree_age || '-'}</td>
+                                      <td className="px-3 py-2 text-right font-medium">{record.tree_height || '-'}</td>
+                                    </tr>
+                                    {(record.notes || (record.photos && record.photos.length > 0)) && (
+                                      <tr>
+                                        <td colSpan={4} className="px-3 pb-2 pt-0">
+                                          {record.notes && <p className="text-xs text-muted-foreground italic">{record.notes}</p>}
+                                          {record.photos && record.photos.length > 0 && (
+                                            <div className="flex gap-1.5 flex-wrap mt-1">
+                                              {record.photos.map((url: string, pi: number) => (
+                                                <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                                  <img src={url} alt={`Photo ${pi + 1}`} className="w-10 h-10 object-cover rounded border" />
+                                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                                                    <ZoomIn className="h-3 w-3 text-white" />
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic text-center py-4">No growth records yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </>
             );
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Photo Lightbox */}
+      {lightboxPhoto && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+          <img src={lightboxPhoto} alt="Full size" className="max-w-full max-h-full object-contain rounded-lg" />
+        </div>
+      )}
     </div>
   );
 }
