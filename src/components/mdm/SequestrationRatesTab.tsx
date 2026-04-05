@@ -240,7 +240,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
     try {
       const { error } = await supabase
         .from('tree_sequestration_rates')
-        .update({ is_active: newStatus, updated_at: new Date().toISOString() } as any)
+        .update({ is_active: newStatus } as any)
         .eq('id', item.id);
       if (error) throw error;
       toast.success(newStatus ? 'Activated' : 'Deactivated');
