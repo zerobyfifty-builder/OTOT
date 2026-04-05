@@ -343,6 +343,9 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                     <TableCell className="text-right font-mono">{getEffectiveRate(r).toFixed(1)} kg/yr</TableCell>
                     <TableCell className="text-right">{r.offset_horizon_years} years</TableCell>
                     <TableCell className="max-w-[150px] truncate text-muted-foreground text-xs">{r.data_source}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {r.updated_at ? format(new Date(r.updated_at), 'dd MMM yyyy') : r.created_at ? format(new Date(r.created_at), 'dd MMM yyyy') : '—'}
+                    </TableCell>
                     {!readOnly && (
                       <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                         <Switch checked={r.is_active} onCheckedChange={() => handleToggleActive(r)} />
