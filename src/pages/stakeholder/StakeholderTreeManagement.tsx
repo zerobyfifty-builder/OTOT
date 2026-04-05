@@ -264,7 +264,7 @@ export function StakeholderTreeManagement() {
           map.set(r.tree_id, r.created_at);
         }
       });
-      return { latestMap: map, allTransitions: data || [] };
+      return { latestMap: map, allTransitions: (data || []) as any[] };
     },
     enabled: allTreeIds.length > 0,
   });
