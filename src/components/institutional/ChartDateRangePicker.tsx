@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { format, subDays, subMonths, startOfDay, endOfDay, startOfMonth, startOfYear } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -71,10 +71,10 @@ export function ChartDateRangePicker({ dateRange, onDateRangeChange }: ChartDate
       <Popover open={open} onOpenChange={handleOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className={cn(
-              "h-8 text-xs justify-start font-normal gap-1.5",
+              "h-8 justify-start gap-1.5 rounded-md px-2.5 text-xs shadow-none",
               !hasRange && "text-muted-foreground"
             )}
           >

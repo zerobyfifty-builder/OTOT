@@ -51,7 +51,7 @@ export function ChartExportButton({ title, columns, data, iconOnly }: ChartExpor
   }, [title, columns, data]);
 
   const triggerButton = (
-    <Button variant="outline" size="sm" className={iconOnly ? "h-8 w-8 p-0" : "h-8 text-xs gap-1.5"}>
+    <Button variant="ghost" size="sm" className={iconOnly ? "h-8 w-8 rounded-md p-0 shadow-none" : "h-8 rounded-md px-2.5 text-xs gap-1.5 shadow-none"}>
       <Download className="h-3.5 w-3.5" />
       {!iconOnly && "Export"}
     </Button>
