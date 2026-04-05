@@ -269,6 +269,90 @@ export type Database = {
         }
         Relationships: []
       }
+      carbon_offset_calculations: {
+        Row: {
+          config_id: string | null
+          created_at: string | null
+          donation_usd_per_tree: number
+          flight_legs_json: Json
+          horizon_years_used: number
+          id: string
+          rate_used_kg_per_year: number
+          slider_max_this_session: number
+          species_id: string | null
+          survival_rate_used: number
+          total_co2_kg: number
+          total_contribution_usd: number
+          tourist_id: string
+          tree_credit_pct_after: number
+          tree_debt_pct_after: number
+          trees_chosen_this_session: number
+          trees_committed_prior: number
+          trees_needed: number
+          trees_planted_prior: number
+          trip_id: string | null
+        }
+        Insert: {
+          config_id?: string | null
+          created_at?: string | null
+          donation_usd_per_tree: number
+          flight_legs_json: Json
+          horizon_years_used: number
+          id?: string
+          rate_used_kg_per_year: number
+          slider_max_this_session: number
+          species_id?: string | null
+          survival_rate_used: number
+          total_co2_kg: number
+          total_contribution_usd: number
+          tourist_id: string
+          tree_credit_pct_after: number
+          tree_debt_pct_after: number
+          trees_chosen_this_session: number
+          trees_committed_prior?: number
+          trees_needed: number
+          trees_planted_prior?: number
+          trip_id?: string | null
+        }
+        Update: {
+          config_id?: string | null
+          created_at?: string | null
+          donation_usd_per_tree?: number
+          flight_legs_json?: Json
+          horizon_years_used?: number
+          id?: string
+          rate_used_kg_per_year?: number
+          slider_max_this_session?: number
+          species_id?: string | null
+          survival_rate_used?: number
+          total_co2_kg?: number
+          total_contribution_usd?: number
+          tourist_id?: string
+          tree_credit_pct_after?: number
+          tree_debt_pct_after?: number
+          trees_chosen_this_session?: number
+          trees_committed_prior?: number
+          trees_needed?: number
+          trees_planted_prior?: number
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carbon_offset_calculations_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "planting_cost_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carbon_offset_calculations_species_id_fkey"
+            columns: ["species_id"]
+            isOneToOne: false
+            referencedRelation: "tree_sequestration_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           certificate_type: Database["public"]["Enums"]["certificate_type"]
@@ -1593,6 +1677,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           created_at: string | null
+          default_species_id: string | null
           donation_usd: number
           effective_from: string | null
           fx_rate_kes_usd: number
@@ -1618,6 +1703,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string | null
+          default_species_id?: string | null
           donation_usd?: number
           effective_from?: string | null
           fx_rate_kes_usd?: number
@@ -1643,6 +1729,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string | null
+          default_species_id?: string | null
           donation_usd?: number
           effective_from?: string | null
           fx_rate_kes_usd?: number
@@ -1665,6 +1752,13 @@ export type Database = {
           tier_yearly_usd?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "planting_cost_configs_default_species_id_fkey"
+            columns: ["default_species_id"]
+            isOneToOne: false
+            referencedRelation: "tree_sequestration_rates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "planting_cost_configs_submission_id_fkey"
             columns: ["submission_id"]
@@ -2568,6 +2662,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tree_sequestration_rates: {
+        Row: {
+          created_at: string | null
+          data_source: string | null
+          id: string
+          is_active: boolean
+          offset_horizon_years: number
+          rate_kg_per_year_default: number
+          rate_kg_per_year_max: number | null
+          rate_kg_per_year_min: number | null
+          scientific_name: string | null
+          source_year: number | null
+          species_category: string
+          species_name: string
+          survival_rate_override: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_source?: string | null
+          id?: string
+          is_active?: boolean
+          offset_horizon_years?: number
+          rate_kg_per_year_default: number
+          rate_kg_per_year_max?: number | null
+          rate_kg_per_year_min?: number | null
+          scientific_name?: string | null
+          source_year?: number | null
+          species_category: string
+          species_name: string
+          survival_rate_override?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_source?: string | null
+          id?: string
+          is_active?: boolean
+          offset_horizon_years?: number
+          rate_kg_per_year_default?: number
+          rate_kg_per_year_max?: number | null
+          rate_kg_per_year_min?: number | null
+          scientific_name?: string | null
+          source_year?: number | null
+          species_category?: string
+          species_name?: string
+          survival_rate_override?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       tree_status_transitions: {
         Row: {
