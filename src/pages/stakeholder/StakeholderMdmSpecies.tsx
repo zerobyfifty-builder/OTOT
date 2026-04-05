@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Plus, Pencil, Leaf, TreePine, FlaskConical, MoreHorizontal, Download, Power, Sprout, X, Trash2 } from 'lucide-react';
 
-const CATEGORIES = ['Indigenous', 'Exotic', 'Agroforestry', 'Medicinal', 'Fruit Tree'] as const;
+const CATEGORIES = ['Indigenous', 'Exotic', 'Agroforestry', 'Medicinal', 'Fruit Tree', 'Bamboo'] as const;
 const SEED_SOURCES = ['KFS Certified', 'Private Supplier', 'Community Seed Bank', 'Mixed'] as const;
 const AVAILABILITY_STATUSES = ['Available', 'Limited Stock', 'Out of Stock'] as const;
 
@@ -358,7 +358,7 @@ export function StakeholderMdmSpecies() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         {CATEGORIES.map(cat => (
           <Card key={cat}>
             <CardContent className="pt-4 pb-3 flex items-center gap-3">
