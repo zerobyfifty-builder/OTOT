@@ -288,7 +288,7 @@ export const CarbonCalculator = () => {
         flight_co2: calculation.flightCO2,
         accommodation_co2: calculation.accommodationCO2,
         total_co2: calculation.totalCO2,
-        trees_needed: calculation.treesNeeded,
+        trees_needed: calcResult?.treesNeeded ?? calculation.treesNeeded,
       }]);
 
       if (error) throw error;
@@ -363,7 +363,7 @@ export const CarbonCalculator = () => {
         flight_co2: calculation.flightCO2,
         accommodation_co2: calculation.accommodationCO2,
         total_co2: calculation.totalCO2,
-        trees_needed: calculation.treesNeeded,
+        trees_needed: calcResult?.treesNeeded ?? calculation.treesNeeded,
       }]).select().single();
 
       if (tripError) throw tripError;
