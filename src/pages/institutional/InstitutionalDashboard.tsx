@@ -277,6 +277,8 @@ export const InstitutionalDashboard = () => {
   // Planting status pie data
   const plantingPieData = useMemo(() => {
     if (!stats?.plantingBreakdown) return [];
+    // Filter trees by date if plantingDateRange is set
+    // Since plantingBreakdown comes from all trees, we need to recompute from raw data
     const statusOrder = Object.keys(PLANTING_LABELS);
     return statusOrder
       .filter(s => (stats.plantingBreakdown[s] || 0) > 0)
@@ -298,6 +300,18 @@ export const InstitutionalDashboard = () => {
         fill: CONTRIBUTION_COLORS[i] || CONTRIBUTION_COLORS[0],
       }));
   }, [stats]);
+
+  // Filtered tree order trend data
+  const filteredMonthlyOrders = useMemo(() => {
+    if (!stats?.monthlyOrders) return [];
+    if (!treeOrderDateRange.from) return stats.monthlyOrders;
+    return stats.monthlyOrders.filter(item => {
+      const date = new Date(item.month + '-01');
+      if (treeOrderDateRange.from && date < treeOrderDateRange.from) return false;
+      if (treeOrderDateRange.to && date > treeOrderDateRange.to) return false;
+      return true;
+    });
+  }, [stats, treeOrderDateRange]);
 
   useEffect(() => {
     if (userProfile) setOrganizationInfo(userProfile.organizations);
