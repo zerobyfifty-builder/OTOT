@@ -1435,7 +1435,7 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">${viewSheet.total_amount.toFixed(2)}</p>
                         </div>
                         <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Allocated for Planting</span>
+                          <span className="text-muted-foreground text-xs">Planting Amnt</span>
                           <p className="font-medium">${viewSheet.amount_transferred.toFixed(2)}</p>
                         </div>
                         <div>
