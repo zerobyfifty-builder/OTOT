@@ -1,7 +1,7 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Plus, Pencil, Leaf, Download, ChevronsUpDown, Check } from 'lucide-react';
+import { Search, Plus, Pencil, Leaf, Download, ChevronsUpDown, Check, Trash2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['indigenous', 'exotic', 'fruit', 'bamboo'] as const;
@@ -73,8 +74,11 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [speciesPopoverOpen, setSpeciesPopoverOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // Fetch seed_species catalogue for the searchable dropdown
   const { data: speciesCatalogue = [] } = useQuery({
     queryKey: ['seed_species_catalogue'],
     queryFn: async () => {
@@ -186,6 +190,51 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
     }
   };
 
+  const handleDeleteClick = () => {
+    if (!editingId) return;
+    const rate = rates.find((r: any) => r.id === editingId);
+    setDeleteTarget({ id: editingId, name: rate?.species_name || formData.species_name });
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      // Check dependencies: carbon_offset_calculations and planting_cost_configs
+      const [calcCheck, configCheck] = await Promise.all([
+        supabase.from('carbon_offset_calculations').select('id', { count: 'exact', head: true }).eq('species_id', deleteTarget.id),
+        supabase.from('planting_cost_configs').select('id', { count: 'exact', head: true }).eq('default_species_id', deleteTarget.id),
+      ]);
+
+      const deps: string[] = [];
+      if ((calcCheck.count || 0) > 0) deps.push(`${calcCheck.count} carbon offset calculation(s)`);
+      if ((configCheck.count || 0) > 0) deps.push(`${configCheck.count} planting cost config(s)`);
+
+      if (deps.length > 0) {
+        setDeleteError(`Cannot delete "${deleteTarget.name}" — it is linked to ${deps.join(' and ')}. Remove those references first.`);
+        setDeleting(false);
+        return;
+      }
+
+      const { error } = await supabase.from('tree_sequestration_rates').delete().eq('id', deleteTarget.id);
+      if (error) throw error;
+
+      toast.success(`"${deleteTarget.name}" deleted`);
+      queryClient.invalidateQueries({ queryKey: ['sequestration_rates'] });
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+      resetForm();
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleToggleActive = async (item: any) => {
     const newStatus = !item.is_active;
     try {
@@ -276,7 +325,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                 ) : filtered.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No rates found</TableCell></TableRow>
                 ) : filtered.map((r: any) => (
-                  <TableRow key={r.id} className={!r.is_active ? 'opacity-50' : ''}>
+                  <TableRow key={r.id} className={cn(!r.is_active && 'opacity-50', 'cursor-pointer hover:bg-muted/50')} onClick={() => !readOnly && handleEdit(r)}>
                     <TableCell>
                       <div>
                         <p className="font-medium">{r.species_name}</p>
@@ -293,12 +342,12 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                     <TableCell className="text-right">{r.offset_horizon_years} years</TableCell>
                     <TableCell className="max-w-[150px] truncate text-muted-foreground text-xs">{r.data_source}</TableCell>
                     {!readOnly && (
-                      <TableCell className="text-center">
+                      <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                         <Switch checked={r.is_active} onCheckedChange={() => handleToggleActive(r)} />
                       </TableCell>
                     )}
                     {!readOnly && (
-                      <TableCell className="text-center">
+                      <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(r)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -312,126 +361,211 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={showForm} onOpenChange={v => { if (!v) resetForm(); }}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit' : 'Add'} Sequestration Rate</DialogTitle>
-            <DialogDescription>Configure CO₂ absorption rate for a tree species</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Species Name *</Label>
-              <Popover open={speciesPopoverOpen} onOpenChange={setSpeciesPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={speciesPopoverOpen}
-                    className="w-full justify-between font-normal"
-                    disabled={!!editingId}
-                  >
-                    {formData.species_name || 'Search species...'}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search species..." />
-                    <CommandList>
-                      <CommandEmpty>No species found.</CommandEmpty>
-                      <CommandGroup>
-                        {speciesCatalogue.map((sp: any) => {
-                          const displayName = sp.common_name || sp.species_name;
-                          const label = sp.scientific_name
-                            ? `${displayName} (${sp.scientific_name})`
-                            : displayName;
-                          return (
-                            <CommandItem
-                              key={sp.id}
-                              value={label}
-                              onSelect={() => {
-                                setFormData(f => ({
-                                  ...f,
-                                  species_name: displayName,
-                                  scientific_name: sp.scientific_name || '',
-                                  species_category: sp.category || f.species_category,
-                                }));
-                                setSpeciesPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", formData.species_name === displayName ? "opacity-100" : "opacity-0")} />
-                              <div>
-                                <span className="font-medium">{displayName}</span>
-                                {sp.scientific_name && (
-                                  <span className="text-muted-foreground italic ml-1">({sp.scientific_name})</span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          );
-                        })}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+      {/* Add/Edit Sheet Slider */}
+      <Sheet open={showForm} onOpenChange={v => { if (!v) resetForm(); }}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <SheetTitle className="text-lg flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-emerald-600" />
+                  {editingId ? 'Edit Rate' : 'Add New Rate'}
+                </SheetTitle>
+                <SheetDescription className="mt-1">
+                  {editingId ? 'Update sequestration rate details' : 'Configure CO₂ absorption rate for a tree species'}
+                </SheetDescription>
+              </div>
+              {editingId && (
+                <Badge variant="outline" className="text-xs">Editing</Badge>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label>Scientific Name</Label>
-              <Input value={formData.scientific_name} disabled className="bg-muted" />
-            </div>
-            <div className="space-y-2">
-              <Label>Category *</Label>
-              <Select value={formData.species_category} onValueChange={v => setFormData(f => ({ ...f, species_category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
+          </SheetHeader>
+
+          <Separator className="mb-6" />
+
+          <div className="space-y-6">
+            {/* Species Selection Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Species Information</h3>
               <div className="space-y-2">
-                <Label>Min kg/yr *</Label>
-                <Input type="number" value={formData.rate_kg_per_year_min} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_min: e.target.value }))} />
+                <Label className="text-sm font-medium">Species Name <span className="text-destructive">*</span></Label>
+                <Popover open={speciesPopoverOpen} onOpenChange={setSpeciesPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={speciesPopoverOpen}
+                      className="w-full justify-between font-normal h-10"
+                      disabled={!!editingId}
+                    >
+                      {formData.species_name || 'Search and select species...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Type to search species..." />
+                      <CommandList>
+                        <CommandEmpty>No species found in catalogue.</CommandEmpty>
+                        <CommandGroup>
+                          {speciesCatalogue.map((sp: any) => {
+                            const displayName = sp.common_name || sp.species_name;
+                            const label = sp.scientific_name
+                              ? `${displayName} (${sp.scientific_name})`
+                              : displayName;
+                            return (
+                              <CommandItem
+                                key={sp.id}
+                                value={label}
+                                onSelect={() => {
+                                  setFormData(f => ({
+                                    ...f,
+                                    species_name: displayName,
+                                    scientific_name: sp.scientific_name || '',
+                                    species_category: sp.category || f.species_category,
+                                  }));
+                                  setSpeciesPopoverOpen(false);
+                                }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", formData.species_name === displayName ? "opacity-100" : "opacity-0")} />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{displayName}</span>
+                                  {sp.scientific_name && (
+                                    <span className="text-xs text-muted-foreground italic">{sp.scientific_name}</span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
-                <Label>Max kg/yr *</Label>
-                <Input type="number" value={formData.rate_kg_per_year_max} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_max: e.target.value }))} />
+                <Label className="text-sm font-medium">Scientific Name</Label>
+                <Input value={formData.scientific_name} disabled className="bg-muted/50 text-muted-foreground italic" />
               </div>
               <div className="space-y-2">
-                <Label>Default kg/yr *</Label>
-                <Input type="number" value={formData.rate_kg_per_year_default} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_default: e.target.value }))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Survival Rate Override (0-1)</Label>
-                <Input type="number" step="0.01" min="0" max="1" placeholder="Leave blank for 0.85"
-                  value={formData.survival_rate_override} onChange={e => setFormData(f => ({ ...f, survival_rate_override: e.target.value }))} />
-              </div>
-              <div className="space-y-2">
-                <Label>Offset Horizon (years)</Label>
-                <Input type="number" value={formData.offset_horizon_years} onChange={e => setFormData(f => ({ ...f, offset_horizon_years: e.target.value }))} />
+                <Label className="text-sm font-medium">Category <span className="text-destructive">*</span></Label>
+                <Select value={formData.species_category} onValueChange={v => setFormData(f => ({ ...f, species_category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Data Source *</Label>
-                <Input value={formData.data_source} onChange={e => setFormData(f => ({ ...f, data_source: e.target.value }))} />
+
+            <Separator />
+
+            {/* Rate Configuration Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Rate Configuration</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Min (kg/yr)</Label>
+                  <Input type="number" placeholder="0" value={formData.rate_kg_per_year_min} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_min: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Max (kg/yr)</Label>
+                  <Input type="number" placeholder="0" value={formData.rate_kg_per_year_max} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_max: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Default (kg/yr) <span className="text-destructive">*</span></Label>
+                  <Input type="number" placeholder="0" value={formData.rate_kg_per_year_default} onChange={e => setFormData(f => ({ ...f, rate_kg_per_year_default: e.target.value }))} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Source Year *</Label>
-                <Input type="number" value={formData.source_year} onChange={e => setFormData(f => ({ ...f, source_year: e.target.value }))} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Survival Rate Override</Label>
+                  <Input type="number" step="0.01" min="0" max="1" placeholder="Default: 0.85"
+                    value={formData.survival_rate_override} onChange={e => setFormData(f => ({ ...f, survival_rate_override: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Offset Horizon (yrs)</Label>
+                  <Input type="number" placeholder="20" value={formData.offset_horizon_years} onChange={e => setFormData(f => ({ ...f, offset_horizon_years: e.target.value }))} />
+                </div>
+              </div>
+
+              {/* Live effective rate preview */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+                <span className="text-sm text-muted-foreground">Effective Rate</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">{liveEffectiveRate.toFixed(1)} kg/tree/yr</span>
               </div>
             </div>
-            {/* Live preview */}
-            <div className="p-3 rounded-lg bg-muted/50 text-sm">
-              <p className="font-medium">Effective rate: {liveEffectiveRate.toFixed(1)} kg/tree/yr</p>
+
+            <Separator />
+
+            {/* Source Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Data Source</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Source <span className="text-destructive">*</span></Label>
+                  <Input placeholder="e.g. IPCC, KEFRI" value={formData.data_source} onChange={e => setFormData(f => ({ ...f, data_source: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Year <span className="text-destructive">*</span></Label>
+                  <Input type="number" placeholder={new Date().getFullYear().toString()} value={formData.source_year} onChange={e => setFormData(f => ({ ...f, source_year: e.target.value }))} />
+                </div>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={resetForm}>Cancel</Button>
-            <Button onClick={handleSave}>{editingId ? 'Update' : 'Add'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+          {/* Footer Actions */}
+          <div className="mt-8 space-y-3">
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={resetForm} className="flex-1">Cancel</Button>
+              <Button onClick={handleSave} className="flex-1">{editingId ? 'Update Rate' : 'Add Rate'}</Button>
+            </div>
+
+            {editingId && (
+              <>
+                <Separator />
+                <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 gap-2" onClick={handleDeleteClick}>
+                  <Trash2 className="h-4 w-4" /> Delete this rate
+                </Button>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={v => { if (!v) { setDeleteDialogOpen(false); setDeleteError(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {deleteError ? (
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              ) : (
+                <Trash2 className="h-5 w-5 text-destructive" />
+              )}
+              {deleteError ? 'Cannot Delete' : 'Delete Sequestration Rate'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteError ? (
+                <span className="text-amber-600 dark:text-amber-400">{deleteError}</span>
+              ) : (
+                <>Are you sure you want to permanently delete <strong>&quot;{deleteTarget?.name}&quot;</strong>? This action cannot be undone.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setDeleteDialogOpen(false); setDeleteError(null); }}>
+              {deleteError ? 'Close' : 'Cancel'}
+            </AlertDialogCancel>
+            {!deleteError && (
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
