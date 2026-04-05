@@ -261,6 +261,63 @@ export function StakeholderTreeManagement() {
     enabled: !!infoSheet?.id,
   });
 
+  // Tree-level queries for Tree Status & Info sheet
+  const { data: treeTransitions } = useQuery({
+    queryKey: ["treeStatusTransitions_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeGeotag } = useQuery({
+    queryKey: ["treeGeotag_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_geotags" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeSurvival } = useQuery({
+    queryKey: ["treeSurvival_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_survival_tracking" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!infoSheet?.id,
+  });
+
+  const { data: treeGrowth } = useQuery({
+    queryKey: ["treeGrowth_tm", infoSheet?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_growth_metrics" as any)
+        .select("*")
+        .eq("tree_id", infoSheet!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!infoSheet?.id,
+  });
+
   const formatDate = (d: string | null | undefined) => {
     if (!d) return "—";
     try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
