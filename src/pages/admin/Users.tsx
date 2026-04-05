@@ -247,7 +247,7 @@ export default function Users() {
                       <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Pledge Status</TableHead>
-                      <TableHead>Total Donation</TableHead>
+                      <TableHead>Total Contribution</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>

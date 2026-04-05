@@ -76,7 +76,7 @@ export default function Reports() {
         'Email': user.email,
         'Pledge Status': user.pledge_status ? 'Yes' : 'No',
         'Pledge Date': user.pledge_date ? new Date(user.pledge_date).toLocaleDateString() : '',
-        'Total Donation': user.total_donation,
+        'Total Contribution': user.total_donation,
         'Created At': new Date(user.created_at).toLocaleDateString(),
       })) || [];
 
@@ -155,7 +155,7 @@ export default function Reports() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Export all registered users with pledge status and donation information.
+              Export all registered users with pledge status and contribution information.
             </p>
             <Button onClick={exportUsers} disabled={loading} className="w-full">
               <Download className="mr-2 h-4 w-4" />

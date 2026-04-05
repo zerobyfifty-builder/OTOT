@@ -60,7 +60,7 @@ const ContributionTierSettings: React.FC = () => {
                 <Layers className="h-5 w-5 text-primary" />
                 <div>
                   <CardTitle className="text-lg">Contribution Tiers</CardTitle>
-                  <CardDescription>Auto-calculated from the active planting cost configuration (Donation: {formatUSD(Number(config.donation_usd))})</CardDescription>
+                  <CardDescription>Auto-calculated from the active planting cost configuration (Contribution: {formatUSD(Number(config.donation_usd))})</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -86,7 +86,7 @@ const ContributionTierSettings: React.FC = () => {
 
           <p className="text-xs text-muted-foreground flex items-center gap-1.5 px-1">
             <Info className="h-3.5 w-3.5" />
-            Tier prices are auto-calculated from the approved planting cost configuration. To change them, update the donation amount or revenue split in Planting Costs.
+            Tier prices are auto-calculated from the approved planting cost configuration. To change them, update the contribution amount or revenue split in Planting Costs.
           </p>
         </div>
       )}
