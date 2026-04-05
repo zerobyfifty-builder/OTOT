@@ -357,6 +357,38 @@ export const StakeholderOrders = () => {
     enabled: !!transitionTreeId,
   });
 
+  // Query latest transition dates for all trees (for Status Dt column)
+  const { data: allTransitionDates } = useQuery({
+    queryKey: ["allTreeTransitionDates", trees?.map(t => t.id).join(",")],
+    queryFn: async () => {
+      if (!trees || trees.length === 0) return {};
+      const treeIds = trees.map(t => t.id);
+      // Fetch all transitions ordered desc
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, to_status, created_at")
+        .in("tree_id", treeIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Build map: tree_id -> latest transition date matching current planting_status
+      const dateMap: Record<string, string> = {};
+      for (const row of (data || []) as any[]) {
+        const tree = trees.find(t => t.id === row.tree_id);
+        if (tree && row.to_status === (tree.planting_status || 'waiting_to_be_assigned') && !dateMap[row.tree_id]) {
+          dateMap[row.tree_id] = row.created_at;
+        }
+      }
+      // Fallback for trees without transitions
+      for (const tree of trees) {
+        if (!dateMap[tree.id]) {
+          dateMap[tree.id] = tree.updated_at || tree.created_at;
+        }
+      }
+      return dateMap;
+    },
+    enabled: !!trees && trees.length > 0,
+  });
+
   // Query monitoring logs for batch status & monitoring sheet
   const batchContribId = statusHistoryGroup?.contribution_id || monitoringSheet?.contribution_id;
   const { data: monitoringLogs, refetch: refetchMonitoring } = useQuery({
