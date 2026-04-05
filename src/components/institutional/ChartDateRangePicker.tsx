@@ -88,7 +88,7 @@ export function ChartDateRangePicker({ dateRange, onDateRangeChange }: ChartDate
                 format(dateRange.from, "d MMM yyyy")
               )
             ) : (
-              "Select date range"
+              "Select"
             )}
           </Button>
         </PopoverTrigger>
