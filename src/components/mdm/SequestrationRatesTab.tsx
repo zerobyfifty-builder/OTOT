@@ -323,9 +323,9 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={readOnly ? 7 : 9} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No rates found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={readOnly ? 7 : 9} className="text-center py-8 text-muted-foreground">No rates found</TableCell></TableRow>
                 ) : filtered.map((r: any) => (
                   <TableRow key={r.id} className={cn(!r.is_active && 'opacity-50', 'cursor-pointer hover:bg-muted/50')} onClick={() => !readOnly && handleEdit(r)}>
                     <TableCell>
