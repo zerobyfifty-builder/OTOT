@@ -91,9 +91,6 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
       });
     },
   });
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const { data: rates = [], isLoading } = useQuery({
     queryKey: ['sequestration_rates'],
