@@ -138,6 +138,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
           tier_monthly_usd: tiers[3].price, tier_yearly_usd: tiers[4].price, tier_recommit_usd: tiers[5].price,
           tier_grove_usd: tiers[6].price, tier_forest_usd: tiers[7].price,
           approved_by: user!.id, approved_at: new Date().toISOString(),
+          default_species_id: selectedSpeciesId === 'default' ? null : selectedSpeciesId,
         } as any);
       if (e3) throw e3;
 
