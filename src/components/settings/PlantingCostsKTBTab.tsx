@@ -280,12 +280,12 @@ export const PlantingCostsKTBTab: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-lg text-center bg-muted">
+                    <div className="p-4 rounded-lg text-center bg-gray-200 dark:bg-gray-700">
                       <p className="text-xs font-medium text-muted-foreground">MoE receives</p>
                       <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeUSD)}</p>
                       <p className="text-xs" style={{ color: 'hsl(150 40% 40%)' }}>KES {formatKES(moeUSD * fxRate)}</p>
                     </div>
-                    <div className="p-4 rounded-lg text-center bg-muted">
+                    <div className="p-4 rounded-lg text-center bg-gray-200 dark:bg-gray-700">
                       <p className="text-xs font-medium text-muted-foreground">MoE needs</p>
                       <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeNeedUSD)}</p>
                       <p className="text-xs" style={{ color: isViable ? 'hsl(150 60% 35%)' : 'hsl(30 80% 45%)' }}>
