@@ -411,10 +411,10 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[9999]" align="start" side="bottom" sideOffset={4}>
                     <Command>
                       <CommandInput placeholder="Type to search species..." />
-                      <CommandList>
+                      <CommandList className="max-h-[200px] overflow-y-auto">
                         <CommandEmpty>No species found in catalogue.</CommandEmpty>
                         <CommandGroup>
                           {speciesCatalogue.filter((sp: any) => {
