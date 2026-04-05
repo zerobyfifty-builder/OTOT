@@ -628,8 +628,8 @@ export const InstitutionalDashboard = () => {
                 <p className="text-sm font-bold">{formatNumber(stats?.unallocated || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Assigned</p>
-                <p className="text-sm font-bold">{formatNumber(stats?.allocated || 0)}</p>
+                <p className="text-xs text-muted-foreground">Planting</p>
+                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.unallocated || 0) - (stats?.plantedVerified || 0))}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planted</p>
@@ -668,7 +668,7 @@ export const InstitutionalDashboard = () => {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => `$${formatNumber(v)}`} />
+                    <Tooltip formatter={(v: number) => `$${formatNumber(Math.round(v))}`} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2">
@@ -678,7 +678,7 @@ export const InstitutionalDashboard = () => {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-muted-foreground">{entry.name}</span>
                       </div>
-                      <span className="font-semibold tabular-nums">${formatNumber(entry.value)}</span>
+                      <span className="font-semibold tabular-nums">${formatNumber(Math.round(entry.value))}</span>
                     </div>
                   ))}
                 </div>
@@ -691,11 +691,11 @@ export const InstitutionalDashboard = () => {
             <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t">
               <div className="p-2.5 rounded-lg bg-violet-50 dark:bg-violet-500/10">
                 <p className="text-[10px] text-muted-foreground uppercase">Total Mktg Fee</p>
-                <p className="text-sm font-bold">${formatNumber(stats?.totalMktgFee || 0)}</p>
+                <p className="text-sm font-bold">${formatNumber(stats?.totalRetained || 0)}</p>
               </div>
               <div className="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-500/10">
                 <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
-                <p className="text-sm font-bold">${formatNumber(stats?.totalTechFee || 0)}</p>
+                <p className="text-sm font-bold">${formatNumber(stats?.totalTransferred || 0)}</p>
               </div>
             </div>
           </CardContent>
