@@ -294,6 +294,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
           </div>
 
           <div className="space-y-2 pt-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Revenue — {formatUSD(activeDonation)}</p>
             <div className="flex h-8 rounded-lg overflow-hidden">
               <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${techOfTotal}%`, backgroundColor: 'hsl(270 60% 55%)' }}>{techOfTotal.toFixed(0)}%</div>
               <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${ktbOfTotal}%`, backgroundColor: 'hsl(210 70% 50%)' }}>{ktbOfTotal.toFixed(0)}%</div>
@@ -314,35 +315,36 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
           <CardTitle className="text-base">Step 3 — Live Money Flows</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">At this donation and split</p>
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-lg border text-center" style={{ borderColor: 'hsl(270 60% 55%)' }}>
-              <p className="text-xs text-muted-foreground">Tech partner</p>
-              <p className="font-bold text-sm">{formatUSD(techUSD)}</p>
-              <p className="text-xs text-muted-foreground">KES {formatKES(techUSD * activeFxRate)}</p>
+            <div className="p-3 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(270 60% 55%)', backgroundColor: 'hsl(270 60% 97%)' }}>
+              <p className="text-xs font-medium" style={{ color: 'hsl(270 60% 45%)' }}>Tech partner</p>
+              <p className="font-bold text-lg" style={{ color: 'hsl(270 60% 30%)' }}>{formatUSD(techUSD)}</p>
+              <p className="text-xs" style={{ color: 'hsl(270 40% 50%)' }}>KES {formatKES(techUSD * activeFxRate)}</p>
             </div>
-            <div className="p-3 rounded-lg border text-center" style={{ borderColor: 'hsl(210 70% 50%)' }}>
-              <p className="text-xs text-muted-foreground">KTB</p>
-              <p className="font-bold text-sm">{formatUSD(ktbUSD)}</p>
-              <p className="text-xs text-muted-foreground">KES {formatKES(ktbUSD * activeFxRate)}</p>
+            <div className="p-3 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(210 70% 50%)', backgroundColor: 'hsl(210 70% 97%)' }}>
+              <p className="text-xs font-medium" style={{ color: 'hsl(210 70% 40%)' }}>KTB</p>
+              <p className="font-bold text-lg" style={{ color: 'hsl(210 70% 25%)' }}>{formatUSD(ktbUSD)}</p>
+              <p className="text-xs" style={{ color: 'hsl(210 50% 50%)' }}>KES {formatKES(ktbUSD * activeFxRate)}</p>
             </div>
-            <div className="p-3 rounded-lg border text-center" style={{ borderColor: 'hsl(150 60% 40%)' }}>
-              <p className="text-xs text-muted-foreground">MoE / plantation</p>
-              <p className="font-bold text-sm">{formatUSD(moeUSD)}</p>
-              <p className="text-xs text-muted-foreground">KES {formatKES(moeUSD * activeFxRate)}</p>
+            <div className="p-3 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(150 60% 40%)', backgroundColor: 'hsl(150 60% 95%)' }}>
+              <p className="text-xs font-medium" style={{ color: 'hsl(150 60% 30%)' }}>MoE / plantation</p>
+              <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeUSD)}</p>
+              <p className="text-xs" style={{ color: 'hsl(150 40% 40%)' }}>KES {formatKES(moeUSD * activeFxRate)}</p>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">MoE receives</p>
-                <p className="font-bold">{formatUSD(moeUSD)}</p>
-                <p className="text-xs text-muted-foreground">KES {formatKES(moeUSD * activeFxRate)}</p>
+              <div className="p-4 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(150 40% 70%)', backgroundColor: 'hsl(150 30% 95%)' }}>
+                <p className="text-xs font-medium text-muted-foreground">MoE receives</p>
+                <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeUSD)}</p>
+                <p className="text-xs" style={{ color: 'hsl(150 40% 40%)' }}>KES {formatKES(moeUSD * activeFxRate)}</p>
               </div>
-              <div className="p-3 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">MoE needs</p>
-                <p className="font-bold">{formatUSD(moeNeedUSD)}</p>
-                <p className="text-xs text-muted-foreground">KES {formatKES(totalKES)}</p>
+              <div className="p-4 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(150 40% 70%)', backgroundColor: 'hsl(150 30% 95%)' }}>
+                <p className="text-xs font-medium text-muted-foreground">MoE needs</p>
+                <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeNeedUSD)}</p>
+                <p className="text-xs" style={{ color: isViable ? 'hsl(150 60% 35%)' : 'hsl(30 80% 45%)' }}>{isViable ? `+${formatUSD(surplus)} surplus to MoE` : `KES ${formatKES(totalKES)}`}</p>
               </div>
             </div>
 
