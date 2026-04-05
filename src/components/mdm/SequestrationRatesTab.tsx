@@ -322,11 +322,60 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Species Name *</Label>
-              <Input value={formData.species_name} onChange={e => setFormData(f => ({ ...f, species_name: e.target.value }))} />
+              <Popover open={speciesPopoverOpen} onOpenChange={setSpeciesPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={speciesPopoverOpen}
+                    className="w-full justify-between font-normal"
+                    disabled={!!editingId}
+                  >
+                    {formData.species_name || 'Search species...'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search species..." />
+                    <CommandList>
+                      <CommandEmpty>No species found.</CommandEmpty>
+                      <CommandGroup>
+                        {speciesCatalogue.map((sp: any) => {
+                          const displayName = sp.common_name || sp.species_name;
+                          const label = sp.scientific_name
+                            ? `${displayName} (${sp.scientific_name})`
+                            : displayName;
+                          return (
+                            <CommandItem
+                              key={sp.id}
+                              value={label}
+                              onSelect={() => {
+                                setFormData(f => ({
+                                  ...f,
+                                  species_name: displayName,
+                                  scientific_name: sp.scientific_name || '',
+                                  species_category: sp.category || f.species_category,
+                                }));
+                                setSpeciesPopoverOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", formData.species_name === displayName ? "opacity-100" : "opacity-0")} />
+                              <div>
+                                <span className="font-medium">{displayName}</span>
+                                {sp.scientific_name && (
+                                  <span className="text-muted-foreground italic ml-1">({sp.scientific_name})</span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label>Scientific Name</Label>
-              <Input value={formData.scientific_name} onChange={e => setFormData(f => ({ ...f, scientific_name: e.target.value }))} />
+              <Input value={formData.scientific_name} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
               <Label>Category *</Label>
