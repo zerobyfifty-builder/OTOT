@@ -476,7 +476,7 @@ export const InstitutionalDashboard = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base">Countries vs Revenue</CardTitle>
+                <CardTitle className="text-base flex items-center gap-1.5">Countries vs Revenue <ChartExportButton title="Countries vs Revenue" columns={[{ key: "country", label: "Country" }, { key: "tourists", label: "Tourists" }, { key: "revenue", label: "Revenue ($)" }]} data={countriesChartData} iconOnly /></CardTitle>
                 <CardDescription>Tourists and revenue by origin country</CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -503,9 +503,6 @@ export const InstitutionalDashboard = () => {
                 <div className="text-center"><MapPin className="w-8 h-8 mx-auto mb-2 opacity-40" /><p className="text-sm">No country data available</p></div>
               </div>
             )}
-            <div className="flex justify-end mt-2">
-              <ChartExportButton title="Countries vs Revenue" columns={[{ key: "country", label: "Country" }, { key: "tourists", label: "Tourists" }, { key: "revenue", label: "Revenue ($)" }]} data={countriesChartData} iconOnly />
-            </div>
           </CardContent>
         </Card>
 
@@ -513,7 +510,7 @@ export const InstitutionalDashboard = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base">Trips vs Revenue</CardTitle>
+                <CardTitle className="text-base flex items-center gap-1.5">Trips vs Revenue <ChartExportButton title="Trips vs Revenue" columns={[{ key: "period", label: "Period" }, { key: "trips", label: "Trips" }, { key: "pax", label: "Passengers" }, { key: "revenue", label: "Revenue ($)" }]} data={tripsChartData} iconOnly /></CardTitle>
                 <CardDescription>Trip volume and passengers over time</CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -541,9 +538,6 @@ export const InstitutionalDashboard = () => {
                 <div className="text-center"><BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-40" /><p className="text-sm">No trip data available</p></div>
               </div>
             )}
-            <div className="flex justify-end mt-2">
-              <ChartExportButton title="Trips vs Revenue" columns={[{ key: "period", label: "Period" }, { key: "trips", label: "Trips" }, { key: "pax", label: "Passengers" }, { key: "revenue", label: "Revenue ($)" }]} data={tripsChartData} iconOnly />
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -555,7 +549,7 @@ export const InstitutionalDashboard = () => {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base">Tree Order Trend</CardTitle>
+                <CardTitle className="text-base flex items-center gap-1.5">Tree Order Trend <ChartExportButton title="Tree Order Trend" columns={[{ key: "month", label: "Month" }, { key: "trees", label: "Trees" }, { key: "revenue", label: "Revenue ($)" }]} data={filteredMonthlyOrders || []} iconOnly /></CardTitle>
                 <CardDescription>Monthly tree purchases and revenue</CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -582,9 +576,6 @@ export const InstitutionalDashboard = () => {
                 <p className="text-sm">No tree order data yet</p>
               </div>
             )}
-            <div className="flex justify-end mt-2">
-              <ChartExportButton title="Tree Order Trend" columns={[{ key: "month", label: "Month" }, { key: "trees", label: "Trees" }, { key: "revenue", label: "Revenue ($)" }]} data={filteredMonthlyOrders || []} iconOnly />
-            </div>
           </CardContent>
         </Card>
 
@@ -594,7 +585,7 @@ export const InstitutionalDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Sprout className="h-4 w-4 text-primary" /> Planting Pipeline
+                  <Sprout className="h-4 w-4 text-primary" /> Planting Pipeline <ChartExportButton title="Planting Pipeline" columns={[{ key: "name", label: "Stage" }, { key: "value", label: "Trees" }]} data={plantingPieData} iconOnly />
                 </CardTitle>
                 <CardDescription>Progress across planting stages</CardDescription>
               </div>
@@ -655,9 +646,6 @@ export const InstitutionalDashboard = () => {
                 <p className="text-sm font-bold text-primary">{formatWholeNumber(stats?.plantedVerified || 0)}</p>
               </div>
             </div>
-            <div className="flex justify-end mt-2">
-              <ChartExportButton title="Planting Pipeline" columns={[{ key: "name", label: "Stage" }, { key: "value", label: "Trees" }]} data={plantingPieData} iconOnly />
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -670,7 +658,7 @@ export const InstitutionalDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle
+                  <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
                 </CardTitle>
                 <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
               </div>
@@ -718,9 +706,6 @@ export const InstitutionalDashboard = () => {
                 <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
                 <p className="text-sm font-bold">${formatWholeNumber(stats?.totalTransferred || 0)}</p>
               </div>
-            </div>
-            <div className="flex justify-end mt-2">
-              <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
             </div>
           </CardContent>
         </Card>
