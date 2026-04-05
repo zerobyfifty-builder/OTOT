@@ -214,16 +214,25 @@ export const PlantingCostsKTBTab: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between text-sm">
-                    <span>Tech: Platform Dev & Maint Fee (% of total contribution)</span>
+                    <div>
+                      <span>Tech: Platform Dev & Maint Fee</span>
+                      <p className="text-xs text-muted-foreground">% of total contribution</p>
+                    </div>
                     <span className="font-bold">{techPct}%</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Balance after tech = {100 - techPct}%</p>
+                  <p className="text-xs font-medium text-muted-foreground pt-1">Balance after tech = {100 - techPct}%</p>
                   <div className="flex justify-between text-sm">
-                    <span>KTB: Marketing, Admin & Oversight Fee (% of balance)</span>
+                    <div>
+                      <span>KTB: Marketing, Admin & Oversight Fee</span>
+                      <p className="text-xs text-muted-foreground">% of balance</p>
+                    </div>
                     <span className="font-bold">{ktbPct}%</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>MoE: Planting, Growing & Admin Fee (% remaining)</span>
+                    <div>
+                      <span>MoE: Planting, Growing & Admin Fee</span>
+                      <p className="text-xs text-muted-foreground">% remaining</p>
+                    </div>
                     <span className="font-bold">{moePct}%</span>
                   </div>
 
