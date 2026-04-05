@@ -156,11 +156,11 @@ export const InstitutionalDashboard = () => {
       const totalTechFee = contributions.reduce((s, c) => s + (Number(c.tech_fee_received) || 0), 0);
       const totalMktgFee = contributions.reduce((s, c) => s + (Number(c.mktng_fee_allocated) || 0), 0);
 
-      // Contribution status breakdown
+      // Contribution status breakdown (by $ value)
       const contribStatusBreakdown: Record<string, number> = {};
       contributions.forEach(c => {
         const s = c.status || 'contribution_confirmed';
-        contribStatusBreakdown[s] = (contribStatusBreakdown[s] || 0) + 1;
+        contribStatusBreakdown[s] = (contribStatusBreakdown[s] || 0) + (Number(c.amount_paid) || 0);
       });
 
       // Community
