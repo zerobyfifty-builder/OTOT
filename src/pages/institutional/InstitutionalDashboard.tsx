@@ -65,6 +65,9 @@ export const InstitutionalDashboard = () => {
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
   const [countriesDateRange, setCountriesDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [tripsDateRange, setTripsDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [treeOrderDateRange, setTreeOrderDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [plantingDateRange, setPlantingDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [contribDateRange, setContribDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   const { data: userProfile } = useQuery({
     queryKey: ["userProfile", user?.id],
@@ -274,6 +277,8 @@ export const InstitutionalDashboard = () => {
   // Planting status pie data
   const plantingPieData = useMemo(() => {
     if (!stats?.plantingBreakdown) return [];
+    // Filter trees by date if plantingDateRange is set
+    // Since plantingBreakdown comes from all trees, we need to recompute from raw data
     const statusOrder = Object.keys(PLANTING_LABELS);
     return statusOrder
       .filter(s => (stats.plantingBreakdown[s] || 0) > 0)
@@ -295,6 +300,18 @@ export const InstitutionalDashboard = () => {
         fill: CONTRIBUTION_COLORS[i] || CONTRIBUTION_COLORS[0],
       }));
   }, [stats]);
+
+  // Filtered tree order trend data
+  const filteredMonthlyOrders = useMemo(() => {
+    if (!stats?.monthlyOrders) return [];
+    if (!treeOrderDateRange.from) return stats.monthlyOrders;
+    return stats.monthlyOrders.filter(item => {
+      const date = new Date(item.month + '-01');
+      if (treeOrderDateRange.from && date < treeOrderDateRange.from) return false;
+      if (treeOrderDateRange.to && date > treeOrderDateRange.to) return false;
+      return true;
+    });
+  }, [stats, treeOrderDateRange]);
 
   useEffect(() => {
     if (userProfile) setOrganizationInfo(userProfile.organizations);
@@ -423,15 +440,15 @@ export const InstitutionalDashboard = () => {
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Wallet className="h-5 w-5 text-violet-500" /> Financial Overview
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {statsLoading ? (
-            [...Array(6)].map((_, i) => <Skeleton key={i} className="h-20" />)
+            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-20" />)
           ) : (
             <>
               <MiniStatCard label="Gross Contributions" value={`$${formatNumber(stats?.totalGross || 0)}`} icon={Receipt} color="text-foreground" />
               <MiniStatCard label="KTB Received" value={`$${formatNumber(stats?.totalReceived || 0)}`} icon={CheckCircle2} color="text-primary" />
               <MiniStatCard label="Retained (Mktg & Admin)" value={`$${formatNumber(stats?.totalRetained || 0)}`} icon={Building} color="text-violet-500" />
-              <MiniStatCard label="Tech Fee" value={`$${formatNumber(stats?.totalTechFee || 0)}`} icon={Activity} color="text-sky-500" />
+              
               <MiniStatCard label="Transferred to Plantation" value={`$${formatNumber(stats?.totalTransferred || 0)}`} icon={ArrowUpRight} color="text-emerald-500" />
               <MiniStatCard label="Pending Processing" value={`$${formatNumber((stats?.totalGross || 0) - (stats?.totalReceived || 0))}`} icon={Clock} color="text-amber-500" />
             </>
@@ -518,13 +535,18 @@ export const InstitutionalDashboard = () => {
         {/* Monthly Tree Orders Trend */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tree Order Trend</CardTitle>
-            <CardDescription>Monthly tree purchases and revenue</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Tree Order Trend</CardTitle>
+                <CardDescription>Monthly tree purchases and revenue</CardDescription>
+              </div>
+              <ChartDateRangePicker dateRange={treeOrderDateRange} onDateRangeChange={setTreeOrderDateRange} />
+            </div>
           </CardHeader>
           <CardContent>
-            {statsLoading ? <Skeleton className="h-64 w-full" /> : (stats?.monthlyOrders?.length || 0) > 0 ? (
+            {statsLoading ? <Skeleton className="h-64 w-full" /> : (filteredMonthlyOrders?.length || 0) > 0 ? (
               <ChartContainer config={chartConfig} className="h-64 w-full">
-                <ComposedChart data={stats!.monthlyOrders} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <ComposedChart data={filteredMonthlyOrders} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                   <YAxis yAxisId="left" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
@@ -553,9 +575,12 @@ export const InstitutionalDashboard = () => {
                 </CardTitle>
                 <CardDescription>Progress across planting stages</CardDescription>
               </div>
-              <Badge variant={plantingProgress >= 50 ? "default" : "secondary"} className="text-xs">
-                {plantingProgress}% planted
-              </Badge>
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={plantingDateRange} onDateRangeChange={setPlantingDateRange} />
+                <Badge variant={plantingProgress >= 50 ? "default" : "secondary"} className="text-xs">
+                  {plantingProgress}% planted
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -612,10 +637,15 @@ export const InstitutionalDashboard = () => {
         {/* Contribution Lifecycle */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle
-            </CardTitle>
-            <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle
+                </CardTitle>
+                <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
+              </div>
+              <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
+            </div>
           </CardHeader>
           <CardContent>
             {statsLoading ? <Skeleton className="h-48 w-full" /> : contribPieData.length > 0 ? (
