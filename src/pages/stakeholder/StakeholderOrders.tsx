@@ -186,6 +186,7 @@ interface ContributionGroup {
   trip: Trip | null;
   planting_status: string;
   payment_status: string;
+  status_date: string | null;
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
@@ -354,6 +355,38 @@ export const StakeholderOrders = () => {
       return data as any[];
     },
     enabled: !!transitionTreeId,
+  });
+
+  // Query latest transition dates for all trees (for Status Dt column)
+  const { data: allTransitionDates } = useQuery({
+    queryKey: ["allTreeTransitionDates", trees?.map(t => t.id).join(",")],
+    queryFn: async () => {
+      if (!trees || trees.length === 0) return {};
+      const treeIds = trees.map(t => t.id);
+      // Fetch all transitions ordered desc
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, to_status, created_at")
+        .in("tree_id", treeIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Build map: tree_id -> latest transition date matching current planting_status
+      const dateMap: Record<string, string> = {};
+      for (const row of (data || []) as any[]) {
+        const tree = trees.find(t => t.id === row.tree_id);
+        if (tree && row.to_status === (tree.planting_status || 'waiting_to_be_assigned') && !dateMap[row.tree_id]) {
+          dateMap[row.tree_id] = row.created_at;
+        }
+      }
+      // Fallback for trees without transitions
+      for (const tree of trees) {
+        if (!dateMap[tree.id]) {
+          dateMap[tree.id] = tree.updated_at || tree.created_at;
+        }
+      }
+      return dateMap;
+    },
+    enabled: !!trees && trees.length > 0,
   });
 
   // Query monitoring logs for batch status & monitoring sheet
@@ -548,6 +581,13 @@ export const StakeholderOrders = () => {
     return Object.entries(grouped).map(([contribId, rows]) => {
       const first = rows[0];
       const groupTrees = treesByContribution[contribId] || [];
+      // Get the most recent status date from transition dates
+      const treeDates = groupTrees
+        .map(t => allTransitionDates?.[t.id])
+        .filter(Boolean) as string[];
+      const latestStatusDate = treeDates.length > 0
+        ? treeDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
+        : null;
       return {
         contribution_id: contribId,
         contribution_type: first.contribution_type,
@@ -565,9 +605,10 @@ export const StakeholderOrders = () => {
         trip: first.trip_id ? (trips[first.trip_id] || null) : null,
         planting_status: getGroupPlantingStatus(groupTrees),
         payment_status: first.status,
+        status_date: latestStatusDate,
       };
     });
-  }, [contributions, treesByContribution, trips]);
+  }, [contributions, treesByContribution, trips, allTransitionDates]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -906,10 +947,11 @@ export const StakeholderOrders = () => {
                     <SortableHead field="payment_date" label="Date" />
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
-                    <SortableHead field="amount_transferred" label="Allocated for Planting" />
+                    <SortableHead field="amount_transferred" label="Planting Amnt" />
                     <SortableHead field="payment_status" label="Payment Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting By</TableHead>
                     <SortableHead field="planting_status" label="Planting Status" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status Dt</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1027,6 +1069,14 @@ export const StakeholderOrders = () => {
                                 </Badge>
                               )}
                             </div>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {group.status_date ? (
+                              <div>
+                                <div>{format(new Date(group.status_date), "d MMM yyyy")}</div>
+                                <div className="text-[10px] text-muted-foreground/70">{format(new Date(group.status_date), "hh:mm a")}</div>
+                              </div>
+                            ) : '—'}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -1385,7 +1435,7 @@ export const StakeholderOrders = () => {
                           <p className="font-medium">${viewSheet.total_amount.toFixed(2)}</p>
                         </div>
                         <div className="text-right">
-                          <span className="text-muted-foreground text-xs">Allocated for Planting</span>
+                          <span className="text-muted-foreground text-xs">Planting Amnt</span>
                           <p className="font-medium">${viewSheet.amount_transferred.toFixed(2)}</p>
                         </div>
                         <div>
