@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CheckCircle2, AlertTriangle, ArrowLeft, Sparkles, CornerDownLeft, ArrowRight, Lock } from 'lucide-react';
 
@@ -40,6 +41,21 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
   const [ktbPct, setKtbPct] = useState(40);
   const [returnComment, setReturnComment] = useState('');
   const [showReturnForm, setShowReturnForm] = useState(false);
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string>('default');
+
+  // Fetch sequestration rates for species dropdown
+  const { data: speciesRates = [] } = useQuery({
+    queryKey: ['sequestration_rates_for_config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tree_sequestration_rates')
+        .select('id, species_name, rate_kg_per_year_default, species_category, survival_rate_override, offset_horizon_years')
+        .eq('is_active', true)
+        .order('species_name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const isReadOnly = submission?.status === 'approved' || submission?.status === 'superseded' || submission?.status === 'returned';
   const isApproved = isReadOnly;
