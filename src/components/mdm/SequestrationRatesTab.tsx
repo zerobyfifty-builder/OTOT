@@ -72,6 +72,28 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const [speciesPopoverOpen, setSpeciesPopoverOpen] = useState(false);
+
+  // Fetch seed_species catalogue for the searchable dropdown
+  const { data: speciesCatalogue = [] } = useQuery({
+    queryKey: ['seed_species_catalogue'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('seed_species')
+        .select('id, species_name, common_name, scientific_name, category')
+        .eq('is_active', true)
+        .order('common_name', { ascending: true });
+      if (error) throw error;
+      return (data || []).sort((a: any, b: any) => {
+        const nameA = (a.common_name || a.species_name || '').toLowerCase();
+        const nameB = (b.common_name || b.species_name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    },
+  });
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>(emptyForm);
 
   const { data: rates = [], isLoading } = useQuery({
     queryKey: ['sequestration_rates'],
