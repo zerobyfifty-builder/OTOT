@@ -1000,7 +1000,7 @@ export const StakeholderOrders = () => {
                                       setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
                                     }
                                   >
-                                    <SelectTrigger className="w-[150px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium">
+                                    <SelectTrigger className="w-[150px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium text-left">
                                       <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
                                     </SelectTrigger>
                                     <SelectContent>
