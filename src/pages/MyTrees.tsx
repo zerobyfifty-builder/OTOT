@@ -634,12 +634,14 @@ export const MyTrees = () => {
                                           <TableCell className="text-left text-xs">Nakuru</TableCell>
                                           <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                           <TableCell>
-                                            <Badge className={STATUS_COLORS[tree.status]}>
-                                              {tree.status === "Planted" ? "gifted" : tree.status}
+                                            <Badge className={PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || "bg-muted text-muted-foreground"}>
+                                              {PLANTING_STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned'] || tree.planting_status || 'Unknown'}
                                             </Badge>
                                           </TableCell>
                                           <TableCell className="text-xs">
-                                            {format(new Date(tree.created_at), "d/M/yyyy")}
+                                            {transitionDates[tree.id]
+                                              ? format(new Date(transitionDates[tree.id]), "d/M/yyyy")
+                                              : format(new Date(tree.created_at), "d/M/yyyy")}
                                           </TableCell>
                                           <TableCell>
                                             <Badge className={SOURCE_COLORS[tree.purchase_type]}>
