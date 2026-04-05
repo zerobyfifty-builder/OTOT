@@ -60,6 +60,9 @@ const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
 
 const CONTRIBUTION_COLORS = ["hsl(220 70% 55%)", "hsl(45 90% 50%)", "hsl(180 60% 45%)", "hsl(142 70% 40%)"];
 
+const formatWholeNumber = (value: number) =>
+  new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(value));
+
 export const InstitutionalDashboard = () => {
   const { user } = useAuth();
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
@@ -613,7 +616,7 @@ export const InstitutionalDashboard = () => {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => formatNumber(Math.round(v))} />
+                    <Tooltip formatter={(v: number) => formatWholeNumber(Number(v) || 0)} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-1.5">
@@ -623,7 +626,7 @@ export const InstitutionalDashboard = () => {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-muted-foreground">{entry.name}</span>
                       </div>
-                      <span className="font-medium tabular-nums">{formatNumber(Math.round(entry.value))}</span>
+                      <span className="font-medium tabular-nums">{formatWholeNumber(entry.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -636,15 +639,15 @@ export const InstitutionalDashboard = () => {
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Un Assigned</p>
-                <p className="text-sm font-bold">{formatNumber(stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0)}</p>
+                <p className="text-sm font-bold">{formatWholeNumber(stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planting</p>
-                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0) - (stats?.plantedVerified || 0))}</p>
+                <p className="text-sm font-bold">{formatWholeNumber((stats?.totalTreesOrdered || 0) - (stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0) - (stats?.plantedVerified || 0))}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planted</p>
-                <p className="text-sm font-bold text-primary">{formatNumber(stats?.plantedVerified || 0)}</p>
+                <p className="text-sm font-bold text-primary">{formatWholeNumber(stats?.plantedVerified || 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -679,7 +682,7 @@ export const InstitutionalDashboard = () => {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => `$${formatNumber(Math.round(v))}`} />
+                    <Tooltip formatter={(v: number) => `$${formatWholeNumber(Number(v) || 0)}`} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2">
@@ -689,7 +692,7 @@ export const InstitutionalDashboard = () => {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-muted-foreground">{entry.name}</span>
                       </div>
-                      <span className="font-semibold tabular-nums">${formatNumber(Math.round(entry.value))}</span>
+                      <span className="font-semibold tabular-nums">${formatWholeNumber(entry.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -702,11 +705,11 @@ export const InstitutionalDashboard = () => {
             <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t">
               <div className="p-2.5 rounded-lg bg-violet-50 dark:bg-violet-500/10">
                 <p className="text-[10px] text-muted-foreground uppercase">Total Mktg Fee</p>
-                <p className="text-sm font-bold">${formatNumber(stats?.totalRetained || 0)}</p>
+                <p className="text-sm font-bold">${formatWholeNumber(stats?.totalRetained || 0)}</p>
               </div>
               <div className="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-500/10">
                 <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
-                <p className="text-sm font-bold">${formatNumber(stats?.totalTransferred || 0)}</p>
+                <p className="text-sm font-bold">${formatWholeNumber(stats?.totalTransferred || 0)}</p>
               </div>
             </div>
           </CardContent>
