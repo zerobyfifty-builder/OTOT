@@ -65,6 +65,9 @@ export const InstitutionalDashboard = () => {
   const [organizationInfo, setOrganizationInfo] = useState<any>(null);
   const [countriesDateRange, setCountriesDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [tripsDateRange, setTripsDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [treeOrderDateRange, setTreeOrderDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [plantingDateRange, setPlantingDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [contribDateRange, setContribDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
 
   const { data: userProfile } = useQuery({
     queryKey: ["userProfile", user?.id],
@@ -431,7 +434,7 @@ export const InstitutionalDashboard = () => {
               <MiniStatCard label="Gross Contributions" value={`$${formatNumber(stats?.totalGross || 0)}`} icon={Receipt} color="text-foreground" />
               <MiniStatCard label="KTB Received" value={`$${formatNumber(stats?.totalReceived || 0)}`} icon={CheckCircle2} color="text-primary" />
               <MiniStatCard label="Retained (Mktg & Admin)" value={`$${formatNumber(stats?.totalRetained || 0)}`} icon={Building} color="text-violet-500" />
-              <MiniStatCard label="Tech Fee" value={`$${formatNumber(stats?.totalTechFee || 0)}`} icon={Activity} color="text-sky-500" />
+              
               <MiniStatCard label="Transferred to Plantation" value={`$${formatNumber(stats?.totalTransferred || 0)}`} icon={ArrowUpRight} color="text-emerald-500" />
               <MiniStatCard label="Pending Processing" value={`$${formatNumber((stats?.totalGross || 0) - (stats?.totalReceived || 0))}`} icon={Clock} color="text-amber-500" />
             </>
