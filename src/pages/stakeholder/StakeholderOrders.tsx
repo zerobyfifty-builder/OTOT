@@ -1070,6 +1070,14 @@ export const StakeholderOrders = () => {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {group.status_date ? (
+                              <div>
+                                <div>{format(new Date(group.status_date), "d MMM yyyy")}</div>
+                                <div className="text-[10px] text-muted-foreground/70">{format(new Date(group.status_date), "hh:mm a")}</div>
+                              </div>
+                            ) : '—'}
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
