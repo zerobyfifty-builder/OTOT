@@ -646,7 +646,7 @@ export const MyTrees = () => {
                                               : format(new Date(tree.created_at), "d/M/yyyy")}
                                           </TableCell>
                                           <TableCell>
-                                            <Badge className={SOURCE_COLORS[tree.purchase_type]}>
+                                            <Badge className={`${SOURCE_COLORS[tree.purchase_type]} whitespace-nowrap`}>
                                               {tree.purchase_type}
                                             </Badge>
                                           </TableCell>
