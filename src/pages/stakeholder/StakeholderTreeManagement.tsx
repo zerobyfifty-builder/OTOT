@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, TreePine, MapPin, Eye } from "lucide-react";
+import { Search, TreePine, MapPin, Eye, CheckCircle2, Circle, ZoomIn, Activity, TrendingUp } from "lucide-react";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Database } from "@/integrations/supabase/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Sheet,
   SheetContent,
