@@ -171,7 +171,6 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
       offset_horizon_years: parseInt(formData.offset_horizon_years) || 20,
       data_source: formData.data_source.trim(),
       source_year: parseInt(formData.source_year),
-      updated_at: new Date().toISOString(),
     };
 
     try {
@@ -384,7 +383,14 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                 <Badge variant="outline" className="text-xs">Editing</Badge>
               )}
             </div>
-          </SheetHeader>
+            {editingId && (() => {
+              const editRate = rates.find((r: any) => r.id === editingId);
+              return editRate?.updated_at ? (
+                <p className="text-xs text-muted-foreground mt-1">Last updated: {format(new Date(editRate.updated_at), 'dd MMM yyyy, HH:mm')}</p>
+              ) : editRate?.created_at ? (
+                <p className="text-xs text-muted-foreground mt-1">Created: {format(new Date(editRate.created_at), 'dd MMM yyyy, HH:mm')}</p>
+              ) : null;
+            })()}
 
           <Separator className="mb-6" />
 
