@@ -246,6 +246,29 @@ export function StakeholderTreeManagement() {
     enabled: allTreeIds.length > 0,
   });
 
+  // Fetch latest status transition date per tree
+  const { data: allStatusDates } = useQuery({
+    queryKey: ["treeManagementStatusDates", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, new_status, created_at")
+        .in("tree_id", allTreeIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // For each tree, find the transition matching its current planting_status
+      const map = new Map<string, string>();
+      (data || []).forEach((r: any) => {
+        // Store the latest transition per tree (first occurrence since ordered desc)
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, r.created_at);
+        }
+      });
+      return { latestMap: map, allTransitions: (data || []) as any[] };
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   // Fetch contribution info for info sheet tree
   const { data: infoSheetContrib } = useQuery({
     queryKey: ["treeInfoContrib", infoSheet?.id],
@@ -410,7 +433,7 @@ export function StakeholderTreeManagement() {
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Funding Status</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting Status</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting Date</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status Date</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Growth Stage</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Survival Status</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Last Checked</TableHead>
@@ -426,6 +449,16 @@ export function StakeholderTreeManagement() {
                     const survivalData = allSurvivalStatuses instanceof Map ? allSurvivalStatuses.get(tree.id) : undefined;
                     const growthData = allGrowthStages instanceof Map ? allGrowthStages.get(tree.id) : undefined;
                     const plantingStatus = tree.planting_status || 'waiting_to_be_assigned';
+
+                    // Find the date when the current status was set
+                    const getStatusDate = () => {
+                      if (!allStatusDates?.allTransitions) return null;
+                      const treeTransitions = allStatusDates.allTransitions
+                        .filter((t: any) => t.tree_id === tree.id && t.new_status === plantingStatus)
+                        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                      return treeTransitions[0]?.created_at || null;
+                    };
+                    const statusDate = getStatusDate();
 
                     return (
                       <TableRow key={tree.id}>
@@ -448,7 +481,7 @@ export function StakeholderTreeManagement() {
                             {STATUS_LABELS[plantingStatus] || plantingStatus}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs">{formatDate(tree.plant_date)}</TableCell>
+                        <TableCell className="text-xs">{formatDate(statusDate)}</TableCell>
                         <TableCell>
                           {growthData ? (
                             <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
