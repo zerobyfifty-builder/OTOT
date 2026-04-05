@@ -123,19 +123,23 @@ export const PlantingCostsTab: React.FC = () => {
   };
   const [formValues, setFormValues] = useState<Record<CostKey, string>>(emptyForm);
 
-  // Pre-fill form with returned submission values when sheet opens; reset for approved
+  // Pre-fill form with returned submission values when sheet opens,
+  // but only if the latest submission is actually "returned" (not approved/superseded)
+  const latestIsReturned = history?.length ? history[0].status === 'returned' : false;
+  const effectiveReturned = latestIsReturned ? returnedSubmission : null;
+
   useEffect(() => {
-    if (sheetOpen && returnedSubmission) {
+    if (sheetOpen && effectiveReturned) {
       const prefilled: Record<CostKey, string> = { ...emptyForm };
       COST_FIELDS.forEach(f => {
-        const val = Number(returnedSubmission[f.key] || 0);
+        const val = Number(effectiveReturned[f.key] || 0);
         prefilled[f.key] = val > 0 ? String(val) : '';
       });
       setFormValues(prefilled);
     } else if (sheetOpen) {
       setFormValues(emptyForm);
     }
-  }, [sheetOpen, returnedSubmission]);
+  }, [sheetOpen, effectiveReturned]);
 
   const totalKES = useMemo(() => {
     return COST_FIELDS.reduce((sum, f) => sum + (parseFloat(formValues[f.key]) || 0), 0);
