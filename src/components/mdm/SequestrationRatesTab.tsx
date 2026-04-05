@@ -391,6 +391,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                 <p className="text-xs text-muted-foreground mt-1">Created: {format(new Date(editRate.created_at), 'dd MMM yyyy, HH:mm')}</p>
               ) : null;
             })()}
+          </SheetHeader>
 
           <Separator className="mb-6" />
 
