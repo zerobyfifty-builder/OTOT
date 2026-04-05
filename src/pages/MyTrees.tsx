@@ -82,11 +82,13 @@ const SOURCE_COLORS: Record<PurchaseType, string> = {
 };
 
 const getGroupStatus = (trees: Tree[]): string => {
-  const statuses = trees.map(t => t.status);
-  if (statuses.every(s => s === "Planted")) return "Planted";
-  if (statuses.some(s => s === "Planted")) return "Partially Planted";
-  if (statuses.every(s => s === "Waiting to be Assigned")) return "Waiting to be Assigned";
-  return statuses[0] || "Unknown";
+  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
+  if (statuses.every(s => s === "planted")) return "Planted";
+  if (statuses.some(s => s === "planted")) return "Partially Planted";
+  if (statuses.every(s => s === "waiting_to_be_assigned")) return "Waiting to be Assigned";
+  // Show the most advanced status
+  const label = PLANTING_STATUS_LABELS[statuses[0]] || statuses[0];
+  return label;
 };
 
 const getGroupStatusColor = (status: string): string => {
