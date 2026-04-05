@@ -52,17 +52,43 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
   "Planted": "bg-accent/10 text-accent border-accent/20",
 };
 
+const PLANTING_STATUS_LABELS: Record<string, string> = {
+  waiting_to_be_assigned: "Waiting to be Assigned",
+  assigned: "Assigned",
+  site_prepared: "Site Prepared",
+  saplings_ready: "Saplings Ready",
+  planting_scheduled: "Planting Scheduled",
+  sapling_planted: "Sapling Planted",
+  being_mapped: "Being Mapped",
+  verified: "Verified",
+  planted: "Planted",
+};
+
+const PLANTING_STATUS_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  assigned: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  site_prepared: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  saplings_ready: "bg-lime-500/10 text-lime-700 border-lime-500/20",
+  planting_scheduled: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+  sapling_planted: "bg-green-500/10 text-green-700 border-green-500/20",
+  being_mapped: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  verified: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  planted: "bg-accent/10 text-accent border-accent/20",
+};
+
 const SOURCE_COLORS: Record<PurchaseType, string> = {
   "One-time": "bg-blue-500/10 text-blue-700 border-blue-500/20",
   "Subscription": "bg-green-500/10 text-green-700 border-green-500/20",
 };
 
 const getGroupStatus = (trees: Tree[]): string => {
-  const statuses = trees.map(t => t.status);
-  if (statuses.every(s => s === "Planted")) return "Planted";
-  if (statuses.some(s => s === "Planted")) return "Partially Planted";
-  if (statuses.every(s => s === "Waiting to be Assigned")) return "Waiting to be Assigned";
-  return statuses[0] || "Unknown";
+  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
+  if (statuses.every(s => s === "planted")) return "Planted";
+  if (statuses.some(s => s === "planted")) return "Partially Planted";
+  if (statuses.every(s => s === "waiting_to_be_assigned")) return "Waiting to be Assigned";
+  // Show the most advanced status
+  const label = PLANTING_STATUS_LABELS[statuses[0]] || statuses[0];
+  return label;
 };
 
 const getGroupStatusColor = (status: string): string => {
@@ -82,6 +108,7 @@ export const MyTrees = () => {
   const { toast } = useToast();
   const [trees, setTrees] = useState<Tree[]>([]);
   const [trips, setTrips] = useState<Record<string, Trip>>({});
+  const [transitionDates, setTransitionDates] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
@@ -119,20 +146,48 @@ export const MyTrees = () => {
       if (error) throw error;
       setTrees(data || []);
 
+      const treeIds = data?.map(t => t.id) || [];
       const tripIds = [...new Set(data?.map(t => t.trip_id).filter(Boolean) || [])];
-      if (tripIds.length > 0) {
-        const { data: tripsData } = await supabase
-          .from("trips")
-          .select("*")
-          .in("id", tripIds);
-        
-        if (tripsData) {
-          const tripsMap = tripsData.reduce((acc, trip) => {
-            acc[trip.id] = trip;
-            return acc;
-          }, {} as Record<string, Trip>);
-          setTrips(tripsMap);
+
+      // Fetch trips and latest transition dates in parallel
+      const [tripsResult, transitionsResult] = await Promise.all([
+        tripIds.length > 0
+          ? supabase.from("trips").select("*").in("id", tripIds)
+          : Promise.resolve({ data: null }),
+        treeIds.length > 0
+          ? supabase
+              .from("tree_status_transitions")
+              .select("tree_id, to_status, created_at")
+              .in("tree_id", treeIds)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: null }),
+      ]);
+
+      if (tripsResult.data) {
+        const tripsMap = tripsResult.data.reduce((acc, trip) => {
+          acc[trip.id] = trip;
+          return acc;
+        }, {} as Record<string, Trip>);
+        setTrips(tripsMap);
+      }
+
+      // Build map of tree_id -> latest transition date (for current planting_status)
+      if (transitionsResult.data) {
+        const dateMap: Record<string, string> = {};
+        for (const t of transitionsResult.data) {
+          // Find the tree's current planting_status
+          const tree = data?.find(tr => tr.id === t.tree_id);
+          if (tree && t.to_status === tree.planting_status && !dateMap[t.tree_id]) {
+            dateMap[t.tree_id] = t.created_at;
+          }
         }
+        // For trees without transitions, fall back to updated_at or created_at
+        for (const tree of data || []) {
+          if (!dateMap[tree.id]) {
+            dateMap[tree.id] = tree.updated_at || tree.created_at;
+          }
+        }
+        setTransitionDates(dateMap);
       }
     } catch (error) {
       console.error("Error fetching trees:", error);
@@ -554,8 +609,8 @@ export const MyTrees = () => {
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
-                                        <TableHead className="text-xs font-semibold text-primary/80">Status</TableHead>
-                                        <TableHead className="text-xs font-semibold text-primary/80">Date</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Planting Status</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Status Date</TableHead>
                                         <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
                                       </TableRow>
                                     </TableHeader>
@@ -581,12 +636,14 @@ export const MyTrees = () => {
                                           <TableCell className="text-left text-xs">Nakuru</TableCell>
                                           <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                           <TableCell>
-                                            <Badge className={STATUS_COLORS[tree.status]}>
-                                              {tree.status === "Planted" ? "gifted" : tree.status}
+                                            <Badge className={PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || "bg-muted text-muted-foreground"}>
+                                              {PLANTING_STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned'] || tree.planting_status || 'Unknown'}
                                             </Badge>
                                           </TableCell>
                                           <TableCell className="text-xs">
-                                            {format(new Date(tree.created_at), "d/M/yyyy")}
+                                            {transitionDates[tree.id]
+                                              ? format(new Date(transitionDates[tree.id]), "d/M/yyyy")
+                                              : format(new Date(tree.created_at), "d/M/yyyy")}
                                           </TableCell>
                                           <TableCell>
                                             <Badge className={SOURCE_COLORS[tree.purchase_type]}>
