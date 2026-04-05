@@ -575,9 +575,12 @@ export const InstitutionalDashboard = () => {
                 </CardTitle>
                 <CardDescription>Progress across planting stages</CardDescription>
               </div>
-              <Badge variant={plantingProgress >= 50 ? "default" : "secondary"} className="text-xs">
-                {plantingProgress}% planted
-              </Badge>
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={plantingDateRange} onDateRangeChange={setPlantingDateRange} />
+                <Badge variant={plantingProgress >= 50 ? "default" : "secondary"} className="text-xs">
+                  {plantingProgress}% planted
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -634,10 +637,15 @@ export const InstitutionalDashboard = () => {
         {/* Contribution Lifecycle */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle
-            </CardTitle>
-            <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle
+                </CardTitle>
+                <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
+              </div>
+              <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
+            </div>
           </CardHeader>
           <CardContent>
             {statsLoading ? <Skeleton className="h-48 w-full" /> : contribPieData.length > 0 ? (
