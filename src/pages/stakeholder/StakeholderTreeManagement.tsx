@@ -65,6 +65,15 @@ const PLANTING_STATUSES = [
   'planting_scheduled', 'sapling_planted', 'being_mapped', 'verified', 'planted',
 ] as const;
 
+const getPlantingStatusOrder = (status: string) => {
+  const order: Record<string, number> = {
+    waiting_to_be_assigned: 0, assigned: 1, site_prepared: 2, saplings_ready: 3,
+    planting_scheduled: 4, sapling_planted: 5, being_mapped: 6, verified: 7,
+    partially_planted: 8, planted: 9, dead: 10, re_planted: 11,
+  };
+  return order[status] ?? 0;
+};
+
 const SURVIVAL_COLORS: Record<string, string> = {
   'Alive': 'bg-green-500/10 text-green-700 border-green-500/20',
   'Dead': 'bg-red-500/10 text-red-700 border-red-500/20',
