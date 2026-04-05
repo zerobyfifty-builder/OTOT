@@ -8,6 +8,7 @@ import { CalendarIcon, Plane, MapPin, Users, Hotel, Calendar as CalIcon, Minus, 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCarbonCalculation } from "@/hooks/useCarbonCalculation";
 import { airports, calculateDistance } from "@/data/airports";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -111,6 +112,12 @@ export const CarbonCalculator = () => {
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [pendingAction, setPendingAction] = useState<'save' | 'plant' | null>(null);
   const [calculatorContext, setCalculatorContext] = useState<any>(null);
+  const [savedTripId, setSavedTripId] = useState<string | null>(null);
+
+  // Live carbon calculation with sequestration rates
+  const calcResult = useCarbonCalculation(
+    calculation ? { totalCO2_kg: calculation.totalCO2, tripId: savedTripId, userId: user?.id || null } : null
+  );
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

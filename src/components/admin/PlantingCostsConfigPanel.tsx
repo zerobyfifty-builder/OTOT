@@ -264,6 +264,53 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         </CardContent>
       </Card>
 
+      {/* Default Species for Carbon Calculation */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Default species for carbon calculation</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {!isApproved ? (
+            <Select value={selectedSpeciesId} onValueChange={setSelectedSpeciesId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select species" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Use OTOT default (22 kg/yr, mixed indigenous)</SelectItem>
+                {speciesRates.map((s: any) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.species_name} — {Number(s.rate_kg_per_year_default)} kg/tree/yr ({s.species_category})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {savedConfig?.default_species_id
+                ? speciesRates.find((s: any) => s.id === savedConfig.default_species_id)?.species_name || 'Custom species'
+                : 'OTOT default (22 kg/yr, mixed indigenous)'}
+            </p>
+          )}
+          {(() => {
+            const sel = selectedSpeciesId !== 'default'
+              ? speciesRates.find((s: any) => s.id === selectedSpeciesId)
+              : null;
+            const rate = sel ? Number(sel.rate_kg_per_year_default) : 22;
+            const survival = sel?.survival_rate_override != null ? Number(sel.survival_rate_override) : 0.85;
+            const horizon = sel ? Number(sel.offset_horizon_years) : 20;
+            const effective = rate * survival;
+            const sampleCO2 = 478;
+            const sampleTrees = Math.ceil(sampleCO2 / effective);
+            return (
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Effective rate: {effective.toFixed(1)} kg/tree/yr over {horizon} years</p>
+                <p>Sample: for {sampleCO2} kg CO₂ (LHR→NBO economy), trees needed = {sampleTrees}</p>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
       {/* Step 1: Contribution Amount */}
       <Card>
         <CardHeader className="pb-3">
