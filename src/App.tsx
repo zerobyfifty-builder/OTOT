@@ -109,6 +109,7 @@ import { StakeholderMdmPlanters } from "@/pages/stakeholder/StakeholderMdmPlante
 import WalletSettings from "@/pages/admin/WalletSettings";
 import { TreeOperations } from "@/pages/stakeholder/TreeOperations";
 import PlantingCostsConfig from "@/pages/admin/PlantingCostsConfig";
+import ContributionTierSettings from "@/pages/admin/ContributionTierSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -483,6 +484,13 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <PlantingCostsConfig />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/config/contribution-tiers" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <ContributionTierSettings />
                 </AdminLayout>
               </SuperAdminRoute>
             } />

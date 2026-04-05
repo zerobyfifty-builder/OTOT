@@ -247,10 +247,10 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         </CardContent>
       </Card>
 
-      {/* Step 1: Donation Amount */}
+      {/* Step 1: Contribution Amount */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Step 1 — Donation Amount</CardTitle>
+          <CardTitle className="text-base">Step 1 — Contribution Amount</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -369,25 +369,6 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Step 4: Contribution Tiers */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Step 4 — Contribution Tiers</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {tiers.map(t => (
-            <div key={t.name} className="flex items-center justify-between p-2.5 rounded-lg border text-sm">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{t.name}</span>
-                {t.badge === 'fixed' && <Badge variant="secondary" className="text-xs">fixed</Badge>}
-                {t.badge === 'recommended' && <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">recommended</Badge>}
-              </div>
-              <span className="font-bold">{formatUSD(t.price)}</span>
-            </div>
-          ))}
         </CardContent>
       </Card>
 
