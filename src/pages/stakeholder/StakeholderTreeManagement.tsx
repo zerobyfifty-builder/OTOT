@@ -481,7 +481,7 @@ export function StakeholderTreeManagement() {
                             {STATUS_LABELS[plantingStatus] || plantingStatus}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs">{formatDate(tree.plant_date)}</TableCell>
+                        <TableCell className="text-xs">{formatDate(statusDate)}</TableCell>
                         <TableCell>
                           {growthData ? (
                             <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
