@@ -32,8 +32,17 @@ export const TreePurchase = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const { treesNeeded = 1, totalCO2 = 0, tripData, tripId } = location.state || {};
-  const [treesPlanted, setTreesPlanted] = useState(0);
+  const { 
+    treesNeeded = 1, totalCO2 = 0, tripData, tripId,
+    donationUSDPerTree: routeDonation,
+    sliderMax: routeSliderMax,
+    treeCreditPct: routeTreeCreditPct,
+    treeDebtPct: routeTreeDebtPct,
+    treesPlantedPrior: routePlantedPrior,
+    treesCommittedPrior: routeCommittedPrior,
+    speciesLabel, rateUsed, speciesId, survivalRate, horizonYears, configId,
+  } = location.state || {};
+  const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
   
   // Default to "custom" (flexible) option
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("custom");
@@ -75,7 +84,7 @@ export const TreePurchase = () => {
     setSelectedOption(option);
   };
 
-  const PRICE_PER_TREE = 4.5;
+  const PRICE_PER_TREE = routeDonation || 4.5;
 
   useEffect(() => {
     fetchLodges();

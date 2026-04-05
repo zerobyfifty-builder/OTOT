@@ -69,6 +69,7 @@ const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideI
   mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout },
   mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf },
   mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users },
+  mdm_sequestration: { title: 'Sequestration Rates', url: '/stakeholder/mdm-sequestration', icon: BarChart3 },
 };
 
 interface StakeholderSidebarProps {
