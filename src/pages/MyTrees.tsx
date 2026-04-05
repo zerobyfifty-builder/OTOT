@@ -52,6 +52,30 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
   "Planted": "bg-accent/10 text-accent border-accent/20",
 };
 
+const PLANTING_STATUS_LABELS: Record<string, string> = {
+  waiting_to_be_assigned: "Waiting to be Assigned",
+  assigned: "Assigned",
+  site_prepared: "Site Prepared",
+  saplings_ready: "Saplings Ready",
+  planting_scheduled: "Planting Scheduled",
+  sapling_planted: "Sapling Planted",
+  being_mapped: "Being Mapped",
+  verified: "Verified",
+  planted: "Planted",
+};
+
+const PLANTING_STATUS_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  assigned: "bg-orange-500/10 text-orange-700 border-orange-500/20",
+  site_prepared: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  saplings_ready: "bg-lime-500/10 text-lime-700 border-lime-500/20",
+  planting_scheduled: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+  sapling_planted: "bg-green-500/10 text-green-700 border-green-500/20",
+  being_mapped: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  verified: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  planted: "bg-accent/10 text-accent border-accent/20",
+};
+
 const SOURCE_COLORS: Record<PurchaseType, string> = {
   "One-time": "bg-blue-500/10 text-blue-700 border-blue-500/20",
   "Subscription": "bg-green-500/10 text-green-700 border-green-500/20",
