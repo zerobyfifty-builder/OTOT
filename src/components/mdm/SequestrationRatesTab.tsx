@@ -417,7 +417,16 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                       <CommandList>
                         <CommandEmpty>No species found in catalogue.</CommandEmpty>
                         <CommandGroup>
-                          {speciesCatalogue.map((sp: any) => {
+                          {speciesCatalogue.filter((sp: any) => {
+                            const spName = (sp.common_name || sp.species_name || '').toLowerCase();
+                            // In edit mode, allow the currently-edited species
+                            if (editingId) {
+                              const editingRate = rates.find((r: any) => r.id === editingId);
+                              if (editingRate && editingRate.species_name.toLowerCase() === spName) return true;
+                            }
+                            // Exclude species already in the rates table
+                            return !rates.some((r: any) => r.species_name.toLowerCase() === spName);
+                          }).map((sp: any) => {
                             const displayName = sp.common_name || sp.species_name;
                             const label = sp.scientific_name
                               ? `${displayName} (${sp.scientific_name})`
