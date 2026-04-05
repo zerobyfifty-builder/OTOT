@@ -316,6 +316,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                   <TableHead className="text-right">Effective Rate</TableHead>
                   <TableHead className="text-right">Horizon</TableHead>
                   <TableHead>Source</TableHead>
+                  <TableHead>Last Updated</TableHead>
                   {!readOnly && <TableHead className="text-center">Active</TableHead>}
                   {!readOnly && <TableHead className="text-center">Actions</TableHead>}
                 </TableRow>
