@@ -106,6 +106,7 @@ export const MyTrees = () => {
   const { toast } = useToast();
   const [trees, setTrees] = useState<Tree[]>([]);
   const [trips, setTrips] = useState<Record<string, Trip>>({});
+  const [transitionDates, setTransitionDates] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
