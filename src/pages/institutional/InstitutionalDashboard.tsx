@@ -156,11 +156,22 @@ export const InstitutionalDashboard = () => {
       const totalTechFee = contributions.reduce((s, c) => s + (Number(c.tech_fee_received) || 0), 0);
       const totalMktgFee = contributions.reduce((s, c) => s + (Number(c.mktng_fee_allocated) || 0), 0);
 
-      // Contribution status breakdown (by $ value)
+      // Contribution status breakdown (by relevant $ column per status)
       const contribStatusBreakdown: Record<string, number> = {};
       contributions.forEach(c => {
         const s = c.status || 'contribution_confirmed';
-        contribStatusBreakdown[s] = (contribStatusBreakdown[s] || 0) + (Number(c.amount_paid) || 0);
+        let value = 0;
+        if (s === 'contribution_confirmed') {
+          // To be Received = amount_paid - tech_fee
+          value = (Number(c.amount_paid) || 0) - (Number(c.tech_fee_received) || 0);
+        } else if (s === 'funds_received') {
+          value = Number(c.amount_received) || 0;
+        } else if (s === 'transferred_for_planting') {
+          value = Number(c.amount_transferred) || 0;
+        } else if (s === 'received_for_planting') {
+          value = Number(c.amount_transferred) || 0;
+        }
+        contribStatusBreakdown[s] = (contribStatusBreakdown[s] || 0) + value;
       });
 
       // Community
@@ -625,11 +636,11 @@ export const InstitutionalDashboard = () => {
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Un Assigned</p>
-                <p className="text-sm font-bold">{formatNumber(stats?.unallocated || 0)}</p>
+                <p className="text-sm font-bold">{formatNumber(stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0)}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planting</p>
-                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.unallocated || 0) - (stats?.plantedVerified || 0))}</p>
+                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0) - (stats?.plantedVerified || 0))}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planted</p>
