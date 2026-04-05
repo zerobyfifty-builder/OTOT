@@ -214,18 +214,21 @@ export const PlantingCostsKTBTab: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between text-sm">
-                    <span>Tech partner share (% of total donation)</span>
+                    <span>Tech: Platform Dev & Maint Fee (% of total contribution)</span>
                     <span className="font-bold">{techPct}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Balance after tech = {100 - techPct}%</p>
                   <div className="flex justify-between text-sm">
-                    <span>KTB share (% of balance)</span>
+                    <span>KTB: Marketing, Admin & Oversight Fee (% of balance)</span>
                     <span className="font-bold">{ktbPct}%</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">MoE gets {moePct}% of balance</p>
+                  <div className="flex justify-between text-sm">
+                    <span>MoE: Planting, Growing & Admin Fee (% remaining)</span>
+                    <span className="font-bold">{moePct}%</span>
+                  </div>
 
                   <div className="space-y-2 pt-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Revenue — {formatUSD(activeDonation)}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Revenue Split %</p>
                     <div className="flex h-8 rounded-lg overflow-hidden">
                       <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${techOfTotal}%`, backgroundColor: 'hsl(270 60% 55%)' }}>{techOfTotal.toFixed(0)}%</div>
                       <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${ktbOfTotal}%`, backgroundColor: 'hsl(210 70% 50%)' }}>{ktbOfTotal.toFixed(0)}%</div>
