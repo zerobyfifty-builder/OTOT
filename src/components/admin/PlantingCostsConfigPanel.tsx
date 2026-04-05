@@ -278,25 +278,33 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         <CardContent className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>Tech: Platform Dev & Maint Fee (% of total contribution)</span>
+              <div>
+                <span>Tech: Platform Dev & Maint Fee</span>
+                <p className="text-xs text-muted-foreground">% of total contribution</p>
+              </div>
               <span className="font-bold">{activeTechPct}%</span>
             </div>
             {!isApproved && <Slider value={[techPct]} onValueChange={([v]) => setTechPct(v)} min={5} max={40} step={1} />}
-            <p className="text-xs text-muted-foreground mt-1">Balance after tech = {100 - activeTechPct}%</p>
           </div>
+          <p className="text-xs font-medium text-muted-foreground pt-1">Balance after tech = {100 - activeTechPct}%</p>
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>KTB: Marketing, Admin & Oversight Fee (% of balance)</span>
+              <div>
+                <span>KTB: Marketing, Admin & Oversight Fee</span>
+                <p className="text-xs text-muted-foreground">% of balance</p>
+              </div>
               <span className="font-bold">{activeKtbPct}%</span>
             </div>
             {!isApproved && <Slider value={[ktbPct]} onValueChange={([v]) => setKtbPct(v)} min={10} max={60} step={1} />}
           </div>
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>MoE: Planting, Growing & Admin Fee (% remaining)</span>
+              <div>
+                <span>MoE: Planting, Growing & Admin Fee</span>
+                <p className="text-xs text-muted-foreground">% remaining</p>
+              </div>
               <span className="font-bold">{moePct}%</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Auto-calculated: {100 - activeTechPct}% balance × {moePct}% = {moeOfTotal.toFixed(1)}% of total</p>
           </div>
 
           <div className="space-y-2 pt-2">
