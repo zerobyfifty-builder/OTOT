@@ -450,6 +450,16 @@ export function StakeholderTreeManagement() {
                     const growthData = allGrowthStages instanceof Map ? allGrowthStages.get(tree.id) : undefined;
                     const plantingStatus = tree.planting_status || 'waiting_to_be_assigned';
 
+                    // Find the date when the current status was set
+                    const getStatusDate = () => {
+                      if (!allStatusDates?.allTransitions) return null;
+                      const treeTransitions = allStatusDates.allTransitions
+                        .filter((t: any) => t.tree_id === tree.id && t.new_status === plantingStatus)
+                        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                      return treeTransitions[0]?.created_at || null;
+                    };
+                    const statusDate = getStatusDate();
+
                     return (
                       <TableRow key={tree.id}>
                         <TableCell className="font-mono text-xs font-medium">{tree.otot_id}</TableCell>
