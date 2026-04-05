@@ -278,7 +278,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         <CardContent className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>Tech partner share (% of total donation)</span>
+              <span>Tech: Platform Dev & Maint Fee (% of total contribution)</span>
               <span className="font-bold">{activeTechPct}%</span>
             </div>
             {!isApproved && <Slider value={[techPct]} onValueChange={([v]) => setTechPct(v)} min={5} max={40} step={1} />}
@@ -286,15 +286,21 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
           </div>
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>KTB share (% of balance)</span>
+              <span>KTB: Marketing, Admin & Oversight Fee (% of balance)</span>
               <span className="font-bold">{activeKtbPct}%</span>
             </div>
             {!isApproved && <Slider value={[ktbPct]} onValueChange={([v]) => setKtbPct(v)} min={10} max={60} step={1} />}
-            <p className="text-xs text-muted-foreground mt-1">MoE gets {moePct}% of balance</p>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span>MoE: Planting, Growing & Admin Fee (% remaining)</span>
+              <span className="font-bold">{moePct}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Auto-calculated: {100 - activeTechPct}% balance × {moePct}% = {moeOfTotal.toFixed(1)}% of total</p>
           </div>
 
           <div className="space-y-2 pt-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Revenue — {formatUSD(activeDonation)}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Total Revenue Split %</p>
             <div className="flex h-8 rounded-lg overflow-hidden">
               <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${techOfTotal}%`, backgroundColor: 'hsl(270 60% 55%)' }}>{techOfTotal.toFixed(0)}%</div>
               <div className="flex items-center justify-center text-xs font-medium text-white" style={{ width: `${ktbOfTotal}%`, backgroundColor: 'hsl(210 70% 50%)' }}>{ktbOfTotal.toFixed(0)}%</div>
