@@ -540,7 +540,10 @@ export const InstitutionalDashboard = () => {
                 <CardTitle className="text-base">Tree Order Trend</CardTitle>
                 <CardDescription>Monthly tree purchases and revenue</CardDescription>
               </div>
-              <ChartDateRangePicker dateRange={treeOrderDateRange} onDateRangeChange={setTreeOrderDateRange} />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={treeOrderDateRange} onDateRangeChange={setTreeOrderDateRange} />
+                <ChartExportButton title="Tree Order Trend" columns={[{ key: "month", label: "Month" }, { key: "trees", label: "Trees" }, { key: "revenue", label: "Revenue ($)" }]} data={filteredMonthlyOrders || []} iconOnly />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -577,14 +580,19 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="flex items-center gap-2">
                 <ChartDateRangePicker dateRange={plantingDateRange} onDateRangeChange={setPlantingDateRange} />
+                <ChartExportButton title="Planting Pipeline" columns={[{ key: "name", label: "Stage" }, { key: "value", label: "Trees" }]} data={plantingPieData} iconOnly />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Progress value={plantingProgress} className="h-2.5" />
+              <div className="flex justify-end mt-1">
                 <Badge variant={plantingProgress >= 50 ? "default" : "secondary"} className="text-xs">
                   {plantingProgress}% planted
                 </Badge>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <Progress value={plantingProgress} className="h-2.5 mb-4" />
             {statsLoading ? <Skeleton className="h-48 w-full" /> : plantingPieData.length > 0 ? (
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="50%" height={180}>
@@ -594,7 +602,7 @@ export const InstitutionalDashboard = () => {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => formatNumber(v)} />
+                    <Tooltip formatter={(v: number) => formatNumber(Math.round(v))} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-1.5">
@@ -604,7 +612,7 @@ export const InstitutionalDashboard = () => {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-muted-foreground">{entry.name}</span>
                       </div>
-                      <span className="font-medium tabular-nums">{formatNumber(entry.value)}</span>
+                      <span className="font-medium tabular-nums">{formatNumber(Math.round(entry.value))}</span>
                     </div>
                   ))}
                 </div>
@@ -616,16 +624,16 @@ export const InstitutionalDashboard = () => {
             )}
             <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Allocated</p>
-                <p className="text-sm font-bold">{formatNumber(stats?.allocated || 0)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">Unallocated</p>
+                <p className="text-xs text-muted-foreground">Un Assigned</p>
                 <p className="text-sm font-bold">{formatNumber(stats?.unallocated || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Survival Rate</p>
-                <p className="text-sm font-bold text-primary">{(stats?.avgSurvival || 0).toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Assigned</p>
+                <p className="text-sm font-bold">{formatNumber(stats?.allocated || 0)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground">Planted</p>
+                <p className="text-sm font-bold text-primary">{formatNumber(stats?.plantedVerified || 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -644,7 +652,10 @@ export const InstitutionalDashboard = () => {
                 </CardTitle>
                 <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
               </div>
-              <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
+                <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -657,7 +668,7 @@ export const InstitutionalDashboard = () => {
                         <Cell key={i} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(v: number) => `$${formatNumber(v)}`} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2">
@@ -667,7 +678,7 @@ export const InstitutionalDashboard = () => {
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
                         <span className="text-muted-foreground">{entry.name}</span>
                       </div>
-                      <span className="font-semibold tabular-nums">{entry.value}</span>
+                      <span className="font-semibold tabular-nums">${formatNumber(entry.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -679,11 +690,11 @@ export const InstitutionalDashboard = () => {
             )}
             <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t">
               <div className="p-2.5 rounded-lg bg-violet-50 dark:bg-violet-500/10">
-                <p className="text-[10px] text-muted-foreground uppercase">Mktg Fee Allocated</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Total Mktg Fee</p>
                 <p className="text-sm font-bold">${formatNumber(stats?.totalMktgFee || 0)}</p>
               </div>
               <div className="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-500/10">
-                <p className="text-[10px] text-muted-foreground uppercase">Tech Fee Collected</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
                 <p className="text-sm font-bold">${formatNumber(stats?.totalTechFee || 0)}</p>
               </div>
             </div>
