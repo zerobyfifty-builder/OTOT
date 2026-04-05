@@ -368,13 +368,25 @@ export const CarbonCalculator = () => {
 
       if (tripError) throw tripError;
 
-      // Navigate to tree purchase with trip_id
+      // Navigate to tree purchase with trip_id and carbon calc data
       navigate("/tree-purchase", {
         state: {
-          treesNeeded: calculation.treesNeeded,
+          treesNeeded: calcResult?.treesNeeded ?? calculation.treesNeeded,
           totalCO2: calculation.totalCO2,
           tripData: data,
           tripId: tripData?.id,
+          donationUSDPerTree: calcResult?.donationUSDPerTree ?? 4.5,
+          speciesLabel: calcResult?.speciesLabel ?? 'Mixed indigenous species',
+          rateUsed: calcResult?.rateUsed ?? 22,
+          sliderMax: calcResult?.sliderMax ?? calculation.treesNeeded,
+          treeCreditPct: calcResult?.treeCreditPct ?? 0,
+          treeDebtPct: calcResult?.treeDebtPct ?? 100,
+          treesPlantedPrior: calcResult?.treesPlantedPrior ?? 0,
+          treesCommittedPrior: calcResult?.treesCommittedPrior ?? 0,
+          speciesId: calcResult?.speciesId ?? null,
+          survivalRate: calcResult?.survivalRate ?? 0.85,
+          horizonYears: calcResult?.horizonYears ?? 20,
+          configId: calcResult?.configId ?? null,
         },
       });
     } catch (error) {
@@ -850,10 +862,21 @@ export const CarbonCalculator = () => {
 
               <div className="p-6 bg-accent text-accent-foreground rounded-lg text-center">
                 <p className="text-lg font-semibold">
-                  You'll need <span className="text-3xl font-bold">{calculation.treesNeeded}</span> trees
+                  You'll need <span className="text-3xl font-bold">{calcResult?.treesNeeded ?? calculation.treesNeeded}</span> trees
                 </p>
                 <p className="text-sm mt-1">to remove this trip's CO2 emissions</p>
+                {calcResult && (
+                  <p className="text-xs mt-2 text-muted-foreground">
+                    Rate: {calcResult.speciesLabel} · {calcResult.rateUsed} kg CO₂/tree/yr · {calcResult.horizonYears}-year offset
+                  </p>
+                )}
               </div>
+
+              {calcResult?.configWarning && (
+                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                  ⚠️ {calcResult.configWarning}
+                </div>
+              )}
             </div>
 
             <div className="flex gap-4 mt-6">
