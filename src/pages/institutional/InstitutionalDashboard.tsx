@@ -426,9 +426,9 @@ export const InstitutionalDashboard = () => {
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Wallet className="h-5 w-5 text-violet-500" /> Financial Overview
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {statsLoading ? (
-            [...Array(6)].map((_, i) => <Skeleton key={i} className="h-20" />)
+            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-20" />)
           ) : (
             <>
               <MiniStatCard label="Gross Contributions" value={`$${formatNumber(stats?.totalGross || 0)}`} icon={Receipt} color="text-foreground" />
