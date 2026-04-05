@@ -319,7 +319,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
         <CardContent className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span>Tourist donates (USD per tree)</span>
+              <span>Tourist contributes (USD per tree)</span>
               <span className="font-bold">{formatUSD(activeDonation)}</span>
             </div>
             {!isApproved && <Slider value={[donation]} onValueChange={([v]) => setDonation(v)} min={1} max={50} step={0.5} />}
@@ -438,7 +438,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
                   <p className="font-medium text-amber-800 text-sm">
-                    MoE shortfall of {formatUSD(Math.abs(surplus))}. Raise donation to at least{' '}
+                    MoE shortfall of {formatUSD(Math.abs(surplus))}. Raise contribution to at least{' '}
                     <button className="underline font-bold text-amber-900 hover:text-amber-700" onClick={() => setDonation(Math.min(minDonationRounded, 50))}>
                       {formatUSD(minDonationRounded)}
                     </button>{' '}or adjust the split.

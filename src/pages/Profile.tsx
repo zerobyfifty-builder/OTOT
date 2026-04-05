@@ -513,7 +513,7 @@ export const Profile: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm text-muted-foreground">Total Donations</Label>
+                        <Label className="text-sm text-muted-foreground">Total Contributions</Label>
                         <p className="font-medium flex items-center">
                           <DollarSign className="h-4 w-4 mr-1" />
                           {profile.total_donation}

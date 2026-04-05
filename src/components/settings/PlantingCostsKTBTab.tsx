@@ -195,7 +195,7 @@ export const PlantingCostsKTBTab: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span>Tourist donates (USD per tree)</span>
+                    <span>Tourist contributes (USD per tree)</span>
                     <span className="font-bold">{formatUSD(activeDonation)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
