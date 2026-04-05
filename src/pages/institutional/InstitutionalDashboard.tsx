@@ -535,11 +535,16 @@ export const InstitutionalDashboard = () => {
         {/* Monthly Tree Orders Trend */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tree Order Trend</CardTitle>
-            <CardDescription>Monthly tree purchases and revenue</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Tree Order Trend</CardTitle>
+                <CardDescription>Monthly tree purchases and revenue</CardDescription>
+              </div>
+              <ChartDateRangePicker dateRange={treeOrderDateRange} onDateRangeChange={setTreeOrderDateRange} />
+            </div>
           </CardHeader>
           <CardContent>
-            {statsLoading ? <Skeleton className="h-64 w-full" /> : (stats?.monthlyOrders?.length || 0) > 0 ? (
+            {statsLoading ? <Skeleton className="h-64 w-full" /> : (filteredMonthlyOrders?.length || 0) > 0 ? (
               <ChartContainer config={chartConfig} className="h-64 w-full">
                 <ComposedChart data={stats!.monthlyOrders} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
