@@ -581,6 +581,13 @@ export const StakeholderOrders = () => {
     return Object.entries(grouped).map(([contribId, rows]) => {
       const first = rows[0];
       const groupTrees = treesByContribution[contribId] || [];
+      // Get the most recent status date from transition dates
+      const treeDates = groupTrees
+        .map(t => allTransitionDates?.[t.id])
+        .filter(Boolean) as string[];
+      const latestStatusDate = treeDates.length > 0
+        ? treeDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
+        : null;
       return {
         contribution_id: contribId,
         contribution_type: first.contribution_type,
@@ -598,9 +605,10 @@ export const StakeholderOrders = () => {
         trip: first.trip_id ? (trips[first.trip_id] || null) : null,
         planting_status: getGroupPlantingStatus(groupTrees),
         payment_status: first.status,
+        status_date: latestStatusDate,
       };
     });
-  }, [contributions, treesByContribution, trips]);
+  }, [contributions, treesByContribution, trips, allTransitionDates]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
