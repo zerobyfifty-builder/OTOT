@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Plus, Pencil, Leaf, Download } from 'lucide-react';
+import { Search, Plus, Pencil, Leaf, Download, ChevronsUpDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['indigenous', 'exotic', 'fruit', 'bamboo'] as const;
 const CATEGORY_LABELS: Record<string, string> = {
