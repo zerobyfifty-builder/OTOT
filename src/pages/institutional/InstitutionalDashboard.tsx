@@ -546,7 +546,7 @@ export const InstitutionalDashboard = () => {
           <CardContent>
             {statsLoading ? <Skeleton className="h-64 w-full" /> : (filteredMonthlyOrders?.length || 0) > 0 ? (
               <ChartContainer config={chartConfig} className="h-64 w-full">
-                <ComposedChart data={stats!.monthlyOrders} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                <ComposedChart data={filteredMonthlyOrders} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                   <YAxis yAxisId="left" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
