@@ -123,7 +123,7 @@ export const PlantingCostsTab: React.FC = () => {
   };
   const [formValues, setFormValues] = useState<Record<CostKey, string>>(emptyForm);
 
-  // Pre-fill form with returned submission values when sheet opens
+  // Pre-fill form with returned submission values when sheet opens; reset for approved
   useEffect(() => {
     if (sheetOpen && returnedSubmission) {
       const prefilled: Record<CostKey, string> = { ...emptyForm };
@@ -132,7 +132,7 @@ export const PlantingCostsTab: React.FC = () => {
         prefilled[f.key] = val > 0 ? String(val) : '';
       });
       setFormValues(prefilled);
-    } else if (sheetOpen && !returnedSubmission) {
+    } else if (sheetOpen) {
       setFormValues(emptyForm);
     }
   }, [sheetOpen, returnedSubmission]);
@@ -228,6 +228,8 @@ export const PlantingCostsTab: React.FC = () => {
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">
                   {new Date(sub.submitted_at || sub.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  {' · '}
+                  {new Date(sub.submitted_at || sub.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                 </span>
                 {statusBadge(sub.status)}
               </div>
@@ -271,6 +273,13 @@ export const PlantingCostsTab: React.FC = () => {
                       <p className="text-red-700 text-sm mt-1">{selectedSubmission.admin_comment}</p>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Superseded notice */}
+              {selectedSubmission.status === 'superseded' && (
+                <div className="p-3 rounded-lg bg-muted/50 border border-muted-foreground/20">
+                  <p className="text-sm text-muted-foreground">This cost has been superseded by an updated submission.</p>
                 </div>
               )}
 
