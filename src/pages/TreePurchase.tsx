@@ -756,29 +756,38 @@ export const TreePurchase = () => {
               </Card>
             </div>
 
-            {/* Why $30 Info - moved below option boxes */}
-            <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-5 w-5 text-primary cursor-help mt-0.5" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p className="font-semibold mb-2">Why $30 per tree?</p>
-                  <ul className="text-sm space-y-1">
-                    <li>• Seedling and planting: $10</li>
-                    <li>• Land preparation: $5</li>
-                    <li>• Maintenance (5 years): $10</li>
-                    <li>• Monitoring and reporting: $5</li>
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Why $30 per tree?</p>
-                <p className="text-sm text-muted-foreground">
-                  Your contribution covers planting, maintenance, and monitoring for 5 years. Hover over the icon for details.
-                </p>
-              </div>
-            </div>
+            {/* Why per-tree price Info - moved below option boxes */}
+            {(() => {
+              const total = PRICE_PER_TREE;
+              const seedling = +(total * 0.333).toFixed(2);
+              const landPrep = +(total * 0.167).toFixed(2);
+              const maintenance = +(total * 0.333).toFixed(2);
+              const monitoring = +(total - seedling - landPrep - maintenance).toFixed(2);
+              return (
+                <div className="flex items-start gap-2 p-4 bg-muted/50 rounded-lg">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-primary cursor-help mt-0.5" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm">
+                      <p className="font-semibold mb-2">Why ${total.toFixed(2)} per tree?</p>
+                      <ul className="text-sm space-y-1">
+                        <li>• Seedling and planting: ${seedling.toFixed(2)}</li>
+                        <li>• Land preparation: ${landPrep.toFixed(2)}</li>
+                        <li>• Maintenance (5 years): ${maintenance.toFixed(2)}</li>
+                        <li>• Monitoring and reporting: ${monitoring.toFixed(2)}</li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">Why ${total.toFixed(2)} per tree?</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your contribution covers planting, maintenance, and monitoring for 5 years. Hover over the icon for details.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Additional Options - Three Card Grid */}
