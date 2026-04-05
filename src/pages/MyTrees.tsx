@@ -607,8 +607,8 @@ export const MyTrees = () => {
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
                                         <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
-                                        <TableHead className="text-xs font-semibold text-primary/80">Status</TableHead>
-                                        <TableHead className="text-xs font-semibold text-primary/80">Date</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Planting Status</TableHead>
+                                        <TableHead className="text-xs font-semibold text-primary/80">Status Date</TableHead>
                                         <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
                                       </TableRow>
                                     </TableHeader>
