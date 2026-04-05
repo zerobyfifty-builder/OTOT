@@ -123,19 +123,23 @@ export const PlantingCostsTab: React.FC = () => {
   };
   const [formValues, setFormValues] = useState<Record<CostKey, string>>(emptyForm);
 
-  // Pre-fill form with returned submission values when sheet opens; reset for approved
+  // Pre-fill form with returned submission values when sheet opens,
+  // but only if the latest submission is actually "returned" (not approved/superseded)
+  const latestIsReturned = history?.length ? history[0].status === 'returned' : false;
+  const effectiveReturned = latestIsReturned ? returnedSubmission : null;
+
   useEffect(() => {
-    if (sheetOpen && returnedSubmission) {
+    if (sheetOpen && effectiveReturned) {
       const prefilled: Record<CostKey, string> = { ...emptyForm };
       COST_FIELDS.forEach(f => {
-        const val = Number(returnedSubmission[f.key] || 0);
+        const val = Number(effectiveReturned[f.key] || 0);
         prefilled[f.key] = val > 0 ? String(val) : '';
       });
       setFormValues(prefilled);
     } else if (sheetOpen) {
       setFormValues(emptyForm);
     }
-  }, [sheetOpen, returnedSubmission]);
+  }, [sheetOpen, effectiveReturned]);
 
   const totalKES = useMemo(() => {
     return COST_FIELDS.reduce((sum, f) => sum + (parseFloat(formValues[f.key]) || 0), 0);
@@ -303,13 +307,13 @@ export const PlantingCostsTab: React.FC = () => {
           </SheetHeader>
 
           <div className="space-y-5 mt-6">
-            {returnedSubmission && returnedSubmission.admin_comment && (
+            {effectiveReturned && effectiveReturned.admin_comment && (
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium text-amber-800 text-sm">Admin returned your last submission:</p>
-                    <p className="text-amber-700 text-sm mt-1">{returnedSubmission.admin_comment}</p>
+                    <p className="text-amber-700 text-sm mt-1">{effectiveReturned.admin_comment}</p>
                     <p className="text-amber-600 text-xs mt-2">Please revise and resubmit.</p>
                   </div>
                 </div>
