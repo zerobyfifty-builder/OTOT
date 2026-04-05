@@ -947,10 +947,11 @@ export const StakeholderOrders = () => {
                     <SortableHead field="payment_date" label="Date" />
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
-                    <SortableHead field="amount_transferred" label="Allocated for Planting" />
+                    <SortableHead field="amount_transferred" label="Planting Amnt" />
                     <SortableHead field="payment_status" label="Payment Status" />
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Planting By</TableHead>
                     <SortableHead field="planting_status" label="Planting Status" />
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status Dt</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-16">Action</TableHead>
                   </TableRow>
                 </TableHeader>
