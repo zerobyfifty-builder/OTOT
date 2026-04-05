@@ -185,7 +185,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
               {submission?.status === 'superseded'
                 ? 'This Planting Costs has been superseded by an updated submission.'
                 : submission?.status === 'returned'
-                ? 'This Planting Costs has been returned to the stakeholder for revision.'
+                ? 'This Planting Costs has been returned for revision.'
                 : `This Planting Costs is approved on ${submission?.reviewed_at ? new Date(submission.reviewed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : new Date(submission?.submitted_at || submission?.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.`}
            </p>
            {submission?.status === 'approved' && (
