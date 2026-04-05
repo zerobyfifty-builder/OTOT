@@ -640,7 +640,7 @@ export const InstitutionalDashboard = () => {
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planting</p>
-                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.unallocated || 0) - (stats?.plantedVerified || 0))}</p>
+                <p className="text-sm font-bold">{formatNumber((stats?.totalTreesOrdered || 0) - (stats?.plantingBreakdown?.['waiting_to_be_assigned'] || 0) - (stats?.plantedVerified || 0))}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Planted</p>
