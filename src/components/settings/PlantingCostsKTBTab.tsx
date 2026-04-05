@@ -257,10 +257,10 @@ export const PlantingCostsKTBTab: React.FC = () => {
             {savedConfig && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Step 3 — Live Money Flows</CardTitle>
+                  <CardTitle className="text-base">Step 3 — Live Fund Flows</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">At this donation and split</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">At this contribution & split</p>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-3 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(270 60% 55%)', backgroundColor: 'hsl(270 60% 97%)' }}>
                       <p className="text-xs font-medium" style={{ color: 'hsl(270 60% 45%)' }}>Tech partner</p>
@@ -280,16 +280,16 @@ export const PlantingCostsKTBTab: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(150 40% 70%)', backgroundColor: 'hsl(150 30% 95%)' }}>
+                    <div className="p-4 rounded-lg text-center bg-muted/50">
                       <p className="text-xs font-medium text-muted-foreground">MoE receives</p>
                       <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeUSD)}</p>
                       <p className="text-xs" style={{ color: 'hsl(150 40% 40%)' }}>KES {formatKES(moeUSD * fxRate)}</p>
                     </div>
-                    <div className="p-4 rounded-lg border-2 text-center" style={{ borderColor: 'hsl(150 40% 70%)', backgroundColor: 'hsl(150 30% 95%)' }}>
+                    <div className="p-4 rounded-lg text-center bg-muted/50">
                       <p className="text-xs font-medium text-muted-foreground">MoE needs</p>
                       <p className="font-bold text-lg" style={{ color: 'hsl(150 60% 20%)' }}>{formatUSD(moeNeedUSD)}</p>
                       <p className="text-xs" style={{ color: isViable ? 'hsl(150 60% 35%)' : 'hsl(30 80% 45%)' }}>
-                        {isViable ? `+${formatUSD(surplus)} surplus to MoE` : `KES ${formatKES(totalKES)}`}
+                        {isViable ? `+${formatUSD(surplus)} surplus` : `KES ${formatKES(totalKES)}`}
                       </p>
                     </div>
                   </div>
@@ -299,7 +299,7 @@ export const PlantingCostsKTBTab: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                         <p className="font-medium text-emerald-800 text-sm">
-                          MoE receives {formatUSD(moeUSD)} — covers the KES {formatKES(totalKES)} ({formatUSD(moeNeedUSD)}) cost. Surplus {formatUSD(surplus)} strengthens MoE reserve.
+                          MoE receives {formatUSD(moeUSD)}, covering the cost KES {formatKES(totalKES)} ({formatUSD(moeNeedUSD)}). Surplus {formatUSD(surplus)} added to MoE reserve.
                         </p>
                       </div>
                     </div>
