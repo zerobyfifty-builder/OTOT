@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Plus, Pencil, Leaf, Download } from 'lucide-react';
+import { Search, Plus, Pencil, Leaf, Download, ChevronsUpDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['indigenous', 'exotic', 'fruit', 'bamboo'] as const;
 const CATEGORY_LABELS: Record<string, string> = {
@@ -69,6 +72,25 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyForm);
+  const [speciesPopoverOpen, setSpeciesPopoverOpen] = useState(false);
+
+  // Fetch seed_species catalogue for the searchable dropdown
+  const { data: speciesCatalogue = [] } = useQuery({
+    queryKey: ['seed_species_catalogue'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('seed_species')
+        .select('id, species_name, common_name, scientific_name, category')
+        .eq('is_active', true)
+        .order('common_name', { ascending: true });
+      if (error) throw error;
+      return (data || []).sort((a: any, b: any) => {
+        const nameA = (a.common_name || a.species_name || '').toLowerCase();
+        const nameB = (b.common_name || b.species_name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    },
+  });
 
   const { data: rates = [], isLoading } = useQuery({
     queryKey: ['sequestration_rates'],
@@ -300,11 +322,60 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Species Name *</Label>
-              <Input value={formData.species_name} onChange={e => setFormData(f => ({ ...f, species_name: e.target.value }))} />
+              <Popover open={speciesPopoverOpen} onOpenChange={setSpeciesPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={speciesPopoverOpen}
+                    className="w-full justify-between font-normal"
+                    disabled={!!editingId}
+                  >
+                    {formData.species_name || 'Search species...'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search species..." />
+                    <CommandList>
+                      <CommandEmpty>No species found.</CommandEmpty>
+                      <CommandGroup>
+                        {speciesCatalogue.map((sp: any) => {
+                          const displayName = sp.common_name || sp.species_name;
+                          const label = sp.scientific_name
+                            ? `${displayName} (${sp.scientific_name})`
+                            : displayName;
+                          return (
+                            <CommandItem
+                              key={sp.id}
+                              value={label}
+                              onSelect={() => {
+                                setFormData(f => ({
+                                  ...f,
+                                  species_name: displayName,
+                                  scientific_name: sp.scientific_name || '',
+                                  species_category: sp.category || f.species_category,
+                                }));
+                                setSpeciesPopoverOpen(false);
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", formData.species_name === displayName ? "opacity-100" : "opacity-0")} />
+                              <div>
+                                <span className="font-medium">{displayName}</span>
+                                {sp.scientific_name && (
+                                  <span className="text-muted-foreground italic ml-1">({sp.scientific_name})</span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label>Scientific Name</Label>
-              <Input value={formData.scientific_name} onChange={e => setFormData(f => ({ ...f, scientific_name: e.target.value }))} />
+              <Input value={formData.scientific_name} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
               <Label>Category *</Label>
