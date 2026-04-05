@@ -302,10 +302,6 @@ export const PlantingCostsKTBTab: React.FC = () => {
               </Card>
             )}
 
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 px-1">
-              <Info className="h-3.5 w-3.5" />
-              This is a read-only view. Contact admin to request changes to pricing or split percentages.
-            </p>
           </>
         )}
       </div>
