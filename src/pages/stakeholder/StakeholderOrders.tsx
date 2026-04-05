@@ -186,6 +186,7 @@ interface ContributionGroup {
   trip: Trip | null;
   planting_status: string;
   payment_status: string;
+  status_date: string | null;
 }
 
 const getGroupPlantingStatus = (trees: Tree[]): string => {
