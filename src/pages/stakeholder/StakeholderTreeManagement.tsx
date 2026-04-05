@@ -246,6 +246,29 @@ export function StakeholderTreeManagement() {
     enabled: allTreeIds.length > 0,
   });
 
+  // Fetch latest status transition date per tree
+  const { data: allStatusDates } = useQuery({
+    queryKey: ["treeManagementStatusDates", allTreeIds.length],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, new_status, created_at")
+        .in("tree_id", allTreeIds)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // For each tree, find the transition matching its current planting_status
+      const map = new Map<string, string>();
+      (data || []).forEach((r: any) => {
+        // Store the latest transition per tree (first occurrence since ordered desc)
+        if (!map.has(r.tree_id)) {
+          map.set(r.tree_id, r.created_at);
+        }
+      });
+      return { latestMap: map, allTransitions: data || [] };
+    },
+    enabled: allTreeIds.length > 0,
+  });
+
   // Fetch contribution info for info sheet tree
   const { data: infoSheetContrib } = useQuery({
     queryKey: ["treeInfoContrib", infoSheet?.id],
