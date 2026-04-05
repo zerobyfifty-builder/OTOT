@@ -144,20 +144,48 @@ export const MyTrees = () => {
       if (error) throw error;
       setTrees(data || []);
 
+      const treeIds = data?.map(t => t.id) || [];
       const tripIds = [...new Set(data?.map(t => t.trip_id).filter(Boolean) || [])];
-      if (tripIds.length > 0) {
-        const { data: tripsData } = await supabase
-          .from("trips")
-          .select("*")
-          .in("id", tripIds);
-        
-        if (tripsData) {
-          const tripsMap = tripsData.reduce((acc, trip) => {
-            acc[trip.id] = trip;
-            return acc;
-          }, {} as Record<string, Trip>);
-          setTrips(tripsMap);
+
+      // Fetch trips and latest transition dates in parallel
+      const [tripsResult, transitionsResult] = await Promise.all([
+        tripIds.length > 0
+          ? supabase.from("trips").select("*").in("id", tripIds)
+          : Promise.resolve({ data: null }),
+        treeIds.length > 0
+          ? supabase
+              .from("tree_status_transitions")
+              .select("tree_id, to_status, created_at")
+              .in("tree_id", treeIds)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: null }),
+      ]);
+
+      if (tripsResult.data) {
+        const tripsMap = tripsResult.data.reduce((acc, trip) => {
+          acc[trip.id] = trip;
+          return acc;
+        }, {} as Record<string, Trip>);
+        setTrips(tripsMap);
+      }
+
+      // Build map of tree_id -> latest transition date (for current planting_status)
+      if (transitionsResult.data) {
+        const dateMap: Record<string, string> = {};
+        for (const t of transitionsResult.data) {
+          // Find the tree's current planting_status
+          const tree = data?.find(tr => tr.id === t.tree_id);
+          if (tree && t.to_status === tree.planting_status && !dateMap[t.tree_id]) {
+            dateMap[t.tree_id] = t.created_at;
+          }
         }
+        // For trees without transitions, fall back to updated_at or created_at
+        for (const tree of data || []) {
+          if (!dateMap[tree.id]) {
+            dateMap[tree.id] = tree.updated_at || tree.created_at;
+          }
+        }
+        setTransitionDates(dateMap);
       }
     } catch (error) {
       console.error("Error fetching trees:", error);
