@@ -252,22 +252,53 @@ export function StakeholderTreeManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_status_transitions" as any)
-        .select("tree_id, new_status, created_at")
+        .select("tree_id, to_status, created_at")
         .in("tree_id", allTreeIds)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      // For each tree, find the transition matching its current planting_status
-      const map = new Map<string, string>();
+
+      const byTreeStatus = new Map<string, Map<string, string>>();
+      const latestByTree = new Map<string, string>();
+
       (data || []).forEach((r: any) => {
-        // Store the latest transition per tree (first occurrence since ordered desc)
-        if (!map.has(r.tree_id)) {
-          map.set(r.tree_id, r.created_at);
+        if (!latestByTree.has(r.tree_id)) {
+          latestByTree.set(r.tree_id, r.created_at);
+        }
+
+        if (!r.to_status) return;
+
+        if (!byTreeStatus.has(r.tree_id)) {
+          byTreeStatus.set(r.tree_id, new Map<string, string>());
+        }
+
+        const statusMap = byTreeStatus.get(r.tree_id)!;
+        if (!statusMap.has(r.to_status)) {
+          statusMap.set(r.to_status, r.created_at);
         }
       });
-      return { latestMap: map, allTransitions: (data || []) as any[] };
+
+      return { byTreeStatus, latestByTree };
     },
     enabled: allTreeIds.length > 0,
   });
+
+  const getStatusDateForTree = (tree: Tree) => {
+    const plantingStatus = tree.planting_status || 'waiting_to_be_assigned';
+    const exactStatusDate = allStatusDates?.byTreeStatus instanceof Map
+      ? allStatusDates.byTreeStatus.get(tree.id)?.get(plantingStatus)
+      : undefined;
+    const latestTransitionDate = allStatusDates?.latestByTree instanceof Map
+      ? allStatusDates.latestByTree.get(tree.id)
+      : undefined;
+
+    if (exactStatusDate) return exactStatusDate;
+
+    if (plantingStatus === 'waiting_to_be_assigned') {
+      return tree.created_at;
+    }
+
+    return (tree as any).updated_at || latestTransitionDate || tree.created_at || null;
+  };
 
   // Fetch contribution info for info sheet tree
   const { data: infoSheetContrib } = useQuery({
@@ -449,16 +480,7 @@ export function StakeholderTreeManagement() {
                     const survivalData = allSurvivalStatuses instanceof Map ? allSurvivalStatuses.get(tree.id) : undefined;
                     const growthData = allGrowthStages instanceof Map ? allGrowthStages.get(tree.id) : undefined;
                     const plantingStatus = tree.planting_status || 'waiting_to_be_assigned';
-
-                    // Find the date when the current status was set
-                    const getStatusDate = () => {
-                      if (!allStatusDates?.allTransitions) return null;
-                      const treeTransitions = allStatusDates.allTransitions
-                        .filter((t: any) => t.tree_id === tree.id && t.new_status === plantingStatus)
-                        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                      return treeTransitions[0]?.created_at || null;
-                    };
-                    const statusDate = getStatusDate();
+                    const statusDate = getStatusDateForTree(tree);
 
                     return (
                       <TableRow key={tree.id}>
