@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -170,7 +171,6 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
       offset_horizon_years: parseInt(formData.offset_horizon_years) || 20,
       data_source: formData.data_source.trim(),
       source_year: parseInt(formData.source_year),
-      updated_at: new Date().toISOString(),
     };
 
     try {
@@ -240,7 +240,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
     try {
       const { error } = await supabase
         .from('tree_sequestration_rates')
-        .update({ is_active: newStatus, updated_at: new Date().toISOString() } as any)
+        .update({ is_active: newStatus } as any)
         .eq('id', item.id);
       if (error) throw error;
       toast.success(newStatus ? 'Activated' : 'Deactivated');
@@ -315,15 +315,16 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                   <TableHead className="text-right">Effective Rate</TableHead>
                   <TableHead className="text-right">Horizon</TableHead>
                   <TableHead>Source</TableHead>
+                  <TableHead>Last Updated</TableHead>
                   {!readOnly && <TableHead className="text-center">Active</TableHead>}
                   {!readOnly && <TableHead className="text-center">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={readOnly ? 7 : 9} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No rates found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={readOnly ? 7 : 9} className="text-center py-8 text-muted-foreground">No rates found</TableCell></TableRow>
                 ) : filtered.map((r: any) => (
                   <TableRow key={r.id} className={cn(!r.is_active && 'opacity-50', 'cursor-pointer hover:bg-muted/50')} onClick={() => !readOnly && handleEdit(r)}>
                     <TableCell>
@@ -341,6 +342,9 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                     <TableCell className="text-right font-mono">{getEffectiveRate(r).toFixed(1)} kg/yr</TableCell>
                     <TableCell className="text-right">{r.offset_horizon_years} years</TableCell>
                     <TableCell className="max-w-[150px] truncate text-muted-foreground text-xs">{r.data_source}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {r.updated_at ? format(new Date(r.updated_at), 'dd MMM yyyy') : r.created_at ? format(new Date(r.created_at), 'dd MMM yyyy') : '—'}
+                    </TableCell>
                     {!readOnly && (
                       <TableCell className="text-center" onClick={e => e.stopPropagation()}>
                         <Switch checked={r.is_active} onCheckedChange={() => handleToggleActive(r)} />
@@ -379,6 +383,14 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
                 <Badge variant="outline" className="text-xs">Editing</Badge>
               )}
             </div>
+            {editingId && (() => {
+              const editRate = rates.find((r: any) => r.id === editingId);
+              return editRate?.updated_at ? (
+                <p className="text-xs text-muted-foreground mt-1">Last updated: {format(new Date(editRate.updated_at), 'dd MMM yyyy, HH:mm')}</p>
+              ) : editRate?.created_at ? (
+                <p className="text-xs text-muted-foreground mt-1">Created: {format(new Date(editRate.created_at), 'dd MMM yyyy, HH:mm')}</p>
+              ) : null;
+            })()}
           </SheetHeader>
 
           <Separator className="mb-6" />
