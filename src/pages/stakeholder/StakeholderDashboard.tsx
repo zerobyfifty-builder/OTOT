@@ -12,9 +12,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, ReferenceLine, Cell 
 } from "recharts";
-import { useCountUp } from "./dashboard/useCountUp";
-import { DateRangeSelector } from "./dashboard/DateRangeSelector";
-import { ExportButton } from "./dashboard/ExportButton";
+import { useCountUp } from "@/components/stakeholder/dashboard/useCountUp";
+import { DateRangeSelector } from "@/components/stakeholder/dashboard/DateRangeSelector";
+import { ExportButton } from "@/components/stakeholder/dashboard/ExportButton";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
