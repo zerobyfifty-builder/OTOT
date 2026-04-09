@@ -317,7 +317,7 @@ const App = () => (
             <Route path="/institutional/trees" element={
               <InstitutionalRoute>
                 <InstitutionalLayout>
-                  <StakeholderOrders />
+                  <RecentTrees />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />
