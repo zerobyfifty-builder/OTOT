@@ -281,39 +281,27 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                 );
               })}
 
-              {/* 3. Tree Operations (collapsible) */}
-              {treeOpsItems.length > 0 && (
-                <Collapsible asChild defaultOpen={treeOpsItems.some(i => location.pathname === i.url)}>
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
-                        <Pickaxe className="h-5 w-5 flex-shrink-0" />
-                        {!collapsed && <span>Tree Operations</span>}
-                        {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {treeOpsItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
-                              <NavLink
-                                to={subItem.url}
-                                className={({ isActive }) =>
-                                  isActive ? 'bg-white/20 text-white font-medium' : ''
-                                }
-                              >
-                                <subItem.icon className="h-4 w-4" />
-                                <span>{subItem.title}</span>
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+              {/* 3. Tree Operations items (flat) */}
+              {treeOpsItems.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
-                </Collapsible>
-              )}
+                );
+              })}
 
               {/* 4. Forest Registry (collapsible) */}
               {forestRegistryItems.length > 0 && (
