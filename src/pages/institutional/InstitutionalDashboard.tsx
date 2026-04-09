@@ -542,70 +542,8 @@ export const InstitutionalDashboard = () => {
         </Card>
       </div>
 
-
-
-
-      {/* ─── CONTRIBUTION LIFECYCLE & CO₂ BREAKDOWN ─── */}
+      {/* ─── CO₂ EMISSIONS BREAKDOWN ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Contribution Lifecycle */}
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CircleDollarSign className="h-4 w-4 text-violet-500" /> Contribution Lifecycle <ChartExportButton title="Contribution Lifecycle" columns={[{ key: "name", label: "Status" }, { key: "value", label: "Amount ($)" }]} data={contribPieData} iconOnly />
-                </CardTitle>
-                <CardDescription>{stats?.totalContributions || 0} total contributions tracked</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <ChartDateRangePicker dateRange={contribDateRange} onDateRangeChange={setContribDateRange} />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {statsLoading ? <Skeleton className="h-48 w-full" /> : contribPieData.length > 0 ? (
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="45%" height={160}>
-                  <PieChart>
-                    <Pie data={contribPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
-                      {contribPieData.map((entry, i) => (
-                        <Cell key={i} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: number) => `$${formatWholeNumber(Number(v) || 0)}`} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {contribPieData.map((entry, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }} />
-                        <span className="text-muted-foreground">{entry.name}</span>
-                      </div>
-                      <span className="font-semibold tabular-nums">${formatWholeNumber(entry.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground">
-                <p className="text-sm">No contributions tracked yet</p>
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t">
-              <div className="p-2.5 rounded-lg bg-violet-50 dark:bg-violet-500/10">
-                <p className="text-[10px] text-muted-foreground uppercase">Total Mktg Fee</p>
-                <p className="text-sm font-bold">${formatWholeNumber(stats?.totalRetained || 0)}</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-500/10">
-                <p className="text-[10px] text-muted-foreground uppercase">Total Planting Fee</p>
-                <p className="text-sm font-bold">${formatWholeNumber(stats?.totalTransferred || 0)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* CO₂ Emissions Breakdown */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">CO₂ Emissions Breakdown</CardTitle>
