@@ -68,7 +68,7 @@ import { PlantTree } from "@/pages/lodge/PlantTree";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import PlantationPartners from "@/pages/institutional/PlantationPartners";
 import RecentTrips from "@/pages/institutional/RecentTrips";
-// RecentTrees removed - institutional now uses StakeholderOrders
+import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
