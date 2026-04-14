@@ -26,6 +26,13 @@ const PERMISSION_SHORT: Record<string, string> = {
   delete: "D",
 };
 
+const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
+  "Financial Management": "Climate Funding",
+  "Financial": "Climate Funding",
+  "Tree Management": "Tree Insights",
+  "Trip Management": "Impact Journeys",
+};
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];
