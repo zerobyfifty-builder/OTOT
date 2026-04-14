@@ -33,6 +33,9 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
   "Trip Management": "Impact Journeys",
 };
 
+// Modules permanently removed from stakeholder allocation
+const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management"];
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];

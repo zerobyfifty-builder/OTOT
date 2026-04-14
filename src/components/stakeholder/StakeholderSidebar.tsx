@@ -50,15 +50,11 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
   outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, sortOrder: 5 },
   
-  nurseries: { title: 'Nurseries', url: '/stakeholder/nurseries', icon: Sprout, sortOrder: 7 },
-  payment_management: { title: 'Payments', url: '/stakeholder/payments', icon: CreditCard, sortOrder: 8 },
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
 };
 
 // Tree Operations modules that appear under collapsible group
 const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, sortOrder: 1 },
-  monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, sortOrder: 2 },
   tree_management: { title: 'Tree Insights', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
   community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
