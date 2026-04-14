@@ -59,7 +59,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
 const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
   planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, sortOrder: 1 },
   monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, sortOrder: 2 },
-  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
+  tree_management: { title: 'Tree Insights', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
   community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
 
