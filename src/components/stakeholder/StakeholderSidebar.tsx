@@ -38,7 +38,7 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 // Core menu items always visible (Dashboard, Financial are fixed top)
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
-  { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
+  { title: 'Climate Funding', url: '/stakeholder/financial', icon: DollarSign },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
