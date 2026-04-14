@@ -47,8 +47,8 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   trip_management: { title: 'Impact Journeys', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
-  outcomes: { title: 'Outcomes', url: '/stakeholder/outcomes', icon: Target, sortOrder: 5 },
+  outcomes: { title: 'Environmental Impact', url: '/stakeholder/outcomes', icon: Target, sortOrder: 4 },
+  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 99 },
   
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
 };

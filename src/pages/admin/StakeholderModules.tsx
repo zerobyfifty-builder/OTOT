@@ -31,6 +31,7 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
   "Financial": "Climate Funding",
   "Tree Management": "Tree Insights",
   "Trip Management": "Impact Journeys",
+  "Outcomes": "Environmental Impact",
 };
 
 // Modules permanently removed from stakeholder allocation
