@@ -26,6 +26,13 @@ const PERMISSION_SHORT: Record<string, string> = {
   delete: "D",
 };
 
+const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
+  "Financial Management": "Climate Funding",
+  "Financial": "Climate Funding",
+  "Tree Management": "Tree Insights",
+  "Trip Management": "Impact Journeys",
+};
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];
@@ -151,7 +158,7 @@ export default function StakeholderModules() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div>
-                            <p className="font-medium">{m.display_name}</p>
+                            <p className="font-medium">{MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}</p>
                             <p className="text-xs text-muted-foreground">{m.category}</p>
                           </div>
                           <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
