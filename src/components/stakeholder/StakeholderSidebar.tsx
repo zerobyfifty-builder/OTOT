@@ -38,13 +38,13 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 // Core menu items always visible (Dashboard, Financial are fixed top)
 const coreMenuItems = [
   { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
-  { title: 'Financial', url: '/stakeholder/financial', icon: DollarSign },
+  { title: 'Climate Funding', url: '/stakeholder/financial', icon: DollarSign },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
 // sortOrder determines the display order among flat module items
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  trip_management: { title: 'Trip Management', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
+  trip_management: { title: 'Impact Journeys', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 4 },
@@ -59,7 +59,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
 const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
   planting: { title: 'Planting', url: '/stakeholder/planting', icon: TreePine, sortOrder: 1 },
   monitoring: { title: 'Monitoring', url: '/stakeholder/monitoring', icon: BarChart3, sortOrder: 2 },
-  tree_management: { title: 'Tree Management', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
+  tree_management: { title: 'Tree Insights', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
   community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
 
