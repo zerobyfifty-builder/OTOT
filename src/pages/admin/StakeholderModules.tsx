@@ -154,7 +154,7 @@ export default function StakeholderModules() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {modules?.map(m => {
+                {modules?.filter(m => !HIDDEN_MODULE_NAMES.includes(m.name)).map(m => {
                   const accessType = (m as any).access_type || "shared";
                   return (
                     <TableRow key={m.id}>
