@@ -119,10 +119,12 @@ export const StakeholderDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
-  const [chartRange, setChartRange] = useState('3M');
-  const [speciesRange, setSpeciesRange] = useState('3M');
-  const [beatRange, setBeatRange] = useState('3M');
-  const [nurseryRange, setNurseryRange] = useState('3M');
+  type DR = { from: Date | undefined; to: Date | undefined };
+  const defaultRange = (): DR => ({ from: subMonths(new Date(), 3), to: new Date() });
+  const [chartRange, setChartRange] = useState<DR>(defaultRange());
+  const [speciesRange, setSpeciesRange] = useState<DR>(defaultRange());
+  const [beatRange, setBeatRange] = useState<DR>(defaultRange());
+  const [nurseryRange, setNurseryRange] = useState<DR>(defaultRange());
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Refs for export
