@@ -13,8 +13,8 @@ import {
   ResponsiveContainer, ReferenceLine, Cell 
 } from "recharts";
 import { useCountUp } from "@/components/stakeholder/dashboard/useCountUp";
-import { DateRangeSelector } from "@/components/stakeholder/dashboard/DateRangeSelector";
 import { ExportButton } from "@/components/stakeholder/dashboard/ExportButton";
+import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
