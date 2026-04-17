@@ -955,8 +955,10 @@ export const StakeholderDashboard = () => {
         <DCard delay={500}>
           <div ref={footerRef} className="p-5">
             <div className="flex items-start justify-between mb-4">
-              <h2 className="text-[14px] font-medium text-foreground">Programme context — MFC-ICLIP Restoration Programme</h2>
-              <ExportButton cardRef={footerRef} filename="Programme-Context" />
+              <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                Programme context — MFC-ICLIP Restoration Programme
+                <ExportButton cardRef={footerRef} filename="Programme-Context" iconOnly />
+              </h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               {[
