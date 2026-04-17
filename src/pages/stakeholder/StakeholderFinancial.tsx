@@ -524,29 +524,29 @@ export const StakeholderFinancial = () => {
 
       {/* Summary - Tech Partner */}
       {isTechPartner ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Contributions</p>
               <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalContribution)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Tech Fee Allocated</p>
               <p className="text-2xl font-bold text-primary mt-1">${formatNumber(totals.totalTechFee)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Received</p>
               <p className="text-2xl font-bold text-emerald-600 mt-1">${formatNumber(totals.totalTechReceived)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} contributions</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Under Processing</p>
               <p className={`text-2xl font-bold mt-1 ${totals.techUnderProcessing >= 0 ? 'text-amber-600' : 'text-red-600'}`}>${formatNumber(totals.techUnderProcessing)}</p>
@@ -602,29 +602,29 @@ export const StakeholderFinancial = () => {
         </div>
       ) : (
         /* Summary - Plantation */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-background to-muted/30">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total Allocated</p>
               <p className="text-2xl font-bold mt-1">${formatNumber(totals.totalAllocated)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.totalBatches} batches · {totals.totalTrees} trees</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Transferred</p>
               <p className="text-2xl font-bold text-violet-600 mt-1">${formatNumber(totals.transferredTotal)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.transferredCount} contributions</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Funds Received</p>
               <p className="text-2xl font-bold text-amber-600 mt-1">${formatNumber(totals.fundsReceivedTotal)}</p>
               <p className="text-[11px] text-muted-foreground mt-1">{totals.fundsReceivedCount} contributions</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm">
+          <Card>
             <CardContent className="p-4">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Balance</p>
               <p className={`text-2xl font-bold mt-1 ${totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>${formatNumber(totals.balance)}</p>
