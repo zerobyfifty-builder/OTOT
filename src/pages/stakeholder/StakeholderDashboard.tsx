@@ -519,12 +519,14 @@ export const StakeholderDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <DCard className="lg:col-span-2" delay={100}>
             <div ref={nationalRef} className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Kenya 15 billion trees — OTOT contribution</h2>
+              <div className="flex items-start justify-between mb-4 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Kenya 15 billion trees — OTOT contribution
+                    <ExportButton cardRef={nationalRef} filename="National-Contribution" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400 mt-0.5">Tracking MFC-ICLIP impact toward Kenya's national reforestation mission</p>
                 </div>
-                <ExportButton cardRef={nationalRef} filename="National-Contribution" />
               </div>
 
               <div className="space-y-4">
@@ -571,8 +573,10 @@ export const StakeholderDashboard = () => {
           <DCard delay={200}>
             <div ref={missionRef} className="p-5 flex flex-col items-center">
               <div className="w-full flex items-start justify-between mb-4">
-                <h2 className="text-[14px] font-medium text-foreground">Year 1 target</h2>
-                <ExportButton cardRef={missionRef} filename="Year1-Target" />
+                <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                  Year 1 target
+                  <ExportButton cardRef={missionRef} filename="Year1-Target" iconOnly />
+                </h2>
               </div>
               <DonutRing pct={annualPct} />
               <div className="w-full mt-4 space-y-1.5 text-[12px]">
