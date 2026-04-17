@@ -629,9 +629,7 @@ export function StakeholderMdmNurseries() {
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Sprout className="h-6 w-6 text-emerald-600" /> Nurseries & CBOs Registry
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Nurseries & CBOs</h1>
           <p className="text-muted-foreground mt-1">Manage community-based nurseries linked to your organisation</p>
         </div>
         <Button onClick={() => openSheet('add')} className="gap-2">
