@@ -270,9 +270,7 @@ export function SequestrationRatesTab({ readOnly = false }: SequestrationRatesTa
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Leaf className="h-6 w-6 text-emerald-600" /> Sequestration Rates
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Sequestration Rates</h1>
           <p className="text-muted-foreground mt-1">CO₂ sequestration rates by tree species for carbon offset calculations</p>
         </div>
         <div className="flex gap-2">
