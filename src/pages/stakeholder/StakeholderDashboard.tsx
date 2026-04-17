@@ -602,15 +602,15 @@ export const StakeholderDashboard = () => {
           {/* Monthly planting */}
           <DCard delay={200}>
             <div ref={chartRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Monthly planting progress</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Monthly planting progress
+                    <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Trees planted per month</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={chartRange} onChange={setChartRange} />
-                  <ExportButton cardRef={chartRef} filename="Monthly-Planting" />
-                </div>
+                <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
               </div>
               {monthlyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={180}>
