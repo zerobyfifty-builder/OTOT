@@ -856,19 +856,22 @@ export const StakeholderDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <DCard className="lg:col-span-2" delay={400}>
             <div ref={activityRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Recent planting activity</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Recent planting activity
+                    <ExportButton
+                      filename="Planting-Activity"
+                      iconOnly
+                      csvData={() => {
+                        const header = 'Contribution ID,From Status,To Status,Date\n';
+                        const rows = (recentTransitions || []).map(t => `${t.contribution_id},${t.from_status},${t.to_status},${t.created_at}`).join('\n');
+                        return header + rows;
+                      }}
+                    />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Latest field operations logged</p>
                 </div>
-                <ExportButton
-                  filename="Planting-Activity"
-                  csvData={() => {
-                    const header = 'Contribution ID,From Status,To Status,Date\n';
-                    const rows = (recentTransitions || []).map(t => `${t.contribution_id},${t.from_status},${t.to_status},${t.created_at}`).join('\n');
-                    return header + rows;
-                  }}
-                />
               </div>
               {recentTransitions && recentTransitions.length > 0 ? (
                 <div className="space-y-0">
@@ -899,19 +902,22 @@ export const StakeholderDashboard = () => {
 
           <DCard delay={500}>
             <div ref={contribRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Recent tourist contributions</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Recent tourist contributions
+                    <ExportButton
+                      filename="Contributions"
+                      iconOnly
+                      csvData={() => {
+                        const header = 'Contribution ID,Tourist,Trees,Amount,Date\n';
+                        const rows = (contributions || []).slice(0, 6).map(c => `${c.contribution_id},${c.tourist_name || ''},${c.num_trees},${c.amount_paid},${c.created_at}`).join('\n');
+                        return header + rows;
+                      }}
+                    />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Latest donor allocations</p>
                 </div>
-                <ExportButton
-                  filename="Contributions"
-                  csvData={() => {
-                    const header = 'Contribution ID,Tourist,Trees,Amount,Date\n';
-                    const rows = (contributions || []).slice(0, 6).map(c => `${c.contribution_id},${c.tourist_name || ''},${c.num_trees},${c.amount_paid},${c.created_at}`).join('\n');
-                    return header + rows;
-                  }}
-                />
               </div>
               {contributions && contributions.length > 0 ? (
                 <>
