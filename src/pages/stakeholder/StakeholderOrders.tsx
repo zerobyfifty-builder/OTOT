@@ -847,7 +847,7 @@ export const StakeholderOrders = () => {
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Tree Orders</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tree Orders</h1>
           <p className="text-muted-foreground mt-1">Manage and track tree planting orders across all contributions</p>
         </div>
         <Button variant="outline" size="icon" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>

@@ -187,7 +187,7 @@ export const StakeholderSettings = () => {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account and organization settings</p>
       </div>
 

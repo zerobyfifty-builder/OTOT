@@ -342,9 +342,7 @@ export function StakeholderMdmSpecies() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Leaf className="h-6 w-6 text-emerald-600" /> Species & Seedlings Catalogue
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Species & Seedlings</h1>
           <p className="text-muted-foreground mt-1">Master catalogue of all tree species and seedling types</p>
         </div>
         <div className="flex gap-2">

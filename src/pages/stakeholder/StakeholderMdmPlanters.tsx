@@ -316,9 +316,7 @@ export function StakeholderMdmPlanters() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Users className="h-6 w-6 text-emerald-600" /> Planters & Farmers Registry
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Planters Registry</h1>
           <p className="text-muted-foreground mt-1">Manage individuals authorised to log planting events</p>
         </div>
         <div className="flex gap-2">

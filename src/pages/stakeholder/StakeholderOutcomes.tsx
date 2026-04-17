@@ -41,7 +41,7 @@ export const StakeholderOutcomes = () => {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Outcomes & Impact</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Environmental Impact</h1>
         <p className="text-muted-foreground mt-1">Environmental impact and SDG alignment reporting</p>
       </div>
 
