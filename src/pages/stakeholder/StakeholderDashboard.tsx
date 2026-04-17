@@ -643,12 +643,14 @@ export const StakeholderDashboard = () => {
           {/* Pipeline */}
           <DCard delay={300}>
             <div ref={pipelineRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Planting status pipeline</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Planting status pipeline
+                    <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">All tree orders by lifecycle stage</p>
                 </div>
-                <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" />
               </div>
               <div className="space-y-2.5">
                 {STATUS_ORDER.map(status => {
@@ -678,15 +680,15 @@ export const StakeholderDashboard = () => {
           {/* Beat performance */}
           <DCard delay={400}>
             <div ref={beatRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Forest beat performance</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Forest beat performance
+                    <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Top beats by trees planted</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={beatRange} onChange={setBeatRange} />
-                  <ExportButton cardRef={beatRef} filename="Beat-Performance" />
-                </div>
+                <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
               </div>
               {beatPerformance.length > 0 ? (
                 <div className="space-y-3">
@@ -723,15 +725,15 @@ export const StakeholderDashboard = () => {
           {/* Species breakdown */}
           <DCard delay={300}>
             <div ref={speciesRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Species breakdown</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Species breakdown
+                    <ExportButton cardRef={speciesRef} filename="Species-Breakdown" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Confirmed planted by category</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={speciesRange} onChange={setSpeciesRange} />
-                  <ExportButton cardRef={speciesRef} filename="Species-Breakdown" />
-                </div>
+                <ChartDateRangePicker dateRange={speciesRange} onDateRangeChange={setSpeciesRange} />
               </div>
               {speciesBreakdown.some(s => s.count > 0) ? (
                 <div className="space-y-3">
@@ -757,15 +759,15 @@ export const StakeholderDashboard = () => {
           {/* Nursery & CBO */}
           <DCard delay={400}>
             <div ref={nurseryRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Nursery & CBO supply</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Nursery & CBO supply
+                    <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Seedlings supplied this quarter</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={nurseryRange} onChange={setNurseryRange} />
-                  <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" />
-                </div>
+                <ChartDateRangePicker dateRange={nurseryRange} onDateRangeChange={setNurseryRange} />
               </div>
               {nurseryActivity.length > 0 ? (
                 <div className="space-y-3">
