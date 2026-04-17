@@ -13,8 +13,8 @@ import {
   ResponsiveContainer, ReferenceLine, Cell 
 } from "recharts";
 import { useCountUp } from "@/components/stakeholder/dashboard/useCountUp";
-import { DateRangeSelector } from "@/components/stakeholder/dashboard/DateRangeSelector";
 import { ExportButton } from "@/components/stakeholder/dashboard/ExportButton";
+import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
@@ -119,10 +119,12 @@ export const StakeholderDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
-  const [chartRange, setChartRange] = useState('3M');
-  const [speciesRange, setSpeciesRange] = useState('3M');
-  const [beatRange, setBeatRange] = useState('3M');
-  const [nurseryRange, setNurseryRange] = useState('3M');
+  type DR = { from: Date | undefined; to: Date | undefined };
+  const defaultRange = (): DR => ({ from: subMonths(new Date(), 3), to: new Date() });
+  const [chartRange, setChartRange] = useState<DR>(defaultRange());
+  const [speciesRange, setSpeciesRange] = useState<DR>(defaultRange());
+  const [beatRange, setBeatRange] = useState<DR>(defaultRange());
+  const [nurseryRange, setNurseryRange] = useState<DR>(defaultRange());
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Refs for export
@@ -285,13 +287,13 @@ export const StakeholderDashboard = () => {
     if (!treePipeline) return [];
     // Use status transitions for monthly breakdown since assignments may not have actual_planting_date
     // Fallback: show pipeline status distribution as monthly placeholder
-    const fromDate = getDateRange(chartRange);
+    const fromDate = chartRange.from || subMonths(new Date(), 3);
+    const toDate = chartRange.to || new Date();
     const months: Record<string, number> = {};
-    // Get trees from contribution_tracking with date
     (contributions || []).forEach(c => {
       if (!c.created_at) return;
       const d = new Date(c.created_at);
-      if (d < fromDate) return;
+      if (d < fromDate || d > toDate) return;
       const key = format(d, 'MMM yyyy');
       months[key] = (months[key] || 0) + c.num_trees;
     });
@@ -517,12 +519,14 @@ export const StakeholderDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <DCard className="lg:col-span-2" delay={100}>
             <div ref={nationalRef} className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Kenya 15 billion trees — OTOT contribution</h2>
+              <div className="flex items-start justify-between mb-4 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Kenya 15 billion trees — OTOT contribution
+                    <ExportButton cardRef={nationalRef} filename="National-Contribution" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400 mt-0.5">Tracking MFC-ICLIP impact toward Kenya's national reforestation mission</p>
                 </div>
-                <ExportButton cardRef={nationalRef} filename="National-Contribution" />
               </div>
 
               <div className="space-y-4">
@@ -569,8 +573,10 @@ export const StakeholderDashboard = () => {
           <DCard delay={200}>
             <div ref={missionRef} className="p-5 flex flex-col items-center">
               <div className="w-full flex items-start justify-between mb-4">
-                <h2 className="text-[14px] font-medium text-foreground">Year 1 target</h2>
-                <ExportButton cardRef={missionRef} filename="Year1-Target" />
+                <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                  Year 1 target
+                  <ExportButton cardRef={missionRef} filename="Year1-Target" iconOnly />
+                </h2>
               </div>
               <DonutRing pct={annualPct} />
               <div className="w-full mt-4 space-y-1.5 text-[12px]">
@@ -600,15 +606,15 @@ export const StakeholderDashboard = () => {
           {/* Monthly planting */}
           <DCard delay={200}>
             <div ref={chartRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Monthly planting progress</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Monthly planting progress
+                    <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Trees planted per month</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={chartRange} onChange={setChartRange} />
-                  <ExportButton cardRef={chartRef} filename="Monthly-Planting" />
-                </div>
+                <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
               </div>
               {monthlyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={180}>
@@ -641,12 +647,14 @@ export const StakeholderDashboard = () => {
           {/* Pipeline */}
           <DCard delay={300}>
             <div ref={pipelineRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Planting status pipeline</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Planting status pipeline
+                    <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">All tree orders by lifecycle stage</p>
                 </div>
-                <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" />
               </div>
               <div className="space-y-2.5">
                 {STATUS_ORDER.map(status => {
@@ -676,15 +684,15 @@ export const StakeholderDashboard = () => {
           {/* Beat performance */}
           <DCard delay={400}>
             <div ref={beatRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Forest beat performance</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Forest beat performance
+                    <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Top beats by trees planted</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={beatRange} onChange={setBeatRange} />
-                  <ExportButton cardRef={beatRef} filename="Beat-Performance" />
-                </div>
+                <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
               </div>
               {beatPerformance.length > 0 ? (
                 <div className="space-y-3">
@@ -721,15 +729,15 @@ export const StakeholderDashboard = () => {
           {/* Species breakdown */}
           <DCard delay={300}>
             <div ref={speciesRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Species breakdown</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Species breakdown
+                    <ExportButton cardRef={speciesRef} filename="Species-Breakdown" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Confirmed planted by category</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={speciesRange} onChange={setSpeciesRange} />
-                  <ExportButton cardRef={speciesRef} filename="Species-Breakdown" />
-                </div>
+                <ChartDateRangePicker dateRange={speciesRange} onDateRangeChange={setSpeciesRange} />
               </div>
               {speciesBreakdown.some(s => s.count > 0) ? (
                 <div className="space-y-3">
@@ -755,15 +763,15 @@ export const StakeholderDashboard = () => {
           {/* Nursery & CBO */}
           <DCard delay={400}>
             <div ref={nurseryRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Nursery & CBO supply</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Nursery & CBO supply
+                    <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Seedlings supplied this quarter</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <DateRangeSelector value={nurseryRange} onChange={setNurseryRange} />
-                  <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" />
-                </div>
+                <ChartDateRangePicker dateRange={nurseryRange} onDateRangeChange={setNurseryRange} />
               </div>
               {nurseryActivity.length > 0 ? (
                 <div className="space-y-3">
@@ -799,19 +807,19 @@ export const StakeholderDashboard = () => {
           {/* Alerts */}
           <DCard delay={500}>
             <div ref={alertRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Alerts & actions needed</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Alerts & actions needed
+                    <ExportButton cardRef={alertRef} filename="Alerts" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Items requiring your attention</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {alerts.length > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEE2E2] text-[#A32D2D] animate-pulse">
-                      {alerts.length}
-                    </span>
-                  )}
-                  <ExportButton cardRef={alertRef} filename="Alerts" />
-                </div>
+                {alerts.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEE2E2] text-[#A32D2D] animate-pulse">
+                    {alerts.length}
+                  </span>
+                )}
               </div>
               {alerts.length > 0 ? (
                 <div className="space-y-3">
@@ -848,19 +856,22 @@ export const StakeholderDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <DCard className="lg:col-span-2" delay={400}>
             <div ref={activityRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Recent planting activity</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Recent planting activity
+                    <ExportButton
+                      filename="Planting-Activity"
+                      iconOnly
+                      csvData={() => {
+                        const header = 'Contribution ID,From Status,To Status,Date\n';
+                        const rows = (recentTransitions || []).map(t => `${t.contribution_id},${t.from_status},${t.to_status},${t.created_at}`).join('\n');
+                        return header + rows;
+                      }}
+                    />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Latest field operations logged</p>
                 </div>
-                <ExportButton
-                  filename="Planting-Activity"
-                  csvData={() => {
-                    const header = 'Contribution ID,From Status,To Status,Date\n';
-                    const rows = (recentTransitions || []).map(t => `${t.contribution_id},${t.from_status},${t.to_status},${t.created_at}`).join('\n');
-                    return header + rows;
-                  }}
-                />
               </div>
               {recentTransitions && recentTransitions.length > 0 ? (
                 <div className="space-y-0">
@@ -891,19 +902,22 @@ export const StakeholderDashboard = () => {
 
           <DCard delay={500}>
             <div ref={contribRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Recent tourist contributions</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Recent tourist contributions
+                    <ExportButton
+                      filename="Contributions"
+                      iconOnly
+                      csvData={() => {
+                        const header = 'Contribution ID,Tourist,Trees,Amount,Date\n';
+                        const rows = (contributions || []).slice(0, 6).map(c => `${c.contribution_id},${c.tourist_name || ''},${c.num_trees},${c.amount_paid},${c.created_at}`).join('\n');
+                        return header + rows;
+                      }}
+                    />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Latest donor allocations</p>
                 </div>
-                <ExportButton
-                  filename="Contributions"
-                  csvData={() => {
-                    const header = 'Contribution ID,Tourist,Trees,Amount,Date\n';
-                    const rows = (contributions || []).slice(0, 6).map(c => `${c.contribution_id},${c.tourist_name || ''},${c.num_trees},${c.amount_paid},${c.created_at}`).join('\n');
-                    return header + rows;
-                  }}
-                />
               </div>
               {contributions && contributions.length > 0 ? (
                 <>
@@ -941,8 +955,10 @@ export const StakeholderDashboard = () => {
         <DCard delay={500}>
           <div ref={footerRef} className="p-5">
             <div className="flex items-start justify-between mb-4">
-              <h2 className="text-[14px] font-medium text-foreground">Programme context — MFC-ICLIP Restoration Programme</h2>
-              <ExportButton cardRef={footerRef} filename="Programme-Context" />
+              <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                Programme context — MFC-ICLIP Restoration Programme
+                <ExportButton cardRef={footerRef} filename="Programme-Context" iconOnly />
+              </h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
               {[

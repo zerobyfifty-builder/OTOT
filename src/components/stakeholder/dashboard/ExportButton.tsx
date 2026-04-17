@@ -5,9 +5,10 @@ interface Props {
   cardRef?: React.RefObject<HTMLDivElement>;
   csvData?: () => string;
   filename: string;
+  iconOnly?: boolean;
 }
 
-export const ExportButton: React.FC<Props> = ({ cardRef, csvData, filename }) => {
+export const ExportButton: React.FC<Props> = ({ cardRef, csvData, filename, iconOnly }) => {
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
@@ -38,10 +39,16 @@ export const ExportButton: React.FC<Props> = ({ cardRef, csvData, filename }) =>
     <button
       onClick={handleExport}
       disabled={exporting}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border border-[#E5E7EB] dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-[#6B7280] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+      title={exporting ? 'Exporting…' : 'Export'}
+      aria-label="Export"
+      className={
+        iconOnly
+          ? "inline-flex items-center justify-center h-7 w-7 rounded-md text-[#6B7280] dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+          : "inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium border border-[#E5E7EB] dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-[#6B7280] dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+      }
     >
       {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-      {exporting ? 'Exporting…' : 'Export'}
+      {!iconOnly && (exporting ? 'Exporting…' : 'Export')}
     </button>
   );
 };
