@@ -5,9 +5,10 @@ interface Props {
   cardRef?: React.RefObject<HTMLDivElement>;
   csvData?: () => string;
   filename: string;
+  iconOnly?: boolean;
 }
 
-export const ExportButton: React.FC<Props> = ({ cardRef, csvData, filename }) => {
+export const ExportButton: React.FC<Props> = ({ cardRef, csvData, filename, iconOnly }) => {
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
