@@ -807,19 +807,19 @@ export const StakeholderDashboard = () => {
           {/* Alerts */}
           <DCard delay={500}>
             <div ref={alertRef} className="p-5">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h2 className="text-[14px] font-medium text-foreground">Alerts & actions needed</h2>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
+                    Alerts & actions needed
+                    <ExportButton cardRef={alertRef} filename="Alerts" iconOnly />
+                  </h2>
                   <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Items requiring your attention</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {alerts.length > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEE2E2] text-[#A32D2D] animate-pulse">
-                      {alerts.length}
-                    </span>
-                  )}
-                  <ExportButton cardRef={alertRef} filename="Alerts" />
-                </div>
+                {alerts.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEE2E2] text-[#A32D2D] animate-pulse">
+                    {alerts.length}
+                  </span>
+                )}
               </div>
               {alerts.length > 0 ? (
                 <div className="space-y-3">
