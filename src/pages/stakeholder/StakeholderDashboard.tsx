@@ -287,13 +287,13 @@ export const StakeholderDashboard = () => {
     if (!treePipeline) return [];
     // Use status transitions for monthly breakdown since assignments may not have actual_planting_date
     // Fallback: show pipeline status distribution as monthly placeholder
-    const fromDate = getDateRange(chartRange);
+    const fromDate = chartRange.from || subMonths(new Date(), 3);
+    const toDate = chartRange.to || new Date();
     const months: Record<string, number> = {};
-    // Get trees from contribution_tracking with date
     (contributions || []).forEach(c => {
       if (!c.created_at) return;
       const d = new Date(c.created_at);
-      if (d < fromDate) return;
+      if (d < fromDate || d > toDate) return;
       const key = format(d, 'MMM yyyy');
       months[key] = (months[key] || 0) + c.num_trees;
     });
