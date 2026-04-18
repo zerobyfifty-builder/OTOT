@@ -1,53 +1,53 @@
 
+The user wants to eliminate manual unit entry ("cm", "m", "months", "years") in the Growth Metrics form to prevent typos and enable reliable downstream calculations. Best UX: split into a numeric input + a unit selector, then store a normalized canonical value.
 
-## Plan: Generate OTOT Platform Architecture Document (DOCX)
+## Approach
 
-### What
-Generate a comprehensive architectural document covering the entire OTOT (One Tourist One Tree) platform — all portals, modules, database tables, edge functions, authentication flows, and integrations — as a downloadable Word document.
+**Form changes** in `src/pages/stakeholder/StakeholderOrders.tsx` (Growth Metrics slider + Tree Status sheet's Growth tab):
 
-### Document Structure
+1. **Tree Height field** → numeric input + unit dropdown (cm / m)
+   - User enters number only (e.g. `150`), picks unit (`cm` or `m`)
+   - On submit: convert to canonical centimeters and store in existing `tree_height` column as `"150 cm"` (display) — but also persist the normalized value for tracking.
 
-**1. Executive Summary** — Platform mission, Kenya 15B trees initiative, MFC-ICLIP programme context
+2. **Tree Age field** → numeric input + unit dropdown (Months / Years)
+   - User enters number only, picks unit
+   - On submit: convert to canonical months and store.
 
-**2. Technology Stack** — React 18, Vite 5, TypeScript 5, Tailwind CSS, shadcn/ui, Supabase (PostgreSQL, Auth, Edge Functions, Storage), TanStack React Query, Recharts, Framer Motion, jsPDF, @react-pdf/renderer
+**Storage strategy** (additive, non-breaking):
+- Keep existing `tree_height` and `tree_age` text columns for display compatibility with current Previous Logs table.
+- Add two new numeric columns to `tree_growth_stages` table for reliable analytics:
+  - `tree_height_cm` (numeric) — canonical height in centimeters
+  - `tree_age_months` (integer) — canonical age in months
+- Save both: legacy formatted string (e.g. `"1.5 m"`, `"18 months"`) AND canonical numeric values.
 
-**3. System Architecture Overview** — Client-side SPA with Supabase backend, auth contexts, role-based routing, layout system
+**Previous Logs display**: Show the formatted string as today (no visual change), but data is now reliable.
 
-**4. Authentication & Authorization**
-- Supabase Auth (email/password, magic link, OAuth callback)
-- Role system: super_admin, institutional_partner, business_partner, stakeholder, travel_agent, user (tourist)
-- Route guards: ProtectedRoute, AdminRoute, SuperAdminRoute, InstitutionalRoute, StakeholderRoute, BusinessPartnerRoute, AgentRoute, LodgeRoute
-- Auth contexts: AuthContext, LodgeAuthContext, AgentAuthContext
-- Security functions: `get_user_role`, `has_role`, `is_super_admin`, `is_stakeholder`, `is_institutional_partner`, `stakeholder_has_module_permission`
+**Validation**:
+- Numeric input: `type="number"`, `min="0"`, `step="0.1"` for height, `step="1"` for age.
+- Unit selector: shadcn `<Select>` with fixed options — no free text.
+- Required: both number and unit before submit enabled.
 
-**5. Portal Breakdown (6 portals)**
+## UI Sketch
 
-- **Tourist Portal** — Dashboard, CO2 Calculator, Carbon Calculator, My Trips, My Trees, My Impact, Tree Purchase, Profile, Certificates, Pledge pages
-- **Super Admin Portal** — God Mode Overview, Users, Partners (Institutional/Business/Create), Stakeholders (All/Create/Module Assignment), Contribution Tracking, Tree Orders, Travel Agents, Agent Tickets, Access Control (Roles/Modules), Financial Transactions, Configuration (Wallet, Planting Costs, Contribution Tiers, Payment, Email, Feature Flags), API Management, Security, Audit Logs
-- **Institutional (KTB) Portal** — Dashboard (CO2 Emissions chart), Recent Trips, Tree Orders, Travel Agents, Plantation Partners, Disbursements, Reports, Available Modules
-- **Stakeholder (Plantation) Portal** — Climate Intelligence Dashboard (KPIs, National Mission, Monthly Progress, Status Pipeline, Beat Performance, Species, Nursery, Alerts, Activity Feeds), Tree Orders, Financial, Trip Management, Tree Operations (Planting/Monitoring/Tree Management/Community Impact), Forest Registry MDM (Locations/Nurseries/Species/Planters/Sequestration Rates), Analytics, Outcomes, Nurseries, Payments, Travel Agents, Settings
-- **Lodge (Business Partner) Portal** — Dashboard, Tourist Assignments, My Trees, Plant Tree, Reimbursements, Performance, Notifications, Help
-- **Travel Agent Portal** — Dashboard, Calculate & Offset, My Tickets, Reimbursements, Help
+```text
+Tree Height
+[  150     ] [ cm ▾ ]   ← number input + unit select side-by-side
 
-**6. Module Permission Framework** — Dynamic module assignment, access_type (shared/scoped), JSONB permissions (read/write/edit/delete), `useModulePermissions` hook, dynamic sidebar provisioning
+Tree Age
+[  18      ] [ Months ▾ ]
+```
 
-**7. Database Schema** — All 57+ tables documented with purpose: activity_logs, agent_tickets, api_keys, auth_logs, carbon_offset_calculations, certificates, community_impact, contribution_tracking, trees, trips, organizations, modules, organization_modules, user_roles, planting_cost_configs/submissions, tree_planting_assignments, tree_status_transitions, tree_survival_records, MDM tables (locations hierarchy, species, nurseries, planters, sequestration rates), etc.
+Layout: `grid grid-cols-[1fr_110px] gap-2` for each field.
 
-**8. Edge Functions** — 11 Deno functions: create-agent-user, create-lodge-user, create-stakeholder-user, deeplink-create/validate, delete-user, lodge-update-tree, magic-link-send/verify, reset-ktb-password, set-password
+## Files to Edit
 
-**9. Key Features** — CO2 calculation (ICAO standard, 22 kg/tree/year), planting cost lifecycle (submission/review/approval), contribution tiers, certificate generation (Pledge + Tree Plantation PDFs), tree status pipeline (10 stages), forest location hierarchy (County > Sub-county > Station > Block > Beat), invoice/receipt generation
+- `src/pages/stakeholder/StakeholderOrders.tsx` — replace single text inputs with number+select pair in both Growth Metrics slider and the main Tree Status sheet's Growth tab; add conversion helpers.
 
-**10. Public Pages** — Landing, Pledge (3 variants), CO2 Calculator
+## Migration
 
-### Technical Approach
+- Add columns `tree_height_cm numeric` and `tree_age_months integer` to `tree_growth_stages` (nullable, additive — existing rows unaffected).
 
-- Use `docx` npm library to generate a professionally formatted .docx
-- Arial font, Heading styles, tables for schema and route listings
-- Color-coded portal sections
-- Output to `/mnt/documents/OTOT_Platform_Architecture.docx`
-- QA via LibreOffice PDF conversion and page inspection
+## Out of Scope
 
-### Estimated Output
-- ~20-25 pages covering all portals, modules, database, and architecture
-- Single script execution, no codebase modifications
-
+- Backfilling old text-based entries into the new numeric columns (can be done later if needed).
+- Changing the Survival Tracking form (only Growth Metrics was requested).
