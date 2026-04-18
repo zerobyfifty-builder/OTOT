@@ -370,6 +370,30 @@ export const StakeholderOrders = () => {
     enabled: !!transitionTreeId,
   });
 
+  // Resolve assigned planter id from transitions, then fetch full carer record
+  const assignedPlanterId = useMemo(() => {
+    for (const t of (treeTransitions || []) as any[]) {
+      const td = t.transition_data || {};
+      if (td.assigned_to) return td.assigned_to as string;
+      if (td.tree_carer_id) return td.tree_carer_id as string;
+    }
+    return null;
+  }, [treeTransitions]);
+
+  const { data: assignedCarer } = useQuery({
+    queryKey: ["treeAssignedCarer", assignedPlanterId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_carers")
+        .select("id, name, photo_url, marital_status, number_of_kids, experience_years, date_registered, gender")
+        .eq("id", assignedPlanterId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!assignedPlanterId,
+  });
+
   // Query latest transition dates for all trees (for Status Dt column)
   const { data: allTransitionDates } = useQuery({
     queryKey: ["allTreeTransitionDates"],
