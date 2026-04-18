@@ -2816,7 +2816,7 @@ export const StakeholderOrders = () => {
                                     </TableCell>
                                     <TableCell className="px-2 py-1.5">
                                       {log.growth_stage ? (
-                                        <Badge variant="outline" className="text-[11px] px-1.5 py-0 border-primary/30 text-primary bg-primary/5 capitalize">
+                                        <Badge variant="outline" className="text-[11px] px-1.5 py-0 border-emerald-300 text-emerald-800 bg-emerald-100 capitalize">
                                           {log.growth_stage}
                                         </Badge>
                                       ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -2824,8 +2824,8 @@ export const StakeholderOrders = () => {
                                     <TableCell className="text-xs text-right tabular-nums px-2 py-1.5">
                                       {log.survival_rate != null ? `${log.survival_rate}%` : '—'}
                                     </TableCell>
-                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_age || '—'}</TableCell>
-                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_height || '—'}</TableCell>
+                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_age ? (/[a-zA-Z]/.test(log.tree_age) ? log.tree_age : `${log.tree_age} months`) : '—'}</TableCell>
+                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_height ? (/[a-zA-Z]/.test(log.tree_height) ? log.tree_height : `${log.tree_height} cm`) : '—'}</TableCell>
                                   </TableRow>
                                   {log.notes && (
                                     <TableRow>
