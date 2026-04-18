@@ -2806,31 +2806,31 @@ export const StakeholderOrders = () => {
                               {logs.map((log) => (
                                 <React.Fragment key={log.key}>
                                   <TableRow className={log.notes ? "border-b-0" : ""}>
-                                    <TableCell className="text-xs whitespace-nowrap px-2">{format(new Date(log.date), "dd MMM yyyy")}</TableCell>
-                                    <TableCell className="px-2">
+                                    <TableCell className="text-xs whitespace-nowrap px-2 py-1.5">{format(new Date(log.date), "dd MMM yyyy")}</TableCell>
+                                    <TableCell className="px-2 py-1.5">
                                       {log.survival_status ? (
                                         <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${log.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : log.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
                                           {log.survival_status}
                                         </Badge>
                                       ) : <span className="text-xs text-muted-foreground">—</span>}
                                     </TableCell>
-                                    <TableCell className="px-2">
+                                    <TableCell className="px-2 py-1.5">
                                       {log.growth_stage ? (
                                         <Badge variant="outline" className="text-[11px] px-1.5 py-0 border-primary/30 text-primary bg-primary/5 capitalize">
                                           {log.growth_stage}
                                         </Badge>
                                       ) : <span className="text-xs text-muted-foreground">—</span>}
                                     </TableCell>
-                                    <TableCell className="text-xs text-right tabular-nums px-2">
+                                    <TableCell className="text-xs text-right tabular-nums px-2 py-1.5">
                                       {log.survival_rate != null ? `${log.survival_rate}%` : '—'}
                                     </TableCell>
-                                    <TableCell className="text-xs text-right whitespace-nowrap px-2">{log.tree_age || '—'}</TableCell>
-                                    <TableCell className="text-xs text-right whitespace-nowrap px-2">{log.tree_height || '—'}</TableCell>
+                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_age || '—'}</TableCell>
+                                    <TableCell className="text-xs text-right whitespace-nowrap px-2 py-1.5">{log.tree_height || '—'}</TableCell>
                                   </TableRow>
                                   {log.notes && (
                                     <TableRow>
-                                      <TableCell colSpan={6} className="text-xs px-2 pt-0 pb-2 text-muted-foreground italic">
-                                        <span className="font-medium not-italic text-foreground/70">Notes:</span> {log.notes}
+                                      <TableCell colSpan={6} className="text-xs px-2 pt-0 pb-1.5 text-muted-foreground italic">
+                                        {log.notes}
                                       </TableCell>
                                     </TableRow>
                                   )}
