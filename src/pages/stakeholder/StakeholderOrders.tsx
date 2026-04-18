@@ -2530,12 +2530,44 @@ export const StakeholderOrders = () => {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Tree Height (cm/m)</Label>
-                      <Input value={growthForm.tree_height} onChange={(e) => setGrowthForm(f => ({ ...f, tree_height: e.target.value }))} placeholder="e.g. 150cm" />
+                      <Label>Tree Height</Label>
+                      <div className="grid grid-cols-[1fr_110px] gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={growthForm.tree_height}
+                          onChange={(e) => setGrowthForm(f => ({ ...f, tree_height: e.target.value }))}
+                          placeholder="e.g. 150"
+                        />
+                        <Select value={growthForm.height_unit} onValueChange={(v) => setGrowthForm(f => ({ ...f, height_unit: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cm">cm</SelectItem>
+                            <SelectItem value="m">m</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Tree Age</Label>
-                      <Input value={growthForm.tree_age} onChange={(e) => setGrowthForm(f => ({ ...f, tree_age: e.target.value }))} placeholder="e.g. 6 months" />
+                      <div className="grid grid-cols-[1fr_110px] gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={growthForm.tree_age}
+                          onChange={(e) => setGrowthForm(f => ({ ...f, tree_age: e.target.value }))}
+                          placeholder="e.g. 18"
+                        />
+                        <Select value={growthForm.age_unit} onValueChange={(v) => setGrowthForm(f => ({ ...f, age_unit: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="months">Months</SelectItem>
+                            <SelectItem value="years">Years</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Photos (comma-separated URLs)</Label>
@@ -2554,11 +2586,19 @@ export const StakeholderOrders = () => {
                       disabled={!growthForm.last_measured_date}
                       onClick={async () => {
                         const photos = growthForm.photos ? growthForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
+                        const heightNum = growthForm.tree_height ? parseFloat(growthForm.tree_height) : null;
+                        const ageNum = growthForm.tree_age ? parseFloat(growthForm.tree_age) : null;
+                        const heightCm = heightNum != null ? (growthForm.height_unit === 'm' ? heightNum * 100 : heightNum) : null;
+                        const ageMonths = ageNum != null ? Math.round(growthForm.age_unit === 'years' ? ageNum * 12 : ageNum) : null;
+                        const heightDisplay = heightNum != null ? `${heightNum} ${growthForm.height_unit}` : null;
+                        const ageDisplay = ageNum != null ? `${ageNum} ${growthForm.age_unit}` : null;
                         const { error } = await supabase.from("tree_growth_metrics" as any).insert({
                           tree_id: growthSheet.id,
                           growth_stage: growthForm.growth_stage,
-                          tree_height: growthForm.tree_height || null,
-                          tree_age: growthForm.tree_age || null,
+                          tree_height: heightDisplay,
+                          tree_age: ageDisplay,
+                          tree_height_cm: heightCm,
+                          tree_age_months: ageMonths,
                           photos,
                           last_measured_date: growthForm.last_measured_date,
                           notes: growthForm.notes || null,
@@ -2568,7 +2608,7 @@ export const StakeholderOrders = () => {
                         toast.success("Growth data saved");
                         refetchGrowth();
                         queryClient.invalidateQueries({ queryKey: ["allGrowthStages"] });
-                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                        setGrowthForm({ growth_stage: 'sapling', tree_height: '', height_unit: 'cm', tree_age: '', age_unit: 'months', photos: '', last_measured_date: '', notes: '' });
                       }}
                     >
                       Save Growth Log
