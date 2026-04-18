@@ -2171,11 +2171,10 @@ export const StakeholderOrders = () => {
                 </SheetHeader>
 
                 <Tabs defaultValue="planting" className="mt-4">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="planting">Planting</TabsTrigger>
                     <TabsTrigger value="tracking">Location</TabsTrigger>
-                    <TabsTrigger value="survival">Survival</TabsTrigger>
-                    <TabsTrigger value="growth">Growth</TabsTrigger>
+                    <TabsTrigger value="growth">Survival & Growth</TabsTrigger>
                   </TabsList>
 
                   {/* Planting Tab - same status timeline from batch */}
