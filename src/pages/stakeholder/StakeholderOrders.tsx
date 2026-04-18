@@ -2575,7 +2575,7 @@ export const StakeholderOrders = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Last Measured Date *</Label>
-                      <Input type="date" value={growthForm.last_measured_date} onChange={(e) => setGrowthForm(f => ({ ...f, last_measured_date: e.target.value }))} />
+                      <Input type="date" max={new Date().toISOString().split('T')[0]} value={growthForm.last_measured_date} onChange={(e) => setGrowthForm(f => ({ ...f, last_measured_date: e.target.value }))} />
                     </div>
                     <div className="space-y-1.5">
                       <Label>Notes</Label>
@@ -2693,7 +2693,7 @@ export const StakeholderOrders = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Last Checked Date *</Label>
-                      <Input type="date" value={survivalForm.last_checked_date} onChange={(e) => setSurvivalForm(f => ({ ...f, last_checked_date: e.target.value }))} />
+                      <Input type="date" max={new Date().toISOString().split('T')[0]} value={survivalForm.last_checked_date} onChange={(e) => setSurvivalForm(f => ({ ...f, last_checked_date: e.target.value }))} />
                     </div>
                     <div className="space-y-1.5">
                       <Label>Notes</Label>
