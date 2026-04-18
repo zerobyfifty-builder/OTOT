@@ -273,10 +273,18 @@ export const StakeholderOrders = () => {
   const [treeStatusSheet, setTreeStatusSheet] = useState<{ tree: Tree; group: ContributionGroup } | null>(null);
   const [geotagDialog, setGeotagDialog] = useState<Tree | null>(null);
   const [geotagForm, setGeotagForm] = useState({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-  const [growthSheet, setGrowthSheet] = useState<Tree | null>(null);
-  const [survivalSheet, setSurvivalSheet] = useState<Tree | null>(null);
-  const [survivalForm, setSurvivalForm] = useState({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-  const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', height_unit: 'cm', tree_age: '', age_unit: 'months', photos: '', last_measured_date: '', notes: '' });
+  const [metricsSheet, setMetricsSheet] = useState<Tree | null>(null);
+  const [metricsForm, setMetricsForm] = useState({
+    checked_date: '',
+    survival_status: 'Alive',
+    survival_rate: '',
+    growth_stage: 'sapling',
+    tree_age: '',
+    age_unit: 'months',
+    tree_height: '',
+    height_unit: 'cm',
+    notes: '',
+  });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
