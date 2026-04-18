@@ -453,7 +453,7 @@ export const StakeholderOrders = () => {
     enabled: !!treeStatusTreeId,
   });
 
-  const survivalTreeId = treeStatusSheet?.tree.id || survivalSheet?.id;
+  const survivalTreeId = treeStatusSheet?.tree.id || metricsSheet?.id;
   const { data: treeSurvival, refetch: refetchSurvival } = useQuery({
     queryKey: ["treeSurvival", survivalTreeId],
     queryFn: async () => {
@@ -468,7 +468,7 @@ export const StakeholderOrders = () => {
     enabled: !!survivalTreeId,
   });
 
-  const growthTreeId = treeStatusSheet?.tree.id || growthSheet?.id;
+  const growthTreeId = treeStatusSheet?.tree.id || metricsSheet?.id;
   const { data: treeGrowth, refetch: refetchGrowth } = useQuery({
     queryKey: ["treeGrowth", growthTreeId],
     queryFn: async () => {
@@ -1294,22 +1294,23 @@ export const StakeholderOrders = () => {
                                                           Tree Status & Info
                                                         </DropdownMenuItem>
                                                         {tree.planting_status === 'planted' ? (
-                                                          <>
-                                                            <DropdownMenuItem onClick={() => {
-                                                              setSurvivalSheet(tree);
-                                                              setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                                                            }}>
-                                                              <Activity className="h-3.5 w-3.5 mr-2" />
-                                                              Survival Tracking
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => {
-                                                              setGrowthSheet(tree);
-                                                              setGrowthForm({ growth_stage: 'sapling', tree_height: '', height_unit: 'cm', tree_age: '', age_unit: 'months', photos: '', last_measured_date: '', notes: '' });
-                                                            }}>
-                                                              <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                              Growth Metrics
-                                                            </DropdownMenuItem>
-                                                          </>
+                                                          <DropdownMenuItem onClick={() => {
+                                                            setMetricsSheet(tree);
+                                                            setMetricsForm({
+                                                              checked_date: new Date().toISOString().split('T')[0],
+                                                              survival_status: 'Alive',
+                                                              survival_rate: '',
+                                                              growth_stage: 'sapling',
+                                                              tree_age: '',
+                                                              age_unit: 'months',
+                                                              tree_height: '',
+                                                              height_unit: 'cm',
+                                                              notes: '',
+                                                            });
+                                                          }}>
+                                                            <Activity className="h-3.5 w-3.5 mr-2" />
+                                                            Survival & Growth Metrics
+                                                          </DropdownMenuItem>
                                                         ) : (
                                                           <TooltipProvider>
                                                             <Tooltip>
@@ -1317,11 +1318,7 @@ export const StakeholderOrders = () => {
                                                                 <div>
                                                                   <DropdownMenuItem disabled className="opacity-50">
                                                                     <Activity className="h-3.5 w-3.5 mr-2" />
-                                                                    Survival Tracking
-                                                                  </DropdownMenuItem>
-                                                                  <DropdownMenuItem disabled className="opacity-50">
-                                                                    <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                                    Growth Metrics
+                                                                    Survival & Growth Metrics
                                                                   </DropdownMenuItem>
                                                                 </div>
                                                               </TooltipTrigger>
