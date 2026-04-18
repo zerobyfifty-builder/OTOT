@@ -195,12 +195,16 @@ export function StakeholderMdmPlanters() {
       id_number: item.id_number || '',
       planter_type: item.planter_type || 'Community Farmer',
       gender: item.gender || 'Male',
+      marital_status: item.marital_status || 'Unmarried',
+      number_of_kids: item.number_of_kids != null ? String(item.number_of_kids) : '',
+      experience_years: item.experience_years != null ? String(item.experience_years) : '',
       phone: item.phone || '',
       email: item.email || '',
       cbo_nursery_id: item.cbo_nursery_id || '',
       county: item.county || '',
       sub_county: item.sub_county || '',
       date_registered: item.date_registered || new Date().toISOString().split('T')[0],
+      photo_url: item.photo_url || '',
       notes: item.notes || '',
     });
     setEditingId(item.id);
