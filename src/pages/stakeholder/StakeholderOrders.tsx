@@ -2533,10 +2533,19 @@ export const StakeholderOrders = () => {
                         }
                         if (!carerBio && td.tree_carer_bio) carerBio = td.tree_carer_bio;
                       });
+
+                      // Prefer registry data when available
+                      const displayName = (assignedCarer as any)?.name || carerName;
+                      const displayPhoto = (assignedCarer as any)?.photo_url || carerPhoto;
+                      const maritalStatus = (assignedCarer as any)?.marital_status || null;
+                      const numberOfKids = (assignedCarer as any)?.number_of_kids;
+                      const experienceYears = (assignedCarer as any)?.experience_years;
+                      const dateRegistered = (assignedCarer as any)?.date_registered || null;
+
                       return (
                         <div className="space-y-4 pt-2">
                           <h4 className="text-sm font-semibold text-center text-foreground">Your tree carer</h4>
-                          {!carerPhoto && !carerName ? (
+                          {!displayPhoto && !displayName ? (
                             <div className="rounded-lg border bg-muted/30 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground">
                               <User className="h-10 w-10 opacity-40" />
                               <p className="text-sm italic">No carer assigned yet.</p>
@@ -2544,12 +2553,12 @@ export const StakeholderOrders = () => {
                           ) : (
                             <>
                               <div className="relative rounded-lg overflow-hidden bg-muted/30 aspect-square">
-                                {carerPhoto ? (
+                                {displayPhoto ? (
                                   <img
-                                    src={carerPhoto}
-                                    alt={carerName || 'Tree carer'}
+                                    src={displayPhoto}
+                                    alt={displayName || 'Tree carer'}
                                     className="w-full h-full object-cover cursor-pointer"
-                                    onClick={() => setLightboxPhoto(carerPhoto!)}
+                                    onClick={() => setLightboxPhoto(displayPhoto!)}
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
@@ -2558,16 +2567,22 @@ export const StakeholderOrders = () => {
                                 )}
                               </div>
                               <div className="space-y-2">
-                                <h3 className="text-lg font-bold text-foreground">{carerName || 'Tree Carer'}</h3>
+                                <h3 className="text-lg font-bold text-foreground">{displayName || 'Tree Carer'}</h3>
                                 {carerBio && (
                                   <p className="text-sm text-muted-foreground leading-relaxed">{carerBio}</p>
                                 )}
                               </div>
                               <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm border-t pt-3">
+                                <span className="text-muted-foreground">Marital Status:</span>
+                                <span className="font-medium">{maritalStatus || '—'}</span>
+                                <span className="text-muted-foreground">Children:</span>
+                                <span className="font-medium">{numberOfKids != null ? numberOfKids : '—'}</span>
+                                <span className="text-muted-foreground">Experience:</span>
+                                <span className="font-medium">{experienceYears != null ? `${experienceYears} ${experienceYears === 1 ? 'year' : 'years'}` : '—'}</span>
                                 <span className="text-muted-foreground">Uploaded:</span>
-                                <span className="font-medium">{uploadedAt ? format(new Date(uploadedAt), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="font-medium">{dateRegistered ? format(new Date(dateRegistered), "dd MMM yyyy") : (uploadedAt ? format(new Date(uploadedAt), "dd MMM yyyy, hh:mm a") : '—')}</span>
                                 <span className="text-muted-foreground">Uploaded by:</span>
-                                <span className="font-medium">{uploadedBy || '—'}</span>
+                                <span className="font-medium">{uploadedBy || 'Field team'}</span>
                               </div>
                             </>
                           )}
