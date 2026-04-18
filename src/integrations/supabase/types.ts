@@ -2264,6 +2264,7 @@ export type Database = {
           created_at: string | null
           date_registered: string | null
           email: string | null
+          experience_years: number | null
           gender: string
           id: string
           id_number: string | null
@@ -2272,6 +2273,7 @@ export type Database = {
           notes: string | null
           number_of_kids: number | null
           phone: string | null
+          photo_url: string | null
           planter_type: string | null
           status: string
           sub_county: string | null
@@ -2287,6 +2289,7 @@ export type Database = {
           created_at?: string | null
           date_registered?: string | null
           email?: string | null
+          experience_years?: number | null
           gender: string
           id?: string
           id_number?: string | null
@@ -2295,6 +2298,7 @@ export type Database = {
           notes?: string | null
           number_of_kids?: number | null
           phone?: string | null
+          photo_url?: string | null
           planter_type?: string | null
           status?: string
           sub_county?: string | null
@@ -2310,6 +2314,7 @@ export type Database = {
           created_at?: string | null
           date_registered?: string | null
           email?: string | null
+          experience_years?: number | null
           gender?: string
           id?: string
           id_number?: string | null
@@ -2318,6 +2323,7 @@ export type Database = {
           notes?: string | null
           number_of_kids?: number | null
           phone?: string | null
+          photo_url?: string | null
           planter_type?: string | null
           status?: string
           sub_county?: string | null

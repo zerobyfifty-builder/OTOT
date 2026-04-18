@@ -16,30 +16,36 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Search, Plus, Users, User, CheckCircle2, XCircle, MoreHorizontal,
-  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight
+  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2
 } from 'lucide-react';
 
 const PLANTER_TYPES = ['KFS Staff', 'Community Farmer', 'CBO Member', 'Youth Group', 'School Group', 'Private'];
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const MARITAL_STATUSES = ['Married', 'Unmarried'];
 
 interface PlanterForm {
   name: string;
   id_number: string;
   planter_type: string;
   gender: string;
+  marital_status: string;
+  number_of_kids: string;
+  experience_years: string;
   phone: string;
   email: string;
   cbo_nursery_id: string;
   county: string;
   sub_county: string;
   date_registered: string;
+  photo_url: string;
   notes: string;
 }
 
 const emptyForm: PlanterForm = {
   name: '', id_number: '', planter_type: 'Community Farmer', gender: 'Male',
+  marital_status: 'Unmarried', number_of_kids: '', experience_years: '',
   phone: '', email: '', cbo_nursery_id: '', county: '', sub_county: '',
-  date_registered: new Date().toISOString().split('T')[0], notes: '',
+  date_registered: new Date().toISOString().split('T')[0], photo_url: '', notes: '',
 };
 
 export function StakeholderMdmPlanters() {
