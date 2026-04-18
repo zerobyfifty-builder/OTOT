@@ -2334,7 +2334,7 @@ export const StakeholderOrders = () => {
                                     className="h-7 text-xs"
                                     onClick={() => {
                                       navigator.clipboard.writeText(`${treeGeotag.latitude}, ${treeGeotag.longitude}`);
-                                      toast({ title: "Coordinates copied" });
+                                      toast.success("Coordinates copied");
                                     }}
                                   >
                                     <Copy className="h-3 w-3 mr-1.5" /> Copy coords
