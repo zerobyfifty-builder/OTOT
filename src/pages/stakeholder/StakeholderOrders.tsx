@@ -1296,22 +1296,36 @@ export const StakeholderOrders = () => {
                                                           Tree Status & Info
                                                         </DropdownMenuItem>
                                                         {tree.planting_status === 'planted' ? (
-                                                          <DropdownMenuItem onClick={() => {
-                                                            setGrowthSheet(tree);
-                                                            setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                                                            setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
-                                                          }}>
-                                                            <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                            Growth Metrics
-                                                          </DropdownMenuItem>
+                                                          <>
+                                                            <DropdownMenuItem onClick={() => {
+                                                              setSurvivalSheet(tree);
+                                                              setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                                                            }}>
+                                                              <Activity className="h-3.5 w-3.5 mr-2" />
+                                                              Survival Tracking
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => {
+                                                              setGrowthSheet(tree);
+                                                              setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                            }}>
+                                                              <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                              Growth Metrics
+                                                            </DropdownMenuItem>
+                                                          </>
                                                         ) : (
                                                           <TooltipProvider>
                                                             <Tooltip>
                                                               <TooltipTrigger asChild>
-                                                                <DropdownMenuItem disabled className="opacity-50">
-                                                                  <TrendingUp className="h-3.5 w-3.5 mr-2" />
-                                                                  Growth Metrics
-                                                                </DropdownMenuItem>
+                                                                <div>
+                                                                  <DropdownMenuItem disabled className="opacity-50">
+                                                                    <Activity className="h-3.5 w-3.5 mr-2" />
+                                                                    Survival Tracking
+                                                                  </DropdownMenuItem>
+                                                                  <DropdownMenuItem disabled className="opacity-50">
+                                                                    <TrendingUp className="h-3.5 w-3.5 mr-2" />
+                                                                    Growth Metrics
+                                                                  </DropdownMenuItem>
+                                                                </div>
                                                               </TooltipTrigger>
                                                               <TooltipContent><p>Tree not yet planted</p></TooltipContent>
                                                             </Tooltip>
