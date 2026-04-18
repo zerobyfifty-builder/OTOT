@@ -2521,19 +2521,6 @@ export const StakeholderOrders = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Growth Data Entry Sheet */}
-      <Sheet open={!!growthSheet} onOpenChange={(open) => !open && setGrowthSheet(null)}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          {growthSheet && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Growth Metrics
-                </SheetTitle>
-                <p className="text-sm text-muted-foreground">Tree: {growthSheet.otot_id}</p>
-              </SheetHeader>
-
       {/* Growth Metrics Sheet */}
       <Sheet open={!!growthSheet} onOpenChange={(open) => !open && setGrowthSheet(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
