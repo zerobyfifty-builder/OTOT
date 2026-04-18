@@ -437,7 +437,7 @@ export const StakeholderOrders = () => {
   });
 
   // Tree-level queries for Tree Status & Info
-  const treeStatusTreeId = treeStatusSheet?.tree.id || geotagDialog?.id || growthSheet?.id;
+  const treeStatusTreeId = treeStatusSheet?.tree.id || geotagDialog?.id || metricsSheet?.id;
   
   const { data: treeGeotag, refetch: refetchGeotag } = useQuery({
     queryKey: ["treeGeotag", treeStatusTreeId],
