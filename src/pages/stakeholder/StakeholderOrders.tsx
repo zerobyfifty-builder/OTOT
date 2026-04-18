@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink, User, ImageIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -288,6 +288,7 @@ export const StakeholderOrders = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [treePhotoIdx, setTreePhotoIdx] = useState(0);
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
@@ -2171,10 +2172,12 @@ export const StakeholderOrders = () => {
                 </SheetHeader>
 
                 <Tabs defaultValue="planting" className="mt-4">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="planting">Planting</TabsTrigger>
-                    <TabsTrigger value="tracking">Location</TabsTrigger>
-                    <TabsTrigger value="growth">Survival & Growth</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-5">
+                    <TabsTrigger value="planting" className="text-xs">Status</TabsTrigger>
+                    <TabsTrigger value="tree" className="text-xs">Tree</TabsTrigger>
+                    <TabsTrigger value="tracking" className="text-xs">Location</TabsTrigger>
+                    <TabsTrigger value="carer" className="text-xs">Carer</TabsTrigger>
+                    <TabsTrigger value="growth" className="text-xs">Metrics</TabsTrigger>
                   </TabsList>
 
                   {/* Planting Tab - same status timeline from batch */}
@@ -2273,6 +2276,98 @@ export const StakeholderOrders = () => {
                         })}
                       </Accordion>
                     </div>
+                  </TabsContent>
+
+                  {/* Tree Tab - Photo carousel */}
+                  <TabsContent value="tree">
+                    {(() => {
+                      const photos: Array<{ url: string; uploaded_at?: string; uploaded_by?: string; label?: string }> = [];
+                      (treeTransitions || []).forEach((t: any) => {
+                        (t.photos || []).forEach((url: string) => {
+                          photos.push({
+                            url,
+                            uploaded_at: t.created_at,
+                            uploaded_by: t.transition_data?.assigned_to_name || t.transition_data?.planter_name || t.transition_data?.tree_carer_name || 'Field team',
+                            label: STATUS_LABELS[t.to_status] || t.to_status,
+                          });
+                        });
+                      });
+                      const total = photos.length;
+                      const safeIdx = total > 0 ? Math.min(treePhotoIdx, total - 1) : 0;
+                      const current = photos[safeIdx];
+                      return (
+                        <div className="space-y-4 pt-2">
+                          <h4 className="text-sm font-semibold text-center text-foreground">Your tree</h4>
+                          {total === 0 ? (
+                            <div className="rounded-lg border bg-muted/30 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                              <ImageIcon className="h-10 w-10 opacity-40" />
+                              <p className="text-sm italic">No tree photos uploaded yet.</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="relative rounded-lg overflow-hidden bg-muted/30 aspect-square">
+                                <img
+                                  src={current.url}
+                                  alt={`Tree photo ${safeIdx + 1}`}
+                                  className="w-full h-full object-cover cursor-pointer"
+                                  onClick={() => setLightboxPhoto(current.url)}
+                                />
+                                <div className="absolute top-3 right-3">
+                                  <Badge className="bg-primary text-primary-foreground border-0 uppercase text-[10px] tracking-wider px-2.5 py-1">
+                                    Your Tree
+                                  </Badge>
+                                </div>
+                                {total > 1 && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx((i) => (i - 1 + total) % total)}
+                                      className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/90 hover:bg-background shadow-md flex items-center justify-center transition-colors"
+                                      aria-label="Previous photo"
+                                    >
+                                      <ChevronLeft className="h-4 w-4 text-foreground" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx((i) => (i + 1) % total)}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/90 hover:bg-background shadow-md flex items-center justify-center transition-colors"
+                                      aria-label="Next photo"
+                                    >
+                                      <ChevronRight className="h-4 w-4 text-foreground" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                              {total > 1 && (
+                                <div className="flex justify-center gap-1.5">
+                                  {photos.map((_, i) => (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx(i)}
+                                      className={`h-1.5 rounded-full transition-all ${i === safeIdx ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/30'}`}
+                                      aria-label={`Go to photo ${i + 1}`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm pt-1">
+                                {current.label && (
+                                  <>
+                                    <span className="text-muted-foreground">Stage:</span>
+                                    <span className="font-medium">{current.label}</span>
+                                  </>
+                                )}
+                                <span className="text-muted-foreground">Uploaded:</span>
+                                <span className="font-medium">{current.uploaded_at ? format(new Date(current.uploaded_at), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="text-muted-foreground">Uploaded by:</span>
+                                <span className="font-medium">{current.uploaded_by || '—'}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TabsContent>
 
                   {/* Tracking Tab - Geotag data */}
@@ -2395,11 +2490,73 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
+                  {/* Carer Tab - Tree carer profile */}
+                  <TabsContent value="carer">
+                    {(() => {
+                      // Look for carer info in transitions
+                      let carerName: string | null = null;
+                      let carerPhoto: string | null = null;
+                      let uploadedAt: string | null = null;
+                      let uploadedBy: string | null = null;
+                      let carerBio: string | null = null;
+                      (treeTransitions || []).forEach((t: any) => {
+                        const td = t.transition_data || {};
+                        if (!carerName) carerName = td.tree_carer_name || td.assigned_to_name || td.planter_name || null;
+                        if (!carerPhoto && (td.tree_carer_photo || td.carer_photo)) {
+                          carerPhoto = td.tree_carer_photo || td.carer_photo;
+                          uploadedAt = t.created_at;
+                          uploadedBy = td.assigned_to_name || 'Field team';
+                        }
+                        if (!carerBio && td.tree_carer_bio) carerBio = td.tree_carer_bio;
+                      });
+                      return (
+                        <div className="space-y-4 pt-2">
+                          <h4 className="text-sm font-semibold text-center text-foreground">Your tree carer</h4>
+                          {!carerPhoto && !carerName ? (
+                            <div className="rounded-lg border bg-muted/30 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                              <User className="h-10 w-10 opacity-40" />
+                              <p className="text-sm italic">No carer assigned yet.</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="relative rounded-lg overflow-hidden bg-muted/30 aspect-square">
+                                {carerPhoto ? (
+                                  <img
+                                    src={carerPhoto}
+                                    alt={carerName || 'Tree carer'}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    onClick={() => setLightboxPhoto(carerPhoto!)}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <User className="h-20 w-20 text-muted-foreground/40" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <h3 className="text-lg font-bold text-foreground">{carerName || 'Tree Carer'}</h3>
+                                {carerBio && (
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{carerBio}</p>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm border-t pt-3">
+                                <span className="text-muted-foreground">Uploaded:</span>
+                                <span className="font-medium">{uploadedAt ? format(new Date(uploadedAt), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="text-muted-foreground">Uploaded by:</span>
+                                <span className="font-medium">{uploadedBy || '—'}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TabsContent>
+
                   {/* Survival & Growth Tab - merged logs table */}
                   <TabsContent value="growth">
                     <div className="space-y-3 pt-2">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" /> Survival & Growth Logs
+                        <TrendingUp className="h-4 w-4" /> Survival & Growth Metrics
                       </h4>
                       {(() => {
                         const byDate = new Map<string, any>();
