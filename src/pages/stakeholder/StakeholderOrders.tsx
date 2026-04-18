@@ -274,6 +274,7 @@ export const StakeholderOrders = () => {
   const [geotagDialog, setGeotagDialog] = useState<Tree | null>(null);
   const [geotagForm, setGeotagForm] = useState({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
   const [growthSheet, setGrowthSheet] = useState<Tree | null>(null);
+  const [survivalSheet, setSurvivalSheet] = useState<Tree | null>(null);
   const [survivalForm, setSurvivalForm] = useState({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
   const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
   
@@ -438,32 +439,34 @@ export const StakeholderOrders = () => {
     enabled: !!treeStatusTreeId,
   });
 
+  const survivalTreeId = treeStatusSheet?.tree.id || survivalSheet?.id;
   const { data: treeSurvival, refetch: refetchSurvival } = useQuery({
-    queryKey: ["treeSurvival", treeStatusSheet?.tree.id],
+    queryKey: ["treeSurvival", survivalTreeId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_survival_tracking" as any)
         .select("*")
-        .eq("tree_id", treeStatusSheet!.tree.id)
+        .eq("tree_id", survivalTreeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
-    enabled: !!treeStatusSheet?.tree.id,
+    enabled: !!survivalTreeId,
   });
 
+  const growthTreeId = treeStatusSheet?.tree.id || growthSheet?.id;
   const { data: treeGrowth, refetch: refetchGrowth } = useQuery({
-    queryKey: ["treeGrowth", treeStatusSheet?.tree.id],
+    queryKey: ["treeGrowth", growthTreeId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_growth_metrics" as any)
         .select("*")
-        .eq("tree_id", treeStatusSheet!.tree.id)
+        .eq("tree_id", growthTreeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
-    enabled: !!treeStatusSheet?.tree.id,
+    enabled: !!growthTreeId,
   });
 
   // Check geotag status for all trees displayed
