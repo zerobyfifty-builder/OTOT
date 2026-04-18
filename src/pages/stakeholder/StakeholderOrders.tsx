@@ -510,6 +510,7 @@ export const StakeholderOrders = () => {
       return map;
     },
     enabled: allTreeIds.length > 0,
+    structuralSharing: false,
   });
 
   // Fetch latest growth stage for all trees
@@ -531,6 +532,7 @@ export const StakeholderOrders = () => {
       return map;
     },
     enabled: allTreeIds.length > 0,
+    structuralSharing: false,
   });
 
   const updateStatus = useMutation({
@@ -1190,13 +1192,12 @@ export const StakeholderOrders = () => {
                                          <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
-                                          <TableHead className="text-xs">Trees</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
                                           <TableHead className="text-xs">Growth Stage</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
                                           <TableHead className="text-xs">Track</TableHead>
-                                          {isPlantationType && <TableHead className="text-xs">Geotag</TableHead>}
+                                          <TableHead className="text-xs">Geotag</TableHead>
                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
@@ -1210,9 +1211,8 @@ export const StakeholderOrders = () => {
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                                <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
-                                                <TableCell>{tree.num_trees}</TableCell>
-                                                <TableCell>
+                                                 <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                     {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                   </Badge>
@@ -1260,32 +1260,30 @@ export const StakeholderOrders = () => {
                                                     <MapPin className="h-4 w-4 text-muted-foreground/40" />
                                                   )}
                                                 </TableCell>
-                                                {isPlantationType && (
-                                                <TableCell>
-                                                  {tree.planting_status === 'planted' ? (
-                                                    <Switch
-                                                      checked={hasGeotag}
-                                                      onCheckedChange={() => {
-                                                        if (!hasGeotag) {
-                                                          setGeotagDialog(tree);
-                                                          setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-                                                        }
-                                                      }}
-                                                      disabled={hasGeotag}
-                                                      className="data-[state=checked]:bg-green-500"
-                                                    />
-                                                  ) : (
-                                                    <TooltipProvider>
-                                                      <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                          <Switch checked={false} disabled className="opacity-50" />
-                                                        </TooltipTrigger>
-                                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
-                                                      </Tooltip>
-                                                    </TooltipProvider>
-                                                  )}
-                                                </TableCell>
-                                                )}
+                                                 <TableCell>
+                                                   {tree.planting_status === 'planted' ? (
+                                                     <Switch
+                                                       checked={hasGeotag}
+                                                       onCheckedChange={() => {
+                                                         if (!hasGeotag) {
+                                                           setGeotagDialog(tree);
+                                                           setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                         }
+                                                       }}
+                                                       disabled={hasGeotag}
+                                                       className="data-[state=checked]:bg-green-500"
+                                                     />
+                                                   ) : (
+                                                     <TooltipProvider>
+                                                       <Tooltip>
+                                                         <TooltipTrigger asChild>
+                                                           <Switch checked={false} disabled className="opacity-50" />
+                                                         </TooltipTrigger>
+                                                         <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                       </Tooltip>
+                                                     </TooltipProvider>
+                                                   )}
+                                                 </TableCell>
                                                 <TableCell>
                                                   {isPlantationType ? (
                                                     <DropdownMenu>
@@ -1354,9 +1352,8 @@ export const StakeholderOrders = () => {
                                             return (
                                               <TableRow key={`placeholder-${index}`} className="opacity-60">
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
-                                                <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
-                                                <TableCell>1</TableCell>
-                                                <TableCell>
+                                                 <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
+                                                 <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
@@ -1364,9 +1361,9 @@ export const StakeholderOrders = () => {
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
-                                                <TableCell><MapPin className="h-4 w-4 text-muted-foreground/40" /></TableCell>
-                                                {isPlantationType && <TableCell>-</TableCell>}
-                                                <TableCell></TableCell>
+                                                 <TableCell><MapPin className="h-4 w-4 text-muted-foreground/40" /></TableCell>
+                                                 <TableCell>-</TableCell>
+                                                 <TableCell></TableCell>
                                               </TableRow>
                                             );
                                           }
