@@ -2581,6 +2581,7 @@ export const StakeholderOrders = () => {
                 if (error) { toast.error(error.message); return; }
                 toast.success("Geotag saved");
                 queryClient.invalidateQueries({ queryKey: ["allGeotags"] });
+                queryClient.invalidateQueries({ queryKey: ["treeGeotag"] });
                 refetchGeotag();
                 setGeotagDialog(null);
               }}
