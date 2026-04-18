@@ -2582,7 +2582,266 @@ export const StakeholderOrders = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Growth Metrics Sheet */}
+      {/* Survival & Growth Metrics Sheet */}
+      <Sheet open={!!metricsSheet} onOpenChange={(open) => !open && setMetricsSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {metricsSheet && (() => {
+            // Merge survival + growth records by date for combined log table
+            const combinedLogs: Array<{
+              key: string;
+              date: string;
+              survival_status?: string;
+              survival_rate?: number | null;
+              growth_stage?: string;
+              tree_age?: string | null;
+              tree_height?: string | null;
+              notes?: string | null;
+            }> = [];
+            const byDate = new Map<string, any>();
+            (treeSurvival || []).forEach((s: any) => {
+              const d = s.last_checked_date;
+              if (!d) return;
+              if (!byDate.has(d)) byDate.set(d, { key: d, date: d });
+              const entry = byDate.get(d);
+              entry.survival_status = s.survival_status;
+              entry.survival_rate = s.survival_rate;
+              entry.notes = entry.notes || s.notes;
+            });
+            (treeGrowth || []).forEach((g: any) => {
+              const d = g.last_measured_date;
+              if (!d) return;
+              if (!byDate.has(d)) byDate.set(d, { key: d, date: d });
+              const entry = byDate.get(d);
+              entry.growth_stage = g.growth_stage;
+              entry.tree_age = g.tree_age;
+              entry.tree_height = g.tree_height;
+              entry.notes = entry.notes || g.notes;
+            });
+            const logs = Array.from(byDate.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
+            const totalLogs = logs.length;
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    Survival & Growth Metrics
+                  </SheetTitle>
+                  <p className="text-sm text-muted-foreground">Tree: {metricsSheet.otot_id}</p>
+                </SheetHeader>
+
+                <Tabs defaultValue="new" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="new">New Log</TabsTrigger>
+                    <TabsTrigger value="previous">Previous Logs ({totalLogs})</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="new">
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-1.5">
+                        <Label>Checked Date *</Label>
+                        <Input
+                          type="date"
+                          max={new Date().toISOString().split('T')[0]}
+                          value={metricsForm.checked_date}
+                          onChange={(e) => setMetricsForm(f => ({ ...f, checked_date: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Survival Status *</Label>
+                        <Select value={metricsForm.survival_status} onValueChange={(v) => setMetricsForm(f => ({ ...f, survival_status: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Alive">Alive</SelectItem>
+                            <SelectItem value="Dead">Dead</SelectItem>
+                            <SelectItem value="Replaced">Replaced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Survival Rate (%)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={metricsForm.survival_rate}
+                          onChange={(e) => setMetricsForm(f => ({ ...f, survival_rate: e.target.value }))}
+                          placeholder="e.g. 85"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Growth Stage *</Label>
+                        <Select value={metricsForm.growth_stage} onValueChange={(v) => setMetricsForm(f => ({ ...f, growth_stage: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sapling">Sapling</SelectItem>
+                            <SelectItem value="young">Young</SelectItem>
+                            <SelectItem value="mature">Mature</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Tree Age</Label>
+                        <div className="grid grid-cols-[1fr_110px] gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={metricsForm.tree_age}
+                            onChange={(e) => setMetricsForm(f => ({ ...f, tree_age: e.target.value }))}
+                            placeholder="e.g. 18"
+                          />
+                          <Select value={metricsForm.age_unit} onValueChange={(v) => setMetricsForm(f => ({ ...f, age_unit: v }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="months">Months</SelectItem>
+                              <SelectItem value="years">Years</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Tree Height</Label>
+                        <div className="grid grid-cols-[1fr_110px] gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={metricsForm.tree_height}
+                            onChange={(e) => setMetricsForm(f => ({ ...f, tree_height: e.target.value }))}
+                            placeholder="e.g. 150"
+                          />
+                          <Select value={metricsForm.height_unit} onValueChange={(v) => setMetricsForm(f => ({ ...f, height_unit: v }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cm">cm</SelectItem>
+                              <SelectItem value="m">m</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Notes</Label>
+                        <Textarea
+                          value={metricsForm.notes}
+                          onChange={(e) => setMetricsForm(f => ({ ...f, notes: e.target.value }))}
+                          placeholder="Observations..."
+                          rows={3}
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        disabled={!metricsForm.checked_date}
+                        onClick={async () => {
+                          const heightNum = metricsForm.tree_height ? parseFloat(metricsForm.tree_height) : null;
+                          const ageNum = metricsForm.tree_age ? parseFloat(metricsForm.tree_age) : null;
+                          const heightCm = heightNum != null ? (metricsForm.height_unit === 'm' ? heightNum * 100 : heightNum) : null;
+                          const ageMonths = ageNum != null ? Math.round(metricsForm.age_unit === 'years' ? ageNum * 12 : ageNum) : null;
+                          const heightDisplay = heightNum != null ? `${heightNum} ${metricsForm.height_unit}` : null;
+                          const ageDisplay = ageNum != null ? `${ageNum} ${metricsForm.age_unit}` : null;
+
+                          const [survivalRes, growthRes] = await Promise.all([
+                            supabase.from("tree_survival_tracking" as any).insert({
+                              tree_id: metricsSheet.id,
+                              survival_status: metricsForm.survival_status,
+                              survival_rate: metricsForm.survival_rate ? parseFloat(metricsForm.survival_rate) : null,
+                              last_checked_date: metricsForm.checked_date,
+                              notes: metricsForm.notes || null,
+                              created_by: user?.id || null,
+                            }),
+                            supabase.from("tree_growth_metrics" as any).insert({
+                              tree_id: metricsSheet.id,
+                              growth_stage: metricsForm.growth_stage,
+                              tree_height: heightDisplay,
+                              tree_age: ageDisplay,
+                              tree_height_cm: heightCm,
+                              tree_age_months: ageMonths,
+                              photos: [],
+                              last_measured_date: metricsForm.checked_date,
+                              notes: metricsForm.notes || null,
+                              created_by: user?.id || null,
+                            }),
+                          ]);
+                          if (survivalRes.error) { toast.error(survivalRes.error.message); return; }
+                          if (growthRes.error) { toast.error(growthRes.error.message); return; }
+                          toast.success("Survival & growth metrics saved");
+                          refetchSurvival();
+                          refetchGrowth();
+                          queryClient.invalidateQueries({ queryKey: ["allSurvivalStatuses"] });
+                          queryClient.invalidateQueries({ queryKey: ["allGrowthStages"] });
+                          setMetricsForm({
+                            checked_date: '',
+                            survival_status: 'Alive',
+                            survival_rate: '',
+                            growth_stage: 'sapling',
+                            tree_age: '',
+                            age_unit: 'months',
+                            tree_height: '',
+                            height_unit: 'cm',
+                            notes: '',
+                          });
+                        }}
+                      >
+                        Save Metrics
+                      </Button>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="previous">
+                    <div className="pt-2">
+                      {logs.length > 0 ? (
+                        <div className="rounded-md border overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/50">
+                                <TableHead className="text-[11px]">Date</TableHead>
+                                <TableHead className="text-[11px]">Survival</TableHead>
+                                <TableHead className="text-[11px] text-right">Rate</TableHead>
+                                <TableHead className="text-[11px]">Stage</TableHead>
+                                <TableHead className="text-[11px] text-right">Age</TableHead>
+                                <TableHead className="text-[11px] text-right">Height</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {logs.map((log) => (
+                                <TableRow key={log.key}>
+                                  <TableCell className="text-xs whitespace-nowrap">{format(new Date(log.date), "dd MMM yyyy")}</TableCell>
+                                  <TableCell>
+                                    {log.survival_status ? (
+                                      <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${log.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : log.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                        {log.survival_status}
+                                      </Badge>
+                                    ) : <span className="text-xs text-muted-foreground">—</span>}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-right tabular-nums">
+                                    {log.survival_rate != null ? `${log.survival_rate}%` : '—'}
+                                  </TableCell>
+                                  <TableCell>
+                                    {log.growth_stage ? (
+                                      <Badge variant="outline" className="text-[11px] px-1.5 py-0 border-primary/30 text-primary bg-primary/5 capitalize">
+                                        {log.growth_stage}
+                                      </Badge>
+                                    ) : <span className="text-xs text-muted-foreground">—</span>}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-right">{log.tree_age || '—'}</TableCell>
+                                  <TableCell className="text-xs text-right">{log.tree_height || '—'}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic text-center py-6">No metrics logged yet.</p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
+
       <Sheet open={!!growthSheet} onOpenChange={(open) => !open && setGrowthSheet(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           {growthSheet && (
