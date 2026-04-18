@@ -2177,9 +2177,10 @@ export const StakeholderOrders = () => {
                 </SheetHeader>
 
                 <Tabs defaultValue="planting" className="mt-4">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="planting">Planting</TabsTrigger>
-                    <TabsTrigger value="tracking">Tracking</TabsTrigger>
+                    <TabsTrigger value="tracking">Location</TabsTrigger>
+                    <TabsTrigger value="survival">Survival</TabsTrigger>
                     <TabsTrigger value="growth">Growth</TabsTrigger>
                   </TabsList>
 
@@ -2313,10 +2314,9 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
-                  {/* Growth Tab - Survival + Growth Metrics */}
-                  <TabsContent value="growth">
+                  {/* Survival Tab */}
+                  <TabsContent value="survival">
                     <div className="space-y-5 pt-2">
-                      {/* Survival Tracking Table */}
                       <div>
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
                           <Activity className="h-4 w-4" /> Survival Tracking
@@ -2351,10 +2351,12 @@ export const StakeholderOrders = () => {
                           <p className="text-sm text-muted-foreground italic text-center py-4">No survival records yet.</p>
                         )}
                       </div>
+                    </div>
+                  </TabsContent>
 
-                      <Separator />
-
-                      {/* Growth Metrics Table */}
+                  {/* Growth Tab */}
+                  <TabsContent value="growth">
+                    <div className="space-y-5 pt-2">
                       <div>
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-2">
                           <TrendingUp className="h-4 w-4" /> Growth Metrics
