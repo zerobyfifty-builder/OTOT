@@ -1206,9 +1206,10 @@ export const StakeholderOrders = () => {
                                         {displayRows.map((row, index) => {
                                           if (row.type === 'tree') {
                                             const tree = row.tree;
-                                            const hasGeotag = allGeotags?.has(tree.id) || false;
-                                            const survivalData = allSurvivalStatuses?.get(tree.id);
-                                            const growthData = allGrowthStages?.get(tree.id);
+                                            const geotagData = allGeotags?.[tree.id];
+                                            const hasGeotag = !!geotagData;
+                                            const survivalData = allSurvivalStatuses?.[tree.id];
+                                            const growthData = allGrowthStages?.[tree.id];
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
@@ -1244,8 +1245,8 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  {hasGeotag && allGeotags instanceof Map && allGeotags.get(tree.id) ? (() => {
-                                                    const geo = allGeotags.get(tree.id)!;
+                                                  {hasGeotag && geotagData ? (() => {
+                                                    const geo = geotagData;
                                                     return (
                                                       <a
                                                         href={`https://www.google.com/maps?q=${geo.latitude},${geo.longitude}`}
