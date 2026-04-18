@@ -472,69 +472,56 @@ export const StakeholderOrders = () => {
     enabled: !!growthTreeId,
   });
 
-  // Check geotag status for all trees displayed
-  const allTreeIds = useMemo(() => trees?.map((t) => t.id) || [], [trees]);
-  const allTreeIdsKey = useMemo(() => allTreeIds.slice().sort().join(","), [allTreeIds]);
+  // Fetch ALL geotags / survival / growth records (no .in() filter to avoid URL length limits with 600+ tree IDs)
   const { data: allGeotags } = useQuery({
-    queryKey: ["allGeotags", allTreeIdsKey],
+    queryKey: ["allGeotags"],
     queryFn: async () => {
-      if (allTreeIds.length === 0) return {} as Record<string, { latitude: number; longitude: number }>;
       const { data, error } = await supabase
         .from("tree_geotags" as any)
-        .select("tree_id, latitude, longitude")
-        .in("tree_id", allTreeIds);
+        .select("tree_id, latitude, longitude");
       if (error) throw error;
-      return (data || []).reduce((acc: Record<string, { latitude: number; longitude: number }>, g: any) => {
+      const acc: Record<string, { latitude: number; longitude: number }> = {};
+      (data || []).forEach((g: any) => {
         acc[g.tree_id] = { latitude: g.latitude, longitude: g.longitude };
-        return acc;
-      }, {});
+      });
+      return acc;
     },
-    enabled: allTreeIds.length > 0,
-    structuralSharing: false,
   });
 
-  // Fetch latest survival status for all trees
   const { data: allSurvivalStatuses } = useQuery({
-    queryKey: ["allSurvivalStatuses", allTreeIdsKey],
+    queryKey: ["allSurvivalStatuses"],
     queryFn: async () => {
-      if (allTreeIds.length === 0) return {} as Record<string, { survival_status: string; last_checked_date: string }>;
       const { data, error } = await supabase
         .from("tree_survival_tracking" as any)
         .select("tree_id, survival_status, last_checked_date")
-        .in("tree_id", allTreeIds)
         .order("last_checked_date", { ascending: false });
       if (error) throw error;
-      return (data || []).reduce((acc: Record<string, { survival_status: string; last_checked_date: string }>, r: any) => {
+      const acc: Record<string, { survival_status: string; last_checked_date: string }> = {};
+      (data || []).forEach((r: any) => {
         if (!acc[r.tree_id]) {
           acc[r.tree_id] = { survival_status: r.survival_status, last_checked_date: r.last_checked_date };
         }
-        return acc;
-      }, {});
+      });
+      return acc;
     },
-    enabled: allTreeIds.length > 0,
-    structuralSharing: false,
   });
 
-  // Fetch latest growth stage for all trees
   const { data: allGrowthStages } = useQuery({
-    queryKey: ["allGrowthStages", allTreeIdsKey],
+    queryKey: ["allGrowthStages"],
     queryFn: async () => {
-      if (allTreeIds.length === 0) return {} as Record<string, { growth_stage: string; last_measured_date: string }>;
       const { data, error } = await supabase
         .from("tree_growth_metrics" as any)
         .select("tree_id, growth_stage, last_measured_date")
-        .in("tree_id", allTreeIds)
         .order("last_measured_date", { ascending: false });
       if (error) throw error;
-      return (data || []).reduce((acc: Record<string, { growth_stage: string; last_measured_date: string }>, r: any) => {
+      const acc: Record<string, { growth_stage: string; last_measured_date: string }> = {};
+      (data || []).forEach((r: any) => {
         if (!acc[r.tree_id]) {
           acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date };
         }
-        return acc;
-      }, {});
+      });
+      return acc;
     },
-    enabled: allTreeIds.length > 0,
-    structuralSharing: false,
   });
 
   const updateStatus = useMutation({
