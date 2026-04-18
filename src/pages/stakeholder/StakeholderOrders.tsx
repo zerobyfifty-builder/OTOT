@@ -2795,9 +2795,9 @@ export const StakeholderOrders = () => {
                             <TableHeader>
                               <TableRow className="bg-muted/50">
                                 <TableHead className="text-[11px] px-2">Date</TableHead>
-                                <TableHead className="text-[11px] px-2">Survival</TableHead>
+                                <TableHead className="text-[11px] px-2">Survival Status</TableHead>
                                 <TableHead className="text-[11px] px-2">Stage</TableHead>
-                                <TableHead className="text-[11px] px-2 text-right">Rate</TableHead>
+                                <TableHead className="text-[11px] px-2 text-right">Survival Rate</TableHead>
                                 <TableHead className="text-[11px] px-2 text-right">Age</TableHead>
                                 <TableHead className="text-[11px] px-2 text-right">Height</TableHead>
                               </TableRow>
