@@ -16,30 +16,36 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Search, Plus, Users, User, CheckCircle2, XCircle, MoreHorizontal,
-  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight
+  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2
 } from 'lucide-react';
 
 const PLANTER_TYPES = ['KFS Staff', 'Community Farmer', 'CBO Member', 'Youth Group', 'School Group', 'Private'];
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const MARITAL_STATUSES = ['Married', 'Unmarried'];
 
 interface PlanterForm {
   name: string;
   id_number: string;
   planter_type: string;
   gender: string;
+  marital_status: string;
+  number_of_kids: string;
+  experience_years: string;
   phone: string;
   email: string;
   cbo_nursery_id: string;
   county: string;
   sub_county: string;
   date_registered: string;
+  photo_url: string;
   notes: string;
 }
 
 const emptyForm: PlanterForm = {
   name: '', id_number: '', planter_type: 'Community Farmer', gender: 'Male',
+  marital_status: 'Unmarried', number_of_kids: '', experience_years: '',
   phone: '', email: '', cbo_nursery_id: '', county: '', sub_county: '',
-  date_registered: new Date().toISOString().split('T')[0], notes: '',
+  date_registered: new Date().toISOString().split('T')[0], photo_url: '', notes: '',
 };
 
 export function StakeholderMdmPlanters() {
@@ -189,12 +195,16 @@ export function StakeholderMdmPlanters() {
       id_number: item.id_number || '',
       planter_type: item.planter_type || 'Community Farmer',
       gender: item.gender || 'Male',
+      marital_status: item.marital_status || 'Unmarried',
+      number_of_kids: item.number_of_kids != null ? String(item.number_of_kids) : '',
+      experience_years: item.experience_years != null ? String(item.experience_years) : '',
       phone: item.phone || '',
       email: item.email || '',
       cbo_nursery_id: item.cbo_nursery_id || '',
       county: item.county || '',
       sub_county: item.sub_county || '',
       date_registered: item.date_registered || new Date().toISOString().split('T')[0],
+      photo_url: item.photo_url || '',
       notes: item.notes || '',
     });
     setEditingId(item.id);
@@ -214,12 +224,16 @@ export function StakeholderMdmPlanters() {
         id_number: formData.id_number.trim() || null,
         planter_type: formData.planter_type,
         gender: formData.gender,
+        marital_status: formData.marital_status || null,
+        number_of_kids: formData.number_of_kids === '' ? null : Number(formData.number_of_kids),
+        experience_years: formData.experience_years === '' ? null : Number(formData.experience_years),
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         cbo_nursery_id: formData.cbo_nursery_id && formData.cbo_nursery_id !== 'none' ? formData.cbo_nursery_id : null,
         county: formData.county.trim() || null,
         sub_county: formData.sub_county.trim() || null,
         date_registered: formData.date_registered || null,
+        photo_url: formData.photo_url || null,
         notes: formData.notes.trim() || null,
         associated_partner_id: orgId,
       };
@@ -501,6 +515,25 @@ export function StakeholderMdmPlanters() {
                   </Select>
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">Marital Status</Label>
+                  <Select value={formData.marital_status} onValueChange={v => setFormData(p => ({ ...p, marital_status: v }))}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {MARITAL_STATUSES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Children</Label>
+                  <Input type="number" min="0" value={formData.number_of_kids} onChange={e => setFormData(p => ({ ...p, number_of_kids: e.target.value }))} placeholder="0" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Experience (Years)</Label>
+                  <Input type="number" min="0" value={formData.experience_years} onChange={e => setFormData(p => ({ ...p, experience_years: e.target.value }))} placeholder="0" className="h-9" />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Phone</Label>
@@ -531,13 +564,22 @@ export function StakeholderMdmPlanters() {
                   <Input value={formData.sub_county} onChange={e => setFormData(p => ({ ...p, sub_county: e.target.value }))} placeholder="e.g. Njoro" className="h-9" />
                 </div>
               </div>
-              <div>
-                <Label className="text-xs">Date Registered</Label>
-                <Input type="date" value={formData.date_registered} onChange={e => setFormData(p => ({ ...p, date_registered: e.target.value }))} className="h-9" />
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <Label className="text-xs">Date Registered</Label>
+                  <Input type="date" value={formData.date_registered} onChange={e => setFormData(p => ({ ...p, date_registered: e.target.value }))} className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Planter Photo</Label>
+                  <PlanterPhotoUpload
+                    value={formData.photo_url}
+                    onChange={(url) => setFormData(p => ({ ...p, photo_url: url }))}
+                  />
+                </div>
               </div>
               <div>
-                <Label className="text-xs">Notes</Label>
-                <Textarea value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes..." rows={3} />
+                <Label className="text-xs">About Planter</Label>
+                <Textarea value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} placeholder="Brief background about the planter..." rows={3} />
               </div>
               <div className="flex gap-2 pt-4">
                 <Button onClick={handleSave} className="flex-1">{editingId ? 'Update' : 'Add'} Planter</Button>
@@ -759,6 +801,54 @@ function BeatAssignmentInline({ planterId, planterBeats, beatNameMap, counties, 
         {beatId && <Button onClick={addBeatInline} size="sm" className="w-full gap-2"><Plus className="h-4 w-4" /> Assign Beat</Button>}
       </div>
     </div>
+  );
+}
+
+function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `planters/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('profile-photos').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
+      onChange(data.publicUrl);
+      toast.success('Photo uploaded');
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2 h-9">
+        <img src={value} alt="Planter" className="h-9 w-9 rounded-md object-cover border" />
+        <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => onChange('')}>
+          <Trash2 className="h-3.5 w-3.5" /> Remove
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <label className="inline-flex w-full">
+      <Button type="button" variant="outline" size="sm" className="h-9 gap-1 w-full" disabled={uploading} asChild>
+        <span className="cursor-pointer">
+          <Upload className="h-3.5 w-3.5" />
+          {uploading ? 'Uploading...' : 'Upload Photo'}
+        </span>
+      </Button>
+      <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+    </label>
   );
 }
 
