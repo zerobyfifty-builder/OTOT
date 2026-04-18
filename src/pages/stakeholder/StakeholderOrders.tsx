@@ -363,35 +363,38 @@ export const StakeholderOrders = () => {
 
   // Query latest transition dates for all trees (for Status Dt column)
   const { data: allTransitionDates } = useQuery({
-    queryKey: ["allTreeTransitionDates", trees?.map(t => t.id).join(",")],
+    queryKey: ["allTreeTransitionDates"],
     queryFn: async () => {
-      if (!trees || trees.length === 0) return {};
-      const treeIds = trees.map(t => t.id);
-      // Fetch all transitions ordered desc
+      // Fetch all transitions ordered desc (no .in filter to avoid URL length limits)
       const { data, error } = await supabase
         .from("tree_status_transitions" as any)
         .select("tree_id, to_status, created_at")
-        .in("tree_id", treeIds)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(10000);
       if (error) throw error;
-      // Build map: tree_id -> latest transition date matching current planting_status
+      // Build map: tree_id -> latest transition date (most recent transition wins)
       const dateMap: Record<string, string> = {};
       for (const row of (data || []) as any[]) {
-        const tree = trees.find(t => t.id === row.tree_id);
-        if (tree && row.to_status === (tree.planting_status || 'waiting_to_be_assigned') && !dateMap[row.tree_id]) {
+        if (!dateMap[row.tree_id]) {
           dateMap[row.tree_id] = row.created_at;
         }
       }
-      // Fallback for trees without transitions
+      return dateMap;
+    },
+  });
+
+  // Merge transition dates with fallback to tree updated_at/created_at
+  const allTransitionDatesWithFallback = useMemo(() => {
+    const dateMap: Record<string, string> = { ...(allTransitionDates || {}) };
+    if (trees) {
       for (const tree of trees) {
         if (!dateMap[tree.id]) {
           dateMap[tree.id] = tree.updated_at || tree.created_at;
         }
       }
-      return dateMap;
-    },
-    enabled: !!trees && trees.length > 0,
-  });
+    }
+    return dateMap;
+  }, [allTransitionDates, trees]);
 
   // Query monitoring logs for batch status & monitoring sheet
   const batchContribId = statusHistoryGroup?.contribution_id || monitoringSheet?.contribution_id;
@@ -581,7 +584,7 @@ export const StakeholderOrders = () => {
       const groupTrees = treesByContribution[contribId] || [];
       // Get the most recent status date from transition dates
       const treeDates = groupTrees
-        .map(t => allTransitionDates?.[t.id])
+        .map(t => allTransitionDatesWithFallback?.[t.id])
         .filter(Boolean) as string[];
       const latestStatusDate = treeDates.length > 0
         ? treeDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
@@ -606,7 +609,7 @@ export const StakeholderOrders = () => {
         status_date: latestStatusDate,
       };
     });
-  }, [contributions, treesByContribution, trips, allTransitionDates]);
+  }, [contributions, treesByContribution, trips, allTransitionDatesWithFallback]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
