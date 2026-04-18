@@ -2278,6 +2278,98 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
+                  {/* Tree Tab - Photo carousel */}
+                  <TabsContent value="tree">
+                    {(() => {
+                      const photos: Array<{ url: string; uploaded_at?: string; uploaded_by?: string; label?: string }> = [];
+                      (treeTransitions || []).forEach((t: any) => {
+                        (t.photos || []).forEach((url: string) => {
+                          photos.push({
+                            url,
+                            uploaded_at: t.created_at,
+                            uploaded_by: t.transition_data?.assigned_to_name || t.transition_data?.planter_name || t.transition_data?.tree_carer_name || 'Field team',
+                            label: STATUS_LABELS[t.to_status] || t.to_status,
+                          });
+                        });
+                      });
+                      const total = photos.length;
+                      const safeIdx = total > 0 ? Math.min(treePhotoIdx, total - 1) : 0;
+                      const current = photos[safeIdx];
+                      return (
+                        <div className="space-y-4 pt-2">
+                          <h4 className="text-sm font-semibold text-center text-foreground">Your tree</h4>
+                          {total === 0 ? (
+                            <div className="rounded-lg border bg-muted/30 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                              <ImageIcon className="h-10 w-10 opacity-40" />
+                              <p className="text-sm italic">No tree photos uploaded yet.</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="relative rounded-lg overflow-hidden bg-muted/30 aspect-square">
+                                <img
+                                  src={current.url}
+                                  alt={`Tree photo ${safeIdx + 1}`}
+                                  className="w-full h-full object-cover cursor-pointer"
+                                  onClick={() => setLightboxPhoto(current.url)}
+                                />
+                                <div className="absolute top-3 right-3">
+                                  <Badge className="bg-primary text-primary-foreground border-0 uppercase text-[10px] tracking-wider px-2.5 py-1">
+                                    Your Tree
+                                  </Badge>
+                                </div>
+                                {total > 1 && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx((i) => (i - 1 + total) % total)}
+                                      className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/90 hover:bg-background shadow-md flex items-center justify-center transition-colors"
+                                      aria-label="Previous photo"
+                                    >
+                                      <ChevronLeft className="h-4 w-4 text-foreground" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx((i) => (i + 1) % total)}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/90 hover:bg-background shadow-md flex items-center justify-center transition-colors"
+                                      aria-label="Next photo"
+                                    >
+                                      <ChevronRight className="h-4 w-4 text-foreground" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                              {total > 1 && (
+                                <div className="flex justify-center gap-1.5">
+                                  {photos.map((_, i) => (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onClick={() => setTreePhotoIdx(i)}
+                                      className={`h-1.5 rounded-full transition-all ${i === safeIdx ? 'w-6 bg-primary' : 'w-1.5 bg-muted-foreground/30'}`}
+                                      aria-label={`Go to photo ${i + 1}`}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm pt-1">
+                                {current.label && (
+                                  <>
+                                    <span className="text-muted-foreground">Stage:</span>
+                                    <span className="font-medium">{current.label}</span>
+                                  </>
+                                )}
+                                <span className="text-muted-foreground">Uploaded:</span>
+                                <span className="font-medium">{current.uploaded_at ? format(new Date(current.uploaded_at), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="text-muted-foreground">Uploaded by:</span>
+                                <span className="font-medium">{current.uploaded_by || '—'}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TabsContent>
+
                   {/* Tracking Tab - Geotag data */}
                   <TabsContent value="tracking">
                     <div className="space-y-4 pt-2">
