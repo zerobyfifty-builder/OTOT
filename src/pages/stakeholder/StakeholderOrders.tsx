@@ -2854,6 +2854,27 @@ export const StakeholderOrders = () => {
         </SheetContent>
       </Sheet>
 
+      {/* Expanded Map Dialog */}
+      <Dialog open={mapExpanded} onOpenChange={setMapExpanded}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Tree Location
+            </DialogTitle>
+          </DialogHeader>
+          {treeGeotag?.latitude != null && treeGeotag?.longitude != null && (
+            <div className="rounded-md border overflow-hidden" style={{ height: "70vh" }}>
+              <iframe
+                title="Tree location map expanded"
+                src={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}&z=17&output=embed&t=${mapKey}`}
+                className="w-full h-full border-0"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
 
       {lightboxPhoto && (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
