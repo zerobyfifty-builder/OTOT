@@ -2394,7 +2394,9 @@ export type Database = {
           notes: string | null
           photos: string[] | null
           tree_age: string | null
+          tree_age_months: number | null
           tree_height: string | null
+          tree_height_cm: number | null
           tree_id: string
         }
         Insert: {
@@ -2406,7 +2408,9 @@ export type Database = {
           notes?: string | null
           photos?: string[] | null
           tree_age?: string | null
+          tree_age_months?: number | null
           tree_height?: string | null
+          tree_height_cm?: number | null
           tree_id: string
         }
         Update: {
@@ -2418,7 +2422,9 @@ export type Database = {
           notes?: string | null
           photos?: string[] | null
           tree_age?: string | null
+          tree_age_months?: number | null
           tree_height?: string | null
+          tree_height_cm?: number | null
           tree_id?: string
         }
         Relationships: [
