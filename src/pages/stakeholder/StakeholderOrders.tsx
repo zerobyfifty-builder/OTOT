@@ -288,6 +288,7 @@ export const StakeholderOrders = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [treePhotoIdx, setTreePhotoIdx] = useState(0);
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
