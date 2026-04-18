@@ -1306,7 +1306,7 @@ export const StakeholderOrders = () => {
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => {
                                                               setGrowthSheet(tree);
-                                                              setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+                                                              setGrowthForm({ growth_stage: 'sapling', tree_height: '', height_unit: 'cm', tree_age: '', age_unit: 'months', photos: '', last_measured_date: '', notes: '' });
                                                             }}>
                                                               <TrendingUp className="h-3.5 w-3.5 mr-2" />
                                                               Growth Metrics
