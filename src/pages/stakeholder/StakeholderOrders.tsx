@@ -487,6 +487,7 @@ export const StakeholderOrders = () => {
       return map;
     },
     enabled: allTreeIds.length > 0,
+    structuralSharing: false,
   });
 
   // Fetch latest survival status for all trees
