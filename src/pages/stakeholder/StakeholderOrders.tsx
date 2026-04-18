@@ -2534,62 +2534,26 @@ export const StakeholderOrders = () => {
                 <p className="text-sm text-muted-foreground">Tree: {growthSheet.otot_id}</p>
               </SheetHeader>
 
-              <Tabs defaultValue="survival" className="mt-4">
+      {/* Growth Metrics Sheet */}
+      <Sheet open={!!growthSheet} onOpenChange={(open) => !open && setGrowthSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {growthSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Growth Metrics
+                </SheetTitle>
+                <p className="text-sm text-muted-foreground">Tree: {growthSheet.otot_id}</p>
+              </SheetHeader>
+
+              <Tabs defaultValue="new" className="mt-4">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="survival">Sapling Tracking</TabsTrigger>
-                  <TabsTrigger value="growth">Growth in Progress</TabsTrigger>
+                  <TabsTrigger value="new">New Log</TabsTrigger>
+                  <TabsTrigger value="previous">Previous Logs ({treeGrowth?.length || 0})</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="survival">
-                  <div className="space-y-4 pt-2">
-                    <div className="space-y-1.5">
-                      <Label>Survival Status *</Label>
-                      <Select value={survivalForm.survival_status} onValueChange={(v) => setSurvivalForm(f => ({ ...f, survival_status: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Alive">Alive</SelectItem>
-                          <SelectItem value="Dead">Dead</SelectItem>
-                          <SelectItem value="Replaced">Replaced</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Survival Rate (%)</Label>
-                      <Input type="number" min="0" max="100" value={survivalForm.survival_rate} onChange={(e) => setSurvivalForm(f => ({ ...f, survival_rate: e.target.value }))} placeholder="e.g. 85" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Last Checked Date *</Label>
-                      <Input type="date" value={survivalForm.last_checked_date} onChange={(e) => setSurvivalForm(f => ({ ...f, last_checked_date: e.target.value }))} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Notes</Label>
-                      <Textarea value={survivalForm.notes} onChange={(e) => setSurvivalForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observations..." rows={3} />
-                    </div>
-                    <Button
-                      className="w-full"
-                      disabled={!survivalForm.last_checked_date}
-                      onClick={async () => {
-                        const { error } = await supabase.from("tree_survival_tracking" as any).insert({
-                          tree_id: growthSheet.id,
-                          survival_status: survivalForm.survival_status,
-                          survival_rate: survivalForm.survival_rate ? parseFloat(survivalForm.survival_rate) : null,
-                          last_checked_date: survivalForm.last_checked_date,
-                          notes: survivalForm.notes || null,
-                          created_by: user?.id || null,
-                        });
-                        if (error) { toast.error(error.message); return; }
-                        toast.success("Survival data saved");
-                        refetchSurvival();
-                        queryClient.invalidateQueries({ queryKey: ["allSurvivalStatuses"] });
-                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-                      }}
-                    >
-                      Save Survival Record
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="growth">
+                <TabsContent value="new">
                   <div className="space-y-4 pt-2">
                     <div className="space-y-1.5">
                       <Label>Growth Stage *</Label>
@@ -2644,8 +2608,173 @@ export const StakeholderOrders = () => {
                         setGrowthForm({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
                       }}
                     >
-                      Save Growth Record
+                      Save Growth Log
                     </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="previous">
+                  <div className="pt-2">
+                    {treeGrowth && treeGrowth.length > 0 ? (
+                      <div className="rounded-md border overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-muted/50">
+                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Stage</th>
+                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Age</th>
+                              <th className="text-right px-3 py-2 font-medium text-muted-foreground">Height</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {treeGrowth.map((record: any) => (
+                              <React.Fragment key={record.id}>
+                                <tr>
+                                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                                    {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                                      {record.growth_stage}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-2">{record.tree_age || '-'}</td>
+                                  <td className="px-3 py-2 text-right font-medium">{record.tree_height || '-'}</td>
+                                </tr>
+                                {record.notes && (
+                                  <tr>
+                                    <td colSpan={4} className="px-3 pb-2 pt-0">
+                                      <p className="text-xs text-muted-foreground italic">{record.notes}</p>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic text-center py-6">No growth logs yet.</p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Survival Tracking Sheet */}
+      <Sheet open={!!survivalSheet} onOpenChange={(open) => !open && setSurvivalSheet(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          {survivalSheet && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-primary" />
+                  Survival Tracking
+                </SheetTitle>
+                <p className="text-sm text-muted-foreground">Tree: {survivalSheet.otot_id}</p>
+              </SheetHeader>
+
+              <Tabs defaultValue="new" className="mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="new">New Log</TabsTrigger>
+                  <TabsTrigger value="previous">Previous Logs ({treeSurvival?.length || 0})</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="new">
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-1.5">
+                      <Label>Survival Status *</Label>
+                      <Select value={survivalForm.survival_status} onValueChange={(v) => setSurvivalForm(f => ({ ...f, survival_status: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Alive">Alive</SelectItem>
+                          <SelectItem value="Dead">Dead</SelectItem>
+                          <SelectItem value="Replaced">Replaced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Survival Rate (%)</Label>
+                      <Input type="number" min="0" max="100" value={survivalForm.survival_rate} onChange={(e) => setSurvivalForm(f => ({ ...f, survival_rate: e.target.value }))} placeholder="e.g. 85" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Last Checked Date *</Label>
+                      <Input type="date" value={survivalForm.last_checked_date} onChange={(e) => setSurvivalForm(f => ({ ...f, last_checked_date: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Notes</Label>
+                      <Textarea value={survivalForm.notes} onChange={(e) => setSurvivalForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observations..." rows={3} />
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={!survivalForm.last_checked_date}
+                      onClick={async () => {
+                        const { error } = await supabase.from("tree_survival_tracking" as any).insert({
+                          tree_id: survivalSheet.id,
+                          survival_status: survivalForm.survival_status,
+                          survival_rate: survivalForm.survival_rate ? parseFloat(survivalForm.survival_rate) : null,
+                          last_checked_date: survivalForm.last_checked_date,
+                          notes: survivalForm.notes || null,
+                          created_by: user?.id || null,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Survival data saved");
+                        refetchSurvival();
+                        queryClient.invalidateQueries({ queryKey: ["allSurvivalStatuses"] });
+                        setSurvivalForm({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
+                      }}
+                    >
+                      Save Survival Log
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="previous">
+                  <div className="pt-2">
+                    {treeSurvival && treeSurvival.length > 0 ? (
+                      <div className="rounded-md border overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-muted/50">
+                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
+                              <th className="text-right px-3 py-2 font-medium text-muted-foreground">Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {treeSurvival.map((record: any) => (
+                              <React.Fragment key={record.id}>
+                                <tr>
+                                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                                    {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                      {record.survival_status}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-2 text-right font-medium tabular-nums">
+                                    {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
+                                  </td>
+                                </tr>
+                                {record.notes && (
+                                  <tr>
+                                    <td colSpan={3} className="px-3 pb-2 pt-0">
+                                      <p className="text-xs text-muted-foreground italic">{record.notes}</p>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic text-center py-6">No survival logs yet.</p>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
