@@ -2322,42 +2322,25 @@ export const StakeholderOrders = () => {
                           <Activity className="h-4 w-4" /> Survival Tracking
                         </h4>
                         {treeSurvival && treeSurvival.length > 0 ? (
-                          <div className="rounded-md border overflow-hidden">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b bg-muted/50">
-                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
-                                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Rate</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y">
-                                {treeSurvival.map((record: any) => (
-                                  <React.Fragment key={record.id}>
-                                    <tr>
-                                      <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                                        {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
-                                          {record.survival_status}
-                                        </Badge>
-                                      </td>
-                                      <td className="px-3 py-2 text-right font-medium tabular-nums">
-                                        {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
-                                      </td>
-                                    </tr>
-                                    {record.notes && (
-                                      <tr>
-                                        <td colSpan={3} className="px-3 pb-2 pt-0">
-                                          <p className="text-xs text-muted-foreground italic">{record.notes}</p>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </React.Fragment>
-                                ))}
-                              </tbody>
-                            </table>
+                          <div className="space-y-2">
+                            {treeSurvival.map((record: any) => (
+                              <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
+                                  </span>
+                                  <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                    {record.survival_status}
+                                  </Badge>
+                                  <span className="text-sm font-medium tabular-nums ml-auto">
+                                    {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
+                                  </span>
+                                </div>
+                                {record.notes && (
+                                  <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground italic text-center py-4">No survival records yet.</p>
@@ -2372,54 +2355,36 @@ export const StakeholderOrders = () => {
                           <TrendingUp className="h-4 w-4" /> Growth Metrics
                         </h4>
                         {treeGrowth && treeGrowth.length > 0 ? (
-                          <div className="rounded-md border overflow-hidden">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b bg-muted/50">
-                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Stage</th>
-                                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Age</th>
-                                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Height</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y">
-                                {treeGrowth.map((record: any) => (
-                                  <React.Fragment key={record.id}>
-                                    <tr>
-                                      <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                                        {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
-                                          {record.growth_stage}
-                                        </Badge>
-                                      </td>
-                                      <td className="px-3 py-2">{record.tree_age || '-'}</td>
-                                      <td className="px-3 py-2 text-right font-medium">{record.tree_height || '-'}</td>
-                                    </tr>
-                                    {(record.notes || (record.photos && record.photos.length > 0)) && (
-                                      <tr>
-                                        <td colSpan={4} className="px-3 pb-2 pt-0">
-                                          {record.notes && <p className="text-xs text-muted-foreground italic">{record.notes}</p>}
-                                          {record.photos && record.photos.length > 0 && (
-                                            <div className="flex gap-1.5 flex-wrap mt-1">
-                                              {record.photos.map((url: string, pi: number) => (
-                                                <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
-                                                  <img src={url} alt={`Photo ${pi + 1}`} className="w-10 h-10 object-cover rounded border" />
-                                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
-                                                    <ZoomIn className="h-3 w-3 text-white" />
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </React.Fragment>
-                                ))}
-                              </tbody>
-                            </table>
+                          <div className="space-y-2">
+                            {treeGrowth.map((record: any) => (
+                              <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                                    {record.growth_stage}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">{record.tree_age || '-'}</span>
+                                  <span className="text-sm font-medium ml-auto">{record.tree_height || '-'}</span>
+                                </div>
+                                {record.notes && (
+                                  <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
+                                )}
+                                {record.photos && record.photos.length > 0 && (
+                                  <div className="flex gap-1.5 flex-wrap mt-2">
+                                    {record.photos.map((url: string, pi: number) => (
+                                      <div key={pi} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
+                                        <img src={url} alt={`Photo ${pi + 1}`} className="w-10 h-10 object-cover rounded border" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                                          <ZoomIn className="h-3 w-3 text-white" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground italic text-center py-4">No growth records yet.</p>
@@ -2603,42 +2568,24 @@ export const StakeholderOrders = () => {
                 <TabsContent value="previous">
                   <div className="pt-2">
                     {treeGrowth && treeGrowth.length > 0 ? (
-                      <div className="rounded-md border overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b bg-muted/50">
-                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Stage</th>
-                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Age</th>
-                              <th className="text-right px-3 py-2 font-medium text-muted-foreground">Height</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {treeGrowth.map((record: any) => (
-                              <React.Fragment key={record.id}>
-                                <tr>
-                                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                                    {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
-                                      {record.growth_stage}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-3 py-2">{record.tree_age || '-'}</td>
-                                  <td className="px-3 py-2 text-right font-medium">{record.tree_height || '-'}</td>
-                                </tr>
-                                {record.notes && (
-                                  <tr>
-                                    <td colSpan={4} className="px-3 pb-2 pt-0">
-                                      <p className="text-xs text-muted-foreground italic">{record.notes}</p>
-                                    </td>
-                                  </tr>
-                                )}
-                              </React.Fragment>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="space-y-2">
+                        {treeGrowth.map((record: any) => (
+                          <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
+                              </span>
+                              <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                                {record.growth_stage}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">{record.tree_age || '-'}</span>
+                              <span className="text-sm font-medium ml-auto">{record.tree_height || '-'}</span>
+                            </div>
+                            {record.notes && (
+                              <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground italic text-center py-6">No growth logs yet.</p>
@@ -2722,42 +2669,25 @@ export const StakeholderOrders = () => {
                 <TabsContent value="previous">
                   <div className="pt-2">
                     {treeSurvival && treeSurvival.length > 0 ? (
-                      <div className="rounded-md border overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b bg-muted/50">
-                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                              <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
-                              <th className="text-right px-3 py-2 font-medium text-muted-foreground">Rate</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {treeSurvival.map((record: any) => (
-                              <React.Fragment key={record.id}>
-                                <tr>
-                                  <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                                    {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
-                                  </td>
-                                  <td className="px-3 py-2">
-                                    <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
-                                      {record.survival_status}
-                                    </Badge>
-                                  </td>
-                                  <td className="px-3 py-2 text-right font-medium tabular-nums">
-                                    {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
-                                  </td>
-                                </tr>
-                                {record.notes && (
-                                  <tr>
-                                    <td colSpan={3} className="px-3 pb-2 pt-0">
-                                      <p className="text-xs text-muted-foreground italic">{record.notes}</p>
-                                    </td>
-                                  </tr>
-                                )}
-                              </React.Fragment>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="space-y-2">
+                        {treeSurvival.map((record: any) => (
+                          <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
+                              </span>
+                              <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                {record.survival_status}
+                              </Badge>
+                              <span className="text-sm font-medium tabular-nums ml-auto">
+                                {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
+                              </span>
+                            </div>
+                            {record.notes && (
+                              <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground italic text-center py-6">No survival logs yet.</p>
