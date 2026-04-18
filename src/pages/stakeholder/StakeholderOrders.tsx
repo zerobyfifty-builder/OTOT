@@ -584,7 +584,7 @@ export const StakeholderOrders = () => {
       const groupTrees = treesByContribution[contribId] || [];
       // Get the most recent status date from transition dates
       const treeDates = groupTrees
-        .map(t => allTransitionDates?.[t.id])
+        .map(t => allTransitionDatesWithFallback?.[t.id])
         .filter(Boolean) as string[];
       const latestStatusDate = treeDates.length > 0
         ? treeDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
@@ -609,7 +609,7 @@ export const StakeholderOrders = () => {
         status_date: latestStatusDate,
       };
     });
-  }, [contributions, treesByContribution, trips, allTransitionDates]);
+  }, [contributions, treesByContribution, trips, allTransitionDatesWithFallback]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
