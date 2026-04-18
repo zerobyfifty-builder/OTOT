@@ -2322,17 +2322,22 @@ export const StakeholderOrders = () => {
                           <Activity className="h-4 w-4" /> Survival Tracking
                         </h4>
                         {treeSurvival && treeSurvival.length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1.5">
+                            <div className="grid grid-cols-[1fr_auto_70px] items-center gap-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                              <span>Date</span>
+                              <span className="justify-self-center">Status</span>
+                              <span className="text-right">Rate</span>
+                            </div>
                             {treeSurvival.map((record: any) => (
                               <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
-                                <div className="flex items-center justify-between gap-2">
+                                <div className="grid grid-cols-[1fr_auto_70px] items-center gap-2">
                                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                                     {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
                                   </span>
-                                  <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                                  <Badge variant="outline" className={`justify-self-center text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
                                     {record.survival_status}
                                   </Badge>
-                                  <span className="text-sm font-medium tabular-nums ml-auto">
+                                  <span className="text-sm font-medium tabular-nums text-right">
                                     {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
                                   </span>
                                 </div>
@@ -2355,18 +2360,24 @@ export const StakeholderOrders = () => {
                           <TrendingUp className="h-4 w-4" /> Growth Metrics
                         </h4>
                         {treeGrowth && treeGrowth.length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1.5">
+                            <div className="grid grid-cols-[1fr_auto_70px_70px] items-center gap-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                              <span>Date</span>
+                              <span className="justify-self-center">Stage</span>
+                              <span className="text-right">Age</span>
+                              <span className="text-right">Height</span>
+                            </div>
                             {treeGrowth.map((record: any) => (
                               <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
-                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <div className="grid grid-cols-[1fr_auto_70px_70px] items-center gap-2">
                                   <span className="text-xs text-muted-foreground whitespace-nowrap">
                                     {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
                                   </span>
-                                  <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                                  <Badge variant="outline" className="justify-self-center text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
                                     {record.growth_stage}
                                   </Badge>
-                                  <span className="text-xs text-muted-foreground">{record.tree_age || '-'}</span>
-                                  <span className="text-sm font-medium ml-auto">{record.tree_height || '-'}</span>
+                                  <span className="text-xs text-muted-foreground text-right">{record.tree_age || '-'}</span>
+                                  <span className="text-sm font-medium text-right">{record.tree_height || '-'}</span>
                                 </div>
                                 {record.notes && (
                                   <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
@@ -2568,18 +2579,24 @@ export const StakeholderOrders = () => {
                 <TabsContent value="previous">
                   <div className="pt-2">
                     {treeGrowth && treeGrowth.length > 0 ? (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
+                        <div className="grid grid-cols-[1fr_auto_70px_70px] items-center gap-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                          <span>Date</span>
+                          <span className="justify-self-center">Stage</span>
+                          <span className="text-right">Age</span>
+                          <span className="text-right">Height</span>
+                        </div>
                         {treeGrowth.map((record: any) => (
                           <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
-                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="grid grid-cols-[1fr_auto_70px_70px] items-center gap-2">
                               <span className="text-xs text-muted-foreground whitespace-nowrap">
                                 {record.last_measured_date ? format(new Date(record.last_measured_date), "dd MMM yyyy") : '-'}
                               </span>
-                              <Badge variant="outline" className="text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
+                              <Badge variant="outline" className="justify-self-center text-xs px-1.5 py-0 border-primary/30 text-primary bg-primary/5">
                                 {record.growth_stage}
                               </Badge>
-                              <span className="text-xs text-muted-foreground">{record.tree_age || '-'}</span>
-                              <span className="text-sm font-medium ml-auto">{record.tree_height || '-'}</span>
+                              <span className="text-xs text-muted-foreground text-right">{record.tree_age || '-'}</span>
+                              <span className="text-sm font-medium text-right">{record.tree_height || '-'}</span>
                             </div>
                             {record.notes && (
                               <p className="text-xs text-muted-foreground mt-1.5">{record.notes}</p>
@@ -2669,17 +2686,22 @@ export const StakeholderOrders = () => {
                 <TabsContent value="previous">
                   <div className="pt-2">
                     {treeSurvival && treeSurvival.length > 0 ? (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
+                        <div className="grid grid-cols-[1fr_auto_70px] items-center gap-2 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                          <span>Date</span>
+                          <span className="justify-self-center">Status</span>
+                          <span className="text-right">Rate</span>
+                        </div>
                         {treeSurvival.map((record: any) => (
                           <div key={record.id} className="rounded-md border bg-card px-3 py-2.5">
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="grid grid-cols-[1fr_auto_70px] items-center gap-2">
                               <span className="text-xs text-muted-foreground whitespace-nowrap">
                                 {record.last_checked_date ? format(new Date(record.last_checked_date), "dd MMM yyyy") : '-'}
                               </span>
-                              <Badge variant="outline" className={`text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
+                              <Badge variant="outline" className={`justify-self-center text-xs px-1.5 py-0 ${record.survival_status === 'Alive' ? 'border-green-300 text-green-700 bg-green-50' : record.survival_status === 'Dead' ? 'border-red-300 text-red-700 bg-red-50' : 'border-amber-300 text-amber-700 bg-amber-50'}`}>
                                 {record.survival_status}
                               </Badge>
-                              <span className="text-sm font-medium tabular-nums ml-auto">
+                              <span className="text-sm font-medium tabular-nums text-right">
                                 {record.survival_rate !== null ? `${record.survival_rate}%` : '-'}
                               </span>
                             </div>
