@@ -276,7 +276,7 @@ export const StakeholderOrders = () => {
   const [growthSheet, setGrowthSheet] = useState<Tree | null>(null);
   const [survivalSheet, setSurvivalSheet] = useState<Tree | null>(null);
   const [survivalForm, setSurvivalForm] = useState({ survival_status: 'Alive', survival_rate: '', last_checked_date: '', notes: '' });
-  const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', tree_age: '', photos: '', last_measured_date: '', notes: '' });
+  const [growthForm, setGrowthForm] = useState({ growth_stage: 'sapling', tree_height: '', height_unit: 'cm', tree_age: '', age_unit: 'months', photos: '', last_measured_date: '', notes: '' });
   
   const { data: orgId } = useQuery({
     queryKey: ["stakeholderOrgId", user?.id],
