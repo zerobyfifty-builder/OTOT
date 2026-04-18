@@ -515,6 +515,25 @@ export function StakeholderMdmPlanters() {
                   </Select>
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">Marital Status</Label>
+                  <Select value={formData.marital_status} onValueChange={v => setFormData(p => ({ ...p, marital_status: v }))}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {MARITAL_STATUSES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Children</Label>
+                  <Input type="number" min="0" value={formData.number_of_kids} onChange={e => setFormData(p => ({ ...p, number_of_kids: e.target.value }))} placeholder="0" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Experience (Years)</Label>
+                  <Input type="number" min="0" value={formData.experience_years} onChange={e => setFormData(p => ({ ...p, experience_years: e.target.value }))} placeholder="0" className="h-9" />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Phone</Label>
@@ -545,13 +564,22 @@ export function StakeholderMdmPlanters() {
                   <Input value={formData.sub_county} onChange={e => setFormData(p => ({ ...p, sub_county: e.target.value }))} placeholder="e.g. Njoro" className="h-9" />
                 </div>
               </div>
-              <div>
-                <Label className="text-xs">Date Registered</Label>
-                <Input type="date" value={formData.date_registered} onChange={e => setFormData(p => ({ ...p, date_registered: e.target.value }))} className="h-9" />
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <Label className="text-xs">Date Registered</Label>
+                  <Input type="date" value={formData.date_registered} onChange={e => setFormData(p => ({ ...p, date_registered: e.target.value }))} className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Planter Photo</Label>
+                  <PlanterPhotoUpload
+                    value={formData.photo_url}
+                    onChange={(url) => setFormData(p => ({ ...p, photo_url: url }))}
+                  />
+                </div>
               </div>
               <div>
-                <Label className="text-xs">Notes</Label>
-                <Textarea value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes..." rows={3} />
+                <Label className="text-xs">About Planter</Label>
+                <Textarea value={formData.notes} onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))} placeholder="Brief background about the planter..." rows={3} />
               </div>
               <div className="flex gap-2 pt-4">
                 <Button onClick={handleSave} className="flex-1">{editingId ? 'Update' : 'Add'} Planter</Button>
