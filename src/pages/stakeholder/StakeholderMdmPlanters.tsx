@@ -804,4 +804,52 @@ function BeatAssignmentInline({ planterId, planterBeats, beatNameMap, counties, 
   );
 }
 
+function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `planters/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('profile-photos').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
+      onChange(data.publicUrl);
+      toast.success('Photo uploaded');
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2 h-9">
+        <img src={value} alt="Planter" className="h-9 w-9 rounded-md object-cover border" />
+        <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => onChange('')}>
+          <Trash2 className="h-3.5 w-3.5" /> Remove
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <label className="inline-flex w-full">
+      <Button type="button" variant="outline" size="sm" className="h-9 gap-1 w-full" disabled={uploading} asChild>
+        <span className="cursor-pointer">
+          <Upload className="h-3.5 w-3.5" />
+          {uploading ? 'Uploading...' : 'Upload Photo'}
+        </span>
+      </Button>
+      <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+    </label>
+  );
+}
+
 export default StakeholderMdmPlanters;
