@@ -2490,11 +2490,73 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
+                  {/* Carer Tab - Tree carer profile */}
+                  <TabsContent value="carer">
+                    {(() => {
+                      // Look for carer info in transitions
+                      let carerName: string | null = null;
+                      let carerPhoto: string | null = null;
+                      let uploadedAt: string | null = null;
+                      let uploadedBy: string | null = null;
+                      let carerBio: string | null = null;
+                      (treeTransitions || []).forEach((t: any) => {
+                        const td = t.transition_data || {};
+                        if (!carerName) carerName = td.tree_carer_name || td.assigned_to_name || td.planter_name || null;
+                        if (!carerPhoto && (td.tree_carer_photo || td.carer_photo)) {
+                          carerPhoto = td.tree_carer_photo || td.carer_photo;
+                          uploadedAt = t.created_at;
+                          uploadedBy = td.assigned_to_name || 'Field team';
+                        }
+                        if (!carerBio && td.tree_carer_bio) carerBio = td.tree_carer_bio;
+                      });
+                      return (
+                        <div className="space-y-4 pt-2">
+                          <h4 className="text-sm font-semibold text-center text-foreground">Your tree carer</h4>
+                          {!carerPhoto && !carerName ? (
+                            <div className="rounded-lg border bg-muted/30 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                              <User className="h-10 w-10 opacity-40" />
+                              <p className="text-sm italic">No carer assigned yet.</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="relative rounded-lg overflow-hidden bg-muted/30 aspect-square">
+                                {carerPhoto ? (
+                                  <img
+                                    src={carerPhoto}
+                                    alt={carerName || 'Tree carer'}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    onClick={() => setLightboxPhoto(carerPhoto!)}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <User className="h-20 w-20 text-muted-foreground/40" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <h3 className="text-lg font-bold text-foreground">{carerName || 'Tree Carer'}</h3>
+                                {carerBio && (
+                                  <p className="text-sm text-muted-foreground leading-relaxed">{carerBio}</p>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm border-t pt-3">
+                                <span className="text-muted-foreground">Uploaded:</span>
+                                <span className="font-medium">{uploadedAt ? format(new Date(uploadedAt), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="text-muted-foreground">Uploaded by:</span>
+                                <span className="font-medium">{uploadedBy || '—'}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TabsContent>
+
                   {/* Survival & Growth Tab - merged logs table */}
                   <TabsContent value="growth">
                     <div className="space-y-3 pt-2">
                       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" /> Survival & Growth Logs
+                        <TrendingUp className="h-4 w-4" /> Survival & Growth Metrics
                       </h4>
                       {(() => {
                         const byDate = new Map<string, any>();
