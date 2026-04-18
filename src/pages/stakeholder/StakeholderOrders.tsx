@@ -473,18 +473,21 @@ export const StakeholderOrders = () => {
   });
 
   // Check geotag status for all trees displayed
-  const allTreeIds = useMemo(() => trees?.map(t => t.id) || [], [trees]);
+  const allTreeIds = useMemo(() => trees?.map((t) => t.id) || [], [trees]);
+  const allTreeIdsKey = useMemo(() => allTreeIds.slice().sort().join(","), [allTreeIds]);
   const { data: allGeotags } = useQuery({
-    queryKey: ["allGeotags", allTreeIds.length],
+    queryKey: ["allGeotags", allTreeIdsKey],
     queryFn: async () => {
+      if (allTreeIds.length === 0) return {} as Record<string, { latitude: number; longitude: number }>;
       const { data, error } = await supabase
         .from("tree_geotags" as any)
         .select("tree_id, latitude, longitude")
         .in("tree_id", allTreeIds);
       if (error) throw error;
-      const map = new Map<string, { latitude: number; longitude: number }>();
-      (data || []).forEach((g: any) => map.set(g.tree_id, { latitude: g.latitude, longitude: g.longitude }));
-      return map;
+      return (data || []).reduce((acc: Record<string, { latitude: number; longitude: number }>, g: any) => {
+        acc[g.tree_id] = { latitude: g.latitude, longitude: g.longitude };
+        return acc;
+      }, {});
     },
     enabled: allTreeIds.length > 0,
     structuralSharing: false,
@@ -492,22 +495,21 @@ export const StakeholderOrders = () => {
 
   // Fetch latest survival status for all trees
   const { data: allSurvivalStatuses } = useQuery({
-    queryKey: ["allSurvivalStatuses", allTreeIds.length],
+    queryKey: ["allSurvivalStatuses", allTreeIdsKey],
     queryFn: async () => {
+      if (allTreeIds.length === 0) return {} as Record<string, { survival_status: string; last_checked_date: string }>;
       const { data, error } = await supabase
         .from("tree_survival_tracking" as any)
         .select("tree_id, survival_status, last_checked_date")
         .in("tree_id", allTreeIds)
         .order("last_checked_date", { ascending: false });
       if (error) throw error;
-      // Keep only the latest record per tree
-      const map = new Map<string, { survival_status: string; last_checked_date: string }>();
-      (data || []).forEach((r: any) => {
-        if (!map.has(r.tree_id)) {
-          map.set(r.tree_id, { survival_status: r.survival_status, last_checked_date: r.last_checked_date });
+      return (data || []).reduce((acc: Record<string, { survival_status: string; last_checked_date: string }>, r: any) => {
+        if (!acc[r.tree_id]) {
+          acc[r.tree_id] = { survival_status: r.survival_status, last_checked_date: r.last_checked_date };
         }
-      });
-      return map;
+        return acc;
+      }, {});
     },
     enabled: allTreeIds.length > 0,
     structuralSharing: false,
@@ -515,21 +517,21 @@ export const StakeholderOrders = () => {
 
   // Fetch latest growth stage for all trees
   const { data: allGrowthStages } = useQuery({
-    queryKey: ["allGrowthStages", allTreeIds.length],
+    queryKey: ["allGrowthStages", allTreeIdsKey],
     queryFn: async () => {
+      if (allTreeIds.length === 0) return {} as Record<string, { growth_stage: string; last_measured_date: string }>;
       const { data, error } = await supabase
         .from("tree_growth_metrics" as any)
         .select("tree_id, growth_stage, last_measured_date")
         .in("tree_id", allTreeIds)
         .order("last_measured_date", { ascending: false });
       if (error) throw error;
-      const map = new Map<string, { growth_stage: string; last_measured_date: string }>();
-      (data || []).forEach((r: any) => {
-        if (!map.has(r.tree_id)) {
-          map.set(r.tree_id, { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date });
+      return (data || []).reduce((acc: Record<string, { growth_stage: string; last_measured_date: string }>, r: any) => {
+        if (!acc[r.tree_id]) {
+          acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date };
         }
-      });
-      return map;
+        return acc;
+      }, {});
     },
     enabled: allTreeIds.length > 0,
     structuralSharing: false,
@@ -972,9 +974,8 @@ export const StakeholderOrders = () => {
                     const commonStatusOrder = commonStatus ? getPlantingStatusOrder(commonStatus) : -1;
 
                     return (
-                      <>
+                      <React.Fragment key={group.contribution_id}>
                         <TableRow
-                          key={group.contribution_id}
                           className="cursor-pointer hover:bg-muted/50 transition-colors"
                           onClick={() => toggleRow(group.contribution_id)}
                         >
@@ -1205,9 +1206,10 @@ export const StakeholderOrders = () => {
                                         {displayRows.map((row, index) => {
                                           if (row.type === 'tree') {
                                             const tree = row.tree;
-                                            const hasGeotag = allGeotags?.has(tree.id) || false;
-                                            const survivalData = allSurvivalStatuses?.get(tree.id);
-                                            const growthData = allGrowthStages?.get(tree.id);
+                                            const geotagData = allGeotags?.[tree.id];
+                                            const hasGeotag = !!geotagData;
+                                            const survivalData = allSurvivalStatuses?.[tree.id];
+                                            const growthData = allGrowthStages?.[tree.id];
                                             return (
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
@@ -1243,8 +1245,8 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  {hasGeotag && allGeotags instanceof Map && allGeotags.get(tree.id) ? (() => {
-                                                    const geo = allGeotags.get(tree.id)!;
+                                                  {hasGeotag && geotagData ? (() => {
+                                                    const geo = geotagData;
                                                     return (
                                                       <a
                                                         href={`https://www.google.com/maps?q=${geo.latitude},${geo.longitude}`}
@@ -1379,7 +1381,7 @@ export const StakeholderOrders = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
