@@ -2043,7 +2043,7 @@ export const StakeholderOrders = () => {
 
       {/* Monitoring Logs Sheet */}
       <Sheet open={!!monitoringSheet} onOpenChange={(open) => !open && setMonitoringSheet(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           {monitoringSheet && (
             <>
               <SheetHeader>
@@ -2055,8 +2055,8 @@ export const StakeholderOrders = () => {
                </SheetHeader>
                <Tabs defaultValue="previous" className="mt-4">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="new">Add New Log</TabsTrigger>
                   <TabsTrigger value="previous">Previous Logs{monitoringLogs && monitoringLogs.length > 0 ? ` (${monitoringLogs.length})` : ''}</TabsTrigger>
+                  <TabsTrigger value="new">Add New Log</TabsTrigger>
                 </TabsList>
                 <TabsContent value="new">
                   <div className="space-y-4 pt-2">
