@@ -547,14 +547,24 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
                 <Input
                   type="number"
                   min={0}
-                  value={formData.sapling_age_value ?? formData.sapling_age_weeks ?? ""}
-                  onChange={(e) => setField("sapling_age_value", e.target.value === "" ? undefined : parseInt(e.target.value))}
+                  value={formData.sapling_age_value ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value === "" ? undefined : parseInt(e.target.value);
+                    setField("sapling_age_value", v);
+                    const unit = formData.sapling_age_unit || "weeks";
+                    setField("sapling_age", v !== undefined ? `${v} ${unit}` : undefined);
+                  }}
                   placeholder="Optional"
                   className="flex-1"
                 />
                 <Select
                   value={formData.sapling_age_unit || "weeks"}
-                  onValueChange={(v) => setField("sapling_age_unit", v)}
+                  onValueChange={(unit) => {
+                    setField("sapling_age_unit", unit);
+                    if (formData.sapling_age_value !== undefined && formData.sapling_age_value !== "") {
+                      setField("sapling_age", `${formData.sapling_age_value} ${unit}`);
+                    }
+                  }}
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue />
