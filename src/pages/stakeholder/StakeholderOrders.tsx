@@ -105,6 +105,7 @@ const BATCH_STATUSES = [
   'saplings_ready',
   'planting_scheduled',
   'sapling_planted',
+  'being_mapped',
   'verified',
   'planted',
 ] as const;
