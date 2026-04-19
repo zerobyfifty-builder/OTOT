@@ -266,7 +266,7 @@ export const StakeholderOrders = () => {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
   const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
-  const [monitoringForm, setMonitoringForm] = useState({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+  const [monitoringForm, setMonitoringForm] = useState({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
   // Tree-level status & info
@@ -457,7 +457,7 @@ export const StakeholderOrders = () => {
     queryKey: ["monitoringLogs", batchContribId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("monitoring_logs" as any)
+        .from("tree_monitoring_logs" as any)
         .select("*")
         .eq("contribution_id", batchContribId!)
         .order("inspection_date", { ascending: false });
@@ -466,6 +466,20 @@ export const StakeholderOrders = () => {
     },
     enabled: !!batchContribId,
   });
+
+  // Active planters for inspector dropdown
+  const { data: activePlanters } = useQuery({
+    queryKey: ["activePlantersForMonitoring"],
+    queryFn: async () => {
+      const { data } = await supabase.from("tree_carers").select("id, name").eq("status", "Active").order("name");
+      return (data || []) as Array<{ id: string; name: string }>;
+    },
+  });
+  const planterNameMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (activePlanters || []).forEach(p => m.set(p.id, p.name));
+    return m;
+  }, [activePlanters]);
 
   // Query impact metrics for batch status & impact sheet
   const impactContribId = statusHistoryGroup?.contribution_id || impactSheet?.contribution_id;
