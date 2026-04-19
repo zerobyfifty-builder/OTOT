@@ -63,6 +63,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
 import { Cloud, Globe, Users, Bell, Award, Send, FileDown, History, Calendar } from "lucide-react";
+import { generateTreeCertificate } from "@/utils/certificateGenerator";
+import { generateEngagementReport } from "@/utils/engagementReportGenerator";
+import { PdfPreviewDialog, type PdfPreviewFile } from "@/components/ui/PdfPreviewDialog";
+import { CertificatePreviewDialog } from "@/components/certificates/CertificatePreviewDialog";
+import { SendUpdateDialog } from "@/components/engagement/SendUpdateDialog";
+import { useEngagementActivities, useLogEngagementActivity, type EngagementActivity } from "@/hooks/useEngagementActivities";
+import { format as formatDateFn } from "date-fns";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
