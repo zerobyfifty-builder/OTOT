@@ -1257,16 +1257,39 @@ export const StakeholderOrders = () => {
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                  <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                                 <TableCell className="text-xs">
+                                                   {allTreeSpecies?.[tree.id] ? (
+                                                     <span className="text-foreground">{allTreeSpecies[tree.id]}</span>
+                                                   ) : (
+                                                     <span className="text-muted-foreground">—</span>
+                                                   )}
+                                                 </TableCell>
                                                  <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                     {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
                                                 <TableCell>
+                                                  {allTransitionDates?.[tree.id] ? (
+                                                    <span className="text-xs text-muted-foreground">{formatDate(allTransitionDates[tree.id])}</span>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
                                                   {growthData ? (
                                                     <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
                                                       {growthData.growth_stage}
                                                     </Badge>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
+                                                  {growthData?.tree_age ? (
+                                                    <span className="text-xs text-muted-foreground">{growthData.tree_age}</span>
+                                                  ) : growthData?.tree_age_months ? (
+                                                    <span className="text-xs text-muted-foreground">{growthData.tree_age_months} months</span>
                                                   ) : (
                                                     <span className="text-xs text-muted-foreground">—</span>
                                                   )}
@@ -1404,11 +1427,14 @@ export const StakeholderOrders = () => {
                                               <TableRow key={`placeholder-${index}`} className="opacity-60">
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                  <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
+                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                  <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
