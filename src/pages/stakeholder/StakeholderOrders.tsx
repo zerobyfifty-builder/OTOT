@@ -2053,57 +2053,171 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
-                  {/* Impact Tab */}
+                  {/* Impact Tab - sub-tabs for Carbon / Ecosystem / Community */}
                   <TabsContent value="impact">
-                    <div className="space-y-4 py-2">
-                      {impactMetrics && impactMetrics.length > 0 ? (
-                        impactMetrics.map((metric: any) => (
-                          <div key={metric.id} className="space-y-4">
-                            <div className="space-y-2">
-                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Carbon Metrics</h4>
-                              <div className="rounded-lg border bg-card p-3">
-                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                                  <span className="text-muted-foreground">CO₂ Offset (Estimated):</span>
-                                  <span className="font-medium">{metric.co2_offset_estimated || '-'} kg</span>
-                                  <span className="text-muted-foreground">CO₂ Offset (Actual):</span>
-                                  <span className="font-medium">{metric.co2_offset_actual || '-'} kg</span>
-                                  <span className="text-muted-foreground">Calculation Method:</span>
-                                  <span className="font-medium">{metric.calculation_method || '-'}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ecosystem Impact</h4>
-                              <div className="rounded-lg border bg-card p-3">
-                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                                  <span className="text-muted-foreground">Biodiversity Index:</span>
-                                  <span className="font-medium">{metric.biodiversity_index || '-'}</span>
-                                  <span className="text-muted-foreground">Soil Improvement:</span>
-                                  <span className="font-medium">{metric.soil_improvement_indicator || '-'}</span>
-                                  <span className="text-muted-foreground">Water Retention:</span>
-                                  <span className="font-medium">{metric.water_retention_indicator || '-'}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community Impact</h4>
-                              <div className="rounded-lg border bg-card p-3">
-                                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-                                  <span className="text-muted-foreground">Jobs Created:</span>
-                                  <span className="font-medium">{metric.jobs_created || 0}</span>
-                                  <span className="text-muted-foreground">Local Participants:</span>
-                                  <span className="font-medium">{metric.local_participants_count || 0}</span>
-                                  <span className="text-muted-foreground">Community Benefits:</span>
-                                  <span className="font-medium">{metric.community_benefits || '-'}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground italic text-center py-6">No impact data recorded yet.</p>
-                      )}
-                    </div>
+                    <Tabs defaultValue="carbon" className="mt-2">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="carbon" className="text-xs">Carbon ({carbonLogs?.length || 0})</TabsTrigger>
+                        <TabsTrigger value="ecosystem" className="text-xs">Ecosystem ({ecosystemLogs?.length || 0})</TabsTrigger>
+                        <TabsTrigger value="community" className="text-xs">Community ({communityLogs?.length || 0})</TabsTrigger>
+                      </TabsList>
+
+                      {/* Carbon Metrics Logs */}
+                      <TabsContent value="carbon">
+                        <div className="pt-2">
+                          {carbonLogs && carbonLogs.length > 0 ? (
+                            <Accordion type="multiple" className="space-y-2">
+                              {carbonLogs.map((log: any) => (
+                                <AccordionItem key={log.id} value={log.id} className="rounded-lg border bg-card px-3 data-[state=open]:bg-muted/30">
+                                  <AccordionTrigger className="py-3 hover:no-underline">
+                                    <div className="flex items-center justify-between w-full pr-2 gap-2">
+                                      <div className="flex flex-col items-start text-left">
+                                        <span className="text-sm font-semibold">{format(new Date(log.log_date), "MMM dd, yyyy")}</span>
+                                        <span className="text-xs text-muted-foreground">{planterNameMap.get(log.recorded_by) || log.recorded_by}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                        {log.co2_offset_estimated_kg != null && (
+                                          <Badge variant="outline" className="text-[10px]">Est {Number(log.co2_offset_estimated_kg).toLocaleString()} kg</Badge>
+                                        )}
+                                        {log.co2_offset_actual_kg != null && (
+                                          <Badge variant="outline" className="text-[10px]">Act {Number(log.co2_offset_actual_kg).toLocaleString()} kg</Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="pb-3">
+                                    <div className="space-y-2 text-sm">
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div><span className="text-muted-foreground text-xs">Estimated:</span> <span className="font-medium">{log.co2_offset_estimated_kg ?? "—"} kg</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Actual:</span> <span className="font-medium">{log.co2_offset_actual_kg ?? "—"} kg</span></div>
+                                      </div>
+                                      {log.calculation_method && <div><span className="text-muted-foreground text-xs">Method:</span> <span className="font-medium">{log.calculation_method}</span></div>}
+                                      {log.notes && <div className="text-muted-foreground italic">"{log.notes}"</div>}
+                                      {Array.isArray(log.photos) && log.photos.length > 0 && (
+                                        <div className="flex gap-2 flex-wrap pt-2">
+                                          {log.photos.map((p: string, i: number) => (
+                                            <button key={i} type="button" onClick={() => setLightboxPhoto(p)} className="h-14 w-14 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                              <img src={p} alt="" className="h-full w-full object-cover" />
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              ))}
+                            </Accordion>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic text-center py-6">No carbon metrics logs recorded yet.</p>
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      {/* Ecosystem Impact Logs */}
+                      <TabsContent value="ecosystem">
+                        <div className="pt-2">
+                          {ecosystemLogs && ecosystemLogs.length > 0 ? (
+                            <Accordion type="multiple" className="space-y-2">
+                              {ecosystemLogs.map((log: any) => (
+                                <AccordionItem key={log.id} value={log.id} className="rounded-lg border bg-card px-3 data-[state=open]:bg-muted/30">
+                                  <AccordionTrigger className="py-3 hover:no-underline">
+                                    <div className="flex items-center justify-between w-full pr-2 gap-2">
+                                      <div className="flex flex-col items-start text-left">
+                                        <span className="text-sm font-semibold">{format(new Date(log.log_date), "MMM dd, yyyy")}</span>
+                                        <span className="text-xs text-muted-foreground">{planterNameMap.get(log.recorded_by) || log.recorded_by}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                        {log.biodiversity_index != null && (
+                                          <Badge variant="outline" className="text-[10px]">Bio {log.biodiversity_index}</Badge>
+                                        )}
+                                        {log.soil_improvement && (
+                                          <Badge variant="outline" className="text-[10px]">Soil: {log.soil_improvement}</Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="pb-3">
+                                    <div className="space-y-2 text-sm">
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <div><span className="text-muted-foreground text-xs">Biodiversity:</span> <span className="font-medium">{log.biodiversity_index ?? "—"}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Soil:</span> <span className="font-medium">{log.soil_improvement || "—"}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Water:</span> <span className="font-medium">{log.water_retention || "—"}</span></div>
+                                      </div>
+                                      {log.ecosystem_notes && <div className="text-muted-foreground italic">"{log.ecosystem_notes}"</div>}
+                                      {Array.isArray(log.photos) && log.photos.length > 0 && (
+                                        <div className="flex gap-2 flex-wrap pt-2">
+                                          {log.photos.map((p: string, i: number) => (
+                                            <button key={i} type="button" onClick={() => setLightboxPhoto(p)} className="h-14 w-14 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                              <img src={p} alt="" className="h-full w-full object-cover" />
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              ))}
+                            </Accordion>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic text-center py-6">No ecosystem impact logs recorded yet.</p>
+                          )}
+                        </div>
+                      </TabsContent>
+
+                      {/* Community Impact Logs */}
+                      <TabsContent value="community">
+                        <div className="pt-2">
+                          {communityLogs && communityLogs.length > 0 ? (
+                            <Accordion type="multiple" className="space-y-2">
+                              {communityLogs.map((log: any) => (
+                                <AccordionItem key={log.id} value={log.id} className="rounded-lg border bg-card px-3 data-[state=open]:bg-muted/30">
+                                  <AccordionTrigger className="py-3 hover:no-underline">
+                                    <div className="flex items-center justify-between w-full pr-2 gap-2">
+                                      <div className="flex flex-col items-start text-left">
+                                        <span className="text-sm font-semibold">{format(new Date(log.log_date), "MMM dd, yyyy")}</span>
+                                        <span className="text-xs text-muted-foreground">{planterNameMap.get(log.recorded_by) || log.recorded_by}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                        <Badge variant="outline" className="text-[10px]">Jobs {log.jobs_created || 0}</Badge>
+                                        <Badge variant="outline" className="text-[10px]">Avg/mo KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</Badge>
+                                      </div>
+                                    </div>
+                                  </AccordionTrigger>
+                                  <AccordionContent className="pb-3">
+                                    <div className="space-y-2 text-sm">
+                                      <div className="grid grid-cols-3 gap-2">
+                                        <div><span className="text-muted-foreground text-xs">Families:</span> <span className="font-medium">{log.families_supported || 0}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Jobs:</span> <span className="font-medium">{log.jobs_created || 0}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Avg Monthly Income:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Women:</span> <span className="font-medium">{log.women_employed || 0}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Youth:</span> <span className="font-medium">{log.youth_employed || 0}</span></div>
+                                        <div><span className="text-muted-foreground text-xs">Frequency:</span> <span className="font-medium">{log.update_frequency || "—"}</span></div>
+                                      </div>
+                                      <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
+                                      {(log.reporting_period || log.reporting_period_end) && (
+                                        <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{log.reporting_period ? format(new Date(log.reporting_period), "MMM dd, yyyy") : "—"} → {log.reporting_period_end ? format(new Date(log.reporting_period_end), "MMM dd, yyyy") : "—"}</span></div>
+                                      )}
+                                      {log.community_benefits && <div className="text-muted-foreground italic">"{log.community_benefits}"</div>}
+                                      {Array.isArray(log.photos) && log.photos.length > 0 && (
+                                        <div className="flex gap-2 flex-wrap pt-2">
+                                          {log.photos.map((p: string, i: number) => (
+                                            <button key={i} type="button" onClick={() => setLightboxPhoto(p)} className="h-14 w-14 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                              <img src={p} alt="" className="h-full w-full object-cover" />
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              ))}
+                            </Accordion>
+                          ) : (
+                            <p className="text-sm text-muted-foreground italic text-center py-6">No community impact logs recorded yet.</p>
+                          )}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </TabsContent>
                 </Tabs>
               </>
