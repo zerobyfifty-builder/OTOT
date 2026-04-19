@@ -2248,7 +2248,7 @@ export const StakeholderOrders = () => {
                           const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1, changed_by: 999 };
                           const entries = Object.entries(transitionData)
                             .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
-                            .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
+                            .sort((a, b) => (entrySortOrder[a[0]] ?? 50) - (entrySortOrder[b[0]] ?? 50));
                           return (
                             <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
                               <AccordionTrigger className="hover:no-underline py-3">
