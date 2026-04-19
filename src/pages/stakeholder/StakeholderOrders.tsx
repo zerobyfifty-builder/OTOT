@@ -2273,7 +2273,7 @@ export const StakeholderOrders = () => {
                                 <span className="text-sm font-semibold whitespace-nowrap">
                                   {log.inspection_date ? format(new Date(log.inspection_date), "MMM dd, yyyy") : '-'}
                                 </span>
-                                <Badge variant="outline" className="font-normal">
+                                <Badge variant="outline" className="font-normal whitespace-nowrap">
                                   Survival: {log.survival_rate_pct ?? 0}%
                                 </Badge>
                                 <span className="text-sm text-muted-foreground truncate">
