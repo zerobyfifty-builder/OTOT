@@ -45,7 +45,7 @@ const STATUS_LABELS: Record<string, string> = {
   saplings_ready: 'Saplings ready',
   planting_scheduled: 'Planting scheduled',
   sapling_planted: 'Sapling planted',
-  being_mapped: 'Being mapped',
+  being_mapped: 'Location Mapped',
   verified: 'Verified',
   planted: 'Planted',
   dead: 'Dead',
