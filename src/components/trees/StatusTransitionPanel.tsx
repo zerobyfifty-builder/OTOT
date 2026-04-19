@@ -811,8 +811,17 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
         <Separator className="my-2" />
 
-        <div className="flex-1 overflow-y-auto py-4 pr-1">
+        <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
           {renderFormFields()}
+          <div className="space-y-1.5 pt-3 border-t">
+            <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+            <Input
+              placeholder="Your name"
+              value={formData.changed_by || ""}
+              onChange={(e) => setField("changed_by", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
+          </div>
         </div>
 
         <SheetFooter className="flex gap-2 pt-4 border-t">
