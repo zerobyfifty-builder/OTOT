@@ -504,6 +504,47 @@ export const StakeholderOrders = () => {
     enabled: !!impactContribId,
   });
 
+  // Impact log tables (Carbon / Ecosystem / Community) for the Impact tab
+  const { data: carbonLogs } = useQuery({
+    queryKey: ["carbon_metrics_logs", impactContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("carbon_metrics_logs" as any)
+        .select("*")
+        .eq("contribution_id", impactContribId!)
+        .order("log_date", { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!impactContribId,
+  });
+  const { data: ecosystemLogs } = useQuery({
+    queryKey: ["ecosystem_impact_logs", impactContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ecosystem_impact_logs" as any)
+        .select("*")
+        .eq("contribution_id", impactContribId!)
+        .order("log_date", { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!impactContribId,
+  });
+  const { data: communityLogs } = useQuery({
+    queryKey: ["community_impact_logs", impactContribId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("community_impact_logs" as any)
+        .select("*")
+        .eq("contribution_id", impactContribId!)
+        .order("log_date", { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!impactContribId,
+  });
+
   // Tree-level queries for Tree Status & Info
   const treeStatusTreeId = treeStatusSheet?.tree.id || geotagDialog?.id || metricsSheet?.id;
   
