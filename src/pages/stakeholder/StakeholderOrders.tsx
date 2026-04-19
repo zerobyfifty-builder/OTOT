@@ -2043,7 +2043,7 @@ export const StakeholderOrders = () => {
 
       {/* Monitoring Logs Sheet */}
       <Sheet open={!!monitoringSheet} onOpenChange={(open) => !open && setMonitoringSheet(null)}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {monitoringSheet && (
             <>
               <SheetHeader>
