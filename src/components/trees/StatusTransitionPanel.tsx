@@ -309,7 +309,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       if (!formData.re_planted_date) return "Re-planted date is required";
     }
     if (!formData.changed_by || !String(formData.changed_by).trim()) {
-      return "Please enter who is making this change (Changed By)";
+      return "Please enter who is making this change (Entered By)";
     }
     return null;
   };
@@ -776,7 +776,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               </p>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">Entered By <span className="text-destructive">*</span></Label>
               <Input
                 placeholder="Your name"
                 value={formData.changed_by || ""}
@@ -814,7 +814,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
         <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
           {renderFormFields()}
           <div className="space-y-1.5 pt-3 border-t">
-            <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+            <Label className="text-sm font-medium">Entered By <span className="text-destructive">*</span></Label>
             <Input
               placeholder="Your name"
               value={formData.changed_by || ""}
