@@ -293,11 +293,10 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       if (!formData.planting_method) return "Please select planting method";
       if (photos.length === 0) return "At least 1 planting photo is required";
     } else if (s === "being_mapped") {
-      if (!request.isBatch) {
-        if (!formData.latitude) return "Latitude is required";
-        if (!formData.longitude) return "Longitude is required";
-        if (!formData.geo_tag_date) return "Geo tag date is required";
-      }
+      if (!formData.geo_tag_id) return "Geo Tag ID is required";
+      if (!formData.latitude) return "Latitude is required";
+      if (!formData.longitude) return "Longitude is required";
+      if (!request.isBatch && !formData.geo_tag_date) return "Geo tag date is required";
     } else if (s === "verified") {
       if (!formData.verified_by) return "Please select verifier";
       if (!formData.verification_date) return "Verification date is required";
@@ -645,62 +644,50 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
         );
 
       case "being_mapped":
-        if (request.isBatch) {
-          return (
-            <div className="space-y-4">
-              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                  <p className="text-sm text-blue-800">
-                    GPS coordinates will be captured individually per tree in the Tree Operations page. 
-                    Click Save to proceed — individual geotagging is required within 7 days.
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        }
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">Latitude <span className="text-destructive">*</span></Label>
-                <Input type="number" step="0.00000001" value={formData.latitude || ""} onChange={(e) => setField("latitude", e.target.value)} placeholder="-1.28638200" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">Longitude <span className="text-destructive">*</span></Label>
-                <Input type="number" step="0.00000001" value={formData.longitude || ""} onChange={(e) => setField("longitude", e.target.value)} placeholder="36.81723400" />
-              </div>
-            </div>
-            <Button type="button" variant="outline" size="sm" className="gap-2" onClick={handleUseLocation}>
-              <MapPin className="h-4 w-4" />
-              Use my current location
-            </Button>
-            {formData.gps_accuracy && (
-              <div className="text-xs text-muted-foreground">GPS Accuracy: ~{formData.gps_accuracy}m</div>
-            )}
-            {formData.latitude && formData.longitude && (
-              <div className="rounded-lg border bg-muted/30 p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Map Preview</p>
-                <div className="aspect-video rounded-md bg-muted flex items-center justify-center">
-                  <img
-                    src={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-s+22c55e(${formData.longitude},${formData.latitude})/${formData.longitude},${formData.latitude},14,0/300x200@2x?access_token=pk.placeholder`}
-                    alt="Map preview"
-                    className="w-full h-full object-cover rounded-md"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute text-xs text-muted-foreground">
-                    📍 {Number(formData.latitude).toFixed(6)}, {Number(formData.longitude).toFixed(6)}
-                  </div>
+            {request.isBatch && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                  <p className="text-xs text-blue-800">
+                    This captures a <span className="font-semibold">group geotag</span> for all {request.treeIds.length} tree(s) in this batch. Per-tree geotags can still be captured separately on the Tree rows.
+                  </p>
                 </div>
               </div>
             )}
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Geo Tag Date <span className="text-destructive">*</span></Label>
-              <Input type="date" value={formData.geo_tag_date || ""} onChange={(e) => setField("geo_tag_date", e.target.value)} />
+              <Label className="text-sm font-medium">Geo Tag ID <span className="text-destructive">*</span></Label>
+              <Input value={formData.geo_tag_id || ""} onChange={(e) => setField("geo_tag_id", e.target.value)} placeholder="e.g. GT-001" />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Latitude <span className="text-destructive">*</span></Label>
+                <Input type="number" step="any" value={formData.latitude || ""} onChange={(e) => setField("latitude", e.target.value)} placeholder="-1.2921" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Longitude <span className="text-destructive">*</span></Label>
+                <Input type="number" step="any" value={formData.longitude || ""} onChange={(e) => setField("longitude", e.target.value)} placeholder="36.8219" />
+              </div>
+            </div>
+            <Button type="button" variant="outline" size="sm" className="w-full gap-2" onClick={handleUseLocation}>
+              <MapPin className="h-4 w-4" />
+              Capture from Current Location
+            </Button>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Accuracy (m)</Label>
+              <Input type="number" step="any" value={formData.gps_accuracy || ""} onChange={(e) => setField("gps_accuracy", e.target.value)} placeholder="e.g. 5" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Map Snapshot URL</Label>
+              <Input value={formData.map_snapshot || ""} onChange={(e) => setField("map_snapshot", e.target.value)} placeholder="https://..." />
+            </div>
+            {!request.isBatch && (
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">Geo Tag Date <span className="text-destructive">*</span></Label>
+                <Input type="date" value={formData.geo_tag_date || ""} onChange={(e) => setField("geo_tag_date", e.target.value)} />
+              </div>
+            )}
           </div>
         );
 
