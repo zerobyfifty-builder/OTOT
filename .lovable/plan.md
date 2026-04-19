@@ -1,75 +1,80 @@
 
-## Goal
-Add a Geotag section to the **Location** tab in the Tree Status & Info slider showing exact GPS coordinates, with a Google Map embed that loads only on demand (Refresh button) and supports an expand-to-fullscreen view.
 
-## Why on-demand loading
-Auto-embedding a Google Map iframe on every slider open would:
-- Block the slider open animation (300–800ms iframe init)
-- Trigger Google Maps API quota usage on every view
-- Slow the entire orders page when multiple sliders are opened in sequence
+## Implementation Plan: Engagement Actions (Revised)
 
-Lazy-loading via a "Load Map" button keeps the slider snappy and only spends quota when the user actually wants to see location.
+### 1. View Certificate (replaces Issue Certificate)
+The tourist portal already generates a certificate per contribution via `certificateGenerator.tsx` + `TreeCertificate.tsx`, displayed through `CertificatePreviewDialog` (wrapping `PdfPreviewDialog`).
 
-## Approach
+- Click **View Certificate** → fetch the contribution + tourist (contributor) details using the order's `contribution_id`
+- Reuse `certificateGenerator` to render the **same** certificate the tourist sees (same contribution ID, contributor name, tree count, trip)
+- Open in `CertificatePreviewDialog` with Share / Open in New Tab / Download (matches uploaded screenshot exactly)
+- On open → write log entry: `"Certificate viewed for {contribution_id} by {actor}"`
 
-### 1. Geotag accordion (collapsible, closed by default)
-Add inside the existing `Location` TabsContent in `src/pages/stakeholder/StakeholderOrders.tsx`, using the existing `Accordion` shadcn component.
+No new generator needed — we call the existing utility with the order's data so the output is byte-identical to the tourist-side certificate.
 
-```text
-▾ Geotag & Map
-  ┌─────────────────────────────────────────────┐
-  │  Latitude:  -0.5234   Longitude:  35.7891   │
-  │  Captured:  2026-04-12 10:23                │
-  │  [ Copy coords ]  [ Open in Google Maps ↗ ] │
-  ├─────────────────────────────────────────────┤
-  │   Map preview                  [ ⛶ Expand ] │
-  │  ┌─────────────────────────────────────┐   │
-  │  │                                     │   │
-  │  │   [ 🔄 Load Map ]                   │   │ ← placeholder until clicked
-  │  │   Click to fetch location           │   │
-  │  │                                     │   │
-  │  └─────────────────────────────────────┘   │
-  └─────────────────────────────────────────────┘
+### 2. Send Update to Contributor
+Use Lovable Email + a new edge function.
+
+- Click → composer dialog with:
+  - Subject (pre-filled: `"Update on your trees — {contribution_id}"`)
+  - Body textarea (pre-filled template: tree count, current planting status, anniversary date)
+  - "Include impact summary" checkbox (auto-appends planting progress + photo count)
+- Submit → edge function `send-contributor-update`:
+  - Looks up contributor email by `contribution_id`
+  - Sends branded KTB email
+  - Inserts row into `engagement_activities`
+- Toast on success + appears in Log tab
+
+*Requires email domain setup — will trigger setup dialog on first use.*
+
+### 3. Download Report
+Generate a PDF using existing `jsPDF` patterns (per `tech/pdf-formatting-standards`, `institutional/reports-module`).
+
+Contents:
+- KTB header + "Tree Order Engagement Report"
+- Order Info (Contribution ID, Contributor, Trees, Amount, Trip)
+- Planting status timeline (`tree_status_transitions`)
+- Photos count, geotag (if mapped), anniversary date
+- Activity log (all engagement actions)
+
+Open in `PdfPreviewDialog` (project standard — never auto-download). Log: `"Report downloaded by {actor}"`.
+
+### 4. Persistence Upgrade
+Replace `localStorage` log with a real table:
+
+```sql
+create table engagement_activities (
+  id uuid primary key default gen_random_uuid(),
+  contribution_id text not null,
+  activity_type text check (activity_type in
+    ('certificate_viewed','update_sent','report_downloaded')),
+  description text not null,
+  metadata jsonb default '{}',
+  actor_user_id uuid,
+  actor_email text,
+  created_at timestamptz default now()
+);
+-- RLS: stakeholders read/insert within their org scope
 ```
 
-After clicking **Load Map**, the placeholder is replaced by an `<iframe>` Google Maps embed (~280px tall). A **Refresh** button reloads it (forces re-fetch with a cache-buster param).
+Log tab reads from this table via React Query.
 
-### 2. Map embed strategy (no API key required)
-Use Google Maps' free embed URL — no key, no quota worries:
-```
-https://www.google.com/maps?q=<lat>,<lng>&z=16&output=embed
-```
-This works for any public coordinate. If the project later adds a Google Maps API key, we can swap to the official Embed API for better styling — same iframe pattern.
+### Files
+- `src/pages/stakeholder/StakeholderOrders.tsx` — wire 3 buttons, swap localStorage for query hook
+- `src/components/engagement/SendUpdateDialog.tsx` (new) — email composer
+- `src/utils/engagementReportGenerator.ts` (new) — jsPDF report
+- `supabase/functions/send-contributor-update/index.ts` (new)
+- New migration: `engagement_activities` + RLS
+- Reuse: `certificateGenerator`, `CertificatePreviewDialog`, `PdfPreviewDialog`
 
-### 3. Expand to fullscreen
-Clicking the **Expand** icon opens a shadcn `<Dialog>` containing a larger iframe (`h-[70vh]`) of the same coordinates. Close via the standard top-right X (per project's dialog-closing standard).
+### Build Order
+1. Migration + React Query hook for `engagement_activities`
+2. **View Certificate** (fastest — pure reuse of existing generator)
+3. **Download Report** (new generator, reuses PDF preview)
+4. **Send Update** (last — needs email domain)
 
-### 4. Coordinate source
-Pull `latitude` / `longitude` from the existing tree row already loaded in the slider (the same data that powers the Location tab today). If coordinates are missing, show:
-```
-No geotag captured for this tree yet.
-```
-and hide the map controls.
+### Confirm Before Build
+- **Send Update**: free-form composer or fixed template with a few editable fields?
+- **Report**: include photos inline, or just counts/links?
+- **Logs**: persist to DB now (recommended), or keep localStorage for v1?
 
-## Files to Edit
-- `src/pages/stakeholder/StakeholderOrders.tsx` — add Accordion + lazy iframe + expand Dialog inside the `Location` TabsContent. Add small local state `mapLoaded` and `mapKey` (for refresh cache-busting) and `mapExpanded`.
-
-## Component / State Sketch
-```tsx
-const [mapLoaded, setMapLoaded] = useState(false);
-const [mapKey, setMapKey] = useState(0);          // bump to force iframe reload
-const [mapExpanded, setMapExpanded] = useState(false);
-
-const mapSrc = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed&t=${mapKey}`;
-```
-
-## Out of Scope
-- Editing/saving new geotag coordinates (read-only display only).
-- Adding a Google Maps API key or using the JS SDK (free embed is sufficient).
-- Showing multiple trees on one map.
-
-## UX Notes
-- Accordion **closed by default** so the Location tab stays light.
-- Map area reserves its height (placeholder same size as iframe) → no layout shift when loaded.
-- Refresh button only visible after first load; before that only "Load Map" shows.
-- Open-in-Google-Maps link always available even without loading the embed (zero cost, opens new tab).
