@@ -1177,7 +1177,7 @@ export const StakeholderOrders = () => {
                                 {isPlantationType && (
                                 <DropdownMenuItem onClick={() => {
                                   setMonitoringSheet(group);
-                                  setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                                  setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
                                 }}>
                                   <ClipboardList className="h-3.5 w-3.5 mr-2" />
                                   Monitoring Logs
@@ -2060,20 +2060,47 @@ export const StakeholderOrders = () => {
                 <TabsContent value="new">
                   <div className="space-y-4 pt-2">
                     <div className="space-y-1.5">
-                      <Label>Inspection ID *</Label>
-                      <Input value={monitoringForm.inspection_id} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_id: e.target.value }))} placeholder="e.g. INS-001" />
+                      <Label>Inspection ID</Label>
+                      <Input value="Auto-generated on save" disabled className="bg-muted/40 text-muted-foreground" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label>Date *</Label>
-                      <Input type="date" value={monitoringForm.inspection_date} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_date: e.target.value }))} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Inspection Date *</Label>
+                        <Input type="date" value={monitoringForm.inspection_date} onChange={(e) => setMonitoringForm(f => ({ ...f, inspection_date: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Survival Rate % *</Label>
+                        <Input type="number" min="0" max="100" value={monitoringForm.survival_rate_pct} onChange={(e) => setMonitoringForm(f => ({ ...f, survival_rate_pct: e.target.value }))} />
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Inspected By *</Label>
-                      <Input value={monitoringForm.inspected_by} onChange={(e) => setMonitoringForm(f => ({ ...f, inspected_by: e.target.value }))} placeholder="Inspector name" />
+                      <Select value={monitoringForm.inspected_by} onValueChange={(v) => setMonitoringForm(f => ({ ...f, inspected_by: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Select inspector" /></SelectTrigger>
+                        <SelectContent>
+                          {(activePlanters || []).map(p => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Trees Alive *</Label>
+                        <Input type="number" min="0" value={monitoringForm.trees_alive} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_alive: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Trees Dead *</Label>
+                        <Input type="number" min="0" value={monitoringForm.trees_dead} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_dead: e.target.value }))} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Trees Replaced</Label>
+                        <Input type="number" min="0" value={monitoringForm.trees_replaced} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_replaced: e.target.value }))} />
+                      </div>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Notes</Label>
-                      <Textarea value={monitoringForm.notes} onChange={(e) => setMonitoringForm(f => ({ ...f, notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
+                      <Label>General Health Notes</Label>
+                      <Textarea value={monitoringForm.overall_health_notes} onChange={(e) => setMonitoringForm(f => ({ ...f, overall_health_notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
                     </div>
                     <div className="space-y-1.5">
                       <Label>Photos (comma-separated URLs)</Label>
@@ -2081,22 +2108,24 @@ export const StakeholderOrders = () => {
                     </div>
                     <Button
                       className="w-full"
-                      disabled={!monitoringForm.inspection_id || !monitoringForm.inspection_date || !monitoringForm.inspected_by}
+                      disabled={!monitoringForm.inspection_date || !monitoringForm.inspected_by || !monitoringForm.survival_rate_pct || !monitoringForm.trees_alive || !monitoringForm.trees_dead}
                       onClick={async () => {
                         const photos = monitoringForm.photos ? monitoringForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
-                        const { error } = await supabase.from("monitoring_logs" as any).insert({
+                        const { error } = await supabase.from("tree_monitoring_logs" as any).insert({
                           contribution_id: monitoringSheet.contribution_id,
-                          inspection_id: monitoringForm.inspection_id,
                           inspection_date: monitoringForm.inspection_date,
                           inspected_by: monitoringForm.inspected_by,
-                          notes: monitoringForm.notes || null,
+                          survival_rate_pct: parseFloat(monitoringForm.survival_rate_pct) || 0,
+                          trees_alive: parseInt(monitoringForm.trees_alive) || 0,
+                          trees_dead: parseInt(monitoringForm.trees_dead) || 0,
+                          trees_replaced: parseInt(monitoringForm.trees_replaced) || 0,
+                          overall_health_notes: monitoringForm.overall_health_notes || null,
                           photos,
-                          created_by: user?.id || null,
                         });
                         if (error) { toast.error(error.message); return; }
                         toast.success("Monitoring log saved");
                         refetchMonitoring();
-                        setMonitoringForm({ inspection_id: '', inspection_date: '', inspected_by: '', notes: '', photos: '' });
+                        setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
                       }}
                     >
                       Save Monitoring Log
@@ -2109,11 +2138,26 @@ export const StakeholderOrders = () => {
                       monitoringLogs.map((log: any) => (
                         <div key={log.id} className="rounded-lg border bg-card p-3 space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-semibold">{log.inspection_id}</span>
+                            <span className="text-sm font-semibold font-mono">INS-{String(log.id).slice(0, 8).toUpperCase()}</span>
                             <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
                           </div>
-                          <p className="text-sm text-muted-foreground">By: {log.inspected_by}</p>
-                          {log.notes && <p className="text-sm">{log.notes}</p>}
+                          <p className="text-sm text-muted-foreground">By: {log.inspected_by ? (planterNameMap.get(log.inspected_by) || '—') : '—'}</p>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <Badge variant="outline">Survival: {log.survival_rate_pct ?? 0}%</Badge>
+                            <Badge variant="outline">Alive: {log.trees_alive ?? 0}</Badge>
+                            <Badge variant="outline">Dead: {log.trees_dead ?? 0}</Badge>
+                            <Badge variant="outline">Replaced: {log.trees_replaced ?? 0}</Badge>
+                          </div>
+                          {log.overall_health_notes && <p className="text-sm">{log.overall_health_notes}</p>}
+                          {Array.isArray(log.photos) && log.photos.length > 0 && (
+                            <div className="flex gap-2 flex-wrap pt-1">
+                              {log.photos.map((url: string, i: number) => (
+                                <button key={i} onClick={() => setLightboxPhoto(url)} className="h-12 w-12 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                  <img src={url} alt="" className="h-full w-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (
