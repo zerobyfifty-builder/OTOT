@@ -1851,6 +1851,19 @@ export const StakeholderOrders = () => {
             const treeCount = statusHistoryGroup?.total_trees || 1;
             const allLifecycleStatuses = PLANTING_STATUSES;
 
+            // Batch-level geotag: derived from latest "being_mapped" status transition (group-level),
+            // kept SEPARATE from per-tree geotags stored in tree_geotags.
+            const beingMappedTransition = (treeTransitions || []).find((t: any) => t.to_status === 'being_mapped');
+            const btd: any = beingMappedTransition?.transition_data || {};
+            const batchGeotag = beingMappedTransition && btd.latitude != null && btd.longitude != null ? {
+              geo_tag_id: btd.geo_tag_id || null,
+              latitude: typeof btd.latitude === 'string' ? parseFloat(btd.latitude) : btd.latitude,
+              longitude: typeof btd.longitude === 'string' ? parseFloat(btd.longitude) : btd.longitude,
+              geo_accuracy: btd.gps_accuracy ?? btd.geo_accuracy ?? null,
+              map_snapshot: btd.map_snapshot || null,
+              created_at: beingMappedTransition.created_at,
+            } : null;
+
             const friendlyLabels: Record<string, string> = {
               target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
@@ -1990,11 +2003,11 @@ export const StakeholderOrders = () => {
                                         </div>
                                       </div>
                                     )}
-                                    {status === 'being_mapped' && treeGeotag && treeGeotag.latitude != null && treeGeotag.longitude != null && (
+                                    {status === 'being_mapped' && batchGeotag && (
                                       <div className="space-y-2 rounded-md border bg-muted/30 p-3">
                                         <div className="flex items-center justify-between">
                                           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                                            <MapPin className="h-3.5 w-3.5" /> Geotag
+                                            <MapPin className="h-3.5 w-3.5" /> Group Geotag
                                           </span>
                                           <div className="flex gap-1.5">
                                             <Button
@@ -2003,14 +2016,14 @@ export const StakeholderOrders = () => {
                                               size="sm"
                                               className="h-6 text-[11px] px-2"
                                               onClick={() => {
-                                                navigator.clipboard.writeText(`${treeGeotag.latitude}, ${treeGeotag.longitude}`);
+                                                navigator.clipboard.writeText(`${batchGeotag.latitude}, ${batchGeotag.longitude}`);
                                                 toast.success("Coordinates copied");
                                               }}
                                             >
                                               <Copy className="h-3 w-3 mr-1" /> Copy
                                             </Button>
                                             <a
-                                              href={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}`}
+                                              href={`https://www.google.com/maps?q=${batchGeotag.latitude},${batchGeotag.longitude}`}
                                               target="_blank"
                                               rel="noopener noreferrer"
                                               className="inline-flex items-center text-[11px] h-6 px-2 rounded-md border bg-background hover:bg-accent"
@@ -2020,14 +2033,14 @@ export const StakeholderOrders = () => {
                                           </div>
                                         </div>
                                         <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
-                                          {treeGeotag.geo_tag_id && (<><span className="text-muted-foreground">Geo Tag ID:</span><span className="font-medium">{treeGeotag.geo_tag_id}</span></>)}
-                                          <span className="text-muted-foreground">Latitude:</span><span className="font-medium">{treeGeotag.latitude}</span>
-                                          <span className="text-muted-foreground">Longitude:</span><span className="font-medium">{treeGeotag.longitude}</span>
-                                          {treeGeotag.geo_accuracy && (<><span className="text-muted-foreground">Accuracy:</span><span className="font-medium">{treeGeotag.geo_accuracy} m</span></>)}
+                                          {batchGeotag.geo_tag_id && (<><span className="text-muted-foreground">Geo Tag ID:</span><span className="font-medium">{batchGeotag.geo_tag_id}</span></>)}
+                                          <span className="text-muted-foreground">Latitude:</span><span className="font-medium">{batchGeotag.latitude}</span>
+                                          <span className="text-muted-foreground">Longitude:</span><span className="font-medium">{batchGeotag.longitude}</span>
+                                          {batchGeotag.geo_accuracy && (<><span className="text-muted-foreground">Accuracy:</span><span className="font-medium">{batchGeotag.geo_accuracy} m</span></>)}
                                         </div>
                                       </div>
                                     )}
-                                    {entries.length === 0 && photos.length === 0 && !(status === 'being_mapped' && treeGeotag) && (
+                                    {entries.length === 0 && photos.length === 0 && !(status === 'being_mapped' && batchGeotag) && (
                                       <p className="text-sm text-muted-foreground italic">Status recorded with no additional details.</p>
                                     )}
                                   </div>
