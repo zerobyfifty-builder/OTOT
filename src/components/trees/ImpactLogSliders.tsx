@@ -365,6 +365,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                 <div className="space-y-1.5">
                   <Label className="text-xs">Log Date *</Label>
                   <Input type="date"
+                    max={new Date().toISOString().split('T')[0]}
                     value={type === "carbon" ? carbonForm.log_date : type === "ecosystem" ? ecoForm.log_date : commForm.log_date}
                     onChange={e => {
                       if (type === "carbon") setCarbonForm(p => ({ ...p, log_date: e.target.value }));
