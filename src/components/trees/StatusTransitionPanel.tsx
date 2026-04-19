@@ -60,6 +60,23 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
 
+  // Current user's display name for the "Changed By" accountability field
+  const { data: currentUserName } = useQuery({
+    queryKey: ["currentUserDisplayName"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return "";
+      const meta = (user.user_metadata || {}) as Record<string, any>;
+      return (
+        meta.full_name ||
+        meta.name ||
+        meta.display_name ||
+        user.email ||
+        ""
+      );
+    },
+  });
+
   // Query to fetch assigned planter from previous "assigned" transition
   const { data: assignedPlanterData } = useQuery({
     queryKey: ["assignedPlanterForTrees", request?.treeIds],
@@ -108,11 +125,13 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       } else if (request.toStatus === "re_planted") {
         defaults.re_planted_date = format(new Date(), "yyyy-MM-dd");
       }
+      // Universal accountability field — pre-fill with current user's name
+      defaults.changed_by = currentUserName || "";
       setFormData(defaults);
       setPhotos([]);
       setBeatSearch("");
     }
-  }, [request]);
+  }, [request, currentUserName]);
 
   // Pre-fill planter from assigned status when data is available
   useEffect(() => {
@@ -288,6 +307,9 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       if (!formData.cause_of_death) return "Please select cause of death";
     } else if (s === "re_planted") {
       if (!formData.re_planted_date) return "Re-planted date is required";
+    }
+    if (!formData.changed_by || !String(formData.changed_by).trim()) {
+      return "Please enter who is making this change (Changed By)";
     }
     return null;
   };
@@ -747,11 +769,20 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               Confirm Planted
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 py-6">
+          <div className="flex-1 py-6 space-y-4">
             <div className="rounded-lg border bg-green-50/50 border-green-200 p-4">
               <p className="text-sm text-green-800">
                 Mark <strong>{treeLabel}</strong> as fully planted and verified? This will update the Planted counter in the summary header.
               </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+              <Input
+                placeholder="Your name"
+                value={formData.changed_by || ""}
+                onChange={(e) => setField("changed_by", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
             </div>
           </div>
           <SheetFooter className="flex gap-2 pt-4 border-t">
@@ -780,8 +811,17 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
         <Separator className="my-2" />
 
-        <div className="flex-1 overflow-y-auto py-4 pr-1">
+        <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4">
           {renderFormFields()}
+          <div className="space-y-1.5 pt-3 border-t">
+            <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+            <Input
+              placeholder="Your name"
+              value={formData.changed_by || ""}
+              onChange={(e) => setField("changed_by", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
+          </div>
         </div>
 
         <SheetFooter className="flex gap-2 pt-4 border-t">
