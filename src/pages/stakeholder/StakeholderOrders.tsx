@@ -267,6 +267,8 @@ export const StakeholderOrders = () => {
   const [statusHistoryGroup, setStatusHistoryGroup] = useState<ContributionGroup | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
+  const [monitoringTab, setMonitoringTab] = useState<string>("previous");
+  const [metricsTab, setMetricsTab] = useState<string>("new");
   const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
   const [impactSliderType, setImpactSliderType] = useState<"carbon" | "ecosystem" | "community" | null>(null);
   const [impactSliderContribId, setImpactSliderContribId] = useState<string | null>(null);
@@ -2081,7 +2083,7 @@ export const StakeholderOrders = () => {
                 </SheetTitle>
                 <p className="text-sm text-muted-foreground">{monitoringSheet.contribution_id}</p>
                </SheetHeader>
-               <Tabs defaultValue="previous" className="mt-4">
+               <Tabs value={monitoringTab} onValueChange={setMonitoringTab} className="mt-4">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="previous">Previous Logs{monitoringLogs && monitoringLogs.length > 0 ? ` (${monitoringLogs.length})` : ''}</TabsTrigger>
                   <TabsTrigger value="new">Add New Log</TabsTrigger>
@@ -2280,6 +2282,7 @@ export const StakeholderOrders = () => {
                         toast.success("Monitoring log saved");
                         refetchMonitoring();
                         setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
+                        setMonitoringTab("previous");
                       }}
                     >
                       Save Monitoring Log
@@ -3123,7 +3126,7 @@ export const StakeholderOrders = () => {
                   <p className="text-sm text-muted-foreground">Tree: {metricsSheet.otot_id}</p>
                 </SheetHeader>
 
-                <Tabs defaultValue="new" className="mt-4">
+                <Tabs value={metricsTab} onValueChange={setMetricsTab} className="mt-4">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="new">New Log</TabsTrigger>
                     <TabsTrigger value="previous">Previous Logs ({totalLogs})</TabsTrigger>
@@ -3273,6 +3276,7 @@ export const StakeholderOrders = () => {
                             height_unit: 'cm',
                             notes: '',
                           });
+                          setMetricsTab("previous");
                         }}
                       >
                         Save Metrics
