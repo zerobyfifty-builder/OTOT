@@ -3705,37 +3705,140 @@ export const StakeholderOrders = () => {
             const statusLabel = getGroupStatusLabel(group.planting_status);
             const statusColor = getGroupStatusColor(group.planting_status);
 
-            const persistLogs = (logs: typeof engagementLogs) => {
-              try { localStorage.setItem(`engagement_logs_${group.contribution_id}`, JSON.stringify(logs)); } catch {}
-            };
-            const addLog = (type: string, description: string) => {
-              const newLog = {
-                id: crypto.randomUUID(),
-                type,
-                description,
-                timestamp: new Date().toISOString(),
-                actor: user?.email || "System",
-              };
-              const updated = [newLog, ...engagementLogs];
-              setEngagementLogs(updated);
-              persistLogs(updated);
+            const recordLog = async (
+              activity_type: "certificate_viewed" | "update_sent" | "report_downloaded",
+              description: string,
+              metadata: Record<string, unknown> = {},
+            ) => {
+              try {
+                await logEngagement.mutateAsync({
+                  contribution_id: group.contribution_id,
+                  activity_type,
+                  description,
+                  metadata,
+                  actor_user_id: user?.id ?? null,
+                  actor_email: user?.email ?? null,
+                });
+              } catch (err) {
+                console.error("Failed to record engagement log:", err);
+              }
             };
 
-            const handleIssueCertificate = () => {
-              addLog("certificate_issued", `Certificate issued for ${group.total_trees} tree(s)`);
-              toast.success("Certificate issued");
+            const handleViewCertificate = async () => {
+              if (engagementCertGenerating) return;
+              setEngagementCertGenerating(true);
+              try {
+                const co2PerTree = group.trip && group.trip.trees_needed > 0
+                  ? group.trip.total_co2 / group.trip.trees_needed
+                  : 0;
+                const co2Offset = Number((co2PerTree * group.total_trees).toFixed(1));
+                const firstTree: any = group.trees[0];
+                const ototId = firstTree?.otot_id || firstTree?.tree_id || group.contribution_id;
+                const blob = await generateTreeCertificate({
+                  userName: group.tourist_name || "Environmental Supporter",
+                  userId: (group.trees[0] as any)?.user_id || user?.id || group.contribution_id,
+                  numTrees: group.total_trees,
+                  co2Offset,
+                  ototId,
+                  location: "Mau Forest Complex, Kenya",
+                });
+                const fileName = `tree-certificate-${group.contribution_id}.pdf`;
+                setEngagementCertPreview({ blob, name: fileName });
+                await recordLog(
+                  "certificate_viewed",
+                  `Certificate viewed for ${group.contribution_id} (${group.total_trees} tree(s))`,
+                  { num_trees: group.total_trees },
+                );
+              } catch (err) {
+                console.error("Certificate generation error:", err);
+                toast.error("Failed to generate certificate");
+              } finally {
+                setEngagementCertGenerating(false);
+              }
             };
+
             const handleSendUpdate = () => {
-              addLog("update_sent", `Update email sent to ${group.tourist_name || "contributor"}`);
-              toast.success("Update sent to contributor");
+              setEngagementSendOpen(true);
             };
-            const handleDownloadReport = () => {
-              addLog("report_downloaded", `Engagement report downloaded for ${group.contribution_id}`);
-              toast.success("Report downloaded");
+
+            const handleDownloadReport = async () => {
+              if (engagementReportGenerating) return;
+              setEngagementReportGenerating(true);
+              try {
+                // Fetch status timeline for trees in this group
+                const treeIds = group.trees.map(t => t.id);
+                const { data: transitions } = await supabase
+                  .from("tree_status_transitions" as any)
+                  .select("to_status, created_at, transition_data")
+                  .in("tree_id", treeIds)
+                  .order("created_at", { ascending: true });
+                const seen = new Set<string>();
+                const timeline = ((transitions as any[]) || [])
+                  .filter(t => {
+                    if (seen.has(t.to_status)) return false;
+                    seen.add(t.to_status);
+                    return true;
+                  })
+                  .map(t => ({
+                    status: t.to_status,
+                    label: STATUS_LABELS[t.to_status] || t.to_status,
+                    date: t.created_at,
+                    actor: (t.transition_data as any)?.recorded_by || null,
+                  }));
+
+                // Photos count
+                const photosCount = group.trees.reduce((acc, t: any) => {
+                  const photos = (t.transition_data?.photos || t.geotag_photos || []) as any[];
+                  return acc + (Array.isArray(photos) ? photos.length : 0);
+                }, 0);
+
+                // Group geotag (first tree with lat/lng)
+                const tWithGeo: any = group.trees.find((t: any) => t.latitude && t.longitude);
+                const geotag = tWithGeo
+                  ? { latitude: Number(tWithGeo.latitude), longitude: Number(tWithGeo.longitude) }
+                  : null;
+
+                const blob = await generateEngagementReport({
+                  contribution_id: group.contribution_id,
+                  customer_id: customerIdFormatted,
+                  contributor_name: group.tourist_name || "—",
+                  contributor_type: contributorType,
+                  contributor_email: (group.trees[0] as any)?.contact_email || null,
+                  trip_id: tripFriendlyId,
+                  total_trees: group.total_trees,
+                  total_amount: group.total_amount,
+                  currency: group.currency,
+                  payment_date: group.payment_date,
+                  planting_status_label: statusLabel,
+                  anniversary_date: anniversaryDate ? anniversaryDate.toISOString() : null,
+                  photos_count: photosCount,
+                  geotag,
+                  status_timeline: timeline,
+                  activity_log: engagementActivities.map(a => ({
+                    type: a.activity_type,
+                    description: a.description,
+                    timestamp: a.created_at,
+                    actor: a.actor_email || "System",
+                  })),
+                  generated_by: user?.email || "System",
+                });
+                const fileName = `engagement-report-${group.contribution_id}.pdf`;
+                setEngagementReportPreview({ blob, name: fileName });
+                await recordLog(
+                  "report_downloaded",
+                  `Engagement report generated for ${group.contribution_id}`,
+                  { trees: group.total_trees, photos: photosCount },
+                );
+              } catch (err) {
+                console.error("Report generation error:", err);
+                toast.error("Failed to generate report");
+              } finally {
+                setEngagementReportGenerating(false);
+              }
             };
 
             const logTypeMeta: Record<string, { label: string; icon: any; color: string }> = {
-              certificate_issued: { label: "Certificate Issued", icon: Award, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+              certificate_viewed: { label: "Certificate Viewed", icon: Award, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
               update_sent: { label: "Update Sent", icon: Send, color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
               report_downloaded: { label: "Report Downloaded", icon: FileDown, color: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
             };
