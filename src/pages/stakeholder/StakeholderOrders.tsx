@@ -2259,33 +2259,60 @@ export const StakeholderOrders = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="previous">
-                  <div className="space-y-3 pt-2">
+                  <div className="pt-2">
                     {monitoringLogs && monitoringLogs.length > 0 ? (
-                      monitoringLogs.map((log: any) => (
-                        <div key={log.id} className="rounded-lg border bg-card p-3 space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-semibold font-mono">INS-{String(log.id).slice(0, 8).toUpperCase()}</span>
-                            <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">By: {log.inspected_by ? (planterNameMap.get(log.inspected_by) || '—') : '—'}</p>
-                          <div className="flex flex-wrap gap-2 text-xs">
-                            <Badge variant="outline">Survival: {log.survival_rate_pct ?? 0}%</Badge>
-                            <Badge variant="outline">Alive: {log.trees_alive ?? 0}</Badge>
-                            <Badge variant="outline">Dead: {log.trees_dead ?? 0}</Badge>
-                            <Badge variant="outline">Replaced: {log.trees_replaced ?? 0}</Badge>
-                          </div>
-                          {log.overall_health_notes && <p className="text-sm">{log.overall_health_notes}</p>}
-                          {Array.isArray(log.photos) && log.photos.length > 0 && (
-                            <div className="flex gap-2 flex-wrap pt-1">
-                              {log.photos.map((url: string, i: number) => (
-                                <button key={i} onClick={() => setLightboxPhoto(url)} className="h-12 w-12 rounded-md overflow-hidden border hover:ring-2 ring-primary">
-                                  <img src={url} alt="" className="h-full w-full object-cover" />
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))
+                      <Accordion type="multiple" className="space-y-2">
+                        {monitoringLogs.map((log: any) => (
+                          <AccordionItem
+                            key={log.id}
+                            value={log.id}
+                            className="rounded-lg border bg-card px-3 data-[state=open]:bg-muted/30"
+                          >
+                            <AccordionTrigger className="py-3 hover:no-underline">
+                              <div className="flex flex-1 items-center gap-3 pr-2 text-left">
+                                <span className="text-sm font-semibold whitespace-nowrap">
+                                  {log.inspection_date ? format(new Date(log.inspection_date), "MMM dd, yyyy") : '-'}
+                                </span>
+                                <Badge variant="outline" className="font-normal">
+                                  Survival: {log.survival_rate_pct ?? 0}%
+                                </Badge>
+                                <span className="text-sm text-muted-foreground truncate">
+                                  Alive: {log.trees_alive ?? 0} | Dead: {log.trees_dead ?? 0} | Replaced: {log.trees_replaced ?? 0}
+                                </span>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-3">
+                              <div className="space-y-2 border-t pt-3">
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Inspection ID: </span>
+                                    <span className="font-mono">INS-{String(log.id).slice(0, 8).toUpperCase()}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Inspected By: </span>
+                                    <span>{log.inspected_by ? (planterNameMap.get(log.inspected_by) || '—') : '—'}</span>
+                                  </div>
+                                </div>
+                                {log.overall_health_notes && (
+                                  <div className="text-sm">
+                                    <span className="text-muted-foreground">Notes: </span>
+                                    {log.overall_health_notes}
+                                  </div>
+                                )}
+                                {Array.isArray(log.photos) && log.photos.length > 0 && (
+                                  <div className="flex gap-2 flex-wrap pt-1">
+                                    {log.photos.map((url: string, i: number) => (
+                                      <button key={i} onClick={() => setLightboxPhoto(url)} className="h-14 w-14 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                        <img src={url} alt="" className="h-full w-full object-cover" />
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                     ) : (
                       <p className="text-sm text-muted-foreground text-center py-6">No monitoring logs recorded yet.</p>
                     )}
