@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Users, Briefcase, Heart, GraduationCap, Wallet, TrendingUp } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -13,6 +14,32 @@ import {
   Line,
 } from "recharts";
 import type { CommunityLog, CommunityReport } from "@/hooks/useImpactInsights";
+
+const StatCard = ({
+  label,
+  value,
+  icon: Icon,
+  iconBg,
+  iconColor,
+}: {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+}) => (
+  <Card className="p-4">
+    <div className="flex items-start gap-3">
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${iconBg}`}>
+        <Icon className={`h-4 w-4 ${iconColor}`} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground font-medium">{label}</p>
+        <p className="text-xl font-bold tabular-nums text-foreground mt-0.5 truncate">{value}</p>
+      </div>
+    </div>
+  </Card>
+);
 
 export const CommunityTab = ({
   logs,
