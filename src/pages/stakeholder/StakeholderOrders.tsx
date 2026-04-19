@@ -2006,6 +2006,126 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
+                  {/* Location Tab - Geotag & Map (mirrors Tree Status & Info → Location) */}
+                  <TabsContent value="location">
+                    <div className="space-y-4 pt-2">
+                      {treeGeotag && treeGeotag.latitude != null && treeGeotag.longitude != null ? (
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                            <MapPin className="h-4 w-4" /> Geotag & Map
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${treeGeotag.latitude}, ${treeGeotag.longitude}`);
+                                toast.success("Coordinates copied");
+                              }}
+                            >
+                              <Copy className="h-3 w-3 mr-1.5" /> Copy coords
+                            </Button>
+                            <a
+                              href={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-xs h-7 px-2.5 rounded-md border bg-background hover:bg-accent"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1.5" /> Open in Google Maps
+                            </a>
+                          </div>
+
+                          <div className="rounded-md border bg-muted/30 overflow-hidden" style={{ height: 280 }}>
+                            {!mapLoaded ? (
+                              <div className="flex flex-col items-center justify-center h-full gap-2">
+                                <Button
+                                  type="button"
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => { setMapLoaded(true); setMapKey(k => k + 1); }}
+                                >
+                                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Load Map
+                                </Button>
+                                <p className="text-xs text-muted-foreground">Click to fetch location preview</p>
+                              </div>
+                            ) : (
+                              <div className="relative h-full">
+                                <iframe
+                                  key={mapKey}
+                                  title="Tree location map"
+                                  src={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}&z=16&output=embed&t=${mapKey}`}
+                                  className="w-full h-full border-0"
+                                  loading="lazy"
+                                />
+                                <div className="absolute top-2 right-2 flex gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="icon"
+                                    className="h-7 w-7 shadow-md"
+                                    onClick={() => setMapKey(k => k + 1)}
+                                    title="Refresh map"
+                                  >
+                                    <RefreshCw className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="icon"
+                                    className="h-7 w-7 shadow-md"
+                                    onClick={() => setMapExpanded(true)}
+                                    title="Expand"
+                                  >
+                                    <Maximize2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="geotag-info" className="border rounded-lg px-3">
+                              <AccordionTrigger className="text-sm font-medium hover:no-underline py-3">
+                                <span className="flex items-center gap-2">
+                                  <Info className="h-4 w-4" /> Geotag Information
+                                </span>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="space-y-2 pt-1">
+                                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
+                                    <span className="text-muted-foreground">Geo Tag ID:</span>
+                                    <span className="font-medium">{treeGeotag.geo_tag_id || '-'}</span>
+                                    <span className="text-muted-foreground">Latitude:</span>
+                                    <span className="font-medium">{treeGeotag.latitude}</span>
+                                    <span className="text-muted-foreground">Longitude:</span>
+                                    <span className="font-medium">{treeGeotag.longitude}</span>
+                                    <span className="text-muted-foreground">Accuracy:</span>
+                                    <span className="font-medium">{treeGeotag.geo_accuracy || '-'}</span>
+                                    <span className="text-muted-foreground">Captured:</span>
+                                    <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                                  </div>
+                                  {treeGeotag.map_snapshot && (
+                                    <div className="mt-3">
+                                      <img src={treeGeotag.map_snapshot} alt="Map snapshot" className="w-full h-32 object-cover rounded-md border cursor-pointer" onClick={() => setLightboxPhoto(treeGeotag.map_snapshot)} />
+                                    </div>
+                                  )}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed bg-muted/20 py-10 px-4 text-center">
+                          <MapPin className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No geotag captured for this tree yet.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Move the tree to "Location Mapped" status to capture GPS coordinates.</p>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
                   {/* Monitoring Tab */}
                   <TabsContent value="monitoring">
                     <div className="pt-2">
