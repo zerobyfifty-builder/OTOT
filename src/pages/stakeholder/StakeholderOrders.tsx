@@ -2060,9 +2060,22 @@ export const StakeholderOrders = () => {
                 </TabsList>
                 <TabsContent value="new">
                   <div className="space-y-4 pt-2">
-                    <div className="space-y-1.5">
-                      <Label>Inspection ID</Label>
-                      <Input value="Auto-generated on save" disabled className="bg-muted/40 text-muted-foreground" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Inspection ID</Label>
+                        <Input value="Auto-generated on save" disabled className="bg-muted/40 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Inspected By *</Label>
+                        <Select value={monitoringForm.inspected_by} onValueChange={(v) => setMonitoringForm(f => ({ ...f, inspected_by: v }))}>
+                          <SelectTrigger><SelectValue placeholder="Select inspector" /></SelectTrigger>
+                          <SelectContent>
+                            {(activePlanters || []).map(p => (
+                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
@@ -2073,17 +2086,6 @@ export const StakeholderOrders = () => {
                         <Label>Survival Rate % *</Label>
                         <Input type="number" min="0" max="100" value={monitoringForm.survival_rate_pct} onChange={(e) => setMonitoringForm(f => ({ ...f, survival_rate_pct: e.target.value }))} />
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Inspected By *</Label>
-                      <Select value={monitoringForm.inspected_by} onValueChange={(v) => setMonitoringForm(f => ({ ...f, inspected_by: v }))}>
-                        <SelectTrigger><SelectValue placeholder="Select inspector" /></SelectTrigger>
-                        <SelectContent>
-                          {(activePlanters || []).map(p => (
-                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
