@@ -1794,7 +1794,7 @@ export const StakeholderOrders = () => {
                           const transitionData = transition?.transition_data || {};
                           const photos = transition?.photos || [];
 
-                          const skipKeys = new Set<string>(['reverted']);
+                          const skipKeys = new Set<string>(['reverted', 'sapling_age_value', 'sapling_age_unit']);
                           for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
@@ -2240,7 +2240,7 @@ export const StakeholderOrders = () => {
                           const transition = treeTransitions?.find(t => t.to_status === status);
                           const transitionData = transition?.transition_data || {};
                           const photos = transition?.photos || [];
-                          const skipKeys = new Set<string>(['reverted']);
+                          const skipKeys = new Set<string>(['reverted', 'sapling_age_value', 'sapling_age_unit']);
                           for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
