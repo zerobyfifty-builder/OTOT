@@ -18,10 +18,11 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
 import {
   ArrowLeft, Download, TreePine, DollarSign, CheckCircle2, Clock, MapPin,
   Camera, User, Leaf, Activity, BarChart3, Award, Bell, Calendar, Plus,
-  ZoomIn, X, ChevronRight, FileText, Heart, Sprout, AlertTriangle
+  ZoomIn, X, ChevronRight, FileText, Heart, Sprout, AlertTriangle, Cloud, Globe, Users
 } from "lucide-react";
 
 import { Database } from "@/integrations/supabase/types";
@@ -95,6 +96,7 @@ export const TreeOperations = () => {
     overall_health_notes: '', photos: ''
   });
   const [showMonitoringForm, setShowMonitoringForm] = useState(false);
+  const [impactSlider, setImpactSlider] = useState<"carbon" | "ecosystem" | "community" | null>(null);
   const [impactForm, setImpactForm] = useState({
     co2_offset_estimated_kg: '', co2_offset_actual_kg: '', calculation_method: 'ICAO Standard (22kg/tree/year)',
     biodiversity_index: '', soil_improvement: '', water_retention: '',
@@ -937,111 +939,41 @@ export const TreeOperations = () => {
               </Card>
             </div>
 
-            {/* Carbon Metrics Form */}
+            {/* Impact Logs Toolbar */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Carbon Metrics</CardTitle>
-                <CardDescription>Override or refine carbon offset calculations</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs">CO₂ Offset Estimated (kg)</Label>
-                    <Input type="number" value={impactForm.co2_offset_estimated_kg || String(estimatedCO2)} onChange={e => setImpactForm(p => ({ ...p, co2_offset_estimated_kg: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">CO₂ Offset Actual (kg)</Label>
-                    <Input type="number" placeholder="Verified third-party data" value={impactForm.co2_offset_actual_kg} onChange={e => setImpactForm(p => ({ ...p, co2_offset_actual_kg: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Calculation Method</Label>
-                    <Select value={impactForm.calculation_method} onValueChange={v => setImpactForm(p => ({ ...p, calculation_method: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ICAO Standard (22kg/tree/year)">ICAO Standard (22kg/tree/year)</SelectItem>
-                        <SelectItem value="IPCC Tropical">IPCC Tropical</SelectItem>
-                        <SelectItem value="Third-party verified">Third-party verified</SelectItem>
-                        <SelectItem value="Custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ecosystem Impact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Ecosystem Impact</CardTitle>
+                <CardTitle className="text-lg">Impact Logs</CardTitle>
+                <CardDescription>Capture and review historical entries for each impact dimension</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs">Biodiversity Index (0–10)</Label>
-                    <Input type="number" min="0" max="10" step="0.1" value={impactForm.biodiversity_index} onChange={e => setImpactForm(p => ({ ...p, biodiversity_index: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Soil Improvement</Label>
-                    <Select value={impactForm.soil_improvement} onValueChange={v => setImpactForm(p => ({ ...p, soil_improvement: v }))}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="None">None</SelectItem>
-                        <SelectItem value="Minimal">Minimal</SelectItem>
-                        <SelectItem value="Moderate">Moderate</SelectItem>
-                        <SelectItem value="Significant">Significant</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Water Retention</Label>
-                    <Select value={impactForm.water_retention} onValueChange={v => setImpactForm(p => ({ ...p, water_retention: v }))}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="None">None</SelectItem>
-                        <SelectItem value="Minimal">Minimal</SelectItem>
-                        <SelectItem value="Moderate">Moderate</SelectItem>
-                        <SelectItem value="Significant">Significant</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Label className="text-xs">Ecosystem Notes</Label>
-                  <Textarea value={impactForm.ecosystem_notes} onChange={e => setImpactForm(p => ({ ...p, ecosystem_notes: e.target.value }))} rows={2} />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Community Impact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Community Impact</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs">Jobs Created</Label>
-                    <Input type="number" value={impactForm.jobs_created} onChange={e => setImpactForm(p => ({ ...p, jobs_created: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Local Participants Count</Label>
-                    <Input type="number" value={impactForm.local_participants_count} onChange={e => setImpactForm(p => ({ ...p, local_participants_count: e.target.value }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Update Frequency</Label>
-                    <Select value={impactForm.update_frequency} onValueChange={v => setImpactForm(p => ({ ...p, update_frequency: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Monthly">Monthly</SelectItem>
-                        <SelectItem value="Quarterly">Quarterly</SelectItem>
-                        <SelectItem value="Annually">Annually</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Label className="text-xs">Community Benefits Description</Label>
-                  <Textarea value={impactForm.community_benefits} onChange={e => setImpactForm(p => ({ ...p, community_benefits: e.target.value }))} rows={2} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button variant="outline" className="h-auto py-3 justify-start gap-3" onClick={() => setImpactSlider("carbon")}>
+                    <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                      <Cloud className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-sm font-semibold">Carbon Metrics</span>
+                      <span className="text-[11px] text-muted-foreground">CO₂ offsets & methods</span>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="h-auto py-3 justify-start gap-3" onClick={() => setImpactSlider("ecosystem")}>
+                    <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <Globe className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-sm font-semibold">Ecosystem Impact</span>
+                      <span className="text-[11px] text-muted-foreground">Biodiversity, soil, water</span>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="h-auto py-3 justify-start gap-3" onClick={() => setImpactSlider("community")}>
+                    <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <Users className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-sm font-semibold">Community Impact</span>
+                      <span className="text-[11px] text-muted-foreground">Jobs, participants, benefits</span>
+                    </div>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1102,16 +1034,18 @@ export const TreeOperations = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Save Impact Button */}
-            <div className="flex justify-end">
-              <Button onClick={() => saveImpactRecord.mutate(impactForm)} disabled={saveImpactRecord.isPending}>
-                {saveImpactRecord.isPending ? "Saving..." : "Save Impact Data"}
-              </Button>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Impact Log Sliders */}
+      <ImpactLogSliders
+        open={impactSlider}
+        onClose={() => setImpactSlider(null)}
+        contributionId={contributionId!}
+        onPhotoClick={(url) => setLightboxPhoto(url)}
+      />
+
 
       {/* Lightbox */}
       <Dialog open={!!lightboxPhoto} onOpenChange={() => setLightboxPhoto(null)}>

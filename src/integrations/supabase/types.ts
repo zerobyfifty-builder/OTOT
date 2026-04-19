@@ -269,6 +269,51 @@ export type Database = {
         }
         Relationships: []
       }
+      carbon_metrics_logs: {
+        Row: {
+          calculation_method: string | null
+          co2_offset_actual_kg: number | null
+          co2_offset_estimated_kg: number | null
+          contribution_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          log_date: string
+          notes: string | null
+          photos: string[] | null
+          recorded_by: string
+          updated_at: string
+        }
+        Insert: {
+          calculation_method?: string | null
+          co2_offset_actual_kg?: number | null
+          co2_offset_estimated_kg?: number | null
+          contribution_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          log_date: string
+          notes?: string | null
+          photos?: string[] | null
+          recorded_by: string
+          updated_at?: string
+        }
+        Update: {
+          calculation_method?: string | null
+          co2_offset_actual_kg?: number | null
+          co2_offset_estimated_kg?: number | null
+          contribution_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          log_date?: string
+          notes?: string | null
+          photos?: string[] | null
+          recorded_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       carbon_offset_calculations: {
         Row: {
           config_id: string | null
@@ -430,6 +475,51 @@ export type Database = {
           },
         ]
       }
+      community_impact_logs: {
+        Row: {
+          community_benefits: string | null
+          contribution_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          jobs_created: number | null
+          local_participants_count: number | null
+          log_date: string
+          photos: string[] | null
+          recorded_by: string
+          update_frequency: string | null
+          updated_at: string
+        }
+        Insert: {
+          community_benefits?: string | null
+          contribution_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jobs_created?: number | null
+          local_participants_count?: number | null
+          log_date: string
+          photos?: string[] | null
+          recorded_by: string
+          update_frequency?: string | null
+          updated_at?: string
+        }
+        Update: {
+          community_benefits?: string | null
+          contribution_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jobs_created?: number | null
+          local_participants_count?: number | null
+          log_date?: string
+          photos?: string[] | null
+          recorded_by?: string
+          update_frequency?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contribution_tracking: {
         Row: {
           acknowledgement_doc: string | null
@@ -568,6 +658,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ecosystem_impact_logs: {
+        Row: {
+          biodiversity_index: number | null
+          contribution_id: string
+          created_at: string
+          created_by: string | null
+          ecosystem_notes: string | null
+          id: string
+          log_date: string
+          photos: string[] | null
+          recorded_by: string
+          soil_improvement: string | null
+          updated_at: string
+          water_retention: string | null
+        }
+        Insert: {
+          biodiversity_index?: number | null
+          contribution_id: string
+          created_at?: string
+          created_by?: string | null
+          ecosystem_notes?: string | null
+          id?: string
+          log_date: string
+          photos?: string[] | null
+          recorded_by: string
+          soil_improvement?: string | null
+          updated_at?: string
+          water_retention?: string | null
+        }
+        Update: {
+          biodiversity_index?: number | null
+          contribution_id?: string
+          created_at?: string
+          created_by?: string | null
+          ecosystem_notes?: string | null
+          id?: string
+          log_date?: string
+          photos?: string[] | null
+          recorded_by?: string
+          soil_improvement?: string | null
+          updated_at?: string
+          water_retention?: string | null
+        }
+        Relationships: []
       }
       ephemeral_sessions: {
         Row: {
