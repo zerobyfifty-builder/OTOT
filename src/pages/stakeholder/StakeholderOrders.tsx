@@ -1734,6 +1734,7 @@ export const StakeholderOrders = () => {
               replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
               re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
               notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+              changed_by: 'Changed By',
             };
 
             const idToLabelMap: Record<string, string> = {
@@ -1800,7 +1801,7 @@ export const StakeholderOrders = () => {
                           if (status === 'verified' && transitionData['planter_name'] !== undefined) {
                             skipKeys.add('planter_name');
                           }
-                          const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1 };
+                          const entrySortOrder: Record<string, number> = { changed_by: -1, target_beat_label: 0, assigned_to_name: 1 };
                           const entries = Object.entries(transitionData)
                             .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
                             .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
