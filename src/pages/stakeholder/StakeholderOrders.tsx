@@ -1989,7 +1989,44 @@ export const StakeholderOrders = () => {
                                         </div>
                                       </div>
                                     )}
-                                    {entries.length === 0 && photos.length === 0 && (
+                                    {status === 'being_mapped' && treeGeotag && treeGeotag.latitude != null && treeGeotag.longitude != null && (
+                                      <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                            <MapPin className="h-3.5 w-3.5" /> Geotag
+                                          </span>
+                                          <div className="flex gap-1.5">
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              className="h-6 text-[11px] px-2"
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(`${treeGeotag.latitude}, ${treeGeotag.longitude}`);
+                                                toast.success("Coordinates copied");
+                                              }}
+                                            >
+                                              <Copy className="h-3 w-3 mr-1" /> Copy
+                                            </Button>
+                                            <a
+                                              href={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center text-[11px] h-6 px-2 rounded-md border bg-background hover:bg-accent"
+                                            >
+                                              <ExternalLink className="h-3 w-3 mr-1" /> Maps
+                                            </a>
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                                          {treeGeotag.geo_tag_id && (<><span className="text-muted-foreground">Geo Tag ID:</span><span className="font-medium">{treeGeotag.geo_tag_id}</span></>)}
+                                          <span className="text-muted-foreground">Latitude:</span><span className="font-medium">{treeGeotag.latitude}</span>
+                                          <span className="text-muted-foreground">Longitude:</span><span className="font-medium">{treeGeotag.longitude}</span>
+                                          {treeGeotag.geo_accuracy && (<><span className="text-muted-foreground">Accuracy:</span><span className="font-medium">{treeGeotag.geo_accuracy} m</span></>)}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {entries.length === 0 && photos.length === 0 && !(status === 'being_mapped' && treeGeotag) && (
                                       <p className="text-sm text-muted-foreground italic">Status recorded with no additional details.</p>
                                     )}
                                   </div>
