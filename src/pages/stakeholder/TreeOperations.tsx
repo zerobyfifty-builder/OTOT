@@ -1034,16 +1034,18 @@ export const TreeOperations = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Save Impact Button */}
-            <div className="flex justify-end">
-              <Button onClick={() => saveImpactRecord.mutate(impactForm)} disabled={saveImpactRecord.isPending}>
-                {saveImpactRecord.isPending ? "Saving..." : "Save Impact Data"}
-              </Button>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Impact Log Sliders */}
+      <ImpactLogSliders
+        open={impactSlider}
+        onClose={() => setImpactSlider(null)}
+        contributionId={contributionId!}
+        onPhotoClick={(url) => setLightboxPhoto(url)}
+      />
+
 
       {/* Lightbox */}
       <Dialog open={!!lightboxPhoto} onOpenChange={() => setLightboxPhoto(null)}>
