@@ -2085,18 +2085,51 @@ export const StakeholderOrders = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <Label>Trees Alive *</Label>
-                        <Input type="number" min="0" value={monitoringForm.trees_alive} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_alive: e.target.value }))} />
+                        <Label>Trees Planted</Label>
+                        <Input value={monitoringSheet.total_trees} disabled className="bg-muted/40 text-muted-foreground" />
                       </div>
                       <div className="space-y-1.5">
+                        <Label>Trees Alive *</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={monitoringSheet.total_trees}
+                          value={monitoringForm.trees_alive}
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? '' : String(Math.min(Number(e.target.value), monitoringSheet.total_trees));
+                            setMonitoringForm(f => ({ ...f, trees_alive: v }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
                         <Label>Trees Dead *</Label>
-                        <Input type="number" min="0" value={monitoringForm.trees_dead} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_dead: e.target.value }))} />
+                        <Input
+                          type="number"
+                          min="0"
+                          max={monitoringSheet.total_trees}
+                          value={monitoringForm.trees_dead}
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? '' : String(Math.min(Number(e.target.value), monitoringSheet.total_trees));
+                            setMonitoringForm(f => ({ ...f, trees_dead: v }));
+                          }}
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <Label>Trees Replaced</Label>
-                        <Input type="number" min="0" value={monitoringForm.trees_replaced} onChange={(e) => setMonitoringForm(f => ({ ...f, trees_replaced: e.target.value }))} />
+                        <Input
+                          type="number"
+                          min="0"
+                          max={monitoringSheet.total_trees}
+                          value={monitoringForm.trees_replaced}
+                          onChange={(e) => {
+                            const v = e.target.value === '' ? '' : String(Math.min(Number(e.target.value), monitoringSheet.total_trees));
+                            setMonitoringForm(f => ({ ...f, trees_replaced: v }));
+                          }}
+                        />
                       </div>
                     </div>
                     <div className="space-y-1.5">
@@ -2104,29 +2137,119 @@ export const StakeholderOrders = () => {
                       <Textarea value={monitoringForm.overall_health_notes} onChange={(e) => setMonitoringForm(f => ({ ...f, overall_health_notes: e.target.value }))} placeholder="Observation notes..." rows={3} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Photos (comma-separated URLs)</Label>
-                      <Input value={monitoringForm.photos} onChange={(e) => setMonitoringForm(f => ({ ...f, photos: e.target.value }))} placeholder="https://..." />
+                      <Label>Photos</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          disabled={monitoringUploading}
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length === 0) return;
+                            setMonitoringUploading(true);
+                            try {
+                              const uploaded: string[] = [];
+                              for (const file of files) {
+                                const ext = file.name.split('.').pop() || 'jpg';
+                                const path = `monitoring/${monitoringSheet.contribution_id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+                                const { error: upErr } = await supabase.storage.from('planting-photos').upload(path, file, { upsert: false, contentType: file.type });
+                                if (upErr) { toast.error(upErr.message); continue; }
+                                const { data: pub } = supabase.storage.from('planting-photos').getPublicUrl(path);
+                                if (pub?.publicUrl) uploaded.push(pub.publicUrl);
+                              }
+                              if (uploaded.length) {
+                                setMonitoringForm(f => ({ ...f, photos: [...f.photos, ...uploaded] }));
+                                toast.success(`${uploaded.length} photo(s) uploaded`);
+                              }
+                            } finally {
+                              setMonitoringUploading(false);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          id="monitoring-camera-capture"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setMonitoringUploading(true);
+                            try {
+                              const ext = file.name.split('.').pop() || 'jpg';
+                              const path = `monitoring/${monitoringSheet.contribution_id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+                              const { error: upErr } = await supabase.storage.from('planting-photos').upload(path, file, { upsert: false, contentType: file.type });
+                              if (upErr) { toast.error(upErr.message); return; }
+                              const { data: pub } = supabase.storage.from('planting-photos').getPublicUrl(path);
+                              if (pub?.publicUrl) {
+                                setMonitoringForm(f => ({ ...f, photos: [...f.photos, pub.publicUrl] }));
+                                toast.success('Photo captured');
+                              }
+                            } finally {
+                              setMonitoringUploading(false);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('monitoring-camera-capture')?.click()} disabled={monitoringUploading}>
+                          Capture
+                        </Button>
+                      </div>
+                      {monitoringUploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
+                      {monitoringForm.photos.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 pt-2">
+                          {monitoringForm.photos.map((url, i) => (
+                            <div key={i} className="relative group">
+                              <button type="button" onClick={() => setLightboxPhoto(url)} className="block w-full h-20 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMonitoringForm(f => ({ ...f, photos: f.photos.filter((_, idx) => idx !== i) }))}
+                                className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                                aria-label="Remove photo"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <Button
                       className="w-full"
-                      disabled={!monitoringForm.inspection_date || !monitoringForm.inspected_by || !monitoringForm.survival_rate_pct || !monitoringForm.trees_alive || !monitoringForm.trees_dead}
+                      disabled={
+                        monitoringUploading ||
+                        !(
+                          monitoringForm.inspection_date ||
+                          monitoringForm.inspected_by ||
+                          monitoringForm.survival_rate_pct ||
+                          monitoringForm.trees_alive ||
+                          monitoringForm.trees_dead ||
+                          monitoringForm.trees_replaced ||
+                          monitoringForm.overall_health_notes ||
+                          monitoringForm.photos.length > 0
+                        )
+                      }
                       onClick={async () => {
-                        const photos = monitoringForm.photos ? monitoringForm.photos.split(',').map(u => u.trim()).filter(Boolean) : [];
                         const { error } = await supabase.from("tree_monitoring_logs" as any).insert({
                           contribution_id: monitoringSheet.contribution_id,
-                          inspection_date: monitoringForm.inspection_date,
-                          inspected_by: monitoringForm.inspected_by,
-                          survival_rate_pct: parseFloat(monitoringForm.survival_rate_pct) || 0,
-                          trees_alive: parseInt(monitoringForm.trees_alive) || 0,
-                          trees_dead: parseInt(monitoringForm.trees_dead) || 0,
-                          trees_replaced: parseInt(monitoringForm.trees_replaced) || 0,
+                          inspection_date: monitoringForm.inspection_date || new Date().toISOString().slice(0, 10),
+                          inspected_by: monitoringForm.inspected_by || null,
+                          survival_rate_pct: monitoringForm.survival_rate_pct ? parseFloat(monitoringForm.survival_rate_pct) : 0,
+                          trees_alive: monitoringForm.trees_alive ? parseInt(monitoringForm.trees_alive) : 0,
+                          trees_dead: monitoringForm.trees_dead ? parseInt(monitoringForm.trees_dead) : 0,
+                          trees_replaced: monitoringForm.trees_replaced ? parseInt(monitoringForm.trees_replaced) : 0,
                           overall_health_notes: monitoringForm.overall_health_notes || null,
-                          photos,
+                          photos: monitoringForm.photos,
                         });
                         if (error) { toast.error(error.message); return; }
                         toast.success("Monitoring log saved");
                         refetchMonitoring();
-                        setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
+                        setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
                       }}
                     >
                       Save Monitoring Log
