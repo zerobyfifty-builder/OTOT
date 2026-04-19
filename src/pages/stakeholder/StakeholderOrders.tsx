@@ -61,6 +61,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
+import { Cloud, Globe, Users } from "lucide-react";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -266,6 +268,8 @@ export const StakeholderOrders = () => {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
   const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
+  const [impactSliderType, setImpactSliderType] = useState<"carbon" | "ecosystem" | "community" | null>(null);
+  const [impactSliderContribId, setImpactSliderContribId] = useState<string | null>(null);
   const [monitoringForm, setMonitoringForm] = useState<{ inspection_date: string; inspected_by: string; survival_rate_pct: string; trees_alive: string; trees_dead: string; trees_replaced: string; overall_health_notes: string; photos: string[] }>({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
   const [monitoringUploading, setMonitoringUploading] = useState(false);
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
@@ -1185,27 +1189,29 @@ export const StakeholderOrders = () => {
                                 </DropdownMenuItem>
                                 )}
                                 {isPlantationType && (
-                                  (group.trees[0]?.planting_status === 'planted' || group.trees[0]?.planting_status === 'verified') ? (
+                                  <>
                                     <DropdownMenuItem onClick={() => {
-                                      setImpactSheet(group);
-                                      setImpactForm({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
+                                      setImpactSliderContribId(group.contribution_id);
+                                      setImpactSliderType("ecosystem");
                                     }}>
-                                      <BarChart3 className="h-3.5 w-3.5 mr-2" />
-                                      Impact Generated
+                                      <Globe className="h-3.5 w-3.5 mr-2" />
+                                      Ecosystem Impact
                                     </DropdownMenuItem>
-                                  ) : (
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <div className="flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground/50 cursor-not-allowed">
-                                            <BarChart3 className="h-3.5 w-3.5 mr-2" />
-                                            Impact Generated
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  )
+                                    <DropdownMenuItem onClick={() => {
+                                      setImpactSliderContribId(group.contribution_id);
+                                      setImpactSliderType("community");
+                                    }}>
+                                      <Users className="h-3.5 w-3.5 mr-2" />
+                                      Community Impact
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                      setImpactSliderContribId(group.contribution_id);
+                                      setImpactSliderType("carbon");
+                                    }}>
+                                      <Cloud className="h-3.5 w-3.5 mr-2" />
+                                      Carbon Metrics
+                                    </DropdownMenuItem>
+                                  </>
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -3359,6 +3365,13 @@ export const StakeholderOrders = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <ImpactLogSliders
+        open={impactSliderType}
+        onClose={() => { setImpactSliderType(null); setImpactSliderContribId(null); }}
+        contributionId={impactSliderContribId || ""}
+        onPhotoClick={(url) => setLightboxPhoto(url)}
+      />
 
 
       {lightboxPhoto && (
