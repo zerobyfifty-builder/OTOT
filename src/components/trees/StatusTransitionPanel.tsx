@@ -542,8 +542,40 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               <p className="text-xs text-muted-foreground">Auto-filled from total trees in this order</p>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Sapling Age (weeks)</Label>
-              <Input type="number" min={0} value={formData.sapling_age_weeks || ""} onChange={(e) => setField("sapling_age_weeks", parseInt(e.target.value) || undefined)} placeholder="Optional" />
+              <Label className="text-sm font-medium">Sapling Age</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.sapling_age_value ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value === "" ? undefined : parseInt(e.target.value);
+                    setField("sapling_age_value", v);
+                    const unit = formData.sapling_age_unit || "weeks";
+                    setField("sapling_age", v !== undefined ? `${v} ${unit}` : undefined);
+                  }}
+                  placeholder="Optional"
+                  className="flex-1"
+                />
+                <Select
+                  value={formData.sapling_age_unit || "weeks"}
+                  onValueChange={(unit) => {
+                    setField("sapling_age_unit", unit);
+                    if (formData.sapling_age_value !== undefined && formData.sapling_age_value !== "") {
+                      setField("sapling_age", `${formData.sapling_age_value} ${unit}`);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                    <SelectItem value="years">Years</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Nursery Ready Date <span className="text-destructive">*</span></Label>

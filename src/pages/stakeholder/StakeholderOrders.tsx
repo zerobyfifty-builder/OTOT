@@ -1725,7 +1725,7 @@ export const StakeholderOrders = () => {
               target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
               soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
-              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source', sapling_age: 'Sapling Age',
               scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
               planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
               latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
@@ -1794,7 +1794,7 @@ export const StakeholderOrders = () => {
                           const transitionData = transition?.transition_data || {};
                           const photos = transition?.photos || [];
 
-                          const skipKeys = new Set<string>(['reverted']);
+                          const skipKeys = new Set<string>(['reverted', 'sapling_age_value', 'sapling_age_unit']);
                           for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
@@ -2170,7 +2170,7 @@ export const StakeholderOrders = () => {
               target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
               soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
-              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source',
+              sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source', sapling_age: 'Sapling Age',
               scheduled_date: 'Scheduled Date', planting_team_size: 'Team Size',
               planting_date: 'Planting Date', planting_method: 'Planting Method', planting_notes: 'Planting Notes',
               latitude: 'Latitude', longitude: 'Longitude', mapping_date: 'Mapping Date', mapping_method: 'Mapping Method', mapping_notes: 'Mapping Notes', gps_accuracy: 'GPS Accuracy',
@@ -2240,7 +2240,7 @@ export const StakeholderOrders = () => {
                           const transition = treeTransitions?.find(t => t.to_status === status);
                           const transitionData = transition?.transition_data || {};
                           const photos = transition?.photos || [];
-                          const skipKeys = new Set<string>(['reverted']);
+                          const skipKeys = new Set<string>(['reverted', 'sapling_age_value', 'sapling_age_unit']);
                           for (const [idKey, labelKey] of Object.entries(idToLabelMap)) {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
