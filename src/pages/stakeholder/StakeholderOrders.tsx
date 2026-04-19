@@ -3548,7 +3548,7 @@ export const StakeholderOrders = () => {
 
       {/* Engagement Sheet */}
       <Sheet open={!!engagementSheet} onOpenChange={(open) => { if (!open) setEngagementSheet(null); }}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           {engagementSheet && (() => {
             const group = engagementSheet;
             const customerIdFormatted = group.contribution_id.replace("CTR-", "CT2026-");
