@@ -54,6 +54,14 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     enabled: !!type && !!contributionId,
   });
 
+  const { data: activePlanters } = useQuery({
+    queryKey: ["activePlantersForImpactLogs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("tree_carers").select("id, name").eq("status", "Active").order("name");
+      return (data || []) as Array<{ id: string; name: string }>;
+    },
+  });
+
   // Form states per type
   const [carbonForm, setCarbonForm] = useState<{ log_date: string; recorded_by: string; co2_offset_estimated_kg: string; co2_offset_actual_kg: string; calculation_method: string; notes: string; photos: string[] }>({
     log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "",
@@ -346,13 +354,21 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Recorded By *</Label>
-                  <Input placeholder="Name"
+                  <Select
                     value={type === "carbon" ? carbonForm.recorded_by : type === "ecosystem" ? ecoForm.recorded_by : commForm.recorded_by}
-                    onChange={e => {
-                      if (type === "carbon") setCarbonForm(p => ({ ...p, recorded_by: e.target.value }));
-                      else if (type === "ecosystem") setEcoForm(p => ({ ...p, recorded_by: e.target.value }));
-                      else setCommForm(p => ({ ...p, recorded_by: e.target.value }));
-                    }} />
+                    onValueChange={(v) => {
+                      if (type === "carbon") setCarbonForm(p => ({ ...p, recorded_by: v }));
+                      else if (type === "ecosystem") setEcoForm(p => ({ ...p, recorded_by: v }));
+                      else setCommForm(p => ({ ...p, recorded_by: v }));
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select recorder" /></SelectTrigger>
+                    <SelectContent>
+                      {(activePlanters || []).map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
