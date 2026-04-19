@@ -1234,8 +1234,11 @@ export const StakeholderOrders = () => {
                                          <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
+                                          <TableHead className="text-xs">Species</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs">Status Date</TableHead>
                                           <TableHead className="text-xs">Growth Stage</TableHead>
+                                          <TableHead className="text-xs">Age</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
                                            <TableHead className="text-xs">Track</TableHead>
