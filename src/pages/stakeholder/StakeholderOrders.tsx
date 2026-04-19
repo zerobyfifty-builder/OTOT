@@ -1259,6 +1259,17 @@ export const StakeholderOrders = () => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
+                                <DropdownMenuItem onClick={() => {
+                                  setEngagementSheet(group);
+                                  setEngagementTab("engagement");
+                                  try {
+                                    const raw = localStorage.getItem(`engagement_logs_${group.contribution_id}`);
+                                    setEngagementLogs(raw ? JSON.parse(raw) : []);
+                                  } catch { setEngagementLogs([]); }
+                                }}>
+                                  <Bell className="h-3.5 w-3.5 mr-2" />
+                                  Engagement
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
