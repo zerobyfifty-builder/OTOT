@@ -96,6 +96,7 @@ import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
 import { StakeholderSettings } from "@/pages/stakeholder/StakeholderSettings";
 import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
 import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
+import { StakeholderImpactInsights } from "@/pages/stakeholder/StakeholderImpactInsights";
 import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
 import StakeholderTravelAgents from "@/pages/stakeholder/StakeholderTravelAgents";
 import StakeholderTreeManagement from "@/pages/stakeholder/StakeholderTreeManagement";
@@ -505,6 +506,9 @@ const App = () => (
             } />
             <Route path="/stakeholder/impact" element={
               <StakeholderRoute><StakeholderLayout><StakeholderImpact /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/impact-insights" element={
+              <StakeholderRoute><StakeholderLayout><StakeholderImpactInsights /></StakeholderLayout></StakeholderRoute>
             } />
             <Route path="/stakeholder/nurseries" element={
               <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>

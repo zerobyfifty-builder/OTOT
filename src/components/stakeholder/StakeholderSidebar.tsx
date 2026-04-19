@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map } from 'lucide-react';
+import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map, Sparkles } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +48,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
   tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   outcomes: { title: 'Environmental Impact', url: '/stakeholder/outcomes', icon: Target, sortOrder: 4 },
+  impact_insights: { title: 'Impact Insights', url: '/stakeholder/impact-insights', icon: Sparkles, sortOrder: 5 },
   analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 99 },
   
   travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
