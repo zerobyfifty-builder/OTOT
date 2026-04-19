@@ -71,8 +71,8 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     log_date: "", recorded_by: "", biodiversity_index: "",
     soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: []
   });
-  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; reporting_period: string; families_supported: string; jobs_created: string; women_employed: string; youth_employed: string; nursery_income_kes: string; avg_monthly_income_kes: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
-    log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "",
+  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; reporting_period: string; reporting_period_end: string; families_supported: string; jobs_created: string; women_employed: string; youth_employed: string; nursery_income_kes: string; avg_monthly_income_kes: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
+    log_date: "", recorded_by: "", reporting_period: "", reporting_period_end: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "",
     update_frequency: "Quarterly", community_benefits: "", photos: []
   });
   const [uploading, setUploading] = useState(false);
