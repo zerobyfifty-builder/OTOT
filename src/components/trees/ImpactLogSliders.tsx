@@ -71,8 +71,8 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     log_date: "", recorded_by: "", biodiversity_index: "",
     soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: []
   });
-  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; reporting_period: string; families_supported: string; jobs_created: string; women_employed: string; youth_employed: string; nursery_income_kes: string; avg_monthly_income_kes: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
-    log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "",
+  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; reporting_period: string; reporting_period_end: string; families_supported: string; jobs_created: string; women_employed: string; youth_employed: string; nursery_income_kes: string; avg_monthly_income_kes: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
+    log_date: "", recorded_by: "", reporting_period: "", reporting_period_end: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "",
     update_frequency: "Quarterly", community_benefits: "", photos: []
   });
   const [uploading, setUploading] = useState(false);
@@ -80,7 +80,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
   const resetForm = () => {
     setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: [] });
     setEcoForm({ log_date: "", recorded_by: "", biodiversity_index: "", soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: [] });
-    setCommForm({ log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
+    setCommForm({ log_date: "", recorded_by: "", reporting_period: "", reporting_period_end: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
   };
 
   const currentPhotos = (): string[] => type === "carbon" ? carbonForm.photos : type === "ecosystem" ? ecoForm.photos : commForm.photos;
@@ -142,11 +142,17 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
         };
       } else {
         if (!commForm.log_date || !commForm.recorded_by) throw new Error("Log date and Recorded by are required");
+        const today = new Date(); today.setHours(23, 59, 59, 999);
+        if (new Date(commForm.log_date) > today) throw new Error("Log date cannot be in the future");
+        if (commForm.reporting_period && commForm.reporting_period_end && new Date(commForm.reporting_period_end) < new Date(commForm.reporting_period)) {
+          throw new Error("Reporting period end date must be after start date");
+        }
         payload = {
           ...payload,
           log_date: commForm.log_date,
           recorded_by: commForm.recorded_by,
           reporting_period: commForm.reporting_period || null,
+          reporting_period_end: commForm.reporting_period_end || null,
           families_supported: commForm.families_supported ? parseInt(commForm.families_supported) : 0,
           jobs_created: commForm.jobs_created ? parseInt(commForm.jobs_created) : 0,
           women_employed: commForm.women_employed ? parseInt(commForm.women_employed) : 0,
@@ -325,7 +331,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                                 <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Avg Monthly:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
                               </div>
-                              {log.reporting_period && <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{format(new Date(log.reporting_period), "MMM dd, yyyy")}</span></div>}
+                              {(log.reporting_period || log.reporting_period_end) && <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{log.reporting_period ? format(new Date(log.reporting_period), "MMM dd, yyyy") : "—"} → {log.reporting_period_end ? format(new Date(log.reporting_period_end), "MMM dd, yyyy") : "—"}</span></div>}
                               {log.community_benefits && <div className="text-muted-foreground italic">"{log.community_benefits}"</div>}
                             </>
                           )}
@@ -359,6 +365,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                 <div className="space-y-1.5">
                   <Label className="text-xs">Log Date *</Label>
                   <Input type="date"
+                    max={new Date().toISOString().split('T')[0]}
                     value={type === "carbon" ? carbonForm.log_date : type === "ecosystem" ? ecoForm.log_date : commForm.log_date}
                     onChange={e => {
                       if (type === "carbon") setCarbonForm(p => ({ ...p, log_date: e.target.value }));
@@ -460,9 +467,15 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
 
               {type === "community" && (
                 <>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Reporting Period</Label>
-                    <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Reporting Period (From)</Label>
+                      <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Reporting Period (To)</Label>
+                      <Input type="date" value={commForm.reporting_period_end} min={commForm.reporting_period || undefined} onChange={e => setCommForm(p => ({ ...p, reporting_period_end: e.target.value }))} />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">

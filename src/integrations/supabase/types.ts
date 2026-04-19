@@ -491,6 +491,7 @@ export type Database = {
           photos: string[] | null
           recorded_by: string
           reporting_period: string | null
+          reporting_period_end: string | null
           update_frequency: string | null
           updated_at: string
           women_employed: number | null
@@ -511,6 +512,7 @@ export type Database = {
           photos?: string[] | null
           recorded_by: string
           reporting_period?: string | null
+          reporting_period_end?: string | null
           update_frequency?: string | null
           updated_at?: string
           women_employed?: number | null
@@ -531,6 +533,7 @@ export type Database = {
           photos?: string[] | null
           recorded_by?: string
           reporting_period?: string | null
+          reporting_period_end?: string | null
           update_frequency?: string | null
           updated_at?: string
           women_employed?: number | null
