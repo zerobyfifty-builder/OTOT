@@ -1216,9 +1216,8 @@ export const StakeholderOrders = () => {
                                           <TableHead className="text-xs">Growth Stage</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
-                                          <TableHead className="text-xs">Track</TableHead>
-                                          <TableHead className="text-xs">Geotag</TableHead>
-                                          <TableHead className="text-xs w-12"></TableHead>
+                                           <TableHead className="text-xs">Track</TableHead>
+                                           <TableHead className="text-xs w-12"></TableHead>
                                         </TableRow>
                                       </TableHeader>
                                       <TableBody>
@@ -1264,47 +1263,56 @@ export const StakeholderOrders = () => {
                                                   )}
                                                 </TableCell>
                                                 <TableCell>
-                                                  {hasGeotag && geotagData ? (() => {
-                                                    const geo = geotagData;
-                                                    return (
-                                                      <a
-                                                        href={`https://www.google.com/maps?q=${geo.latitude},${geo.longitude}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex"
-                                                        title={`${geo.latitude}, ${geo.longitude}`}
+                                                  {hasGeotag && geotagData ? (
+                                                    <a
+                                                      href={`https://www.google.com/maps?q=${geotagData.latitude},${geotagData.longitude}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      title={`${geotagData.latitude}, ${geotagData.longitude}`}
+                                                    >
+                                                      <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        className="h-7 px-2 text-xs gap-1 bg-green-500 hover:bg-green-600 text-white"
                                                       >
-                                                        <MapPin className="h-4 w-4 text-green-600 hover:text-green-800 cursor-pointer" />
-                                                      </a>
-                                                    );
-                                                  })() : (
-                                                    <MapPin className="h-4 w-4 text-muted-foreground/40" />
+                                                        <MapPin className="h-3.5 w-3.5" />
+                                                        Geotag
+                                                      </Button>
+                                                    </a>
+                                                  ) : tree.planting_status === 'planted' ? (
+                                                    <Button
+                                                      type="button"
+                                                      size="sm"
+                                                      variant="secondary"
+                                                      className="h-7 px-2 text-xs gap-1 bg-muted text-muted-foreground hover:bg-muted/80"
+                                                      onClick={() => {
+                                                        setGeotagDialog(tree);
+                                                        setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
+                                                      }}
+                                                    >
+                                                      <MapPin className="h-3.5 w-3.5" />
+                                                      Geotag
+                                                    </Button>
+                                                  ) : (
+                                                    <TooltipProvider>
+                                                      <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                          <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            disabled
+                                                            className="h-7 px-2 text-xs gap-1 opacity-50"
+                                                          >
+                                                            <MapPin className="h-3.5 w-3.5" />
+                                                            Geotag
+                                                          </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p>Tree not yet planted</p></TooltipContent>
+                                                      </Tooltip>
+                                                    </TooltipProvider>
                                                   )}
                                                 </TableCell>
-                                                 <TableCell>
-                                                   {tree.planting_status === 'planted' ? (
-                                                     <Switch
-                                                       checked={hasGeotag}
-                                                       onCheckedChange={() => {
-                                                         if (!hasGeotag) {
-                                                           setGeotagDialog(tree);
-                                                           setGeotagForm({ geo_tag_id: '', latitude: '', longitude: '', geo_accuracy: '', map_snapshot: '' });
-                                                         }
-                                                       }}
-                                                       disabled={hasGeotag}
-                                                       className="data-[state=checked]:bg-green-500"
-                                                     />
-                                                   ) : (
-                                                     <TooltipProvider>
-                                                       <Tooltip>
-                                                         <TooltipTrigger asChild>
-                                                           <Switch checked={false} disabled className="opacity-50" />
-                                                         </TooltipTrigger>
-                                                         <TooltipContent><p>Tree not yet planted</p></TooltipContent>
-                                                       </Tooltip>
-                                                     </TooltipProvider>
-                                                   )}
-                                                 </TableCell>
                                                 <TableCell>
                                                   {isPlantationType ? (
                                                     <DropdownMenu>
