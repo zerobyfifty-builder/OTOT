@@ -1,80 +1,63 @@
 
 
-## Implementation Plan: Engagement Actions (Revised)
+## Impact Insights — Final Plan
 
-### 1. View Certificate (replaces Issue Certificate)
-The tourist portal already generates a certificate per contribution via `certificateGenerator.tsx` + `TreeCertificate.tsx`, displayed through `CertificatePreviewDialog` (wrapping `PdfPreviewDialog`).
+A unified, story-driven dashboard aggregating **live data** from `carbon_metrics_logs`, `ecosystem_impact_logs`, `community_impact_logs`, and existing `community_impact` reports — surfaced via the Tree Orders action sliders.
 
-- Click **View Certificate** → fetch the contribution + tourist (contributor) details using the order's `contribution_id`
-- Reuse `certificateGenerator` to render the **same** certificate the tourist sees (same contribution ID, contributor name, tree count, trip)
-- Open in `CertificatePreviewDialog` with Share / Open in New Tab / Download (matches uploaded screenshot exactly)
-- On open → write log entry: `"Certificate viewed for {contribution_id} by {actor}"`
+### Confirmed decisions
+1. **Module gating** — assignable via Admin → Module Assignment (gated by `assignedModules.includes('impact_insights')`). Seed row in `modules` table.
+2. **Scope** — org-wide aggregation across all the org's contributions (no per-contribution filter in v1).
+3. **Stories** — include **all** logs across the three tables (no curation filter).
+4. **Export** — both **CSV** and branded **PDF** at launch.
 
-No new generator needed — we call the existing utility with the order's data so the output is byte-identical to the tourist-side certificate.
+### Page layout (`/stakeholder/impact-insights`)
 
-### 2. Send Update to Contributor
-Use Lovable Email + a new edge function.
-
-- Click → composer dialog with:
-  - Subject (pre-filled: `"Update on your trees — {contribution_id}"`)
-  - Body textarea (pre-filled template: tree count, current planting status, anniversary date)
-  - "Include impact summary" checkbox (auto-appends planting progress + photo count)
-- Submit → edge function `send-contributor-update`:
-  - Looks up contributor email by `contribution_id`
-  - Sends branded KTB email
-  - Inserts row into `engagement_activities`
-- Toast on success + appears in Log tab
-
-*Requires email domain setup — will trigger setup dialog on first use.*
-
-### 3. Download Report
-Generate a PDF using existing `jsPDF` patterns (per `tech/pdf-formatting-standards`, `institutional/reports-module`).
-
-Contents:
-- KTB header + "Tree Order Engagement Report"
-- Order Info (Contribution ID, Contributor, Trees, Amount, Trip)
-- Planting status timeline (`tree_status_transitions`)
-- Photos count, geotag (if mapped), anniversary date
-- Activity log (all engagement actions)
-
-Open in `PdfPreviewDialog` (project standard — never auto-download). Log: `"Report downloaded by {actor}"`.
-
-### 4. Persistence Upgrade
-Replace `localStorage` log with a real table:
-
-```sql
-create table engagement_activities (
-  id uuid primary key default gen_random_uuid(),
-  contribution_id text not null,
-  activity_type text check (activity_type in
-    ('certificate_viewed','update_sent','report_downloaded')),
-  description text not null,
-  metadata jsonb default '{}',
-  actor_user_id uuid,
-  actor_email text,
-  created_at timestamptz default now()
-);
--- RLS: stakeholders read/insert within their org scope
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Impact Insights                  [Period ▾] [CSV] [PDF]    │
+│  "Every tree tells a story"                          [KTB]  │
+├─────────────────────────────────────────────────────────────┤
+│  HERO — 4 animated count-ups                                 │
+│  Trees Planted │ CO₂ Offset │ Lives Touched │ Biodiversity   │
+├─────────────────────────────────────────────────────────────┤
+│  TABS:  Overview │ Carbon │ Ecosystem │ Community │ Stories  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Log tab reads from this table via React Query.
+### Tabs
+- **Overview** — 3 mini-cards (Carbon / Ecosystem / Community) with sparklines + combined logs/month trend + latest 5 highlights.
+- **Carbon** — Estimated vs actual CO₂ bar, calculation-method donut, per-contribution leaderboard, photo grid.
+- **Ecosystem** — Biodiversity gauge, soil/water tag cloud, log timeline, photo grid.
+- **Community** — Stacked bar (jobs / families / women / youth), nursery income trend (KES), participants, plus existing periodic `community_impact` reports.
+- **Stories** — Pinterest-style masonry of every log as a narrative card (photo, contribution badge, metric callout, notes, recorded_by).
+
+### Design
+- White cards, muted background (per `style/plantation-dashboard-identity`)
+- `useCountUp` for KPIs, Recharts for visualisations
+- `tabular-nums`; KES integers, USD 2dp
+- Period pill (7d / 30d / 90d / All)
+- KTB logo top-right; no decorative icons in tables
 
 ### Files
-- `src/pages/stakeholder/StakeholderOrders.tsx` — wire 3 buttons, swap localStorage for query hook
-- `src/components/engagement/SendUpdateDialog.tsx` (new) — email composer
-- `src/utils/engagementReportGenerator.ts` (new) — jsPDF report
-- `supabase/functions/send-contributor-update/index.ts` (new)
-- New migration: `engagement_activities` + RLS
-- Reuse: `certificateGenerator`, `CertificatePreviewDialog`, `PdfPreviewDialog`
+**New**
+- `src/pages/stakeholder/StakeholderImpactInsights.tsx`
+- `src/hooks/useImpactInsights.ts` — org-scoped aggregation
+- `src/components/stakeholder/impact-insights/HeroKpis.tsx`
+- `…/CarbonTab.tsx`, `…/EcosystemTab.tsx`, `…/CommunityTab.tsx`, `…/StoriesFeed.tsx`
+- `src/utils/impactInsightsExport.ts` — CSV + jsPDF (KTB-branded, reuses `tech/pdf-formatting-standards`)
 
-### Build Order
-1. Migration + React Query hook for `engagement_activities`
-2. **View Certificate** (fastest — pure reuse of existing generator)
-3. **Download Report** (new generator, reuses PDF preview)
-4. **Send Update** (last — needs email domain)
+**Edited**
+- `src/App.tsx` — route `/stakeholder/impact-insights`
+- `src/components/stakeholder/StakeholderSidebar.tsx` — register `impact_insights` (icon: Sparkles)
 
-### Confirm Before Build
-- **Send Update**: free-form composer or fixed template with a few editable fields?
-- **Report**: include photos inline, or just counts/links?
-- **Logs**: persist to DB now (recommended), or keep localStorage for v1?
+**Migration**
+- Insert `impact_insights` row into `modules` table so admins can assign it (no schema changes; reads existing log tables).
+
+### Build order
+1. Seed `impact_insights` module + sidebar/route registration (gating ready)
+2. `useImpactInsights` data hook
+3. Hero + Overview tab
+4. Carbon / Ecosystem / Community tabs
+5. Stories feed
+6. CSV + branded PDF export
 
