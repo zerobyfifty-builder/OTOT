@@ -3907,14 +3907,14 @@ export const StakeholderOrders = () => {
                         <Separator />
 
                         <div className="grid grid-cols-1 gap-2">
-                          <Button variant="outline" size="sm" className="justify-start" onClick={handleIssueCertificate}>
-                            <Award className="h-4 w-4 mr-2" /> Issue Certificate
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleViewCertificate} disabled={engagementCertGenerating}>
+                            <Award className="h-4 w-4 mr-2" /> {engagementCertGenerating ? "Generating…" : "View Certificate"}
                           </Button>
                           <Button variant="outline" size="sm" className="justify-start" onClick={handleSendUpdate}>
                             <Send className="h-4 w-4 mr-2" /> Send Update to Contributor
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start" onClick={handleDownloadReport}>
-                            <FileDown className="h-4 w-4 mr-2" /> Download Report
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleDownloadReport} disabled={engagementReportGenerating}>
+                            <FileDown className="h-4 w-4 mr-2" /> {engagementReportGenerating ? "Generating…" : "Download Report"}
                           </Button>
                         </div>
                       </CardContent>
@@ -3922,15 +3922,15 @@ export const StakeholderOrders = () => {
                   </TabsContent>
 
                   <TabsContent value="log" className="mt-4">
-                    {engagementLogs.length === 0 ? (
+                    {engagementActivities.length === 0 ? (
                       <div className="text-center py-12 text-sm text-muted-foreground">
                         <History className="h-8 w-8 mx-auto mb-2 opacity-40" />
                         No activity logged yet.
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {engagementLogs.map((log) => {
-                          const meta = logTypeMeta[log.type] || { label: log.type, icon: Info, color: "bg-muted text-muted-foreground border-border" };
+                        {engagementActivities.map((log: EngagementActivity) => {
+                          const meta = logTypeMeta[log.activity_type] || { label: log.activity_type, icon: Info, color: "bg-muted text-muted-foreground border-border" };
                           const Icon = meta.icon;
                           return (
                             <div key={log.id} className="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
@@ -3940,10 +3940,10 @@ export const StakeholderOrders = () => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Badge variant="outline" className={`text-[10px] ${meta.color}`}>{meta.label}</Badge>
-                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.timestamp), "dd MMM yyyy, hh:mm a")}</span>
+                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.created_at), "dd MMM yyyy, hh:mm a")}</span>
                                 </div>
                                 <p className="text-sm mt-1">{log.description}</p>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor_email || "System"}</p>
                               </div>
                             </div>
                           );
