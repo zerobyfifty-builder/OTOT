@@ -71,8 +71,8 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     log_date: "", recorded_by: "", biodiversity_index: "",
     soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: []
   });
-  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; jobs_created: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
-    log_date: "", recorded_by: "", jobs_created: "", local_participants_count: "",
+  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; reporting_period: string; families_supported: string; jobs_created: string; women_employed: string; youth_employed: string; nursery_income_kes: string; avg_monthly_income_kes: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
+    log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "",
     update_frequency: "Quarterly", community_benefits: "", photos: []
   });
   const [uploading, setUploading] = useState(false);
@@ -80,7 +80,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
   const resetForm = () => {
     setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: [] });
     setEcoForm({ log_date: "", recorded_by: "", biodiversity_index: "", soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: [] });
-    setCommForm({ log_date: "", recorded_by: "", jobs_created: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
+    setCommForm({ log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
   };
 
   const currentPhotos = (): string[] => type === "carbon" ? carbonForm.photos : type === "ecosystem" ? ecoForm.photos : commForm.photos;
@@ -146,7 +146,13 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
           ...payload,
           log_date: commForm.log_date,
           recorded_by: commForm.recorded_by,
+          reporting_period: commForm.reporting_period || null,
+          families_supported: commForm.families_supported ? parseInt(commForm.families_supported) : 0,
           jobs_created: commForm.jobs_created ? parseInt(commForm.jobs_created) : 0,
+          women_employed: commForm.women_employed ? parseInt(commForm.women_employed) : 0,
+          youth_employed: commForm.youth_employed ? parseInt(commForm.youth_employed) : 0,
+          nursery_income_kes: commForm.nursery_income_kes ? parseFloat(commForm.nursery_income_kes) : 0,
+          avg_monthly_income_kes: commForm.avg_monthly_income_kes ? parseFloat(commForm.avg_monthly_income_kes) : 0,
           local_participants_count: commForm.local_participants_count ? parseInt(commForm.local_participants_count) : 0,
           update_frequency: commForm.update_frequency || "Quarterly",
           community_benefits: commForm.community_benefits || null,
@@ -308,10 +314,18 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                           {type === "community" && (
                             <>
                               <div className="grid grid-cols-3 gap-2">
+                                <div><span className="text-muted-foreground text-xs">Families:</span> <span className="font-medium">{log.families_supported || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Jobs:</span> <span className="font-medium">{log.jobs_created || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Participants:</span> <span className="font-medium">{log.local_participants_count || 0}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Women:</span> <span className="font-medium">{log.women_employed || 0}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Youth:</span> <span className="font-medium">{log.youth_employed || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Frequency:</span> <span className="font-medium">{log.update_frequency || "—"}</span></div>
                               </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Avg Monthly:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
+                              </div>
+                              {log.reporting_period && <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{format(new Date(log.reporting_period), "MMM dd, yyyy")}</span></div>}
                               {log.community_benefits && <div className="text-muted-foreground italic">"{log.community_benefits}"</div>}
                             </>
                           )}
@@ -446,26 +460,56 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
 
               {type === "community" && (
                 <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Reporting Period</Label>
+                    <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Jobs Created</Label>
-                      <Input type="number" value={commForm.jobs_created} onChange={e => setCommForm(p => ({ ...p, jobs_created: e.target.value }))} />
+                      <Label className="text-xs">Families Supported</Label>
+                      <Input type="number" min="0" value={commForm.families_supported} onChange={e => setCommForm(p => ({ ...p, families_supported: e.target.value }))} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Local Participants</Label>
-                      <Input type="number" value={commForm.local_participants_count} onChange={e => setCommForm(p => ({ ...p, local_participants_count: e.target.value }))} />
+                      <Label className="text-xs">Jobs Created</Label>
+                      <Input type="number" min="0" value={commForm.jobs_created} onChange={e => setCommForm(p => ({ ...p, jobs_created: e.target.value }))} />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Update Frequency</Label>
-                    <Select value={commForm.update_frequency} onValueChange={v => setCommForm(p => ({ ...p, update_frequency: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Monthly">Monthly</SelectItem>
-                        <SelectItem value="Quarterly">Quarterly</SelectItem>
-                        <SelectItem value="Annually">Annually</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Women Employed</Label>
+                      <Input type="number" min="0" value={commForm.women_employed} onChange={e => setCommForm(p => ({ ...p, women_employed: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Youth Employed</Label>
+                      <Input type="number" min="0" value={commForm.youth_employed} onChange={e => setCommForm(p => ({ ...p, youth_employed: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nursery Income (KES)</Label>
+                      <Input type="number" min="0" step="0.01" value={commForm.nursery_income_kes} onChange={e => setCommForm(p => ({ ...p, nursery_income_kes: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Avg Monthly Income (KES)</Label>
+                      <Input type="number" min="0" step="0.01" value={commForm.avg_monthly_income_kes} onChange={e => setCommForm(p => ({ ...p, avg_monthly_income_kes: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Local Participants</Label>
+                      <Input type="number" min="0" value={commForm.local_participants_count} onChange={e => setCommForm(p => ({ ...p, local_participants_count: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Update Frequency</Label>
+                      <Select value={commForm.update_frequency} onValueChange={v => setCommForm(p => ({ ...p, update_frequency: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="Quarterly">Quarterly</SelectItem>
+                          <SelectItem value="Annually">Annually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Community Benefits Description</Label>
