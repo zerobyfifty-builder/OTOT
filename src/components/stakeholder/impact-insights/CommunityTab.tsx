@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Users, Briefcase, Heart, GraduationCap, Wallet, TrendingUp } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -13,6 +14,32 @@ import {
   Line,
 } from "recharts";
 import type { CommunityLog, CommunityReport } from "@/hooks/useImpactInsights";
+
+const StatCard = ({
+  label,
+  value,
+  icon: Icon,
+  iconBg,
+  iconColor,
+}: {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+}) => (
+  <Card className="p-4">
+    <div className="flex items-start gap-3">
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${iconBg}`}>
+        <Icon className={`h-4 w-4 ${iconColor}`} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground font-medium">{label}</p>
+        <p className="text-xl font-bold tabular-nums text-foreground mt-0.5 truncate">{value}</p>
+      </div>
+    </div>
+  </Card>
+);
 
 export const CommunityTab = ({
   logs,
@@ -28,9 +55,14 @@ export const CommunityTab = ({
       women: acc.women + (Number(l.women_employed) || 0),
       youth: acc.youth + (Number(l.youth_employed) || 0),
       participants: acc.participants + (Number(l.local_participants_count) || 0),
+      nurseryIncome: acc.nurseryIncome + (Number(l.nursery_income_kes) || 0),
+      avgIncomeSum: acc.avgIncomeSum + (Number(l.avg_monthly_income_kes) || 0),
+      avgIncomeCount: acc.avgIncomeCount + (Number(l.avg_monthly_income_kes) > 0 ? 1 : 0),
     }),
-    { jobs: 0, families: 0, women: 0, youth: 0, participants: 0 },
+    { jobs: 0, families: 0, women: 0, youth: 0, participants: 0, nurseryIncome: 0, avgIncomeSum: 0, avgIncomeCount: 0 },
   );
+
+  const avgMonthlyIncome = totals.avgIncomeCount > 0 ? totals.avgIncomeSum / totals.avgIncomeCount : 0;
 
   const stackData = [
     {
@@ -51,8 +83,20 @@ export const CommunityTab = ({
       income: Number(l.nursery_income_kes),
     }));
 
+  const kesFmt = (n: number) => `KES ${Math.round(n).toLocaleString()}`;
+
   return (
     <div className="space-y-4">
+      {/* Top stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <StatCard label="Families Supported" value={totals.families.toLocaleString()} icon={Users} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+        <StatCard label="Jobs Created" value={totals.jobs.toLocaleString()} icon={Briefcase} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard label="Women Employed" value={totals.women.toLocaleString()} icon={Heart} iconBg="bg-pink-50" iconColor="text-pink-600" />
+        <StatCard label="Youth Employed" value={totals.youth.toLocaleString()} icon={GraduationCap} iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <StatCard label="Nursery Income" value={kesFmt(totals.nurseryIncome)} icon={Wallet} iconBg="bg-violet-50" iconColor="text-violet-600" />
+        <StatCard label="Avg Monthly Income" value={kesFmt(avgMonthlyIncome)} icon={TrendingUp} iconBg="bg-teal-50" iconColor="text-teal-600" />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-foreground mb-1">Employment & Reach</h3>
