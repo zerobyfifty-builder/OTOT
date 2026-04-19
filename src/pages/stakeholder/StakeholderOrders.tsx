@@ -1227,11 +1227,11 @@ export const StakeholderOrders = () => {
                                     'mature': 'bg-green-500/10 text-green-700 border-green-500/20',
                                   };
 
-                                  return displayRows.length > 0 ? (
-                                  <div className="rounded-lg border bg-background overflow-x-auto">
+                                   return displayRows.length > 0 ? (
+                                  <div className="overflow-x-auto">
                                     <Table>
                                       <TableHeader>
-                                         <TableRow className="bg-muted/50">
+                                         <TableRow className="hover:bg-transparent border-b border-border/40">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
                                           <TableHead className="text-xs">Species</TableHead>
