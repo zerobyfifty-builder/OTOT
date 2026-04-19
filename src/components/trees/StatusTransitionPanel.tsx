@@ -60,6 +60,23 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
 
+  // Current user's display name for the "Changed By" accountability field
+  const { data: currentUserName } = useQuery({
+    queryKey: ["currentUserDisplayName"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return "";
+      const meta = (user.user_metadata || {}) as Record<string, any>;
+      return (
+        meta.full_name ||
+        meta.name ||
+        meta.display_name ||
+        user.email ||
+        ""
+      );
+    },
+  });
+
   // Query to fetch assigned planter from previous "assigned" transition
   const { data: assignedPlanterData } = useQuery({
     queryKey: ["assignedPlanterForTrees", request?.treeIds],
