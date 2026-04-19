@@ -55,23 +55,53 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
   });
 
   // Form states per type
-  const [carbonForm, setCarbonForm] = useState({
+  const [carbonForm, setCarbonForm] = useState<{ log_date: string; recorded_by: string; co2_offset_estimated_kg: string; co2_offset_actual_kg: string; calculation_method: string; notes: string; photos: string[] }>({
     log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "",
-    calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: ""
+    calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: []
   });
-  const [ecoForm, setEcoForm] = useState({
+  const [ecoForm, setEcoForm] = useState<{ log_date: string; recorded_by: string; biodiversity_index: string; soil_improvement: string; water_retention: string; ecosystem_notes: string; photos: string[] }>({
     log_date: "", recorded_by: "", biodiversity_index: "",
-    soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: ""
+    soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: []
   });
-  const [commForm, setCommForm] = useState({
+  const [commForm, setCommForm] = useState<{ log_date: string; recorded_by: string; jobs_created: string; local_participants_count: string; update_frequency: string; community_benefits: string; photos: string[] }>({
     log_date: "", recorded_by: "", jobs_created: "", local_participants_count: "",
-    update_frequency: "Quarterly", community_benefits: "", photos: ""
+    update_frequency: "Quarterly", community_benefits: "", photos: []
   });
+  const [uploading, setUploading] = useState(false);
 
   const resetForm = () => {
-    setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: "" });
-    setEcoForm({ log_date: "", recorded_by: "", biodiversity_index: "", soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: "" });
-    setCommForm({ log_date: "", recorded_by: "", jobs_created: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: "" });
+    setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: [] });
+    setEcoForm({ log_date: "", recorded_by: "", biodiversity_index: "", soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: [] });
+    setCommForm({ log_date: "", recorded_by: "", jobs_created: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
+  };
+
+  const currentPhotos = (): string[] => type === "carbon" ? carbonForm.photos : type === "ecosystem" ? ecoForm.photos : commForm.photos;
+  const setCurrentPhotos = (updater: (prev: string[]) => string[]) => {
+    if (type === "carbon") setCarbonForm(p => ({ ...p, photos: updater(p.photos) }));
+    else if (type === "ecosystem") setEcoForm(p => ({ ...p, photos: updater(p.photos) }));
+    else setCommForm(p => ({ ...p, photos: updater(p.photos) }));
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    if (!type || files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of files) {
+        const ext = file.name.split('.').pop() || 'jpg';
+        const path = `impact-${type}/${contributionId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('planting-photos').upload(path, file, { upsert: false, contentType: file.type });
+        if (upErr) { toast.error(upErr.message); continue; }
+        const { data: pub } = supabase.storage.from('planting-photos').getPublicUrl(path);
+        if (pub?.publicUrl) uploaded.push(pub.publicUrl);
+      }
+      if (uploaded.length) {
+        setCurrentPhotos(prev => [...prev, ...uploaded]);
+        toast.success(`${uploaded.length} photo(s) uploaded`);
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const saveLog = useMutation({
@@ -88,7 +118,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
           co2_offset_actual_kg: carbonForm.co2_offset_actual_kg ? parseFloat(carbonForm.co2_offset_actual_kg) : null,
           calculation_method: carbonForm.calculation_method || null,
           notes: carbonForm.notes || null,
-          photos: carbonForm.photos ? carbonForm.photos.split(",").map(s => s.trim()).filter(Boolean) : [],
+          photos: carbonForm.photos,
         };
       } else if (type === "ecosystem") {
         if (!ecoForm.log_date || !ecoForm.recorded_by) throw new Error("Log date and Recorded by are required");
@@ -100,7 +130,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
           soil_improvement: ecoForm.soil_improvement || null,
           water_retention: ecoForm.water_retention || null,
           ecosystem_notes: ecoForm.ecosystem_notes || null,
-          photos: ecoForm.photos ? ecoForm.photos.split(",").map(s => s.trim()).filter(Boolean) : [],
+          photos: ecoForm.photos,
         };
       } else {
         if (!commForm.log_date || !commForm.recorded_by) throw new Error("Log date and Recorded by are required");
@@ -112,7 +142,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
           local_participants_count: commForm.local_participants_count ? parseInt(commForm.local_participants_count) : 0,
           update_frequency: commForm.update_frequency || "Quarterly",
           community_benefits: commForm.community_benefits || null,
-          photos: commForm.photos ? commForm.photos.split(",").map(s => s.trim()).filter(Boolean) : [],
+          photos: commForm.photos,
         };
       }
       const { error } = await supabase.from(TABLE_MAP[type] as any).insert(payload);
@@ -126,6 +156,66 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const PhotoUploader = () => {
+    if (!type) return null;
+    const photos = currentPhotos();
+    const captureId = `impact-${type}-camera-capture`;
+    return (
+      <div className="space-y-1.5">
+        <Label className="text-xs">Photos</Label>
+        <div className="flex gap-2">
+          <Input
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={uploading}
+            onChange={async (e) => {
+              const files = Array.from(e.target.files || []);
+              await uploadFiles(files);
+              e.target.value = '';
+            }}
+          />
+          <Input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            id={captureId}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) await uploadFiles([file]);
+              e.target.value = '';
+            }}
+          />
+          <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById(captureId)?.click()} disabled={uploading}>
+            Capture
+          </Button>
+        </div>
+        {uploading && <p className="text-xs text-muted-foreground">Uploading...</p>}
+        {photos.length > 0 && (
+          <div className="grid grid-cols-4 gap-2 pt-2">
+            {photos.map((url, i) => (
+              <div key={i} className="relative group">
+                <button type="button" onClick={() => onPhotoClick?.(url)} className="block w-full h-20 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                  <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Remove photo"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
 
   if (!type) return null;
   const meta = TITLE_MAP[type];
@@ -294,10 +384,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Notes</Label>
                     <Textarea rows={2} value={carbonForm.notes} onChange={e => setCarbonForm(p => ({ ...p, notes: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={carbonForm.photos} onChange={e => setCarbonForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
@@ -337,10 +424,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Ecosystem Notes</Label>
                     <Textarea rows={2} value={ecoForm.ecosystem_notes} onChange={e => setEcoForm(p => ({ ...p, ecosystem_notes: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={ecoForm.photos} onChange={e => setEcoForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
@@ -371,10 +455,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Community Benefits Description</Label>
                     <Textarea rows={2} value={commForm.community_benefits} onChange={e => setCommForm(p => ({ ...p, community_benefits: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={commForm.photos} onChange={e => setCommForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
