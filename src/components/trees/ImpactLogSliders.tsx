@@ -327,10 +327,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                                 <div><span className="text-muted-foreground text-xs">Youth:</span> <span className="font-medium">{log.youth_employed || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Frequency:</span> <span className="font-medium">{log.update_frequency || "—"}</span></div>
                               </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
-                                <div><span className="text-muted-foreground text-xs">Avg Monthly:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
-                              </div>
+                              <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
                               {(log.reporting_period || log.reporting_period_end) && <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{log.reporting_period ? format(new Date(log.reporting_period), "MMM dd, yyyy") : "—"} → {log.reporting_period_end ? format(new Date(log.reporting_period_end), "MMM dd, yyyy") : "—"}</span></div>}
                               {log.community_benefits && <div className="text-muted-foreground italic">"{log.community_benefits}"</div>}
                             </>
