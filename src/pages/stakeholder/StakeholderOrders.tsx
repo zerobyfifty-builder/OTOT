@@ -1200,7 +1200,7 @@ export const StakeholderOrders = () => {
                         {/* Expanded Tree Details */}
                         {isExpanded && (
                           <TableRow key={`${group.contribution_id}-expanded`} className="bg-muted/60 hover:bg-muted/60">
-                            <TableCell colSpan={11} className="p-0">
+                            <TableCell colSpan={12} className="p-0">
                               <div className="py-3 space-y-3">
                                 {/* Tree-level Table */}
                                 {(() => {
