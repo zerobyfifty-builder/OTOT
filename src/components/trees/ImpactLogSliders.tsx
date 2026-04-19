@@ -452,26 +452,56 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
 
               {type === "community" && (
                 <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Reporting Period</Label>
+                    <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Jobs Created</Label>
-                      <Input type="number" value={commForm.jobs_created} onChange={e => setCommForm(p => ({ ...p, jobs_created: e.target.value }))} />
+                      <Label className="text-xs">Families Supported</Label>
+                      <Input type="number" min="0" value={commForm.families_supported} onChange={e => setCommForm(p => ({ ...p, families_supported: e.target.value }))} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Local Participants</Label>
-                      <Input type="number" value={commForm.local_participants_count} onChange={e => setCommForm(p => ({ ...p, local_participants_count: e.target.value }))} />
+                      <Label className="text-xs">Jobs Created</Label>
+                      <Input type="number" min="0" value={commForm.jobs_created} onChange={e => setCommForm(p => ({ ...p, jobs_created: e.target.value }))} />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Update Frequency</Label>
-                    <Select value={commForm.update_frequency} onValueChange={v => setCommForm(p => ({ ...p, update_frequency: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Monthly">Monthly</SelectItem>
-                        <SelectItem value="Quarterly">Quarterly</SelectItem>
-                        <SelectItem value="Annually">Annually</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Women Employed</Label>
+                      <Input type="number" min="0" value={commForm.women_employed} onChange={e => setCommForm(p => ({ ...p, women_employed: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Youth Employed</Label>
+                      <Input type="number" min="0" value={commForm.youth_employed} onChange={e => setCommForm(p => ({ ...p, youth_employed: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nursery Income (KES)</Label>
+                      <Input type="number" min="0" step="0.01" value={commForm.nursery_income_kes} onChange={e => setCommForm(p => ({ ...p, nursery_income_kes: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Avg Monthly Income (KES)</Label>
+                      <Input type="number" min="0" step="0.01" value={commForm.avg_monthly_income_kes} onChange={e => setCommForm(p => ({ ...p, avg_monthly_income_kes: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Local Participants</Label>
+                      <Input type="number" min="0" value={commForm.local_participants_count} onChange={e => setCommForm(p => ({ ...p, local_participants_count: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Update Frequency</Label>
+                      <Select value={commForm.update_frequency} onValueChange={v => setCommForm(p => ({ ...p, update_frequency: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Monthly">Monthly</SelectItem>
+                          <SelectItem value="Quarterly">Quarterly</SelectItem>
+                          <SelectItem value="Annually">Annually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Community Benefits Description</Label>
