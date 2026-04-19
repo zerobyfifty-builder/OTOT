@@ -2057,13 +2057,13 @@ export const StakeholderOrders = () => {
                     </div>
                   </TabsContent>
 
-                  {/* Location Tab - Geotag & Map (mirrors Tree Status & Info → Location) */}
+                  {/* Location Tab - Group/Batch Geotag (separate from per-tree geotags) */}
                   <TabsContent value="location">
                     <div className="space-y-4 pt-2">
-                      {treeGeotag && treeGeotag.latitude != null && treeGeotag.longitude != null ? (
+                      {batchGeotag ? (
                         <div className="space-y-3">
                           <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                            <MapPin className="h-4 w-4" /> Geotag & Map
+                            <MapPin className="h-4 w-4" /> Group Geotag & Map
                           </h4>
                           <div className="flex flex-wrap items-center gap-2">
                             <Button
@@ -2072,14 +2072,14 @@ export const StakeholderOrders = () => {
                               size="sm"
                               className="h-7 text-xs"
                               onClick={() => {
-                                navigator.clipboard.writeText(`${treeGeotag.latitude}, ${treeGeotag.longitude}`);
+                                navigator.clipboard.writeText(`${batchGeotag.latitude}, ${batchGeotag.longitude}`);
                                 toast.success("Coordinates copied");
                               }}
                             >
                               <Copy className="h-3 w-3 mr-1.5" /> Copy coords
                             </Button>
                             <a
-                              href={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}`}
+                              href={`https://www.google.com/maps?q=${batchGeotag.latitude},${batchGeotag.longitude}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center text-xs h-7 px-2.5 rounded-md border bg-background hover:bg-accent"
@@ -2105,8 +2105,8 @@ export const StakeholderOrders = () => {
                               <div className="relative h-full">
                                 <iframe
                                   key={mapKey}
-                                  title="Tree location map"
-                                  src={`https://www.google.com/maps?q=${treeGeotag.latitude},${treeGeotag.longitude}&z=16&output=embed&t=${mapKey}`}
+                                  title="Group location map"
+                                  src={`https://www.google.com/maps?q=${batchGeotag.latitude},${batchGeotag.longitude}&z=16&output=embed&t=${mapKey}`}
                                   className="w-full h-full border-0"
                                   loading="lazy"
                                 />
@@ -2140,26 +2140,28 @@ export const StakeholderOrders = () => {
                             <AccordionItem value="geotag-info" className="border rounded-lg px-3">
                               <AccordionTrigger className="text-sm font-medium hover:no-underline py-3">
                                 <span className="flex items-center gap-2">
-                                  <Info className="h-4 w-4" /> Geotag Information
+                                  <Info className="h-4 w-4" /> Group Geotag Information
                                 </span>
                               </AccordionTrigger>
                               <AccordionContent>
                                 <div className="space-y-2 pt-1">
                                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                     <span className="text-muted-foreground">Geo Tag ID:</span>
-                                    <span className="font-medium">{treeGeotag.geo_tag_id || '-'}</span>
+                                    <span className="font-medium">{batchGeotag.geo_tag_id || '-'}</span>
                                     <span className="text-muted-foreground">Latitude:</span>
-                                    <span className="font-medium">{treeGeotag.latitude}</span>
+                                    <span className="font-medium">{batchGeotag.latitude}</span>
                                     <span className="text-muted-foreground">Longitude:</span>
-                                    <span className="font-medium">{treeGeotag.longitude}</span>
+                                    <span className="font-medium">{batchGeotag.longitude}</span>
                                     <span className="text-muted-foreground">Accuracy:</span>
-                                    <span className="font-medium">{treeGeotag.geo_accuracy || '-'}</span>
+                                    <span className="font-medium">{batchGeotag.geo_accuracy ? `${batchGeotag.geo_accuracy} m` : '-'}</span>
+                                    <span className="text-muted-foreground">Trees in batch:</span>
+                                    <span className="font-medium">{treeCount}</span>
                                     <span className="text-muted-foreground">Captured:</span>
-                                    <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                                    <span className="font-medium">{batchGeotag.created_at ? format(new Date(batchGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
                                   </div>
-                                  {treeGeotag.map_snapshot && (
+                                  {batchGeotag.map_snapshot && (
                                     <div className="mt-3">
-                                      <img src={treeGeotag.map_snapshot} alt="Map snapshot" className="w-full h-32 object-cover rounded-md border cursor-pointer" onClick={() => setLightboxPhoto(treeGeotag.map_snapshot)} />
+                                      <img src={batchGeotag.map_snapshot} alt="Map snapshot" className="w-full h-32 object-cover rounded-md border cursor-pointer" onClick={() => setLightboxPhoto(batchGeotag.map_snapshot!)} />
                                     </div>
                                   )}
                                 </div>
@@ -2170,8 +2172,8 @@ export const StakeholderOrders = () => {
                       ) : (
                         <div className="rounded-lg border border-dashed bg-muted/20 py-10 px-4 text-center">
                           <MapPin className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">No geotag captured for this tree yet.</p>
-                          <p className="text-xs text-muted-foreground mt-1">Move the tree to "Location Mapped" status to capture GPS coordinates.</p>
+                          <p className="text-sm text-muted-foreground">No group geotag captured yet.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Move the batch to "Location Mapped" status to capture group GPS coordinates.</p>
                         </div>
                       )}
                     </div>
