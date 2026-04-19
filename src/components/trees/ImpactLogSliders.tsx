@@ -384,10 +384,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Notes</Label>
                     <Textarea rows={2} value={carbonForm.notes} onChange={e => setCarbonForm(p => ({ ...p, notes: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={carbonForm.photos} onChange={e => setCarbonForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
@@ -427,10 +424,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Ecosystem Notes</Label>
                     <Textarea rows={2} value={ecoForm.ecosystem_notes} onChange={e => setEcoForm(p => ({ ...p, ecosystem_notes: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={ecoForm.photos} onChange={e => setEcoForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
@@ -461,10 +455,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                     <Label className="text-xs">Community Benefits Description</Label>
                     <Textarea rows={2} value={commForm.community_benefits} onChange={e => setCommForm(p => ({ ...p, community_benefits: e.target.value }))} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Photo URLs (comma-separated)</Label>
-                    <Input value={commForm.photos} onChange={e => setCommForm(p => ({ ...p, photos: e.target.value }))} />
-                  </div>
+                  <PhotoUploader />
                 </>
               )}
 
