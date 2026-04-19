@@ -18,10 +18,11 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
 import {
   ArrowLeft, Download, TreePine, DollarSign, CheckCircle2, Clock, MapPin,
   Camera, User, Leaf, Activity, BarChart3, Award, Bell, Calendar, Plus,
-  ZoomIn, X, ChevronRight, FileText, Heart, Sprout, AlertTriangle
+  ZoomIn, X, ChevronRight, FileText, Heart, Sprout, AlertTriangle, Cloud, Globe, Users
 } from "lucide-react";
 
 import { Database } from "@/integrations/supabase/types";
