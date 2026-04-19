@@ -289,7 +289,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                             {type === "community" && (
                               <>
                                 <Badge variant="outline" className="text-[10px]">Jobs {log.jobs_created || 0}</Badge>
-                                <Badge variant="outline" className="text-[10px]">Part. {log.local_participants_count || 0}</Badge>
+                                <Badge variant="outline" className="text-[10px]">Avg/mo KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</Badge>
                               </>
                             )}
                           </div>
@@ -322,7 +322,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                               <div className="grid grid-cols-3 gap-2">
                                 <div><span className="text-muted-foreground text-xs">Families:</span> <span className="font-medium">{log.families_supported || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Jobs:</span> <span className="font-medium">{log.jobs_created || 0}</span></div>
-                                <div><span className="text-muted-foreground text-xs">Participants:</span> <span className="font-medium">{log.local_participants_count || 0}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Avg Monthly Income:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Women:</span> <span className="font-medium">{log.women_employed || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Youth:</span> <span className="font-medium">{log.youth_employed || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Frequency:</span> <span className="font-medium">{log.update_frequency || "—"}</span></div>
