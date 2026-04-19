@@ -466,9 +466,15 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
 
               {type === "community" && (
                 <>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Reporting Period</Label>
-                    <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Reporting Period (From)</Label>
+                      <Input type="date" value={commForm.reporting_period} onChange={e => setCommForm(p => ({ ...p, reporting_period: e.target.value }))} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Reporting Period (To)</Label>
+                      <Input type="date" value={commForm.reporting_period_end} min={commForm.reporting_period || undefined} onChange={e => setCommForm(p => ({ ...p, reporting_period_end: e.target.value }))} />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
