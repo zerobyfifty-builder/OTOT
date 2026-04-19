@@ -255,7 +255,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                             <span className="text-sm font-semibold">
                               {format(new Date(log.log_date), "MMM dd, yyyy")}
                             </span>
-                            <span className="text-xs text-muted-foreground">{log.recorded_by}</span>
+                            <span className="text-xs text-muted-foreground">{activePlanters?.find(p => p.id === log.recorded_by)?.name || log.recorded_by}</span>
                           </div>
                           <div className="flex items-center gap-1.5 flex-wrap justify-end">
                             {type === "carbon" && log.co2_offset_estimated_kg != null && (
