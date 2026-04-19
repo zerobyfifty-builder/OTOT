@@ -266,7 +266,8 @@ export const StakeholderOrders = () => {
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [monitoringSheet, setMonitoringSheet] = useState<ContributionGroup | null>(null);
   const [impactSheet, setImpactSheet] = useState<ContributionGroup | null>(null);
-  const [monitoringForm, setMonitoringForm] = useState({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
+  const [monitoringForm, setMonitoringForm] = useState<{ inspection_date: string; inspected_by: string; survival_rate_pct: string; trees_alive: string; trees_dead: string; trees_replaced: string; overall_health_notes: string; photos: string[] }>({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
+  const [monitoringUploading, setMonitoringUploading] = useState(false);
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
   
   // Tree-level status & info
