@@ -1888,8 +1888,9 @@ export const StakeholderOrders = () => {
                 </SheetHeader>
 
                 <Tabs defaultValue="planting" className="mt-4">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="planting">Planting</TabsTrigger>
+                    <TabsTrigger value="location">Location</TabsTrigger>
                     <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
                     <TabsTrigger value="impact">Impact</TabsTrigger>
                   </TabsList>
