@@ -1178,7 +1178,7 @@ export const StakeholderOrders = () => {
                                 {isPlantationType && (
                                 <DropdownMenuItem onClick={() => {
                                   setMonitoringSheet(group);
-                                  setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: '' });
+                                  setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
                                 }}>
                                   <ClipboardList className="h-3.5 w-3.5 mr-2" />
                                   Monitoring Logs
