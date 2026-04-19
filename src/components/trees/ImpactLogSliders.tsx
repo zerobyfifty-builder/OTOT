@@ -314,10 +314,18 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                           {type === "community" && (
                             <>
                               <div className="grid grid-cols-3 gap-2">
+                                <div><span className="text-muted-foreground text-xs">Families:</span> <span className="font-medium">{log.families_supported || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Jobs:</span> <span className="font-medium">{log.jobs_created || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Participants:</span> <span className="font-medium">{log.local_participants_count || 0}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Women:</span> <span className="font-medium">{log.women_employed || 0}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Youth:</span> <span className="font-medium">{log.youth_employed || 0}</span></div>
                                 <div><span className="text-muted-foreground text-xs">Frequency:</span> <span className="font-medium">{log.update_frequency || "—"}</span></div>
                               </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div><span className="text-muted-foreground text-xs">Nursery Income:</span> <span className="font-medium">KES {Number(log.nursery_income_kes || 0).toLocaleString()}</span></div>
+                                <div><span className="text-muted-foreground text-xs">Avg Monthly:</span> <span className="font-medium">KES {Number(log.avg_monthly_income_kes || 0).toLocaleString()}</span></div>
+                              </div>
+                              {log.reporting_period && <div><span className="text-muted-foreground text-xs">Reporting Period:</span> <span className="font-medium">{format(new Date(log.reporting_period), "MMM dd, yyyy")}</span></div>}
                               {log.community_benefits && <div className="text-muted-foreground italic">"{log.community_benefits}"</div>}
                             </>
                           )}
