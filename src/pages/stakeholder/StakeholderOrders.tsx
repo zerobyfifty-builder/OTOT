@@ -2055,11 +2055,11 @@ export const StakeholderOrders = () => {
 
                   {/* Impact Tab - sub-tabs for Carbon / Ecosystem / Community */}
                   <TabsContent value="impact">
-                    <Tabs defaultValue="carbon" className="mt-2">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="carbon" className="text-xs">Carbon ({carbonLogs?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="ecosystem" className="text-xs">Ecosystem ({ecosystemLogs?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="community" className="text-xs">Community ({communityLogs?.length || 0})</TabsTrigger>
+                    <Tabs defaultValue="ecosystem" className="mt-2">
+                      <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 h-auto gap-2 rounded-none">
+                        <TabsTrigger value="ecosystem" className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:shadow-sm">Ecosystem ({ecosystemLogs?.length || 0})</TabsTrigger>
+                        <TabsTrigger value="community" className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:shadow-sm">Community ({communityLogs?.length || 0})</TabsTrigger>
+                        <TabsTrigger value="carbon" className="text-xs rounded-md border border-border bg-muted/40 text-muted-foreground data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30 data-[state=active]:shadow-sm">Carbon ({carbonLogs?.length || 0})</TabsTrigger>
                       </TabsList>
 
                       {/* Carbon Metrics Logs */}
