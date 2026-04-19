@@ -3958,6 +3958,58 @@ export const StakeholderOrders = () => {
         </SheetContent>
       </Sheet>
 
+      <CertificatePreviewDialog
+        previewCert={engagementCertPreview}
+        onClose={() => setEngagementCertPreview(null)}
+        onDownload={(file) => {
+          const url = URL.createObjectURL(file.blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = file.name;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }}
+      />
+
+      <PdfPreviewDialog
+        file={engagementReportPreview}
+        onClose={() => setEngagementReportPreview(null)}
+        title={engagementReportPreview?.name || "Engagement Report"}
+        description="Tree order engagement report — preview, open in a new tab, or download."
+      />
+
+      {engagementSheet && (
+        <SendUpdateDialog
+          open={engagementSendOpen}
+          onOpenChange={setEngagementSendOpen}
+          contributionId={engagementSheet.contribution_id}
+          contributorName={engagementSheet.tourist_name || ""}
+          contributorEmail={(engagementSheet.trees[0] as any)?.contact_email || null}
+          totalTrees={engagementSheet.total_trees}
+          plantingStatusLabel={getGroupStatusLabel(engagementSheet.planting_status)}
+          anniversaryDate={(() => {
+            const planted = engagementSheet.trees.find(t => t.planting_status === 'planted' || t.planting_status === 'verified');
+            const pd = (planted as any)?.planting_date ? new Date((planted as any).planting_date) : (planted?.created_at ? new Date(planted.created_at) : null);
+            return pd ? format(new Date(pd.getFullYear() + 1, pd.getMonth(), pd.getDate()), "dd MMM yyyy") : null;
+          })()}
+          photosCount={engagementSheet.trees.reduce((acc, t: any) => {
+            const photos = (t.transition_data?.photos || t.geotag_photos || []) as any[];
+            return acc + (Array.isArray(photos) ? photos.length : 0);
+          }, 0)}
+          onSent={async (subject, recipientEmail) => {
+            try {
+              await logEngagement.mutateAsync({
+                contribution_id: engagementSheet.contribution_id,
+                activity_type: "update_sent",
+                description: `Update email "${subject}" sent to ${recipientEmail}`,
+                metadata: { subject, recipient_email: recipientEmail },
+                actor_user_id: user?.id ?? null,
+                actor_email: user?.email ?? null,
+              });
+            } catch (err) { console.error("Failed to log update_sent:", err); }
+          }}
+        />
+      )}
+
 
       {lightboxPhoto && (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
