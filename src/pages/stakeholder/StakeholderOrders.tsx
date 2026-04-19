@@ -3882,7 +3882,7 @@ export const StakeholderOrders = () => {
                       <Bell className="h-3.5 w-3.5 mr-1.5" /> Engagement
                     </TabsTrigger>
                     <TabsTrigger value="log" className="text-xs rounded-md border border-border bg-muted/40 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30">
-                      <History className="h-3.5 w-3.5 mr-1.5" /> Log ({engagementLogs.length})
+                      <History className="h-3.5 w-3.5 mr-1.5" /> Log ({engagementActivities.length})
                     </TabsTrigger>
                   </TabsList>
 
