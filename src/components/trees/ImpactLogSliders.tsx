@@ -509,10 +509,6 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Local Participants</Label>
-                      <Input type="number" min="0" value={commForm.local_participants_count} onChange={e => setCommForm(p => ({ ...p, local_participants_count: e.target.value }))} />
-                    </div>
-                    <div className="space-y-1.5">
                       <Label className="text-xs">Update Frequency</Label>
                       <Select value={commForm.update_frequency} onValueChange={v => setCommForm(p => ({ ...p, update_frequency: v }))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
