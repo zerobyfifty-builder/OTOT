@@ -281,7 +281,13 @@ export const StakeholderOrders = () => {
   const [impactSliderContribId, setImpactSliderContribId] = useState<string | null>(null);
   const [engagementSheet, setEngagementSheet] = useState<ContributionGroup | null>(null);
   const [engagementTab, setEngagementTab] = useState<string>("engagement");
-  const [engagementLogs, setEngagementLogs] = useState<Array<{ id: string; type: string; description: string; timestamp: string; actor: string }>>([]);
+  const [engagementCertPreview, setEngagementCertPreview] = useState<PdfPreviewFile | null>(null);
+  const [engagementReportPreview, setEngagementReportPreview] = useState<PdfPreviewFile | null>(null);
+  const [engagementCertGenerating, setEngagementCertGenerating] = useState(false);
+  const [engagementReportGenerating, setEngagementReportGenerating] = useState(false);
+  const [engagementSendOpen, setEngagementSendOpen] = useState(false);
+  const { data: engagementActivities = [] } = useEngagementActivities(engagementSheet?.contribution_id ?? null);
+  const logEngagement = useLogEngagementActivity();
   const [monitoringForm, setMonitoringForm] = useState<{ inspection_date: string; inspected_by: string; survival_rate_pct: string; trees_alive: string; trees_dead: string; trees_replaced: string; overall_health_notes: string; photos: string[] }>({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
   const [monitoringUploading, setMonitoringUploading] = useState(false);
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
