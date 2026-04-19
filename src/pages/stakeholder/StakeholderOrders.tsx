@@ -63,6 +63,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
 import { Cloud, Globe, Users, Bell, Award, Send, FileDown, History, Calendar } from "lucide-react";
+import { generateTreeCertificate } from "@/utils/certificateGenerator";
+import { generateEngagementReport } from "@/utils/engagementReportGenerator";
+import { PdfPreviewDialog, type PdfPreviewFile } from "@/components/ui/PdfPreviewDialog";
+import { CertificatePreviewDialog } from "@/components/certificates/CertificatePreviewDialog";
+import { SendUpdateDialog } from "@/components/engagement/SendUpdateDialog";
+import { useEngagementActivities, useLogEngagementActivity, type EngagementActivity } from "@/hooks/useEngagementActivities";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -275,7 +281,13 @@ export const StakeholderOrders = () => {
   const [impactSliderContribId, setImpactSliderContribId] = useState<string | null>(null);
   const [engagementSheet, setEngagementSheet] = useState<ContributionGroup | null>(null);
   const [engagementTab, setEngagementTab] = useState<string>("engagement");
-  const [engagementLogs, setEngagementLogs] = useState<Array<{ id: string; type: string; description: string; timestamp: string; actor: string }>>([]);
+  const [engagementCertPreview, setEngagementCertPreview] = useState<PdfPreviewFile | null>(null);
+  const [engagementReportPreview, setEngagementReportPreview] = useState<PdfPreviewFile | null>(null);
+  const [engagementCertGenerating, setEngagementCertGenerating] = useState(false);
+  const [engagementReportGenerating, setEngagementReportGenerating] = useState(false);
+  const [engagementSendOpen, setEngagementSendOpen] = useState(false);
+  const { data: engagementActivities = [] } = useEngagementActivities(engagementSheet?.contribution_id ?? null);
+  const logEngagement = useLogEngagementActivity();
   const [monitoringForm, setMonitoringForm] = useState<{ inspection_date: string; inspected_by: string; survival_rate_pct: string; trees_alive: string; trees_dead: string; trees_replaced: string; overall_health_notes: string; photos: string[] }>({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
   const [monitoringUploading, setMonitoringUploading] = useState(false);
   const [impactForm, setImpactForm] = useState({ co2_offset_estimated: '', co2_offset_actual: '', calculation_method: '', biodiversity_index: '', soil_improvement_indicator: '', water_retention_indicator: '', jobs_created: '', local_participants_count: '', community_benefits: '' });
@@ -1263,10 +1275,6 @@ export const StakeholderOrders = () => {
                                 <DropdownMenuItem onClick={() => {
                                   setEngagementSheet(group);
                                   setEngagementTab("engagement");
-                                  try {
-                                    const raw = localStorage.getItem(`engagement_logs_${group.contribution_id}`);
-                                    setEngagementLogs(raw ? JSON.parse(raw) : []);
-                                  } catch { setEngagementLogs([]); }
                                 }}>
                                   <Bell className="h-3.5 w-3.5 mr-2" />
                                   Engagement
@@ -3697,37 +3705,140 @@ export const StakeholderOrders = () => {
             const statusLabel = getGroupStatusLabel(group.planting_status);
             const statusColor = getGroupStatusColor(group.planting_status);
 
-            const persistLogs = (logs: typeof engagementLogs) => {
-              try { localStorage.setItem(`engagement_logs_${group.contribution_id}`, JSON.stringify(logs)); } catch {}
-            };
-            const addLog = (type: string, description: string) => {
-              const newLog = {
-                id: crypto.randomUUID(),
-                type,
-                description,
-                timestamp: new Date().toISOString(),
-                actor: user?.email || "System",
-              };
-              const updated = [newLog, ...engagementLogs];
-              setEngagementLogs(updated);
-              persistLogs(updated);
+            const recordLog = async (
+              activity_type: "certificate_viewed" | "update_sent" | "report_downloaded",
+              description: string,
+              metadata: Record<string, unknown> = {},
+            ) => {
+              try {
+                await logEngagement.mutateAsync({
+                  contribution_id: group.contribution_id,
+                  activity_type,
+                  description,
+                  metadata,
+                  actor_user_id: user?.id ?? null,
+                  actor_email: user?.email ?? null,
+                });
+              } catch (err) {
+                console.error("Failed to record engagement log:", err);
+              }
             };
 
-            const handleIssueCertificate = () => {
-              addLog("certificate_issued", `Certificate issued for ${group.total_trees} tree(s)`);
-              toast.success("Certificate issued");
+            const handleViewCertificate = async () => {
+              if (engagementCertGenerating) return;
+              setEngagementCertGenerating(true);
+              try {
+                const co2PerTree = group.trip && group.trip.trees_needed > 0
+                  ? group.trip.total_co2 / group.trip.trees_needed
+                  : 0;
+                const co2Offset = Number((co2PerTree * group.total_trees).toFixed(1));
+                const firstTree: any = group.trees[0];
+                const ototId = firstTree?.otot_id || firstTree?.tree_id || group.contribution_id;
+                const blob = await generateTreeCertificate({
+                  userName: group.tourist_name || "Environmental Supporter",
+                  userId: (group.trees[0] as any)?.user_id || user?.id || group.contribution_id,
+                  numTrees: group.total_trees,
+                  co2Offset,
+                  ototId,
+                  location: "Mau Forest Complex, Kenya",
+                });
+                const fileName = `tree-certificate-${group.contribution_id}.pdf`;
+                setEngagementCertPreview({ blob, name: fileName });
+                await recordLog(
+                  "certificate_viewed",
+                  `Certificate viewed for ${group.contribution_id} (${group.total_trees} tree(s))`,
+                  { num_trees: group.total_trees },
+                );
+              } catch (err) {
+                console.error("Certificate generation error:", err);
+                toast.error("Failed to generate certificate");
+              } finally {
+                setEngagementCertGenerating(false);
+              }
             };
+
             const handleSendUpdate = () => {
-              addLog("update_sent", `Update email sent to ${group.tourist_name || "contributor"}`);
-              toast.success("Update sent to contributor");
+              setEngagementSendOpen(true);
             };
-            const handleDownloadReport = () => {
-              addLog("report_downloaded", `Engagement report downloaded for ${group.contribution_id}`);
-              toast.success("Report downloaded");
+
+            const handleDownloadReport = async () => {
+              if (engagementReportGenerating) return;
+              setEngagementReportGenerating(true);
+              try {
+                // Fetch status timeline for trees in this group
+                const treeIds = group.trees.map(t => t.id);
+                const { data: transitions } = await supabase
+                  .from("tree_status_transitions" as any)
+                  .select("to_status, created_at, transition_data")
+                  .in("tree_id", treeIds)
+                  .order("created_at", { ascending: true });
+                const seen = new Set<string>();
+                const timeline = ((transitions as any[]) || [])
+                  .filter(t => {
+                    if (seen.has(t.to_status)) return false;
+                    seen.add(t.to_status);
+                    return true;
+                  })
+                  .map(t => ({
+                    status: t.to_status,
+                    label: STATUS_LABELS[t.to_status] || t.to_status,
+                    date: t.created_at,
+                    actor: (t.transition_data as any)?.recorded_by || null,
+                  }));
+
+                // Photos count
+                const photosCount = group.trees.reduce((acc, t: any) => {
+                  const photos = (t.transition_data?.photos || t.geotag_photos || []) as any[];
+                  return acc + (Array.isArray(photos) ? photos.length : 0);
+                }, 0);
+
+                // Group geotag (first tree with lat/lng)
+                const tWithGeo: any = group.trees.find((t: any) => t.latitude && t.longitude);
+                const geotag = tWithGeo
+                  ? { latitude: Number(tWithGeo.latitude), longitude: Number(tWithGeo.longitude) }
+                  : null;
+
+                const blob = await generateEngagementReport({
+                  contribution_id: group.contribution_id,
+                  customer_id: customerIdFormatted,
+                  contributor_name: group.tourist_name || "—",
+                  contributor_type: contributorType,
+                  contributor_email: (group.trees[0] as any)?.contact_email || null,
+                  trip_id: tripFriendlyId,
+                  total_trees: group.total_trees,
+                  total_amount: group.total_amount,
+                  currency: group.currency,
+                  payment_date: group.payment_date,
+                  planting_status_label: statusLabel,
+                  anniversary_date: anniversaryDate ? anniversaryDate.toISOString() : null,
+                  photos_count: photosCount,
+                  geotag,
+                  status_timeline: timeline,
+                  activity_log: engagementActivities.map(a => ({
+                    type: a.activity_type,
+                    description: a.description,
+                    timestamp: a.created_at,
+                    actor: a.actor_email || "System",
+                  })),
+                  generated_by: user?.email || "System",
+                });
+                const fileName = `engagement-report-${group.contribution_id}.pdf`;
+                setEngagementReportPreview({ blob, name: fileName });
+                await recordLog(
+                  "report_downloaded",
+                  `Engagement report generated for ${group.contribution_id}`,
+                  { trees: group.total_trees, photos: photosCount },
+                );
+              } catch (err) {
+                console.error("Report generation error:", err);
+                toast.error("Failed to generate report");
+              } finally {
+                setEngagementReportGenerating(false);
+              }
             };
 
             const logTypeMeta: Record<string, { label: string; icon: any; color: string }> = {
-              certificate_issued: { label: "Certificate Issued", icon: Award, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+              certificate_viewed: { label: "Certificate Viewed", icon: Award, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
               update_sent: { label: "Update Sent", icon: Send, color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
               report_downloaded: { label: "Report Downloaded", icon: FileDown, color: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
             };
@@ -3771,7 +3882,7 @@ export const StakeholderOrders = () => {
                       <Bell className="h-3.5 w-3.5 mr-1.5" /> Engagement
                     </TabsTrigger>
                     <TabsTrigger value="log" className="text-xs rounded-md border border-border bg-muted/40 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30">
-                      <History className="h-3.5 w-3.5 mr-1.5" /> Log ({engagementLogs.length})
+                      <History className="h-3.5 w-3.5 mr-1.5" /> Log ({engagementActivities.length})
                     </TabsTrigger>
                   </TabsList>
 
@@ -3796,14 +3907,14 @@ export const StakeholderOrders = () => {
                         <Separator />
 
                         <div className="grid grid-cols-1 gap-2">
-                          <Button variant="outline" size="sm" className="justify-start" onClick={handleIssueCertificate}>
-                            <Award className="h-4 w-4 mr-2" /> Issue Certificate
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleViewCertificate} disabled={engagementCertGenerating}>
+                            <Award className="h-4 w-4 mr-2" /> {engagementCertGenerating ? "Generating…" : "View Certificate"}
                           </Button>
                           <Button variant="outline" size="sm" className="justify-start" onClick={handleSendUpdate}>
                             <Send className="h-4 w-4 mr-2" /> Send Update to Contributor
                           </Button>
-                          <Button variant="outline" size="sm" className="justify-start" onClick={handleDownloadReport}>
-                            <FileDown className="h-4 w-4 mr-2" /> Download Report
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleDownloadReport} disabled={engagementReportGenerating}>
+                            <FileDown className="h-4 w-4 mr-2" /> {engagementReportGenerating ? "Generating…" : "Download Report"}
                           </Button>
                         </div>
                       </CardContent>
@@ -3811,15 +3922,15 @@ export const StakeholderOrders = () => {
                   </TabsContent>
 
                   <TabsContent value="log" className="mt-4">
-                    {engagementLogs.length === 0 ? (
+                    {engagementActivities.length === 0 ? (
                       <div className="text-center py-12 text-sm text-muted-foreground">
                         <History className="h-8 w-8 mx-auto mb-2 opacity-40" />
                         No activity logged yet.
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {engagementLogs.map((log) => {
-                          const meta = logTypeMeta[log.type] || { label: log.type, icon: Info, color: "bg-muted text-muted-foreground border-border" };
+                        {engagementActivities.map((log: EngagementActivity) => {
+                          const meta = logTypeMeta[log.activity_type] || { label: log.activity_type, icon: Info, color: "bg-muted text-muted-foreground border-border" };
                           const Icon = meta.icon;
                           return (
                             <div key={log.id} className="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
@@ -3829,10 +3940,10 @@ export const StakeholderOrders = () => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Badge variant="outline" className={`text-[10px] ${meta.color}`}>{meta.label}</Badge>
-                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.timestamp), "dd MMM yyyy, hh:mm a")}</span>
+                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.created_at), "dd MMM yyyy, hh:mm a")}</span>
                                 </div>
                                 <p className="text-sm mt-1">{log.description}</p>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor_email || "System"}</p>
                               </div>
                             </div>
                           );
@@ -3846,6 +3957,58 @@ export const StakeholderOrders = () => {
           })()}
         </SheetContent>
       </Sheet>
+
+      <CertificatePreviewDialog
+        previewCert={engagementCertPreview}
+        onClose={() => setEngagementCertPreview(null)}
+        onDownload={(file) => {
+          const url = URL.createObjectURL(file.blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = file.name;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }}
+      />
+
+      <PdfPreviewDialog
+        file={engagementReportPreview}
+        onClose={() => setEngagementReportPreview(null)}
+        title={engagementReportPreview?.name || "Engagement Report"}
+        description="Tree order engagement report — preview, open in a new tab, or download."
+      />
+
+      {engagementSheet && (
+        <SendUpdateDialog
+          open={engagementSendOpen}
+          onOpenChange={setEngagementSendOpen}
+          contributionId={engagementSheet.contribution_id}
+          contributorName={engagementSheet.tourist_name || ""}
+          contributorEmail={(engagementSheet.trees[0] as any)?.contact_email || null}
+          totalTrees={engagementSheet.total_trees}
+          plantingStatusLabel={getGroupStatusLabel(engagementSheet.planting_status)}
+          anniversaryDate={(() => {
+            const planted = engagementSheet.trees.find(t => t.planting_status === 'planted' || t.planting_status === 'verified');
+            const pd = (planted as any)?.planting_date ? new Date((planted as any).planting_date) : (planted?.created_at ? new Date(planted.created_at) : null);
+            return pd ? format(new Date(pd.getFullYear() + 1, pd.getMonth(), pd.getDate()), "dd MMM yyyy") : null;
+          })()}
+          photosCount={engagementSheet.trees.reduce((acc, t: any) => {
+            const photos = (t.transition_data?.photos || t.geotag_photos || []) as any[];
+            return acc + (Array.isArray(photos) ? photos.length : 0);
+          }, 0)}
+          onSent={async (subject, recipientEmail) => {
+            try {
+              await logEngagement.mutateAsync({
+                contribution_id: engagementSheet.contribution_id,
+                activity_type: "update_sent",
+                description: `Update email "${subject}" sent to ${recipientEmail}`,
+                metadata: { subject, recipient_email: recipientEmail },
+                actor_user_id: user?.id ?? null,
+                actor_email: user?.email ?? null,
+              });
+            } catch (err) { console.error("Failed to log update_sent:", err); }
+          }}
+        />
+      )}
 
 
       {lightboxPhoto && (

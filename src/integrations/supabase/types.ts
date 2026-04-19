@@ -725,6 +725,39 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_activities: {
+        Row: {
+          activity_type: string
+          actor_email: string | null
+          actor_user_id: string | null
+          contribution_id: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          activity_type: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          contribution_id: string
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          activity_type?: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          contribution_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
       ephemeral_sessions: {
         Row: {
           consumed: boolean | null
