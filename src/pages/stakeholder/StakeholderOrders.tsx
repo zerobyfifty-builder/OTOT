@@ -3366,6 +3366,13 @@ export const StakeholderOrders = () => {
         </DialogContent>
       </Dialog>
 
+      <ImpactLogSliders
+        open={impactSliderType}
+        onClose={() => { setImpactSliderType(null); setImpactSliderContribId(null); }}
+        contributionId={impactSliderContribId || ""}
+        onPhotoClick={(url) => setLightboxPhoto(url)}
+      />
+
 
       {lightboxPhoto && (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
