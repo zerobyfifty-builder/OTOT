@@ -80,7 +80,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
   const resetForm = () => {
     setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: [] });
     setEcoForm({ log_date: "", recorded_by: "", biodiversity_index: "", soil_improvement: "", water_retention: "", ecosystem_notes: "", photos: [] });
-    setCommForm({ log_date: "", recorded_by: "", reporting_period: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
+    setCommForm({ log_date: "", recorded_by: "", reporting_period: "", reporting_period_end: "", families_supported: "", jobs_created: "", women_employed: "", youth_employed: "", nursery_income_kes: "", avg_monthly_income_kes: "", local_participants_count: "", update_frequency: "Quarterly", community_benefits: "", photos: [] });
   };
 
   const currentPhotos = (): string[] => type === "carbon" ? carbonForm.photos : type === "ecosystem" ? ecoForm.photos : commForm.photos;
