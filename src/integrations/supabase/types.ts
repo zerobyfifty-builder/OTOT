@@ -477,46 +477,64 @@ export type Database = {
       }
       community_impact_logs: {
         Row: {
+          avg_monthly_income_kes: number | null
           community_benefits: string | null
           contribution_id: string
           created_at: string
           created_by: string | null
+          families_supported: number | null
           id: string
           jobs_created: number | null
           local_participants_count: number | null
           log_date: string
+          nursery_income_kes: number | null
           photos: string[] | null
           recorded_by: string
+          reporting_period: string | null
           update_frequency: string | null
           updated_at: string
+          women_employed: number | null
+          youth_employed: number | null
         }
         Insert: {
+          avg_monthly_income_kes?: number | null
           community_benefits?: string | null
           contribution_id: string
           created_at?: string
           created_by?: string | null
+          families_supported?: number | null
           id?: string
           jobs_created?: number | null
           local_participants_count?: number | null
           log_date: string
+          nursery_income_kes?: number | null
           photos?: string[] | null
           recorded_by: string
+          reporting_period?: string | null
           update_frequency?: string | null
           updated_at?: string
+          women_employed?: number | null
+          youth_employed?: number | null
         }
         Update: {
+          avg_monthly_income_kes?: number | null
           community_benefits?: string | null
           contribution_id?: string
           created_at?: string
           created_by?: string | null
+          families_supported?: number | null
           id?: string
           jobs_created?: number | null
           local_participants_count?: number | null
           log_date?: string
+          nursery_income_kes?: number | null
           photos?: string[] | null
           recorded_by?: string
+          reporting_period?: string | null
           update_frequency?: string | null
           updated_at?: string
+          women_employed?: number | null
+          youth_employed?: number | null
         }
         Relationships: []
       }
