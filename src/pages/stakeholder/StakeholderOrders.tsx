@@ -3555,7 +3555,7 @@ export const StakeholderOrders = () => {
             const tripFriendlyId = group.trip?.friendly_trip_id || (group.trip_id ? group.trip_id.slice(0, 8) : "—");
             const contributorType = group.contribution_type === "travel_agent" ? "Agent" : "Tourist";
             const plantedTree = group.trees.find(t => t.planting_status === 'planted' || t.planting_status === 'verified');
-            const plantingDate = plantedTree?.date_planted ? new Date(plantedTree.date_planted) : null;
+            const plantingDate = (plantedTree as any)?.planting_date ? new Date((plantedTree as any).planting_date) : (plantedTree?.created_at ? new Date(plantedTree.created_at) : null);
             const anniversaryDate = plantingDate ? new Date(plantingDate.getFullYear() + 1, plantingDate.getMonth(), plantingDate.getDate()) : null;
             const statusLabel = getGroupStatusLabel(group.planting_status);
             const statusColor = getGroupStatusColor(group.planting_status);
