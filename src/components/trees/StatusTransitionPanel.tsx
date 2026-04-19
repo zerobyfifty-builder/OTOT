@@ -769,11 +769,20 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               Confirm Planted
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 py-6">
+          <div className="flex-1 py-6 space-y-4">
             <div className="rounded-lg border bg-green-50/50 border-green-200 p-4">
               <p className="text-sm text-green-800">
                 Mark <strong>{treeLabel}</strong> as fully planted and verified? This will update the Planted counter in the summary header.
               </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Changed By <span className="text-destructive">*</span></Label>
+              <Input
+                placeholder="Your name"
+                value={formData.changed_by || ""}
+                onChange={(e) => setField("changed_by", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
             </div>
           </div>
           <SheetFooter className="flex gap-2 pt-4 border-t">
