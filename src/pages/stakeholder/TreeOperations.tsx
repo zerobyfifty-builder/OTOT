@@ -96,6 +96,7 @@ export const TreeOperations = () => {
     overall_health_notes: '', photos: ''
   });
   const [showMonitoringForm, setShowMonitoringForm] = useState(false);
+  const [impactSlider, setImpactSlider] = useState<"carbon" | "ecosystem" | "community" | null>(null);
   const [impactForm, setImpactForm] = useState({
     co2_offset_estimated_kg: '', co2_offset_actual_kg: '', calculation_method: 'ICAO Standard (22kg/tree/year)',
     biodiversity_index: '', soil_improvement: '', water_retention: '',
