@@ -416,6 +416,28 @@ export const StakeholderOrders = () => {
     },
   });
 
+  // Map of tree_id -> species_name (captured at Saplings Ready stage)
+  const { data: allTreeSpecies } = useQuery({
+    queryKey: ["allTreeSpeciesFromSaplingsReady"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, to_status, transition_data, created_at")
+        .eq("to_status", "saplings_ready")
+        .order("created_at", { ascending: false })
+        .limit(10000);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const row of (data || []) as any[]) {
+        if (!map[row.tree_id]) {
+          const sp = row.transition_data?.species_name;
+          if (sp) map[row.tree_id] = sp;
+        }
+      }
+      return map;
+    },
+  });
+
   // Merge transition dates with fallback to tree updated_at/created_at
   const allTransitionDatesWithFallback = useMemo(() => {
     const dateMap: Record<string, string> = { ...(allTransitionDates || {}) };
@@ -547,13 +569,13 @@ export const StakeholderOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_growth_metrics" as any)
-        .select("tree_id, growth_stage, last_measured_date")
+        .select("tree_id, growth_stage, last_measured_date, tree_age, tree_age_months")
         .order("last_measured_date", { ascending: false });
       if (error) throw error;
-      const acc: Record<string, { growth_stage: string; last_measured_date: string }> = {};
+      const acc: Record<string, { growth_stage: string; last_measured_date: string; tree_age: string | null; tree_age_months: number | null }> = {};
       (data || []).forEach((r: any) => {
         if (!acc[r.tree_id]) {
-          acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date };
+          acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date, tree_age: r.tree_age, tree_age_months: r.tree_age_months };
         }
       });
       return acc;
