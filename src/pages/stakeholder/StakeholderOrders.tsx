@@ -62,7 +62,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ImpactLogSliders } from "@/components/trees/ImpactLogSliders";
-import { Cloud, Globe, Users } from "lucide-react";
+import { Cloud, Globe, Users, Bell, Award, Send, FileDown, History, Calendar } from "lucide-react";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -3545,6 +3545,170 @@ export const StakeholderOrders = () => {
         contributionId={impactSliderContribId || ""}
         onPhotoClick={(url) => setLightboxPhoto(url)}
       />
+
+      {/* Engagement Sheet */}
+      <Sheet open={!!engagementSheet} onOpenChange={(open) => { if (!open) setEngagementSheet(null); }}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          {engagementSheet && (() => {
+            const group = engagementSheet;
+            const customerIdFormatted = group.contribution_id.replace("CTR-", "CT2026-");
+            const tripFriendlyId = group.trip?.friendly_trip_id || (group.trip_id ? group.trip_id.slice(0, 8) : "—");
+            const contributorType = group.contribution_type === "travel_agent" ? "Agent" : "Tourist";
+            const plantedTree = group.trees.find(t => t.planting_status === 'planted' || t.planting_status === 'verified');
+            const plantingDate = plantedTree?.date_planted ? new Date(plantedTree.date_planted) : null;
+            const anniversaryDate = plantingDate ? new Date(plantingDate.getFullYear() + 1, plantingDate.getMonth(), plantingDate.getDate()) : null;
+            const statusLabel = getGroupStatusLabel(group.planting_status);
+            const statusColor = getGroupStatusColor(group.planting_status);
+
+            const persistLogs = (logs: typeof engagementLogs) => {
+              try { localStorage.setItem(`engagement_logs_${group.contribution_id}`, JSON.stringify(logs)); } catch {}
+            };
+            const addLog = (type: string, description: string) => {
+              const newLog = {
+                id: crypto.randomUUID(),
+                type,
+                description,
+                timestamp: new Date().toISOString(),
+                actor: user?.email || "System",
+              };
+              const updated = [newLog, ...engagementLogs];
+              setEngagementLogs(updated);
+              persistLogs(updated);
+            };
+
+            const handleIssueCertificate = () => {
+              addLog("certificate_issued", `Certificate issued for ${group.total_trees} tree(s)`);
+              toast.success("Certificate issued");
+            };
+            const handleSendUpdate = () => {
+              addLog("update_sent", `Update email sent to ${group.tourist_name || "contributor"}`);
+              toast.success("Update sent to contributor");
+            };
+            const handleDownloadReport = () => {
+              addLog("report_downloaded", `Engagement report downloaded for ${group.contribution_id}`);
+              toast.success("Report downloaded");
+            };
+
+            const logTypeMeta: Record<string, { label: string; icon: any; color: string }> = {
+              certificate_issued: { label: "Certificate Issued", icon: Award, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+              update_sent: { label: "Update Sent", icon: Send, color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+              report_downloaded: { label: "Report Downloaded", icon: FileDown, color: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+            };
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Engagement</SheetTitle>
+                </SheetHeader>
+
+                {/* Tree Order Info Header */}
+                <div className="border-b pb-4 mb-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h2 className="text-2xl font-bold tracking-tight">{group.contribution_id}</h2>
+                    <Badge variant="outline" className={statusColor}>{statusLabel}</Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2">
+                    <span>Customer ID: <span className="font-medium text-foreground">{customerIdFormatted}</span></span>
+                    <span>Trip: <span className="font-medium text-foreground">{tripFriendlyId}</span></span>
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Contributor: <span className="font-medium text-foreground">{group.tourist_name || "—"}</span> <span className="text-muted-foreground">({contributorType})</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 mt-4">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Trees ordered</div>
+                      <div className="text-lg font-bold">{group.total_trees}</div>
+                    </div>
+                    <Separator orientation="vertical" className="h-10" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Amount paid</div>
+                      <div className="text-lg font-bold">${Number(group.total_amount).toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <Tabs value={engagementTab} onValueChange={setEngagementTab} className="mt-2">
+                  <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-auto gap-2 rounded-none">
+                    <TabsTrigger value="engagement" className="text-xs rounded-md border border-border bg-muted/40 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30">
+                      <Bell className="h-3.5 w-3.5 mr-1.5" /> Engagement
+                    </TabsTrigger>
+                    <TabsTrigger value="log" className="text-xs rounded-md border border-border bg-muted/40 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/30">
+                      <History className="h-3.5 w-3.5 mr-1.5" /> Log ({engagementLogs.length})
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="engagement" className="mt-4 space-y-4">
+                    <Card>
+                      <CardContent className="p-4 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-md bg-primary/10">
+                            <Calendar className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-xs text-muted-foreground">Anniversary Date</div>
+                            <div className="text-sm font-medium">{anniversaryDate ? format(anniversaryDate, "dd MMM yyyy") : "—"}</div>
+                          </div>
+                          {anniversaryDate && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {Math.ceil((anniversaryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
+                            </Badge>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleIssueCertificate}>
+                            <Award className="h-4 w-4 mr-2" /> Issue Certificate
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleSendUpdate}>
+                            <Send className="h-4 w-4 mr-2" /> Send Update to Contributor
+                          </Button>
+                          <Button variant="outline" size="sm" className="justify-start" onClick={handleDownloadReport}>
+                            <FileDown className="h-4 w-4 mr-2" /> Download Report
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="log" className="mt-4">
+                    {engagementLogs.length === 0 ? (
+                      <div className="text-center py-12 text-sm text-muted-foreground">
+                        <History className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                        No activity logged yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {engagementLogs.map((log) => {
+                          const meta = logTypeMeta[log.type] || { label: log.type, icon: Info, color: "bg-muted text-muted-foreground border-border" };
+                          const Icon = meta.icon;
+                          return (
+                            <div key={log.id} className="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
+                              <div className={`p-1.5 rounded-md ${meta.color}`}>
+                                <Icon className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="outline" className={`text-[10px] ${meta.color}`}>{meta.label}</Badge>
+                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.timestamp), "dd MMM yyyy, hh:mm a")}</span>
+                                </div>
+                                <p className="text-sm mt-1">{log.description}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
 
 
       {lightboxPhoto && (
