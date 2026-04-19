@@ -1944,38 +1944,60 @@ export const StakeholderOrders = () => {
 
                   {/* Monitoring Tab */}
                   <TabsContent value="monitoring">
-                    <div className="space-y-4 py-2">
+                    <div className="pt-2">
                       {monitoringLogs && monitoringLogs.length > 0 ? (
-                        <div className="space-y-3">
+                        <Accordion type="multiple" className="space-y-2">
                           {monitoringLogs.map((log: any) => (
-                            <div key={log.id} className="rounded-lg border bg-card p-3 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-semibold">{log.inspection_id}</span>
-                                <span className="text-xs text-muted-foreground">{log.inspection_date ? format(new Date(log.inspection_date), "dd MMM yyyy") : '-'}</span>
-                              </div>
-                              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-                                <span className="text-muted-foreground">Inspected By:</span>
-                                <span className="font-medium">{log.inspected_by}</span>
-                                {log.notes && <>
-                                  <span className="text-muted-foreground">Notes:</span>
-                                  <span>{log.notes}</span>
-                                </>}
-                              </div>
-                              {log.photos && log.photos.length > 0 && (
-                                <div className="grid grid-cols-3 gap-2 pt-1">
-                                  {log.photos.map((url: string, i: number) => (
-                                    <div key={i} className="relative group cursor-pointer" onClick={() => setLightboxPhoto(url)}>
-                                      <img src={url} alt={`Photo ${i + 1}`} className="rounded-md border object-cover h-16 w-full" />
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                                        <ZoomIn className="h-4 w-4 text-white" />
-                                      </div>
-                                    </div>
-                                  ))}
+                            <AccordionItem
+                              key={log.id}
+                              value={log.id}
+                              className="rounded-lg border bg-card px-3 data-[state=open]:bg-muted/30"
+                            >
+                              <AccordionTrigger className="py-3 hover:no-underline">
+                                <div className="flex flex-1 items-center gap-3 pr-2 text-left">
+                                  <span className="text-sm font-semibold whitespace-nowrap">
+                                    {log.inspection_date ? format(new Date(log.inspection_date), "MMM dd, yyyy") : '-'}
+                                  </span>
+                                  <Badge variant="outline" className="font-normal whitespace-nowrap">
+                                    Survival: {log.survival_rate_pct ?? 0}%
+                                  </Badge>
+                                  <span className="text-sm text-muted-foreground truncate">
+                                    Alive: {log.trees_alive ?? 0} | Dead: {log.trees_dead ?? 0} | Replaced: {log.trees_replaced ?? 0}
+                                  </span>
                                 </div>
-                              )}
-                            </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="pb-3">
+                                <div className="space-y-2 border-t pt-3">
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                                    <div>
+                                      <span className="text-muted-foreground">Inspection ID: </span>
+                                      <span className="font-mono">INS-{String(log.id).slice(0, 8).toUpperCase()}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Inspected By: </span>
+                                      <span>{log.inspected_by ? (planterNameMap.get(log.inspected_by) || '—') : '—'}</span>
+                                    </div>
+                                  </div>
+                                  {log.overall_health_notes && (
+                                    <div className="text-sm">
+                                      <span className="text-muted-foreground">Notes: </span>
+                                      {log.overall_health_notes}
+                                    </div>
+                                  )}
+                                  {Array.isArray(log.photos) && log.photos.length > 0 && (
+                                    <div className="flex gap-2 flex-wrap pt-1">
+                                      {log.photos.map((url: string, i: number) => (
+                                        <button key={i} onClick={() => setLightboxPhoto(url)} className="h-14 w-14 rounded-md overflow-hidden border hover:ring-2 ring-primary">
+                                          <img src={url} alt="" className="h-full w-full object-cover" />
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
                           ))}
-                        </div>
+                        </Accordion>
                       ) : (
                         <p className="text-sm text-muted-foreground italic text-center py-6">No monitoring logs recorded yet.</p>
                       )}
