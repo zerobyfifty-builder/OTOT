@@ -36,7 +36,7 @@ const STATUS_TITLES: Record<string, string> = {
   saplings_ready: "Link nursery & species",
   planting_scheduled: "Schedule planting event",
   sapling_planted: "Record planting event",
-  being_mapped: "Capture GPS geotag",
+  being_mapped: "Capture location (geotag)",
   verified: "Record verification",
   planted: "Confirm planted",
   dead: "Record tree loss",
