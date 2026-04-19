@@ -416,6 +416,28 @@ export const StakeholderOrders = () => {
     },
   });
 
+  // Map of tree_id -> species_name (captured at Saplings Ready stage)
+  const { data: allTreeSpecies } = useQuery({
+    queryKey: ["allTreeSpeciesFromSaplingsReady"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tree_status_transitions" as any)
+        .select("tree_id, to_status, transition_data, created_at")
+        .eq("to_status", "saplings_ready")
+        .order("created_at", { ascending: false })
+        .limit(10000);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const row of (data || []) as any[]) {
+        if (!map[row.tree_id]) {
+          const sp = row.transition_data?.species_name;
+          if (sp) map[row.tree_id] = sp;
+        }
+      }
+      return map;
+    },
+  });
+
   // Merge transition dates with fallback to tree updated_at/created_at
   const allTransitionDatesWithFallback = useMemo(() => {
     const dateMap: Record<string, string> = { ...(allTransitionDates || {}) };
@@ -547,13 +569,13 @@ export const StakeholderOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tree_growth_metrics" as any)
-        .select("tree_id, growth_stage, last_measured_date")
+        .select("tree_id, growth_stage, last_measured_date, tree_age, tree_age_months")
         .order("last_measured_date", { ascending: false });
       if (error) throw error;
-      const acc: Record<string, { growth_stage: string; last_measured_date: string }> = {};
+      const acc: Record<string, { growth_stage: string; last_measured_date: string; tree_age: string | null; tree_age_months: number | null }> = {};
       (data || []).forEach((r: any) => {
         if (!acc[r.tree_id]) {
-          acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date };
+          acc[r.tree_id] = { growth_stage: r.growth_stage, last_measured_date: r.last_measured_date, tree_age: r.tree_age, tree_age_months: r.tree_age_months };
         }
       });
       return acc;
@@ -1212,8 +1234,11 @@ export const StakeholderOrders = () => {
                                          <TableRow className="bg-muted/50">
                                           <TableHead className="w-12 text-xs">No.</TableHead>
                                           <TableHead className="text-xs">Tree ID</TableHead>
+                                          <TableHead className="text-xs">Species</TableHead>
                                           <TableHead className="text-xs">Planting Status</TableHead>
+                                          <TableHead className="text-xs">Status Date</TableHead>
                                           <TableHead className="text-xs">Growth Stage</TableHead>
+                                          <TableHead className="text-xs">Age</TableHead>
                                           <TableHead className="text-xs">Survival Status</TableHead>
                                           <TableHead className="text-xs">Last Checked</TableHead>
                                            <TableHead className="text-xs">Track</TableHead>
@@ -1232,16 +1257,39 @@ export const StakeholderOrders = () => {
                                               <TableRow key={tree.id}>
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                  <TableCell className="font-mono text-sm">{tree.otot_id}</TableCell>
+                                                 <TableCell className="text-xs">
+                                                   {allTreeSpecies?.[tree.id] ? (
+                                                     <span className="text-foreground">{allTreeSpecies[tree.id]}</span>
+                                                   ) : (
+                                                     <span className="text-muted-foreground">—</span>
+                                                   )}
+                                                 </TableCell>
                                                  <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || ''}`}>
                                                     {STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
                                                 <TableCell>
+                                                  {allTransitionDates?.[tree.id] ? (
+                                                    <span className="text-xs text-muted-foreground">{formatDate(allTransitionDates[tree.id])}</span>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
                                                   {growthData ? (
                                                     <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium capitalize ${GROWTH_STAGE_COLORS[growthData.growth_stage] || 'bg-muted text-muted-foreground'}`}>
                                                       {growthData.growth_stage}
                                                     </Badge>
+                                                  ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                  )}
+                                                </TableCell>
+                                                <TableCell>
+                                                  {growthData?.tree_age ? (
+                                                    <span className="text-xs text-muted-foreground">{growthData.tree_age}</span>
+                                                  ) : growthData?.tree_age_months ? (
+                                                    <span className="text-xs text-muted-foreground">{growthData.tree_age_months} months</span>
                                                   ) : (
                                                     <span className="text-xs text-muted-foreground">—</span>
                                                   )}
@@ -1379,11 +1427,14 @@ export const StakeholderOrders = () => {
                                               <TableRow key={`placeholder-${index}`} className="opacity-60">
                                                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                                                  <TableCell className="text-sm text-muted-foreground italic">Pending assignment</TableCell>
+                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                  <TableCell>
                                                   <Badge className={`text-xs whitespace-nowrap px-2 py-0.5 font-medium ${PLANTING_STATUS_COLORS['waiting_to_be_assigned']}`}>
                                                     {STATUS_LABELS['waiting_to_be_assigned']}
                                                   </Badge>
                                                 </TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
+                                                <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
                                                 <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
