@@ -76,6 +76,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
     update_frequency: "Quarterly", community_benefits: "", photos: []
   });
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("previous");
 
   const resetForm = () => {
     setCarbonForm({ log_date: "", recorded_by: "", co2_offset_estimated_kg: "", co2_offset_actual_kg: "", calculation_method: "ICAO Standard (22kg/tree/year)", notes: "", photos: [] });
@@ -173,6 +174,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
       resetForm();
       refetch();
       queryClient.invalidateQueries({ queryKey: ["impactLogs", type, contributionId] });
+      setActiveTab("previous");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -248,7 +250,7 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
           <SheetDescription>{meta.desc}</SheetDescription>
         </SheetHeader>
 
-        <Tabs defaultValue="previous" className="mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="previous">Previous Logs ({logs?.length || 0})</TabsTrigger>
             <TabsTrigger value="new">Add New Log</TabsTrigger>
