@@ -125,11 +125,13 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       } else if (request.toStatus === "re_planted") {
         defaults.re_planted_date = format(new Date(), "yyyy-MM-dd");
       }
+      // Universal accountability field — pre-fill with current user's name
+      defaults.changed_by = currentUserName || "";
       setFormData(defaults);
       setPhotos([]);
       setBeatSearch("");
     }
-  }, [request]);
+  }, [request, currentUserName]);
 
   // Pre-fill planter from assigned status when data is available
   useEffect(() => {
