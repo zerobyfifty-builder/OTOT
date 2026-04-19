@@ -48,7 +48,7 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
   "Waiting to be Assigned": "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   "Assigned": "bg-orange-500/10 text-orange-700 border-orange-500/20",
   "Sapling Planted": "bg-green-500/10 text-green-700 border-green-500/20",
-  "Being Mapped": "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  "Location Mapped": "bg-blue-500/10 text-blue-700 border-blue-500/20",
   "Planted": "bg-accent/10 text-accent border-accent/20",
 };
 
