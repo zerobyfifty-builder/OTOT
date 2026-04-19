@@ -308,6 +308,9 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     } else if (s === "re_planted") {
       if (!formData.re_planted_date) return "Re-planted date is required";
     }
+    if (!formData.changed_by || !String(formData.changed_by).trim()) {
+      return "Please enter who is making this change (Changed By)";
+    }
     return null;
   };
 
