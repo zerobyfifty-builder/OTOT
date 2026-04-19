@@ -69,7 +69,6 @@ import { PdfPreviewDialog, type PdfPreviewFile } from "@/components/ui/PdfPrevie
 import { CertificatePreviewDialog } from "@/components/certificates/CertificatePreviewDialog";
 import { SendUpdateDialog } from "@/components/engagement/SendUpdateDialog";
 import { useEngagementActivities, useLogEngagementActivity, type EngagementActivity } from "@/hooks/useEngagementActivities";
-import { format as formatDateFn } from "date-fns";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
