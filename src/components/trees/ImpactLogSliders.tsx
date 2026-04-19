@@ -142,11 +142,17 @@ export const ImpactLogSliders: React.FC<Props> = ({ open, onClose, contributionI
         };
       } else {
         if (!commForm.log_date || !commForm.recorded_by) throw new Error("Log date and Recorded by are required");
+        const today = new Date(); today.setHours(23, 59, 59, 999);
+        if (new Date(commForm.log_date) > today) throw new Error("Log date cannot be in the future");
+        if (commForm.reporting_period && commForm.reporting_period_end && new Date(commForm.reporting_period_end) < new Date(commForm.reporting_period)) {
+          throw new Error("Reporting period end date must be after start date");
+        }
         payload = {
           ...payload,
           log_date: commForm.log_date,
           recorded_by: commForm.recorded_by,
           reporting_period: commForm.reporting_period || null,
+          reporting_period_end: commForm.reporting_period_end || null,
           families_supported: commForm.families_supported ? parseInt(commForm.families_supported) : 0,
           jobs_created: commForm.jobs_created ? parseInt(commForm.jobs_created) : 0,
           women_employed: commForm.women_employed ? parseInt(commForm.women_employed) : 0,
