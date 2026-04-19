@@ -566,7 +566,7 @@ export const TreeOperations = () => {
                                 {t.created_by && (
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <User className="h-3.5 w-3.5" />
-                                    <span>Changed by: <span className="font-medium text-foreground">{planterMap.get(t.created_by) || "System"}</span></span>
+                                    <span>Entered by: <span className="font-medium text-foreground">{planterMap.get(t.created_by) || "System"}</span></span>
                                   </div>
                                 )}
 
