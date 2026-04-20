@@ -404,12 +404,6 @@ export const InstitutionalDashboard = () => {
                   <DollarSign className="h-4 w-4 text-violet-500" />
                 </div>
                 <p className="text-3xl font-bold">${formatNumber(stats?.totalRevenue || 0)}</p>
-                <Separator />
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Per Tourist</span><span className="font-medium">${formatNumber(revenuePerTourist)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Per Tree</span><span className="font-medium">${formatNumber(revenuePerTree)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Tourists</span><span className="font-medium">{formatNumber(stats?.totalTourists || 0)}</span></div>
-                </div>
               </CardContent>
             </Card>
 
