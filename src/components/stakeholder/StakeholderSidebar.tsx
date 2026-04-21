@@ -419,16 +419,16 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
             >
               <Avatar className="h-8 w-8 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getInitials()}
+                  {(userName || organizationName || 'U').split(' ').map(w => w.charAt(0)).slice(0,2).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full text-white">
-                    {organizationName || 'Stakeholder'}
+                    {userName || organizationName || 'Stakeholder'}
                   </span>
-                  <span className="text-xs truncate w-full text-white/60">
-                    {partnerTypeName}
+                  <span className="text-xs truncate w-full text-white/60 capitalize">
+                    {(userJobRole || (isOrgAdmin ? 'Org Admin' : partnerTypeName)).replace(/_/g, ' ')}
                   </span>
                 </div>
               )}
@@ -436,18 +436,24 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{organizationName || 'Stakeholder'}</p>
-              <p className="text-xs text-muted-foreground">{partnerTypeName}</p>
+              <p className="text-sm font-medium">{userName || organizationName || 'Stakeholder'}</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {(userJobRole || (isOrgAdmin ? 'Org Admin' : partnerTypeName)).replace(/_/g, ' ')}
+              </p>
+              {userName && organizationName && (
+                <p className="text-[11px] text-muted-foreground/80 truncate">{organizationName}</p>
+              )}
             </div>
-            {partnerCategory !== 'plantation' && (
+            {isOrgAdmin && partnerCategory !== 'plantation' && (
               <DropdownMenuItem onClick={() => navigate('/stakeholder/admin')} className="flex items-center gap-2 cursor-pointer">
                 <Settings className="h-4 w-4" />
                 <span>Admin</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Organization Settings</span>
+            {isOrgAdmin && (
+              <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Organization Settings</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
