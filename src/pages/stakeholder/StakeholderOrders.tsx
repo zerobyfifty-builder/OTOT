@@ -244,10 +244,12 @@ export const StakeholderOrders = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { hasEdit, subFeatures } = useModulePermissions("tree_orders");
-  const canCarbon = subFeatures["tree_orders.slider.carbon"] !== false;
-  const canEcosystem = subFeatures["tree_orders.slider.ecosystem"] !== false;
-  const canCommunity = subFeatures["tree_orders.slider.community"] !== false;
+  const { hasEdit, subFeatures, hasUserOverride } = useModulePermissions("tree_orders");
+  // When a per-user override exists, sliders are strictly opt-in (missing = hidden).
+  // Without an override, org-level access grants all sliders by default.
+  const canCarbon = hasUserOverride ? subFeatures["tree_orders.slider.carbon"] === true : subFeatures["tree_orders.slider.carbon"] !== false;
+  const canEcosystem = hasUserOverride ? subFeatures["tree_orders.slider.ecosystem"] === true : subFeatures["tree_orders.slider.ecosystem"] !== false;
+  const canCommunity = hasUserOverride ? subFeatures["tree_orders.slider.community"] === true : subFeatures["tree_orders.slider.community"] !== false;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
