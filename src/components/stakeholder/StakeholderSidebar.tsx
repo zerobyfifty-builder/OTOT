@@ -35,10 +35,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-// Core menu items always visible (Dashboard, Financial are fixed top)
-const coreMenuItems = [
-  { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home },
-  { title: 'Climate Funding', url: '/stakeholder/financial', icon: DollarSign },
+// Core menu items (gated by module permissions: dashboard, financial_management)
+const coreMenuItems: { title: string; url: string; icon: LucideIcon; moduleKey: string }[] = [
+  { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home, moduleKey: 'dashboard' },
+  { title: 'Climate Funding', url: '/stakeholder/financial', icon: DollarSign, moduleKey: 'financial_management' },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
@@ -283,8 +283,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         <SidebarGroup style={{ backgroundColor: sidebarColor }}>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* 1. Core items: Dashboard, Financial */}
-              {coreMenuItems.map((item) => {
+              {/* 1. Core items: Dashboard, Financial — gated by permissions (admins see all) */}
+              {coreMenuItems.filter(item => isOrgAdmin || assignedModules.includes(item.moduleKey)).map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>

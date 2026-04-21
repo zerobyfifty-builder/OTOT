@@ -10,6 +10,10 @@ interface ModulePermissions {
   hasDelete: boolean;
   accessType: "shared" | "scoped";
   subFeatures: Record<string, boolean>;
+  /** True when sub-feature visibility is restricted to explicitly-enabled keys
+   *  (i.e., a per-user permission override exists). When false, missing keys
+   *  default to enabled (org-level access grants full feature visibility). */
+  hasUserOverride: boolean;
   isLoading: boolean;
 }
 
@@ -85,12 +89,12 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
       hasDelete: false,
       accessType: "shared",
       subFeatures: {},
+      hasUserOverride: false,
       isLoading,
     };
   }
 
-  // Apply per-user override when present; otherwise allow all sub-features by default
-  // (org-level access already grants full feature visibility unless explicitly scoped).
+  // Per-user override present → sub-features are strictly opt-in (missing = false).
   if (data.userPerm) {
     const p = data.userPerm.permissions || {};
     return {
@@ -101,10 +105,12 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
       hasDelete: !!p.delete,
       accessType: data.accessType as "shared" | "scoped",
       subFeatures: (data.userPerm.sub_features as Record<string, boolean>) || {},
+      hasUserOverride: true,
       isLoading: false,
     };
   }
 
+  // Org-level access only → grant full feature visibility by default.
   return {
     isEnabled: true,
     hasRead: data.permissions.includes("read"),
@@ -119,6 +125,7 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
       "tree_orders.action.status_transition": true,
       "tree_orders.action.send_update": true,
     },
+    hasUserOverride: false,
     isLoading: false,
   };
 }
