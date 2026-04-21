@@ -119,6 +119,8 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
     hasDelete: data.permissions.includes("delete"),
     accessType: data.accessType as "shared" | "scoped",
     subFeatures: {
+      "tree_orders.action.planting_status": true,
+      "tree_orders.action.per_tree_status": true,
       "tree_orders.action.tree_operations": true,
       "tree_orders.action.planting_overview": true,
       "tree_orders.action.monitoring_logs": true,

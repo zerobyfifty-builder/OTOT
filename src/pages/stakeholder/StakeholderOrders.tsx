@@ -250,6 +250,8 @@ export const StakeholderOrders = () => {
   // org-level access grants every action by default.
   const can = (key: string) =>
     hasUserOverride ? subFeatures[key] === true : subFeatures[key] !== false;
+  const canPlantingStatus = can("tree_orders.action.planting_status");
+  const canPerTreeStatus = can("tree_orders.action.per_tree_status");
   const canTreeOperations = can("tree_orders.action.tree_operations");
   const canPlantingOverview = can("tree_orders.action.planting_overview");
   const canMonitoringLogs = can("tree_orders.action.monitoring_logs");

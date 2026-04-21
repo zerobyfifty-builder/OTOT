@@ -24,6 +24,8 @@ interface PermRow {
 // All 7 action-menu items shown on the Tree Orders page row.
 // Checking an item grants the user access to ONLY that action.
 const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
+  { key: "tree_orders.action.planting_status", label: "Planting Status (change status from row dropdown)" },
+  { key: "tree_orders.action.per_tree_status", label: "Per-Tree Status (open accordion to view individual trees)" },
   { key: "tree_orders.action.tree_operations", label: "Tree Operations" },
   { key: "tree_orders.action.planting_overview", label: "Planting Overview" },
   { key: "tree_orders.action.monitoring_logs", label: "Monitoring Logs" },
