@@ -21,12 +21,16 @@ interface PermRow {
   sub_features: Record<string, boolean>;
 }
 
+// All 7 action-menu items shown on the Tree Orders page row.
+// Checking an item grants the user access to ONLY that action.
 const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
-  { key: "tree_orders.slider.carbon", label: "Carbon Metrics slider" },
-  { key: "tree_orders.slider.ecosystem", label: "Ecosystem Impact slider" },
-  { key: "tree_orders.slider.community", label: "Community Impact slider" },
-  { key: "tree_orders.action.status_transition", label: "Status transitions" },
-  { key: "tree_orders.action.send_update", label: "Send updates" },
+  { key: "tree_orders.action.tree_operations", label: "Tree Operations" },
+  { key: "tree_orders.action.planting_overview", label: "Planting Overview" },
+  { key: "tree_orders.action.monitoring_logs", label: "Monitoring Logs" },
+  { key: "tree_orders.action.ecosystem_impact", label: "Ecosystem Impact" },
+  { key: "tree_orders.action.community_impact", label: "Community Impact" },
+  { key: "tree_orders.action.carbon_metrics", label: "Carbon Metrics" },
+  { key: "tree_orders.action.engagement", label: "Engagement" },
 ];
 
 export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) => {

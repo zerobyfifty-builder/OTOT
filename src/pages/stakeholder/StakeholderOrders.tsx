@@ -245,11 +245,18 @@ export const StakeholderOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { hasEdit, subFeatures, hasUserOverride } = useModulePermissions("tree_orders");
-  // When a per-user override exists, sliders are strictly opt-in (missing = hidden).
-  // Without an override, org-level access grants all sliders by default.
-  const canCarbon = hasUserOverride ? subFeatures["tree_orders.slider.carbon"] === true : subFeatures["tree_orders.slider.carbon"] !== false;
-  const canEcosystem = hasUserOverride ? subFeatures["tree_orders.slider.ecosystem"] === true : subFeatures["tree_orders.slider.ecosystem"] !== false;
-  const canCommunity = hasUserOverride ? subFeatures["tree_orders.slider.community"] === true : subFeatures["tree_orders.slider.community"] !== false;
+  // Per-action gating for the row action menu. When a per-user override exists,
+  // each action is strictly opt-in (missing key = hidden). Without an override,
+  // org-level access grants every action by default.
+  const can = (key: string) =>
+    hasUserOverride ? subFeatures[key] === true : subFeatures[key] !== false;
+  const canTreeOperations = can("tree_orders.action.tree_operations");
+  const canPlantingOverview = can("tree_orders.action.planting_overview");
+  const canMonitoringLogs = can("tree_orders.action.monitoring_logs");
+  const canEcosystem = can("tree_orders.action.ecosystem_impact");
+  const canCommunity = can("tree_orders.action.community_impact");
+  const canCarbon = can("tree_orders.action.carbon_metrics");
+  const canEngagement = can("tree_orders.action.engagement");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -1229,10 +1236,13 @@ export const StakeholderOrders = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                {canTreeOperations && (
                                 <DropdownMenuItem onClick={() => navigate(`/stakeholder/orders/${group.contribution_id}/operations`)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Tree Operations
                                 </DropdownMenuItem>
+                                )}
+                                {canPlantingOverview && (
                                 <DropdownMenuItem onClick={() => {
                                   const firstTree = group.trees[0];
                                   if (firstTree) {
@@ -1243,7 +1253,8 @@ export const StakeholderOrders = () => {
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                    Planting Overview
                                 </DropdownMenuItem>
-                                {isPlantationType && (
+                                )}
+                                {isPlantationType && canMonitoringLogs && (
                                 <DropdownMenuItem onClick={() => {
                                   setMonitoringSheet(group);
                                   setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
@@ -1283,6 +1294,7 @@ export const StakeholderOrders = () => {
                                     )}
                                   </>
                                 )}
+                                {canEngagement && (
                                 <DropdownMenuItem onClick={() => {
                                   setEngagementSheet(group);
                                   setEngagementTab("engagement");
@@ -1290,6 +1302,7 @@ export const StakeholderOrders = () => {
                                   <Bell className="h-3.5 w-3.5 mr-2" />
                                   Engagement
                                 </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
