@@ -244,7 +244,10 @@ export const StakeholderOrders = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { hasEdit } = useModulePermissions("tree_orders");
+  const { hasEdit, subFeatures } = useModulePermissions("tree_orders");
+  const canCarbon = subFeatures["tree_orders.slider.carbon"] !== false;
+  const canEcosystem = subFeatures["tree_orders.slider.ecosystem"] !== false;
+  const canCommunity = subFeatures["tree_orders.slider.community"] !== false;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -1249,6 +1252,7 @@ export const StakeholderOrders = () => {
                                 )}
                                 {isPlantationType && (
                                   <>
+                                    {canEcosystem && (
                                     <DropdownMenuItem onClick={() => {
                                       setImpactSliderContribId(group.contribution_id);
                                       setImpactSliderType("ecosystem");
@@ -1256,6 +1260,8 @@ export const StakeholderOrders = () => {
                                       <Globe className="h-3.5 w-3.5 mr-2" />
                                       Ecosystem Impact
                                     </DropdownMenuItem>
+                                    )}
+                                    {canCommunity && (
                                     <DropdownMenuItem onClick={() => {
                                       setImpactSliderContribId(group.contribution_id);
                                       setImpactSliderType("community");
@@ -1263,6 +1269,8 @@ export const StakeholderOrders = () => {
                                       <Users className="h-3.5 w-3.5 mr-2" />
                                       Community Impact
                                     </DropdownMenuItem>
+                                    )}
+                                    {canCarbon && (
                                     <DropdownMenuItem onClick={() => {
                                       setImpactSliderContribId(group.contribution_id);
                                       setImpactSliderType("carbon");
@@ -1270,6 +1278,7 @@ export const StakeholderOrders = () => {
                                       <Cloud className="h-3.5 w-3.5 mr-2" />
                                       Carbon Metrics
                                     </DropdownMenuItem>
+                                    )}
                                   </>
                                 )}
                                 <DropdownMenuItem onClick={() => {

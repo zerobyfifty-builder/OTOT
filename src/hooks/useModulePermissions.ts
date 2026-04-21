@@ -9,6 +9,7 @@ interface ModulePermissions {
   hasEdit: boolean;
   hasDelete: boolean;
   accessType: "shared" | "scoped";
+  subFeatures: Record<string, boolean>;
   isLoading: boolean;
 }
 
@@ -18,7 +19,6 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
   const { data, isLoading } = useQuery({
     queryKey: ["modulePermissions", user?.id, moduleName],
     queryFn: async () => {
-      // Get user's organization_id
       const { data: userData } = await supabase
         .from("users")
         .select("organization_id")
@@ -27,7 +27,6 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
 
       if (!userData?.organization_id) return null;
 
-      // Get module + organization_modules join
       const { data: moduleData } = await supabase
         .from("modules")
         .select("id, name, access_type")
@@ -49,9 +48,29 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
 
       const permissions = (orgModule.permissions as string[]) || [];
 
+      // Per-user override: look up org_users row + org_user_permissions for this module
+      let userPerm: any = null;
+      const { data: orgUserRow } = await supabase
+        .from("org_users")
+        .select("id, status")
+        .eq("organization_id", userData.organization_id)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+
+      if (orgUserRow && orgUserRow.status === "active") {
+        const { data: pRow } = await supabase
+          .from("org_user_permissions")
+          .select("enabled, permissions, sub_features")
+          .eq("org_user_id", orgUserRow.id)
+          .eq("module_name", moduleName)
+          .maybeSingle();
+        userPerm = pRow;
+      }
+
       return {
         accessType: (moduleData as any).access_type || "shared",
         permissions,
+        userPerm,
       };
     },
     enabled: !!user?.id,
@@ -65,7 +84,24 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
       hasEdit: false,
       hasDelete: false,
       accessType: "shared",
+      subFeatures: {},
       isLoading,
+    };
+  }
+
+  // Apply per-user override when present; otherwise allow all sub-features by default
+  // (org-level access already grants full feature visibility unless explicitly scoped).
+  if (data.userPerm) {
+    const p = data.userPerm.permissions || {};
+    return {
+      isEnabled: !!data.userPerm.enabled,
+      hasRead: !!p.read,
+      hasWrite: !!p.write,
+      hasEdit: !!p.edit,
+      hasDelete: !!p.delete,
+      accessType: data.accessType as "shared" | "scoped",
+      subFeatures: (data.userPerm.sub_features as Record<string, boolean>) || {},
+      isLoading: false,
     };
   }
 
@@ -76,6 +112,13 @@ export function useModulePermissions(moduleName: string): ModulePermissions {
     hasEdit: data.permissions.includes("edit"),
     hasDelete: data.permissions.includes("delete"),
     accessType: data.accessType as "shared" | "scoped",
+    subFeatures: {
+      "tree_orders.slider.carbon": true,
+      "tree_orders.slider.ecosystem": true,
+      "tree_orders.slider.community": true,
+      "tree_orders.action.status_transition": true,
+      "tree_orders.action.send_update": true,
+    },
     isLoading: false,
   };
 }
