@@ -425,7 +425,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full text-white">
-                    {userName || organizationName || 'Stakeholder'}
+                    {(userName || organizationName || 'Stakeholder').split(' ')[0]}
                   </span>
                   <span className="text-xs truncate w-full text-white/60 capitalize">
                     {(userJobRole || (isOrgAdmin ? 'Org Admin' : partnerTypeName)).replace(/_/g, ' ')}
