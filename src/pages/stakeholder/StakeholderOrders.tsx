@@ -1200,16 +1200,6 @@ export const StakeholderOrders = () => {
                                       </Button>
                                     </div>
                                   )}
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
-                                      </TooltipTrigger>
-                                      <TooltipContent side="top" className="max-w-[200px] text-xs">
-                                        Batch update — changes planting status for all individual trees in this order.
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
                                 </>
                               ) : (
                                 <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
