@@ -84,6 +84,9 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
   const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
+  const [userJobRole, setUserJobRole] = useState<string>('');
+  const [isOrgAdmin, setIsOrgAdmin] = useState<boolean>(false);
+  const [orgUserId, setOrgUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (propOrgName) { setOrgName(propOrgName); }
@@ -100,6 +103,25 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
       }
       if (userData?.organization_id) {
         setOrgId(userData.organization_id);
+        // Fetch org_users record to determine job role / org admin status
+        const { data: ou } = await supabase
+          .from('org_users')
+          .select('id, job_role, status, first_name, last_name')
+          .eq('organization_id', userData.organization_id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (ou) {
+          setOrgUserId(ou.id);
+          setIsOrgAdmin(ou.job_role === 'org_admin' && ou.status === 'active');
+          setUserJobRole(ou.job_role || '');
+          if (!userName) {
+            const fn = [ou.first_name, ou.last_name].filter(Boolean).join(' ');
+            if (fn) setUserName(fn);
+          }
+        } else {
+          // No org_users row → treat as org owner / admin
+          setIsOrgAdmin(true);
+        }
         const { data: org } = await supabase
           .from('organizations')
           .select('name, partner_type_id')
@@ -120,8 +142,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     fetchOrgInfo();
   }, [user, propOrgName]);
 
-  // Fetch assigned modules for this organization
-  const { data: assignedModules } = useQuery({
+  // Fetch org-assigned modules
+  const { data: orgModules } = useQuery({
     queryKey: ['stakeholderAssignedModules', orgId],
     queryFn: async () => {
       if (!orgId) return [];
@@ -135,6 +157,33 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
     },
     enabled: !!orgId,
   });
+
+  // Fetch this user's per-module permissions (only when not org admin)
+  const { data: userModulePerms } = useQuery({
+    queryKey: ['stakeholderUserModulePerms', orgUserId],
+    queryFn: async () => {
+      if (!orgUserId) return [] as string[];
+      const { data, error } = await supabase
+        .from('org_user_permissions')
+        .select('module_name, enabled, permissions')
+        .eq('org_user_id', orgUserId)
+        .eq('enabled', true);
+      if (error) throw error;
+      return (data || [])
+        .filter((p: any) => (p.permissions as any)?.read)
+        .map((p: any) => p.module_name as string);
+    },
+    enabled: !!orgUserId,
+  });
+
+  // Effective module list: org admins see all org modules; members see intersection with their permissions
+  const assignedModules = React.useMemo(() => {
+    if (!orgModules) return [];
+    if (isOrgAdmin) return orgModules;
+    if (!userModulePerms) return [];
+    const allowed = new Set(userModulePerms);
+    return orgModules.filter((m) => allowed.has(m));
+  }, [orgModules, userModulePerms, isOrgAdmin]);
 
   // Build flat menu items: core items + assigned module items sorted by sortOrder
   const flatModuleItems = React.useMemo(() => {
