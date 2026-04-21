@@ -172,14 +172,21 @@ export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) =>
           {orgModules.length === 0 && (
             <p className="text-sm text-muted-foreground">No modules assigned to this organization yet.</p>
           )}
-          {orgModules.map((mod) => {
+          {[...orgModules]
+            .sort((a, b) => {
+              const ai = MODULE_DISPLAY_ORDER.indexOf(a.name);
+              const bi = MODULE_DISPLAY_ORDER.indexOf(b.name);
+              return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+            })
+            .map((mod) => {
             const p = perms[mod.name] || { module_name: mod.name, enabled: false, permissions: { read: true, write: false, edit: false, delete: false }, sub_features: {} };
             const showSubs = mod.name === "tree_orders";
+            const displayName = MODULE_DISPLAY_NAME_OVERRIDES[mod.name] || mod.display_name;
             return (
               <div key={mod.id} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">{mod.display_name}</p>
+                    <p className="font-medium">{displayName}</p>
                     <p className="text-xs text-muted-foreground">{mod.name}</p>
                   </div>
                   <Switch checked={p.enabled} onCheckedChange={(v) => setEnabled(mod.name, v)} />
