@@ -97,13 +97,9 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
         .select('organization_id, first_name, last_name')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (userData) {
-        const fullName = [userData.first_name, userData.last_name].filter(Boolean).join(' ') || user.user_metadata?.full_name || '';
-        setUserName(fullName);
-      }
+      let resolvedName = [userData?.first_name, userData?.last_name].filter(Boolean).join(' ');
       if (userData?.organization_id) {
         setOrgId(userData.organization_id);
-        // Fetch org_users record to determine job role / org admin status
         const { data: ou } = await supabase
           .from('org_users')
           .select('id, job_role, status, first_name, last_name')
@@ -114,12 +110,9 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           setOrgUserId(ou.id);
           setIsOrgAdmin(ou.job_role === 'org_admin' && ou.status === 'active');
           setUserJobRole(ou.job_role || '');
-          if (!userName) {
-            const fn = [ou.first_name, ou.last_name].filter(Boolean).join(' ');
-            if (fn) setUserName(fn);
-          }
+          const ouName = [ou.first_name, ou.last_name].filter(Boolean).join(' ');
+          if (ouName) resolvedName = ouName;
         } else {
-          // No org_users row → treat as org owner / admin
           setIsOrgAdmin(true);
         }
         const { data: org } = await supabase
@@ -138,6 +131,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           if (pt?.category) setPartnerCategory(pt.category.toLowerCase());
         }
       }
+      if (!resolvedName) resolvedName = user.user_metadata?.full_name || '';
+      setUserName(resolvedName);
     };
     fetchOrgInfo();
   }, [user, propOrgName]);
