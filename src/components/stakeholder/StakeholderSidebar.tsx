@@ -349,7 +349,29 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                 );
               })}
 
-              {/* 4. Forest Registry (collapsible) */}
+              {/* 4. Remaining flat module items: Analytics, Outcomes, etc. */}
+              {flatModuleItems.filter(i => i.title !== 'Tree Orders').map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={
+                          isActive
+                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
+                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              {/* 5. Forest Registry (collapsible) — always last */}
               {forestRegistryItems.length > 0 && (
                 <Collapsible asChild defaultOpen={forestRegistryItems.some(i => location.pathname === i.url)}>
                   <SidebarMenuItem>
@@ -382,28 +404,6 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
                   </SidebarMenuItem>
                 </Collapsible>
               )}
-
-              {/* 5. Remaining flat module items: Analytics, Outcomes, etc. */}
-              {flatModuleItems.filter(i => i.title !== 'Tree Orders').map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={
-                          isActive
-                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium'
-                        }
-                      >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
