@@ -1114,7 +1114,7 @@ export const StakeholderOrders = () => {
                     return (
                       <React.Fragment key={group.contribution_id}>
                         <TableRow
-                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                          className={canPerTreeStatus ? "cursor-pointer hover:bg-muted/50 transition-colors" : ""}
                           onClick={() => toggleRow(group.contribution_id)}
                         >
                           <TableCell className="w-10 px-3">
