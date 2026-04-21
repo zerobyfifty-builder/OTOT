@@ -74,7 +74,7 @@ export function useUpdateOrgUser() {
       id: string;
       patch: Partial<Pick<OrgUserRow, "first_name" | "last_name" | "position" | "job_role">>;
     }) => {
-      const { error } = await supabase.from("org_users").update(patch).eq("id", id);
+      const { error } = await supabase.from("org_users").update(patch as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
