@@ -805,10 +805,7 @@ export const StakeholderOrders = () => {
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const toggleRow = (contribId: string) => {
-    if (!canPerTreeStatus) {
-      toast.error("You need permission to see individual tree status");
-      return;
-    }
+    if (!canPerTreeStatus) return;
     setExpandedRows(prev => {
       const next = new Set(prev);
       if (next.has(contribId)) next.delete(contribId); else next.add(contribId);
