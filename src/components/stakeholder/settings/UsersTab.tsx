@@ -44,6 +44,7 @@ export const UsersTab: React.FC = () => {
   const [editUser, setEditUser] = useState<OrgUserRow | null>(null);
   const [permsUser, setPermsUser] = useState<OrgUserRow | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<OrgUserRow | null>(null);
+  const [confirmToggle, setConfirmToggle] = useState<{ user: OrgUserRow; next: "active" | "deactivated" } | null>(null);
 
   const filtered = members.filter((m) => {
     const matchesSearch = !search ||
@@ -159,11 +160,11 @@ export const UsersTab: React.FC = () => {
                           )}
                           <DropdownMenuSeparator />
                           {m.status !== "deactivated" ? (
-                            <DropdownMenuItem onClick={() => toggleStatus.mutate({ id: m.id, next: "deactivated" })}>
+                            <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "deactivated" })}>
                               <Power className="h-3.5 w-3.5 mr-2" />Deactivate
                             </DropdownMenuItem>
                           ) : (
-                            <DropdownMenuItem onClick={() => toggleStatus.mutate({ id: m.id, next: "active" })}>
+                            <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "active" })}>
                               <Power className="h-3.5 w-3.5 mr-2" />Activate
                             </DropdownMenuItem>
                           )}
@@ -202,6 +203,32 @@ export const UsersTab: React.FC = () => {
                 setConfirmDelete(null);
               }}
             >Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!confirmToggle} onOpenChange={(o) => !o && setConfirmToggle(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmToggle?.next === "deactivated" ? "Deactivate this user?" : "Activate this user?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmToggle?.next === "deactivated"
+                ? `${confirmToggle?.user.email} will lose access until reactivated.`
+                : `${confirmToggle?.user.email} will regain access to the organization.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmToggle) toggleStatus.mutate({ id: confirmToggle.user.id, next: confirmToggle.next });
+                setConfirmToggle(null);
+              }}
+            >
+              {confirmToggle?.next === "deactivated" ? "Deactivate" : "Activate"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

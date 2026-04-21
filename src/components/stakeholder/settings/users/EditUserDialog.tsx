@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,10 +28,9 @@ export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
     }
   }, [user]);
 
-  if (!user) return null;
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     await update.mutateAsync({
       id: user.id,
       patch: { first_name: firstName || null, last_name: lastName || null, position: position || null, job_role: jobRole },
@@ -40,42 +39,47 @@ export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
   };
 
   return (
-    <Dialog open={!!user} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>First Name</Label>
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+    <Sheet open={!!user} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Edit User</SheetTitle>
+          <SheetDescription>Update user details and job role.</SheetDescription>
+        </SheetHeader>
+        {user && (
+          <form onSubmit={handleSave} className="space-y-4 mt-6">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>First Name</Label>
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Last Name</Label>
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Last Name</Label>
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Label>Email</Label>
+              <Input value={user.email} disabled />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={user.email} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label>Position / Title</Label>
-            <Input value={position} onChange={(e) => setPosition(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Job Role</Label>
-            <Select value={jobRole} onValueChange={setJobRole}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {roles.map((r) => (<SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-end pt-2">
-            <Button type="submit" disabled={update.isPending}>{update.isPending ? "Saving..." : "Save Changes"}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="space-y-2">
+              <Label>Position / Title</Label>
+              <Input value={position} onChange={(e) => setPosition(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Job Role</Label>
+              <Select value={jobRole} onValueChange={setJobRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {roles.map((r) => (<SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button type="submit" disabled={update.isPending}>{update.isPending ? "Saving..." : "Save Changes"}</Button>
+            </div>
+          </form>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 };

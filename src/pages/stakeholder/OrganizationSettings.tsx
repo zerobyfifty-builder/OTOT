@@ -26,7 +26,7 @@ export const OrganizationSettings: React.FC = () => {
     .split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-5xl">
+    <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Organization Settings</h1>
@@ -47,14 +47,14 @@ export const OrganizationSettings: React.FC = () => {
           <TabsTrigger value="general" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <User className="h-4 w-4" /> General
           </TabsTrigger>
+          <TabsTrigger value="organization" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
+            <Building2 className="h-4 w-4" /> Organization
+          </TabsTrigger>
           {isOrgAdmin && (
             <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
               <Users className="h-4 w-4" /> Users
             </TabsTrigger>
           )}
-          <TabsTrigger value="organization" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
-            <Building2 className="h-4 w-4" /> Organization
-          </TabsTrigger>
           <TabsTrigger value="planting-costs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <DollarSign className="h-4 w-4" /> Planting Costs
           </TabsTrigger>
