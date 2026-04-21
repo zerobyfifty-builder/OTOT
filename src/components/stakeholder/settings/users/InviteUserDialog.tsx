@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { useOrgStakeholderType, getRolesForStakeholderType } from "@/hooks/useOr
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 interface Props { open: boolean; onOpenChange: (o: boolean) => void; }
 
@@ -20,13 +21,16 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [position, setPosition] = useState("");
   const [jobRole, setJobRole] = useState<string>("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setFirstName(""); setLastName(""); setEmail(""); setPosition(""); setJobRole(""); setMessage("");
+    setFirstName(""); setLastName(""); setEmail(""); setPassword("");
+    setShowPassword(false); setPosition(""); setJobRole(""); setMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,12 +39,17 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       toast.error("Email and Job Role are required");
       return;
     }
+    if (!password || password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("org-invite-user", {
         body: {
           organization_id: orgCtx.organizationId,
           email: email.trim(),
+          password,
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
           position: position.trim() || null,
@@ -51,25 +60,25 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("Invitation sent");
+      toast.success("User created successfully");
       qc.invalidateQueries({ queryKey: ["orgUsers"] });
       reset();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || "Failed to send invitation");
+      toast.error(err.message || "Failed to create user");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Invite User</DialogTitle>
-          <DialogDescription>Send an invitation to join your organization.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Sheet open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Add User</SheetTitle>
+          <SheetDescription>Create a new user account for your organization.</SheetDescription>
+        </SheetHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
@@ -83,6 +92,29 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div className="space-y-2">
             <Label htmlFor="email">Email *</Label>
             <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password *</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="position">Position / Title</Label>
@@ -100,13 +132,13 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <div className="space-y-2">
             <Label htmlFor="message">Personal Message</Label>
             <Textarea id="message" rows={3} value={message} onChange={(e) => setMessage(e.target.value)}
-              placeholder="Optional welcome message included in the invite email" />
+              placeholder="Optional welcome message" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="submit" disabled={submitting}>{submitting ? "Sending..." : "Send Invitation"}</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? "Creating..." : "Create User"}</Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };

@@ -63,7 +63,7 @@ export const UsersTab: React.FC = () => {
           <p className="text-sm text-muted-foreground mt-1">Manage organization members and their permissions</p>
         </div>
         <Button onClick={() => setInviteOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> Invite User
+          <Plus className="h-4 w-4" /> Add User
         </Button>
       </div>
 
@@ -100,7 +100,7 @@ export const UsersTab: React.FC = () => {
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                No members yet. Click "Invite User" to add your first team member.
+                No members yet. Click "Add User" to add your first team member.
               </TableCell></TableRow>
             ) : (
               filtered.map((m) => {
