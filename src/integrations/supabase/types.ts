@@ -1611,6 +1611,133 @@ export type Database = {
           },
         ]
       }
+      org_job_role_defaults: {
+        Row: {
+          job_role: Database["public"]["Enums"]["org_job_role"]
+          module_name: string
+          permissions: Json
+          stakeholder_type: string
+          sub_features: Json
+        }
+        Insert: {
+          job_role: Database["public"]["Enums"]["org_job_role"]
+          module_name: string
+          permissions?: Json
+          stakeholder_type: string
+          sub_features?: Json
+        }
+        Update: {
+          job_role?: Database["public"]["Enums"]["org_job_role"]
+          module_name?: string
+          permissions?: Json
+          stakeholder_type?: string
+          sub_features?: Json
+        }
+        Relationships: []
+      }
+      org_user_permissions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          module_name: string
+          org_user_id: string
+          permissions: Json
+          sub_features: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_name: string
+          org_user_id: string
+          permissions?: Json
+          sub_features?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_name?: string
+          org_user_id?: string
+          permissions?: Json
+          sub_features?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_user_permissions_org_user_id_fkey"
+            columns: ["org_user_id"]
+            isOneToOne: false
+            referencedRelation: "org_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_users: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          job_role: Database["public"]["Enums"]["org_job_role"]
+          joined_at: string | null
+          last_name: string | null
+          organization_id: string
+          personal_message: string | null
+          position: string | null
+          status: Database["public"]["Enums"]["org_user_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          job_role: Database["public"]["Enums"]["org_job_role"]
+          joined_at?: string | null
+          last_name?: string | null
+          organization_id: string
+          personal_message?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["org_user_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          job_role?: Database["public"]["Enums"]["org_job_role"]
+          joined_at?: string | null
+          last_name?: string | null
+          organization_id?: string
+          personal_message?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["org_user_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_modules: {
         Row: {
           granted_at: string | null
@@ -3400,6 +3527,10 @@ export type Database = {
         Args: { _lodge_id: string; _session_token: string }
         Returns: boolean
       }
+      is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_stakeholder: { Args: { user_id: string }; Returns: boolean }
       is_super_admin: { Args: { user_id: string }; Returns: boolean }
       stakeholder_has_module: {
@@ -3429,6 +3560,17 @@ export type Database = {
       entry_source_type: "Manual" | "Integration"
       growth_stage_type: "Sapling" | "Young" | "Maturing" | "Mature"
       notification_status_type: "Pending" | "Scheduled" | "Sent"
+      org_job_role:
+        | "field_ops"
+        | "expert"
+        | "operations_manager"
+        | "project_manager"
+        | "community_coordinator"
+        | "impact_analyst"
+        | "finance"
+        | "org_admin"
+        | "user"
+      org_user_status: "pending" | "active" | "deactivated"
       planting_progress_type:
         | "pending_allocation"
         | "allocated"
@@ -3601,6 +3743,18 @@ export const Constants = {
       entry_source_type: ["Manual", "Integration"],
       growth_stage_type: ["Sapling", "Young", "Maturing", "Mature"],
       notification_status_type: ["Pending", "Scheduled", "Sent"],
+      org_job_role: [
+        "field_ops",
+        "expert",
+        "operations_manager",
+        "project_manager",
+        "community_coordinator",
+        "impact_analyst",
+        "finance",
+        "org_admin",
+        "user",
+      ],
+      org_user_status: ["pending", "active", "deactivated"],
       planting_progress_type: [
         "pending_allocation",
         "allocated",
