@@ -1212,15 +1212,21 @@ export const StakeholderOrders = () => {
                                   </TooltipProvider>
                                 </>
                               ) : hasEdit && !!isPlantationType && !canPlantingStatus ? (
-                                <Badge
-                                  className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium cursor-pointer ${getGroupStatusColor(group.planting_status)}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toast.error("You need permission to change the status");
-                                  }}
-                                >
-                                  {getGroupStatusLabel(group.planting_status)}
-                                </Badge>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge
+                                        className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium cursor-help ${getGroupStatusColor(group.planting_status)}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {getGroupStatusLabel(group.planting_status)}
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                      You need permission to change the status
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               ) : (
                                 <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
                                   {getGroupStatusLabel(group.planting_status)}
