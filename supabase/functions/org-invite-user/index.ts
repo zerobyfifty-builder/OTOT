@@ -126,6 +126,18 @@ Deno.serve(async (req) => {
         .upsert(seedRows, { onConflict: "org_user_id,module_name" });
     }
 
+    // Ensure public.users row reflects stakeholder role + organization so login routes to the correct portal
+    const { data: stakeholderRole } = await admin
+      .from("roles").select("id").eq("name", "stakeholder").maybeSingle();
+    if (stakeholderRole?.id) {
+      await admin.from("users").upsert({
+        user_id: userId,
+        email,
+        role_id: stakeholderRole.id,
+        organization_id,
+      }, { onConflict: "user_id" });
+    }
+
     return new Response(JSON.stringify({ ok: true, org_user_id: orgUser.id, user_id: userId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
