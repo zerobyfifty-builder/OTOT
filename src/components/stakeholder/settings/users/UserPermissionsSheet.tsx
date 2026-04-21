@@ -33,6 +33,31 @@ const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
   { key: "tree_orders.action.engagement", label: "Engagement" },
 ];
 
+// Sidebar display order for modules in the Manage Permissions sheet.
+// Modules not listed are appended at the end.
+const MODULE_DISPLAY_ORDER: string[] = [
+  "dashboard",
+  "financial_management",
+  "trip_management",
+  "tree_orders",
+  "tree_management",
+  "community_impact",
+  "outcomes",
+  "impact_insights",
+  "travel_agents",
+  "analytics",
+  "mdm_locations",
+  "mdm_nurseries",
+  "mdm_species",
+  "mdm_planters",
+  "mdm_sequestration",
+];
+
+// Override module display names to match the sidebar labels.
+const MODULE_DISPLAY_NAME_OVERRIDES: Record<string, string> = {
+  tree_management: "Tree Insights",
+};
+
 export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) => {
   const { data: orgCtx } = useOrgStakeholderType();
   const qc = useQueryClient();
