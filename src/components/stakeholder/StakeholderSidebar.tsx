@@ -454,7 +454,8 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
                 <SlidersHorizontal className="h-4 w-4" />
                 <span>Organization Settings</span>
-            </DropdownMenuItem>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
               <span>Sign out</span>
