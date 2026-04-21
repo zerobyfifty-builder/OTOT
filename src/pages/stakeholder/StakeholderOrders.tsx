@@ -250,6 +250,8 @@ export const StakeholderOrders = () => {
   // org-level access grants every action by default.
   const can = (key: string) =>
     hasUserOverride ? subFeatures[key] === true : subFeatures[key] !== false;
+  const canPlantingStatus = can("tree_orders.action.planting_status");
+  const canPerTreeStatus = can("tree_orders.action.per_tree_status");
   const canTreeOperations = can("tree_orders.action.tree_operations");
   const canPlantingOverview = can("tree_orders.action.planting_overview");
   const canMonitoringLogs = can("tree_orders.action.monitoring_logs");
@@ -803,6 +805,10 @@ export const StakeholderOrders = () => {
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const toggleRow = (contribId: string) => {
+    if (!canPerTreeStatus) {
+      toast.error("You need permission to see individual tree status");
+      return;
+    }
     setExpandedRows(prev => {
       const next = new Set(prev);
       if (next.has(contribId)) next.delete(contribId); else next.add(contribId);
@@ -859,7 +865,7 @@ export const StakeholderOrders = () => {
     enabled: !!orgId,
   });
 
-  const canEditPlantingStatus = hasEdit && !!isPlantationType;
+  const canEditPlantingStatus = hasEdit && !!isPlantationType && canPlantingStatus;
 
   const SortableHead = ({ field, label, className = "" }: { field: SortField; label: string; className?: string }) => (
     <TableHead
@@ -1208,6 +1214,16 @@ export const StakeholderOrders = () => {
                                     </Tooltip>
                                   </TooltipProvider>
                                 </>
+                              ) : hasEdit && !!isPlantationType && !canPlantingStatus ? (
+                                <Badge
+                                  className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium cursor-pointer ${getGroupStatusColor(group.planting_status)}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toast.error("You need permission to change the status");
+                                  }}
+                                >
+                                  {getGroupStatusLabel(group.planting_status)}
+                                </Badge>
                               ) : (
                                 <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
                                   {getGroupStatusLabel(group.planting_status)}
