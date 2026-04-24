@@ -63,7 +63,7 @@ const MODULE_DISPLAY_ORDER: string[] = [
 
 // Override module display names to match the sidebar labels.
 const MODULE_DISPLAY_NAME_OVERRIDES: Record<string, string> = {
-  tree_management: "Tree Insights",
+  tree_management: "Pre-Tree Insights",
 };
 
 export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) => {
