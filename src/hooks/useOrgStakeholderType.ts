@@ -86,7 +86,8 @@ export const GENERIC_ROLES = [
   { key: "org_admin", label: "Admin" },
   { key: "finance", label: "Finance" },
   { key: "project_manager", label: "Project Manager" },
-  { key: "user", label: "User" },
+  { key: "marketing", label: "Marketing (PR)" },
+  { key: "user", label: "Staff" },
 ] as const;
 
 export function getRolesForStakeholderType(t: StakeholderType) {
@@ -101,6 +102,7 @@ export const ROLE_LABELS: Record<string, string> = {
   community_coordinator: "Community Coordinator",
   impact_analyst: "Impact Analyst",
   finance: "Finance",
+  marketing: "Marketing (PR)",
   org_admin: "Admin",
-  user: "User",
+  user: "Staff",
 };
