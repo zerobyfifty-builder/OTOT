@@ -121,7 +121,7 @@ export default function StakeholderLogs() {
                 {grouped[k].length === 0 ? (
                   <div className="text-center py-10 text-muted-foreground text-sm">No {GROUP_META[k].label.toLowerCase()} stakeholders.</div>
                 ) : (
-                  <LogsTab organizationId={selectedOrg[k]} pageSize={200} />
+                  <LogsTab organizationId={selectedOrg[k]} />
                 )}
               </CardContent>
             </Card>
