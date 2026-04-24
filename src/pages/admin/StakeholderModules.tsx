@@ -31,7 +31,7 @@ const PERMISSION_SHORT: Record<string, string> = {
 const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
   "Financial Management": "Climate Funding",
   "Financial": "Climate Funding",
-  "Tree Management": "Pre-Tree Insights",
+  "Tree Management": "Per-Tree Insights",
   "Trip Management": "Impact Journeys",
   "Outcomes": "Environmental Impact",
 };
