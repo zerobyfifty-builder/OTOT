@@ -80,6 +80,7 @@ import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
 import AllStakeholders from "@/pages/admin/AllStakeholders";
 import CreateStakeholder from "@/pages/admin/CreateStakeholder";
 import StakeholderModules from "@/pages/admin/StakeholderModules";
+import StakeholderLogs from "@/pages/admin/StakeholderLogs";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
@@ -470,6 +471,13 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <StakeholderModules />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/stakeholders/logs" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <StakeholderLogs />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
