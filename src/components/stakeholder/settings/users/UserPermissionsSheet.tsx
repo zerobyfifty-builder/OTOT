@@ -181,10 +181,16 @@ export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) =>
             <p className="text-sm text-muted-foreground">No modules assigned to this organization yet.</p>
           )}
           {[...orgModules]
+            // Only show modules that are actually rendered in the sidebar.
+            // Some legacy/unused modules (e.g. payment_management, nurseries, planting,
+            // monitoring, certificate_generation) may still be assigned in
+            // organization_modules but have no sidebar entry — hide them here so the
+            // Manage Permissions sheet stays in sync with what the user actually sees.
+            .filter((m) => MODULE_DISPLAY_ORDER.includes(m.name))
             .sort((a, b) => {
               const ai = MODULE_DISPLAY_ORDER.indexOf(a.name);
               const bi = MODULE_DISPLAY_ORDER.indexOf(b.name);
-              return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+              return ai - bi;
             })
             .map((mod) => {
             const p = perms[mod.name] || { module_name: mod.name, enabled: false, permissions: { read: true, write: false, edit: false, delete: false }, sub_features: {} };
