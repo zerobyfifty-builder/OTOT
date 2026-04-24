@@ -8,9 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Settings2, Globe, Lock } from "lucide-react";
+import { Settings2, Globe, Lock, Eye } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { SidebarPreviewDialog } from "@/components/admin/SidebarPreviewDialog";
+import type { StakeholderType } from "@/hooks/useOrgStakeholderType";
 
 const PERMISSIONS = ["read", "write", "edit", "delete"] as const;
 const PERMISSION_LABELS: Record<string, string> = {
@@ -44,13 +46,14 @@ function getDefaultPermissions(accessType: string): string[] {
 
 export default function StakeholderModules() {
   const queryClient = useQueryClient();
+  const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
 
   const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
     queryKey: ["stakeholderOrgs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
-        .select("id, name, is_active")
+        .select("id, name, is_active, category, partner_types(name, category)")
         .eq("category", "stakeholder")
         .eq("archived", false);
       if (error) throw error;
