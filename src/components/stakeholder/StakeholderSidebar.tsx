@@ -56,7 +56,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: Lucide
 
 // Tree Operations modules that appear under collapsible group
 const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  tree_management: { title: 'Tree Insights', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
+  tree_management: { title: 'Pre-Tree Insights', url: '/stakeholder/tree-management', icon: TreePine, sortOrder: 3 },
   community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
 };
 
