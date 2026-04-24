@@ -74,6 +74,7 @@ const menuItems = [
       { title: "All Stakeholders", url: "/admin/stakeholders" },
       { title: "Create New", url: "/admin/stakeholders/create" },
       { title: "Module Assignment", url: "/admin/stakeholders/modules" },
+      { title: "Activity Logs", url: "/admin/stakeholders/logs" },
     ],
   },
   {

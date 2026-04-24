@@ -7,10 +7,11 @@ import { UsersTab } from "@/components/stakeholder/settings/UsersTab";
 import { NotificationsTab } from "@/components/stakeholder/settings/NotificationsTab";
 import { PlantingCostsTab } from "@/components/settings/PlantingCostsTab";
 import { PlantingCostsKTBTab } from "@/components/settings/PlantingCostsKTBTab";
+import { LogsTab } from "@/components/stakeholder/settings/LogsTab";
 import { useOrgStakeholderType } from "@/hooks/useOrgStakeholderType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Users, Building2, DollarSign, Bell } from "lucide-react";
+import { User, Users, Building2, DollarSign, Bell, ScrollText } from "lucide-react";
 
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +62,11 @@ export const OrganizationSettings: React.FC = () => {
           <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <Bell className="h-4 w-4" /> Notifications
           </TabsTrigger>
+          {isOrgAdmin && (
+            <TabsTrigger value="logs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
+              <ScrollText className="h-4 w-4" /> Logs
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="general" className="mt-6"><GeneralTab /></TabsContent>
@@ -70,6 +76,11 @@ export const OrganizationSettings: React.FC = () => {
           {isInstitutional ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
         </TabsContent>
         <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
+        {isOrgAdmin && (
+          <TabsContent value="logs" className="mt-6">
+            <LogsTab organizationId={orgCtx?.organizationId} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
