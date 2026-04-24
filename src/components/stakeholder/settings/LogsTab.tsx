@@ -534,13 +534,13 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
                       {selectedLog.metadata?.old_value && (
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Previous Value</label>
-                          <pre className="text-xs bg-red-50 border border-red-100 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.old_value, null, 2)}</pre>
+                          <pre className="text-xs bg-destructive/10 border border-destructive/20 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.old_value, null, 2)}</pre>
                         </div>
                       )}
                       {selectedLog.metadata?.new_value && (
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">New Value</label>
-                          <pre className="text-xs bg-emerald-50 border border-emerald-100 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.new_value, null, 2)}</pre>
+                          <pre className="text-xs bg-primary/10 border border-primary/20 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.new_value, null, 2)}</pre>
                         </div>
                       )}
                     </div>
