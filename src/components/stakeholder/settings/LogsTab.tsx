@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow, format, subDays, startOfDay, endOfDay } from "date-fns";
-import { RefreshCw, Search, Activity, Trash2, ChevronLeft, ChevronRight, Eye, ChevronDown, ChevronUp, X } from "lucide-react";
+import { RefreshCw, Search, Activity, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 interface ActivityLog {
@@ -69,7 +69,6 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
   const [pageSize, setPageSize] = useState<number>(25);
   const [cleanupRange, setCleanupRange] = useState<CleanupRange>("older_than_month");
   const [deleting, setDeleting] = useState(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
 
   const fetchLogs = async () => {
@@ -212,14 +211,6 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
     return "bg-muted text-foreground hover:bg-muted";
   };
 
-  const toggleRowExpansion = (id: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const computeCleanupBounds = (range: CleanupRange): { lt?: string; gte?: string; lte?: string } => {
     const now = new Date();
@@ -358,94 +349,46 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
               ) : pageRows.length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">No activity logs yet.</TableCell></TableRow>
               ) : pageRows.map((l) => (
-                <React.Fragment key={l.id}>
-                  <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => toggleRowExpansion(l.id)}>
-                    <TableCell className="text-xs">
-                      <div className="font-medium">{formatDistanceToNow(new Date(l.timestamp), { addSuffix: true })}</div>
-                      <div className="text-muted-foreground">{format(new Date(l.timestamp), "PP p")}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium">{userName(l.user_id)}</div>
-                    </TableCell>
-                    <TableCell>
-                      {userLabel(l.user_id) ? (
-                        <Badge variant="secondary" className={roleColor(userLabel(l.user_id))}>
-                          {formatRole(userLabel(l.user_id))}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell><Badge className={actionColor(l.action_type)}>{l.action_type}</Badge></TableCell>
-                    <TableCell className="text-sm">{l.resource_type || "—"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="line-clamp-2 flex-1">{l.metadata?.description || (l.resource_id ? `ID ${l.resource_id.substring(0, 8)}…` : "—")}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 shrink-0"
-                          onClick={(e) => { e.stopPropagation(); toggleRowExpansion(l.id); }}
-                        >
-                          {expandedRows.has(l.id) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  {expandedRows.has(l.id) && (
-                    <TableRow className="bg-muted/30">
-                      <TableCell colSpan={6} className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <h4 className="text-sm font-semibold">Activity Details</h4>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => toggleRowExpansion(l.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">Description:</span>
-                              <p className="mt-1 font-medium">{l.metadata?.description || "No description available"}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Resource ID:</span>
-                              <p className="mt-1 font-mono text-xs bg-muted px-2 py-1 rounded inline-block">{l.resource_id || "—"}</p>
-                            </div>
-                            {l.metadata?.old_value && (
-                              <div className="col-span-2">
-                                <span className="text-muted-foreground">Previous Value:</span>
-                                <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-auto max-h-32">{JSON.stringify(l.metadata.old_value, null, 2)}</pre>
-                              </div>
-                            )}
-                            {l.metadata?.new_value && (
-                              <div className="col-span-2">
-                                <span className="text-muted-foreground">New Value:</span>
-                                <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-auto max-h-32">{JSON.stringify(l.metadata.new_value, null, 2)}</pre>
-                              </div>
-                            )}
-                            {l.ip_address && (
-                              <div>
-                                <span className="text-muted-foreground">IP Address:</span>
-                                <p className="mt-1 font-mono text-xs">{String(l.ip_address)}</p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex justify-end pt-2 border-t">
-                            <Button variant="outline" size="sm" onClick={() => setSelectedLog(l)}>
-                              <Eye className="h-3.5 w-3.5 mr-1.5" />
-                              View Full Log
-                            </Button>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
+                <TableRow
+                  key={l.id}
+                  className="cursor-pointer hover:bg-muted/60"
+                  onClick={() => setSelectedLog(l)}
+                >
+                  <TableCell className="text-xs">
+                    <div className="font-medium">{formatDistanceToNow(new Date(l.timestamp), { addSuffix: true })}</div>
+                    <div className="text-muted-foreground">{format(new Date(l.timestamp), "PP p")}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm font-medium">{userName(l.user_id)}</div>
+                  </TableCell>
+                  <TableCell>
+                    {userLabel(l.user_id) ? (
+                      <Badge variant="secondary" className={roleColor(userLabel(l.user_id))}>
+                        {formatRole(userLabel(l.user_id))}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell><Badge className={actionColor(l.action_type)}>{l.action_type}</Badge></TableCell>
+                  <TableCell className="text-sm">{l.resource_type || "—"}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="line-clamp-2 flex-1">
+                        {l.metadata?.description || (l.resource_id ? `ID ${l.resource_id.substring(0, 8)}…` : "—")}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0 text-muted-foreground hover:text-foreground"
+                        aria-label="View full log"
+                        onClick={(e) => { e.stopPropagation(); setSelectedLog(l); }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
               ))}
             </TableBody>
           </Table>
