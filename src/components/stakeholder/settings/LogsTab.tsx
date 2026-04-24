@@ -211,14 +211,6 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
     return "bg-muted text-foreground hover:bg-muted";
   };
 
-  const toggleRowExpansion = (id: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const computeCleanupBounds = (range: CleanupRange): { lt?: string; gte?: string; lte?: string } => {
     const now = new Date();
