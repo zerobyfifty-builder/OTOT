@@ -208,6 +208,7 @@ const App = () => (
       <LodgeAuthProvider>
         <AuthProvider>
           <BrowserRouter>
+          <ActivityLoggerMount />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
