@@ -232,12 +232,12 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
     setDeleting(true);
     try {
       const bounds = computeCleanupBounds(cleanupRange);
-      let q = supabase.from("activity_logs").delete().eq("organization_id", organizationId);
+      let q = supabase.from("activity_logs").delete({ count: "exact" }).eq("organization_id", organizationId);
       if (bounds.gte) q = q.gte("timestamp", bounds.gte);
       if (bounds.lte) q = q.lte("timestamp", bounds.lte);
       if (bounds.lt) q = q.lt("timestamp", bounds.lt);
 
-      const { error, count } = await q.select("id", { count: "exact", head: true });
+      const { error, count } = await q;
       if (error) throw error;
       toast.success(`Deleted ${count ?? 0} log entr${(count ?? 0) === 1 ? "y" : "ies"} (${CLEANUP_LABELS[cleanupRange]})`);
       await fetchLogs();
