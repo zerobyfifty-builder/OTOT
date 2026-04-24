@@ -49,7 +49,7 @@ const FLAT: Record<string, { title: string; icon: LucideIcon; sortOrder: number 
 };
 
 const TREE_OPS: Record<string, { title: string; icon: LucideIcon; sortOrder: number }> = {
-  tree_management: { title: "Pre-Tree Insights", icon: TreePine, sortOrder: 3 },
+  tree_management: { title: "Per-Tree Insights", icon: TreePine, sortOrder: 3 },
   community_impact: { title: "Community Impact", icon: Target, sortOrder: 4 },
 };
 
