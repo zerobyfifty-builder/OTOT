@@ -4,6 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useAutoPageViewLogger } from "@/hooks/useActivityLogger";
+
+const ActivityLoggerMount = () => {
+  useAutoPageViewLogger();
+  return null;
+};
 import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
 import { AgentAuthProvider } from "@/contexts/AgentAuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -202,6 +208,7 @@ const App = () => (
       <LodgeAuthProvider>
         <AuthProvider>
           <BrowserRouter>
+          <ActivityLoggerMount />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { User, Lock, Mail, Phone, Shield } from "lucide-react";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 interface UserDetails {
   first_name: string | null;
@@ -18,6 +19,7 @@ interface UserDetails {
 
 export const GeneralTab: React.FC = () => {
   const { user } = useAuth();
+  const { logActivity } = useActivityLogger();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +69,13 @@ export const GeneralTab: React.FC = () => {
         .eq("user_id", user.id);
       if (error) throw error;
       toast.success("Profile updated successfully");
+      logActivity({
+        action_type: "profile_update",
+        resource_type: "user",
+        resource_id: user.id,
+        description: "Updated personal profile (name / phone)",
+        metadata: { first_name: firstName, last_name: lastName, phone_number: phoneNumber },
+      });
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile");
     } finally {
@@ -81,6 +90,12 @@ export const GeneralTab: React.FC = () => {
       const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
       if (error) throw error;
       toast.success("Verification email sent to new address.");
+      logActivity({
+        action_type: "email_change_requested",
+        resource_type: "user",
+        resource_id: user.id,
+        description: `Requested email change to ${newEmail.trim()}`,
+      });
     } catch (err: any) {
       toast.error(err.message || "Failed to update email");
     } finally {
@@ -97,6 +112,12 @@ export const GeneralTab: React.FC = () => {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
       toast.success("Password updated successfully");
+      logActivity({
+        action_type: "password_change",
+        resource_type: "user",
+        resource_id: user.id,
+        description: "Changed account password",
+      });
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: any) {
