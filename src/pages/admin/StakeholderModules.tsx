@@ -265,6 +265,14 @@ export default function StakeholderModules() {
           </CardContent>
         </Card>
       )}
+
+      <SidebarPreviewDialog
+        open={!!previewOrg}
+        onOpenChange={(o) => !o && setPreviewOrgId(null)}
+        organizationName={previewOrg?.name || ""}
+        stakeholderType={previewOrg ? getStakeholderType(previewOrg) : "other"}
+        assignedModuleNames={previewOrg ? getAssignedModuleNames(previewOrg.id) : []}
+      />
     </div>
   );
 }
