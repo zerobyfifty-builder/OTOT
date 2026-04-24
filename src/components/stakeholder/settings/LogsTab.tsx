@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow, format, subDays, startOfDay, endOfDay } from "date-fns";
-import { RefreshCw, Search, Activity, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, Search, Activity, Trash2, ChevronLeft, ChevronRight, Eye, ChevronDown, ChevronUp, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface ActivityLog {
