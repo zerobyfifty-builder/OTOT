@@ -3570,6 +3570,7 @@ export type Database = {
         | "finance"
         | "org_admin"
         | "user"
+        | "marketing"
       org_user_status: "pending" | "active" | "deactivated"
       planting_progress_type:
         | "pending_allocation"
@@ -3753,6 +3754,7 @@ export const Constants = {
         "finance",
         "org_admin",
         "user",
+        "marketing",
       ],
       org_user_status: ["pending", "active", "deactivated"],
       planting_progress_type: [
