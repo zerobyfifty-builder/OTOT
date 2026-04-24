@@ -474,7 +474,7 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
