@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ const getNextStatuses = (currentStatus: string) => {
 
 export const StakeholderFinancial = () => {
   const { user } = useAuth();
+  const { logActivity } = useActivityLogger();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -221,6 +223,15 @@ export const StakeholderFinancial = () => {
     return setting ? Number(setting.setting_value) : 40;
   }, [walletSettings]);
 
+  const getContributionLogContext = (id: string) => {
+    const row = contributions?.find((item) => item.id === id) || null;
+    return {
+      row,
+      contributionLabel: row?.contribution_id || id,
+      previousStatus: row?.status || null,
+    };
+  };
+
   const updateKtbReceiveMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -238,7 +249,22 @@ export const StakeholderFinancial = () => {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_, id) => {
+      const { row, contributionLabel, previousStatus } = getContributionLogContext(id);
+      await logActivity({
+        action_type: "contribution_status_updated",
+        resource_type: "contribution_tracking",
+        resource_id: row?.id || id,
+        description: `Updated ${contributionLabel} status from ${previousStatus || "unknown"} to funds_received`,
+        metadata: {
+          contribution_id: row?.contribution_id || null,
+          previous_status: previousStatus,
+          new_status: "funds_received",
+          transfer_date: ktbForm.transfer_date || null,
+          transfer_reference: ktbForm.transfer_reference || null,
+          transfer_mode: ktbForm.transfer_mode || null,
+        },
+      });
       toast.success("Funds received — status updated");
       queryClient.invalidateQueries({ queryKey: ["contributionTracking"] });
       setSheetOpen(false);
@@ -260,7 +286,23 @@ export const StakeholderFinancial = () => {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_, id) => {
+      const { row, contributionLabel, previousStatus } = getContributionLogContext(id);
+      await logActivity({
+        action_type: "contribution_status_updated",
+        resource_type: "contribution_tracking",
+        resource_id: row?.id || id,
+        description: `Updated ${contributionLabel} status from ${previousStatus || "unknown"} to transferred_for_planting`,
+        metadata: {
+          contribution_id: row?.contribution_id || null,
+          previous_status: previousStatus,
+          new_status: "transferred_for_planting",
+          plantation_partner_id: ktbForm.plantation_partner_id || null,
+          transfer_date: ktbForm.transfer_date || null,
+          transfer_reference: ktbForm.transfer_reference || null,
+          transfer_mode: ktbForm.transfer_mode || null,
+        },
+      });
       toast.success("Funds transferred for planting — status updated");
       queryClient.invalidateQueries({ queryKey: ["contributionTracking"] });
       setSheetOpen(false);
@@ -281,7 +323,21 @@ export const StakeholderFinancial = () => {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_, id) => {
+      const { row, contributionLabel, previousStatus } = getContributionLogContext(id);
+      await logActivity({
+        action_type: "contribution_status_updated",
+        resource_type: "contribution_tracking",
+        resource_id: row?.id || id,
+        description: `Updated ${contributionLabel} status from ${previousStatus || "unknown"} to received_for_planting`,
+        metadata: {
+          contribution_id: row?.contribution_id || null,
+          previous_status: previousStatus,
+          new_status: "received_for_planting",
+          partner_received_date: partnerForm.partner_received_date || null,
+          acknowledgement_doc: partnerForm.acknowledgement_doc || null,
+        },
+      });
       toast.success("Partner confirmation saved");
       queryClient.invalidateQueries({ queryKey: ["contributionTracking"] });
       setSheetOpen(false);
