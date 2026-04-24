@@ -489,29 +489,6 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
                     </div>
                   )}
 
-                  {selectedLog.metadata && Object.keys(selectedLog.metadata).filter(k => !['description', 'old_value', 'new_value'].includes(k)).length > 0 && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Additional Metadata</label>
-                      <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(
-                        Object.fromEntries(Object.entries(selectedLog.metadata).filter(([k]) => !['description', 'old_value', 'new_value'].includes(k))),
-                        null, 2
-                      )}</pre>
-                    </div>
-                  )}
-
-                  {selectedLog.ip_address && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">IP Address</label>
-                      <p className="text-sm font-mono">{String(selectedLog.ip_address)}</p>
-                    </div>
-                  )}
-
-                  {selectedLog.user_agent && (
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">User Agent</label>
-                      <p className="text-xs text-muted-foreground bg-muted p-2 rounded break-all">{selectedLog.user_agent}</p>
-                    </div>
-                  )}
                 </div>
               )}
             </ScrollArea>
