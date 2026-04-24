@@ -19,6 +19,7 @@ interface UserDetails {
 
 export const GeneralTab: React.FC = () => {
   const { user } = useAuth();
+  const { logActivity } = useActivityLogger();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
