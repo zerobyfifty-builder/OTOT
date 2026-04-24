@@ -203,10 +203,21 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
             </SelectContent>
           </Select>
           <Select value={userFilter} onValueChange={setUserFilter}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="All users" /></SelectTrigger>
+            <SelectTrigger className="w-[240px]"><SelectValue placeholder="All users" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All users</SelectItem>
-              {userOptions.map((uid) => <SelectItem key={uid} value={uid}>{userName(uid)}</SelectItem>)}
+              {userOptions.map((uid) => (
+                <SelectItem key={uid} value={uid}>
+                  <span className="flex items-center gap-2">
+                    <span>{userName(uid)}</span>
+                    {userLabel(uid) && (
+                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${roleColor(userLabel(uid))}`}>
+                        {formatRole(userLabel(uid))}
+                      </Badge>
+                    )}
+                  </span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -217,6 +228,7 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
               <TableRow>
                 <TableHead className="w-[180px]">When</TableHead>
                 <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Resource</TableHead>
                 <TableHead>Details</TableHead>
@@ -224,9 +236,9 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">Loading…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Loading…</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No activity logs yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">No activity logs yet.</TableCell></TableRow>
               ) : filtered.map((l) => (
                 <TableRow key={l.id}>
                   <TableCell className="text-xs">
@@ -235,7 +247,15 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
                   </TableCell>
                   <TableCell>
                     <div className="text-sm font-medium">{userName(l.user_id)}</div>
-                    {userLabel(l.user_id) && <div className="text-xs text-muted-foreground capitalize">{userLabel(l.user_id)?.replace(/_/g, " ")}</div>}
+                  </TableCell>
+                  <TableCell>
+                    {userLabel(l.user_id) ? (
+                      <Badge variant="secondary" className={roleColor(userLabel(l.user_id))}>
+                        {formatRole(userLabel(l.user_id))}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell><Badge className={actionColor(l.action_type)}>{l.action_type}</Badge></TableCell>
                   <TableCell className="text-sm">{l.resource_type || "—"}</TableCell>
