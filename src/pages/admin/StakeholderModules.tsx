@@ -8,9 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Settings2, Globe, Lock } from "lucide-react";
+import { Settings2, Globe, Lock, Eye } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { SidebarPreviewDialog } from "@/components/admin/SidebarPreviewDialog";
+import type { StakeholderType } from "@/hooks/useOrgStakeholderType";
 
 const PERMISSIONS = ["read", "write", "edit", "delete"] as const;
 const PERMISSION_LABELS: Record<string, string> = {
@@ -44,13 +46,14 @@ function getDefaultPermissions(accessType: string): string[] {
 
 export default function StakeholderModules() {
   const queryClient = useQueryClient();
+  const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
 
   const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
     queryKey: ["stakeholderOrgs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
-        .select("id, name, is_active")
+        .select("id, name, is_active, category, partner_types(name, category)")
         .eq("category", "stakeholder")
         .eq("archived", false);
       if (error) throw error;
@@ -81,6 +84,28 @@ export default function StakeholderModules() {
   const getOrgModule = (orgId: string, moduleId: string) => {
     return orgModules?.find(om => om.organization_id === orgId && om.module_id === moduleId && om.is_active);
   };
+
+  const getStakeholderType = (org: any): StakeholderType => {
+    const ptName = (org?.partner_types?.name || "").toLowerCase();
+    const ptCat = (org?.partner_types?.category || "").toLowerCase();
+    const orgCat = (org?.category || "").toLowerCase();
+    const haystack = `${orgCat} ${ptCat} ${ptName} ${(org?.name || "").toLowerCase()}`;
+    if (haystack.includes("plantation")) return "plantation";
+    if (haystack.includes("institutional") || haystack.includes("ktb")) return "institutional";
+    if (haystack.includes("technology") || haystack.includes("tech")) return "technology";
+    return "other";
+  };
+
+  const getAssignedModuleNames = (orgId: string): string[] => {
+    if (!orgModules || !modules) return [];
+    const moduleIdToName = new Map(modules.map((m: any) => [m.id, m.name as string]));
+    return orgModules
+      .filter((om: any) => om.organization_id === orgId && om.is_active)
+      .map((om: any) => moduleIdToName.get(om.module_id))
+      .filter(Boolean) as string[];
+  };
+
+  const previewOrg = stakeholders?.find((s: any) => s.id === previewOrgId) || null;
 
   const toggleModule = async (orgId: string, moduleId: string, accessType: string, currentlyEnabled: boolean) => {
     try {
@@ -150,7 +175,20 @@ export default function StakeholderModules() {
                 <TableRow>
                   <TableHead className="min-w-[220px]">Module</TableHead>
                   {stakeholders.map(s => (
-                    <TableHead key={s.id} className="text-center min-w-[160px]">{s.name}</TableHead>
+                    <TableHead key={s.id} className="text-center min-w-[160px]">
+                      <div className="flex flex-col items-center gap-1">
+                        <span>{s.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => setPreviewOrgId(s.id)}
+                        >
+                          <Eye className="h-3 w-3" />
+                          Preview sidebar
+                        </Button>
+                      </div>
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -227,6 +265,14 @@ export default function StakeholderModules() {
           </CardContent>
         </Card>
       )}
+
+      <SidebarPreviewDialog
+        open={!!previewOrg}
+        onOpenChange={(o) => !o && setPreviewOrgId(null)}
+        organizationName={previewOrg?.name || ""}
+        stakeholderType={previewOrg ? getStakeholderType(previewOrg) : "other"}
+        assignedModuleNames={previewOrg ? getAssignedModuleNames(previewOrg.id) : []}
+      />
     </div>
   );
 }
