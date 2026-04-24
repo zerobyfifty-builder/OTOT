@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { createActivityLogEntry } from '@/hooks/useActivityLogger';
 
 interface AuthContextType {
   user: User | null;
@@ -28,16 +29,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          void createActivityLogEntry({
+            userId: session.user.id,
+            action_type: 'login',
+            resource_type: 'auth',
+            description: 'Signed in to stakeholder portal',
+            metadata: { event },
+          });
+        }
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -69,6 +78,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    if (user?.id) {
+      void createActivityLogEntry({
+        userId: user.id,
+        action_type: 'logout',
+        resource_type: 'auth',
+        description: 'Signed out of stakeholder portal',
+      });
+    }
     await supabase.auth.signOut();
   };
 
