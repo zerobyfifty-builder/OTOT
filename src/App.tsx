@@ -549,8 +549,11 @@ const App = () => (
             <Route path="/stakeholder/travel-agents" element={
               <StakeholderRoute><StakeholderLayout><StakeholderTravelAgents /></StakeholderLayout></StakeholderRoute>
             } />
-            <Route path="/stakeholder/tree-management" element={
+            <Route path="/stakeholder/pre-tree-management" element={
               <StakeholderRoute><StakeholderLayout><StakeholderTreeManagement /></StakeholderLayout></StakeholderRoute>
+            } />
+            <Route path="/stakeholder/tree-management" element={
+              <Navigate to="/stakeholder/pre-tree-management" replace />
             } />
             <Route path="/stakeholder/trip-management" element={
               <StakeholderRoute><StakeholderLayout><StakeholderTripManagement /></StakeholderLayout></StakeholderRoute>
