@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { User, Lock, Mail, Phone, Shield } from "lucide-react";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 interface UserDetails {
   first_name: string | null;
