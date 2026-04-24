@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useOrgStakeholderType, ROLE_LABELS } from "@/hooks/useOrgStakeholderType";
+import { useOrgStakeholderType, ROLE_LABELS, getRolesForStakeholderType } from "@/hooks/useOrgStakeholderType";
 import { useOrgUsers, useToggleOrgUserStatus, useRemoveOrgUser, OrgUserRow } from "@/hooks/useOrgUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
