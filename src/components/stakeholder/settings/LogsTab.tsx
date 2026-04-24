@@ -474,11 +474,106 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+            <Button variant="outline" size="sm" onClick={() => setPage((p) => => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>
+
+        {/* Full Log Details Sheet */}
+        <Sheet open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+          <SheetContent className="w-full sm:max-w-xl">
+            <SheetHeader>
+              <SheetTitle>Activity Log Details</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="h-[calc(100vh-100px)] mt-4">
+              {selectedLog && (
+                <div className="space-y-6 pr-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Timestamp</label>
+                      <p className="text-sm font-medium">{format(new Date(selectedLog.timestamp), "PPP p")}</p>
+                      <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(selectedLog.timestamp), { addSuffix: true })}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Action</label>
+                      <Badge className={actionColor(selectedLog.action_type)}>{selectedLog.action_type}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">User</label>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{userName(selectedLog.user_id)}</p>
+                      {userLabel(selectedLog.user_id) && (
+                        <Badge variant="secondary" className={roleColor(userLabel(selectedLog.user_id))}>
+                          {formatRole(userLabel(selectedLog.user_id))}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Resource Type</label>
+                      <p className="text-sm">{selectedLog.resource_type || "—"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Resource ID</label>
+                      <p className="text-sm font-mono text-xs bg-muted px-2 py-1 rounded inline-block">{selectedLog.resource_id || "—"}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Description</label>
+                    <p className="text-sm bg-muted p-3 rounded-md">{selectedLog.metadata?.description || "No description available"}</p>
+                  </div>
+
+                  {(selectedLog.metadata?.old_value || selectedLog.metadata?.new_value) && (
+                    <div className="space-y-3">
+                      {selectedLog.metadata?.old_value && (
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Previous Value</label>
+                          <pre className="text-xs bg-red-50 border border-red-100 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.old_value, null, 2)}</pre>
+                        </div>
+                      )}
+                      {selectedLog.metadata?.new_value && (
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">New Value</label>
+                          <pre className="text-xs bg-emerald-50 border border-emerald-100 p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(selectedLog.metadata.new_value, null, 2)}</pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedLog.metadata && Object.keys(selectedLog.metadata).filter(k => !['description', 'old_value', 'new_value'].includes(k)).length > 0 && (
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Additional Metadata</label>
+                      <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-48">{JSON.stringify(
+                        Object.fromEntries(Object.entries(selectedLog.metadata).filter(([k]) => !['description', 'old_value', 'new_value'].includes(k))),
+                        null, 2
+                      )}</pre>
+                    </div>
+                  )}
+
+                  {selectedLog.ip_address && (
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">IP Address</label>
+                      <p className="text-sm font-mono">{String(selectedLog.ip_address)}</p>
+                    </div>
+                  )}
+
+                  {selectedLog.user_agent && (
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">User Agent</label>
+                      <p className="text-xs text-muted-foreground bg-muted p-2 rounded break-all">{selectedLog.user_agent}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
       </CardContent>
     </Card>
   );
