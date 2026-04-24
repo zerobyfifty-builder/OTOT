@@ -12,7 +12,7 @@ const PLANTATION_ROLES = new Set([
   "field_ops","expert","operations_manager","project_manager",
   "community_coordinator","impact_analyst","finance","org_admin",
 ]);
-const GENERIC_ROLES = new Set(["org_admin","finance","project_manager","user"]);
+const GENERIC_ROLES = new Set(["org_admin","finance","project_manager","marketing","user"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
