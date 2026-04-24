@@ -12,13 +12,76 @@ interface LogParams {
   metadata?: Record<string, any>;
 }
 
-/**
- * Central activity logger. Writes to public.activity_logs scoped to the user's
- * organization so org-admins (and super-admins) can review actions.
- *
- * - Auto-logs page navigations for authenticated org users.
- * - Exposes logActivity() for explicit action logging.
- */
+interface CreateLogParams extends LogParams {
+  userId: string;
+  organizationId?: string | null;
+}
+
+export async function resolveUserOrganizationId(userId: string, fallbackOrgId?: string | null) {
+  if (fallbackOrgId) return fallbackOrgId;
+
+  const { data: userRow, error: userErr } = await supabase
+    .from("users")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (userErr) {
+    console.warn("activity log org lookup failed on users", userErr);
+  }
+
+  if (userRow?.organization_id) {
+    return userRow.organization_id;
+  }
+
+  const { data: orgUserRow, error: orgUserErr } = await supabase
+    .from("org_users")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (orgUserErr) {
+    console.warn("activity log org lookup failed on org_users", orgUserErr);
+  }
+
+  return orgUserRow?.organization_id ?? null;
+}
+
+export async function createActivityLogEntry({
+  userId,
+  organizationId,
+  action_type,
+  resource_type,
+  resource_id,
+  description,
+  metadata,
+}: CreateLogParams) {
+  const resolvedOrganizationId = await resolveUserOrganizationId(userId, organizationId);
+
+  const { error } = await supabase.from("activity_logs").insert({
+    user_id: userId,
+    organization_id: resolvedOrganizationId,
+    action_type,
+    resource_type: resource_type ?? null,
+    resource_id: resource_id ?? null,
+    metadata: {
+      description: description ?? action_type,
+      ...(metadata || {}),
+    },
+    user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+  });
+
+  if (error) {
+    console.warn("activity log failed", error);
+    return false;
+  }
+
+  return true;
+}
+
 export function useActivityLogger() {
   const { user } = useAuth();
   const { data: orgCtx } = useOrgStakeholderType();
@@ -26,24 +89,13 @@ export function useActivityLogger() {
 
   const logActivity = useCallback(
     async (params: LogParams) => {
-      try {
-        if (!user) return;
-        await supabase.from("activity_logs").insert({
-          user_id: user.id,
-          organization_id: organizationId,
-          action_type: params.action_type,
-          resource_type: params.resource_type ?? null,
-          resource_id: params.resource_id ?? null,
-          metadata: {
-            description: params.description ?? params.action_type,
-            ...(params.metadata || {}),
-          },
-          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-        });
-      } catch (e) {
-        // Never break UX because of logging
-        console.warn("activity log failed", e);
-      }
+      if (!user) return false;
+
+      return createActivityLogEntry({
+        userId: user.id,
+        organizationId,
+        ...params,
+      });
     },
     [user, organizationId]
   );
@@ -51,9 +103,6 @@ export function useActivityLogger() {
   return { logActivity };
 }
 
-/**
- * Mount once at the top of an authenticated layout to auto-log page views.
- */
 export function useAutoPageViewLogger() {
   const { logActivity } = useActivityLogger();
   const { user } = useAuth();
@@ -62,14 +111,27 @@ export function useAutoPageViewLogger() {
 
   useEffect(() => {
     if (!user) return;
+
     const path = location.pathname + location.search;
     if (lastLogged.current === path) return;
-    lastLogged.current = path;
-    logActivity({
-      action_type: "page_view",
-      resource_type: "route",
-      description: `Viewed ${location.pathname}`,
-      metadata: { path: location.pathname, search: location.search },
-    });
+
+    let cancelled = false;
+
+    (async () => {
+      const ok = await logActivity({
+        action_type: "page_view",
+        resource_type: "route",
+        description: `Viewed ${location.pathname}`,
+        metadata: { path: location.pathname, search: location.search },
+      });
+
+      if (!cancelled && ok) {
+        lastLogged.current = path;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [location.pathname, location.search, user, logActivity]);
 }

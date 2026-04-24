@@ -64,7 +64,7 @@ export const OrganizationSettings: React.FC = () => {
           </TabsTrigger>
           {isOrgAdmin && (
             <TabsTrigger value="logs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
-              <ScrollText className="h-4 w-4" /> Logs
+              <ScrollText className="h-4 w-4" /> Activity logs
             </TabsTrigger>
           )}
         </TabsList>
