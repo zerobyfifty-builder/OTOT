@@ -35,19 +35,25 @@ const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
   { key: "tree_orders.action.engagement", label: "Engagement" },
 ];
 
-// Sidebar display order for modules in the Manage Permissions sheet.
+// Mirrors the StakeholderSidebar render order so the Manage Permissions sheet
+// lists modules in the exact same sequence the user sees on the left navbar.
 // Modules not listed are appended at the end.
 const MODULE_DISPLAY_ORDER: string[] = [
+  // Core
   "dashboard",
   "financial_management",
+  // Trip + Tree Orders
   "trip_management",
   "tree_orders",
+  // Tree Operations group (flat)
   "tree_management",
   "community_impact",
+  // Remaining flat modules
   "outcomes",
   "impact_insights",
   "travel_agents",
   "analytics",
+  // Forest Registry (collapsible) — always last
   "mdm_locations",
   "mdm_nurseries",
   "mdm_species",
