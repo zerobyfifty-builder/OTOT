@@ -69,7 +69,6 @@ export const LogsTab: React.FC<Props> = ({ organizationId }) => {
   const [pageSize, setPageSize] = useState<number>(25);
   const [cleanupRange, setCleanupRange] = useState<CleanupRange>("older_than_month");
   const [deleting, setDeleting] = useState(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
 
   const fetchLogs = async () => {
