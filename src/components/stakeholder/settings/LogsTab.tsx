@@ -47,7 +47,7 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
     if (!organizationId) return;
     setLoading(true);
     try {
-      const [{ data: logRows, error: logErr }, { data: userRows, error: userErr }] = await Promise.all([
+      const [{ data: logRows, error: logErr }, { data: orgUserRows, error: orgUserErr }] = await Promise.all([
         supabase
           .from("activity_logs")
           .select("*")
@@ -60,12 +60,35 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
           .eq("organization_id", organizationId),
       ]);
       if (logErr) throw logErr;
-      if (userErr) throw userErr;
-      setLogs((logRows as ActivityLog[]) || []);
+      if (orgUserErr) throw orgUserErr;
+
+      const rows = (logRows as ActivityLog[]) || [];
+      setLogs(rows);
+
       const map: Record<string, OrgUserLite> = {};
-      (userRows || []).forEach((u: any) => {
+      (orgUserRows || []).forEach((u: any) => {
         if (u.user_id) map[u.user_id] = u;
       });
+
+      // Fallback: lookup any user_ids in logs that aren't in org_users (e.g. stakeholder owner)
+      const missingIds = Array.from(
+        new Set(rows.map((r) => r.user_id).filter((id): id is string => !!id && !map[id]))
+      );
+      if (missingIds.length > 0) {
+        const { data: userRows } = await supabase
+          .from("users")
+          .select("user_id, email, first_name, last_name, role_id, roles(name)")
+          .in("user_id", missingIds);
+        (userRows || []).forEach((u: any) => {
+          map[u.user_id] = {
+            user_id: u.user_id,
+            email: u.email,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            job_role: u.roles?.name || "member",
+          };
+        });
+      }
       setUsers(map);
     } catch (e) {
       console.error("Failed to load logs", e);
@@ -82,7 +105,7 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "activity_logs", filter: `organization_id=eq.${organizationId}` },
-        (payload) => setLogs((prev) => [payload.new as ActivityLog, ...prev].slice(0, pageSize))
+        () => fetchLogs()
       )
       .subscribe();
     return () => {
@@ -99,10 +122,22 @@ export const LogsTab: React.FC<Props> = ({ organizationId, pageSize = 100 }) => 
     return name || u.email;
   };
 
+  const formatRole = (role: string | null | undefined) => {
+    if (!role) return null;
+    return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
   const userLabel = (uid: string | null) => {
     if (!uid) return null;
     const u = users[uid];
     return u?.job_role || null;
+  };
+
+  const roleColor = (role: string | null | undefined) => {
+    if (!role) return "bg-muted text-foreground";
+    if (role.includes("admin")) return "bg-purple-100 text-purple-800 hover:bg-purple-100";
+    if (role.includes("manager")) return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+    return "bg-slate-100 text-slate-800 hover:bg-slate-100";
   };
 
   const actionTypes = useMemo(() => {
