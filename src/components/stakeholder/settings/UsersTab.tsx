@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useOrgStakeholderType, ROLE_LABELS } from "@/hooks/useOrgStakeholderType";
+import { useOrgStakeholderType, ROLE_LABELS, getRolesForStakeholderType } from "@/hooks/useOrgStakeholderType";
 import { useOrgUsers, useToggleOrgUserStatus, useRemoveOrgUser, OrgUserRow } from "@/hooks/useOrgUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,8 +77,8 @@ export const UsersTab: React.FC = () => {
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>
-            {Object.entries(ROLE_LABELS).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+            {getRolesForStakeholderType(orgCtx?.stakeholderType ?? "other").map((r) => (
+              <SelectItem key={r.key} value={r.key}>{ROLE_LABELS[r.key] || r.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
