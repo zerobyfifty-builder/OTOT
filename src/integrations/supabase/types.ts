@@ -433,8 +433,8 @@ export type Database = {
           jobs_created: number | null
           notes: string | null
           nursery_income_kes: number | null
+          owner_org_id: string
           reporting_period: string
-          stakeholder_org_id: string
           updated_at: string | null
           women_employed: number | null
           youth_employed: number | null
@@ -446,8 +446,8 @@ export type Database = {
           jobs_created?: number | null
           notes?: string | null
           nursery_income_kes?: number | null
+          owner_org_id: string
           reporting_period: string
-          stakeholder_org_id: string
           updated_at?: string | null
           women_employed?: number | null
           youth_employed?: number | null
@@ -459,8 +459,8 @@ export type Database = {
           jobs_created?: number | null
           notes?: string | null
           nursery_income_kes?: number | null
+          owner_org_id?: string
           reporting_period?: string
-          stakeholder_org_id?: string
           updated_at?: string | null
           women_employed?: number | null
           youth_employed?: number | null
@@ -468,7 +468,7 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "community_impact_stakeholder_org_id_fkey"
-            columns: ["stakeholder_org_id"]
+            columns: ["owner_org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -1512,7 +1512,7 @@ export type Database = {
           manager_name: string | null
           manager_phone: string | null
           nursery_type: string | null
-          stakeholder_org_id: string
+          owner_org_id: string
           sub_county: string | null
           updated_at: string | null
           zip_code: string | null
@@ -1533,7 +1533,7 @@ export type Database = {
           manager_name?: string | null
           manager_phone?: string | null
           nursery_type?: string | null
-          stakeholder_org_id: string
+          owner_org_id: string
           sub_county?: string | null
           updated_at?: string | null
           zip_code?: string | null
@@ -1554,7 +1554,7 @@ export type Database = {
           manager_name?: string | null
           manager_phone?: string | null
           nursery_type?: string | null
-          stakeholder_org_id?: string
+          owner_org_id?: string
           sub_county?: string | null
           updated_at?: string | null
           zip_code?: string | null
@@ -1562,7 +1562,7 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "nurseries_stakeholder_org_id_fkey"
-            columns: ["stakeholder_org_id"]
+            columns: ["owner_org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -1615,22 +1615,22 @@ export type Database = {
         Row: {
           job_role: Database["public"]["Enums"]["org_job_role"]
           module_name: string
+          owner_type: string
           permissions: Json
-          stakeholder_type: string
           sub_features: Json
         }
         Insert: {
           job_role: Database["public"]["Enums"]["org_job_role"]
           module_name: string
+          owner_type: string
           permissions?: Json
-          stakeholder_type: string
           sub_features?: Json
         }
         Update: {
           job_role?: Database["public"]["Enums"]["org_job_role"]
           module_name?: string
+          owner_type?: string
           permissions?: Json
-          stakeholder_type?: string
           sub_features?: Json
         }
         Relationships: []
@@ -1874,6 +1874,62 @@ export type Database = {
             columns: ["partner_type_id"]
             isOneToOne: false
             referencedRelation: "partner_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_disbursements: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          disbursement_date: string
+          id: string
+          ktb_transfer_reference: string | null
+          notes: string | null
+          owner_org_id: string
+          reconciled_at: string | null
+          reference: string | null
+          status: string | null
+          tree_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          disbursement_date: string
+          id?: string
+          ktb_transfer_reference?: string | null
+          notes?: string | null
+          owner_org_id: string
+          reconciled_at?: string | null
+          reference?: string | null
+          status?: string | null
+          tree_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          disbursement_date?: string
+          id?: string
+          ktb_transfer_reference?: string | null
+          notes?: string | null
+          owner_org_id?: string
+          reconciled_at?: string | null
+          reference?: string | null
+          status?: string | null
+          tree_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholder_disbursements_stakeholder_org_id_fkey"
+            columns: ["owner_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2131,9 +2187,9 @@ export type Database = {
           cost_seedling_kes: number
           created_at: string | null
           id: string
+          owner_org: string
           reviewed_at: string | null
           reviewed_by: string | null
-          stakeholder_org: string
           status: string
           submitted_at: string | null
           submitted_by: string | null
@@ -2151,9 +2207,9 @@ export type Database = {
           cost_seedling_kes?: number
           created_at?: string | null
           id?: string
+          owner_org: string
           reviewed_at?: string | null
           reviewed_by?: string | null
-          stakeholder_org: string
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -2171,9 +2227,9 @@ export type Database = {
           cost_seedling_kes?: number
           created_at?: string | null
           id?: string
+          owner_org?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
-          stakeholder_org?: string
           status?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -2193,10 +2249,10 @@ export type Database = {
           longitude: number | null
           notes: string | null
           nursery_id: string | null
+          owner_org_id: string
           planter_name: string | null
           seedlings_planted: number
           species_id: string | null
-          stakeholder_org_id: string
           updated_at: string | null
         }
         Insert: {
@@ -2209,10 +2265,10 @@ export type Database = {
           longitude?: number | null
           notes?: string | null
           nursery_id?: string | null
+          owner_org_id: string
           planter_name?: string | null
           seedlings_planted?: number
           species_id?: string | null
-          stakeholder_org_id: string
           updated_at?: string | null
         }
         Update: {
@@ -2225,10 +2281,10 @@ export type Database = {
           longitude?: number | null
           notes?: string | null
           nursery_id?: string | null
+          owner_org_id?: string
           planter_name?: string | null
           seedlings_planted?: number
           species_id?: string | null
-          stakeholder_org_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -2248,7 +2304,7 @@ export type Database = {
           },
           {
             foreignKeyName: "planting_records_stakeholder_org_id_fkey"
-            columns: ["stakeholder_org_id"]
+            columns: ["owner_org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -2424,62 +2480,6 @@ export type Database = {
             columns: ["species_id"]
             isOneToOne: false
             referencedRelation: "seed_species"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stakeholder_disbursements: {
-        Row: {
-          amount: number
-          created_at: string | null
-          currency: string | null
-          disbursement_date: string
-          id: string
-          ktb_transfer_reference: string | null
-          notes: string | null
-          reconciled_at: string | null
-          reference: string | null
-          stakeholder_org_id: string
-          status: string | null
-          tree_count: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          currency?: string | null
-          disbursement_date: string
-          id?: string
-          ktb_transfer_reference?: string | null
-          notes?: string | null
-          reconciled_at?: string | null
-          reference?: string | null
-          stakeholder_org_id: string
-          status?: string | null
-          tree_count?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          currency?: string | null
-          disbursement_date?: string
-          id?: string
-          ktb_transfer_reference?: string | null
-          notes?: string | null
-          reconciled_at?: string | null
-          reference?: string | null
-          stakeholder_org_id?: string
-          status?: string | null
-          tree_count?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stakeholder_disbursements_stakeholder_org_id_fkey"
-            columns: ["stakeholder_org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3191,6 +3191,7 @@ export type Database = {
           longitude: number | null
           num_trees: number
           otot_id: string
+          owner_org_id: string | null
           payment_method: string | null
           plant_date: string | null
           planting_status:
@@ -3200,7 +3201,6 @@ export type Database = {
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
-          stakeholder_org_id: string | null
           status: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id: string | null
           tree_type: string | null
@@ -3221,6 +3221,7 @@ export type Database = {
           longitude?: number | null
           num_trees?: number
           otot_id: string
+          owner_org_id?: string | null
           payment_method?: string | null
           plant_date?: string | null
           planting_status?:
@@ -3230,7 +3231,6 @@ export type Database = {
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type: Database["public"]["Enums"]["purchase_type"]
-          stakeholder_org_id?: string | null
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id?: string | null
           tree_type?: string | null
@@ -3251,6 +3251,7 @@ export type Database = {
           longitude?: number | null
           num_trees?: number
           otot_id?: string
+          owner_org_id?: string | null
           payment_method?: string | null
           plant_date?: string | null
           planting_status?:
@@ -3260,7 +3261,6 @@ export type Database = {
             | Database["public"]["Enums"]["pledge_status_type"]
             | null
           purchase_type?: Database["public"]["Enums"]["purchase_type"]
-          stakeholder_org_id?: string | null
           status?: Database["public"]["Enums"]["tree_status_type"]
           tree_carer_id?: string | null
           tree_type?: string | null
@@ -3278,7 +3278,7 @@ export type Database = {
           },
           {
             foreignKeyName: "trees_stakeholder_org_id_fkey"
-            columns: ["stakeholder_org_id"]
+            columns: ["owner_org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -3531,13 +3531,13 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
-      is_stakeholder: { Args: { user_id: string }; Returns: boolean }
+      is_owner: { Args: { user_id: string }; Returns: boolean }
       is_super_admin: { Args: { user_id: string }; Returns: boolean }
-      stakeholder_has_module: {
+      owner_has_module: {
         Args: { _module_name: string; _user_id: string }
         Returns: boolean
       }
-      stakeholder_has_module_permission: {
+      owner_has_module_permission: {
         Args: { _module_name: string; _permission: string; _user_id: string }
         Returns: boolean
       }
