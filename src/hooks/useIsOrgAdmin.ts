@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useOrgStakeholderType } from "./useOrgStakeholderType";
+import { useOrgOwnerType } from "./useOrgOwnerType";
 
 /**
  * Returns true when the current user is the org owner (their `users.organization_id`
@@ -10,7 +10,7 @@ import { useOrgStakeholderType } from "./useOrgStakeholderType";
  */
 export function useIsOrgAdmin() {
   const { user } = useAuth();
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
 
   return useQuery({
     queryKey: ["isOrgAdmin", user?.id, orgCtx?.organizationId],

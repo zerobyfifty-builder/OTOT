@@ -95,7 +95,7 @@ export const InstitutionalDashboard = () => {
         treesRes, tripsRes, agentsRes, ticketsRes, contributionsRes,
         rolesRes, communityRes, monitoringRes, survivalRes
       ] = await Promise.all([
-        supabase.from("trees").select("id, status, amount_paid, num_trees, planting_status, stakeholder_org_id, created_at, contribution_id"),
+        supabase.from("trees").select("id, status, amount_paid, num_trees, planting_status, owner_org_id, created_at, contribution_id"),
         supabase.from("trips").select("id, flight_co2, accommodation_co2, total_co2, num_travelers, origin_airport, destination_airport, from_date, created_at"),
         supabase.from("travel_agents").select("id", { count: "exact" }),
         supabase.from("agent_tickets").select("trees_planted, offset_amount_paid, trees_needed"),
@@ -134,7 +134,7 @@ export const InstitutionalDashboard = () => {
       });
 
       const plantedVerified = (plantingBreakdown['planted'] || 0) + (plantingBreakdown['verified'] || 0);
-      const allocated = trees.filter(t => t.stakeholder_org_id).reduce((s, t) => s + (t.num_trees || 0), 0);
+      const allocated = trees.filter(t => t.owner_org_id).reduce((s, t) => s + (t.num_trees || 0), 0);
       const unallocated = totalTreesOrdered - allocated;
 
       // Trips

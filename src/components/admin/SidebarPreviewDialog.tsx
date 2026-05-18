@@ -30,10 +30,10 @@ import {
   GENERIC_ROLES,
   PLANTATION_ROLES,
   ROLE_LABELS,
-  type StakeholderType,
-} from "@/hooks/useOrgStakeholderType";
+  type OwnerType,
+} from "@/hooks/useOrgOwnerType";
 
-// Mirrors src/components/stakeholder/StakeholderSidebar.tsx — keep in sync.
+// Mirrors src/components/owner/OwnerSidebar.tsx — keep in sync.
 const CORE: { key: string; title: string; icon: LucideIcon }[] = [
   { key: "dashboard", title: "Dashboard", icon: Home },
   { key: "financial_management", title: "Climate Funding", icon: DollarSign },
@@ -65,7 +65,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationName: string;
-  stakeholderType: StakeholderType;
+  ownerType: OwnerType;
   /** Module names (e.g. "dashboard", "tree_orders") currently assigned to the org. */
   assignedModuleNames: string[];
 }
@@ -74,22 +74,22 @@ export function SidebarPreviewDialog({
   open,
   onOpenChange,
   organizationName,
-  stakeholderType,
+  ownerType,
   assignedModuleNames,
 }: Props) {
-  const roles = stakeholderType === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
+  const roles = ownerType === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
   const [role, setRole] = useState<string>("org_admin");
 
   // Load role defaults so non-admin previews can intersect modules.
   const defaultsBucket: "plantation" | "generic" =
-    stakeholderType === "plantation" ? "plantation" : "generic";
+    ownerType === "plantation" ? "plantation" : "generic";
   const { data: roleDefaults = [] } = useQuery({
     queryKey: ["roleDefaultsForPreview", defaultsBucket],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("org_job_role_defaults")
         .select("job_role, module_name, permissions")
-        .eq("stakeholder_type", defaultsBucket);
+        .eq("owner_type", defaultsBucket);
       if (error) throw error;
       return data || [];
     },
@@ -121,9 +121,9 @@ export function SidebarPreviewDialog({
   }, [role, roleDefaults, assignedSet]);
 
   const sidebarColor =
-    stakeholderType === "institutional"
+    ownerType === "institutional"
       ? "hsl(348 70% 30%)"
-      : stakeholderType === "technology"
+      : ownerType === "technology"
       ? "hsl(212 100% 50%)"
       : "hsl(138 70% 22%)";
 
@@ -152,7 +152,7 @@ export function SidebarPreviewDialog({
           <DialogTitle>Sidebar Preview</DialogTitle>
           <DialogDescription>
             {organizationName} ·{" "}
-            <span className="capitalize">{stakeholderType}</span>
+            <span className="capitalize">{ownerType}</span>
           </DialogDescription>
         </DialogHeader>
 

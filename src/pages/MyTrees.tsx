@@ -139,7 +139,7 @@ export const MyTrees = () => {
 
       const { data, error } = await supabase
         .from("trees")
-        .select("*, organizations:stakeholder_org_id(name)")
+        .select("*, organizations:owner_org_id(name)")
         .eq("user_id", userData.user.id)
         .order("created_at", { ascending: false });
 

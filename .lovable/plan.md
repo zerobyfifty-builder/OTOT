@@ -1,67 +1,71 @@
+## Status
 
+✅ **Database migration already approved and applied** (this step is done):
+- Table `stakeholder_disbursements` → `owner_disbursements`
+- Columns `stakeholder_org_id` → `owner_org_id` on trees, nurseries, planting_records, community_impact, owner_disbursements
+- Columns `stakeholder_org` → `owner_org` (planting_cost_submissions), `stakeholder_type` → `owner_type` (org_job_role_defaults)
+- Values `'stakeholder'` → `'owner'` in roles, organizations.category, partner_types.category, notifications.recipient_type (+ all CHECK constraints updated)
+- Functions renamed: `is_stakeholder` → `is_owner`, `stakeholder_has_module` → `owner_has_module`, `stakeholder_has_module_permission` → `owner_has_module_permission`, `notify_stakeholder_allocation` → `notify_owner_allocation`
+- Triggers renamed; all ~45 RLS policies recreated against new names
 
-## Organization Settings + Org Users Module — Revised
+The three sub-types (Institutional, Plantation, Technology) and all other roles (admin, super_admin, lodge, tourist, institutional_partner, business_partner, travel_agent) are unchanged.
 
-Adding role taxonomy split by stakeholder type. All other plan items remain unchanged.
+## What remains to implement
 
-### Updated section: Job roles by stakeholder type
+### 1. Edge function
+- Rename folder `supabase/functions/create-stakeholder-user/` → `create-owner-user/`
+- Update the function body (table refs are unchanged; only literal strings/role lookups need `'owner'`)
+- Update all frontend callers of `supabase.functions.invoke('create-stakeholder-user', …)` → `'create-owner-user'`
+- Delete the old function from Supabase
 
-Roles are now scoped to the organization's **stakeholder category** (`organizations.category` / sub-type per `mem://stakeholder/taxonomy-and-inheritance`).
+### 2. Frontend folders & files
+Rename (preserving git history via `git mv`):
+- `src/components/stakeholder/` → `src/components/owner/`
+- `src/pages/stakeholder/` → `src/pages/owner/`
+- Files: `Stakeholder*.tsx`, `StakeholderSidebar.tsx`, `useOrgStakeholderType.ts` → `useOrgOwnerType.ts`, `useStakeholder*.ts` → `useOwner*.ts`, etc.
+- Update every import path
 
-**Plantation stakeholders — 8 specialised roles**
+### 3. Routes (no legacy redirects — per your direction)
+In `src/App.tsx`:
+- `/stakeholder/*` → `/owner/*`
+- `/admin/stakeholders` → `/admin/owners`
+- `/admin/stakeholders/:id` → `/admin/owners/:id`
+- Update every `navigate(...)`, `<Link to=...>`, and `<Navigate to=...>` site-wide
 
-| Key | Label |
-|---|---|
-| `field_ops` | Field Ops |
-| `expert` | Expert |
-| `operations_manager` | Operations Manager |
-| `project_manager` | Project Manager |
-| `community_coordinator` | Community Coordinator |
-| `impact_analyst` | Impact Analyst |
-| `finance` | Finance |
-| `org_admin` | Admin |
+### 4. Code identifiers (find/replace, case-preserving)
+- `stakeholder_org_id` → `owner_org_id` (all Supabase queries in src/)
+- `stakeholder_disbursements` table refs → `owner_disbursements`
+- `is_stakeholder` RPC → `is_owner`; same for `stakeholder_has_module*` → `owner_has_module*`
+- Hooks/types/vars: `stakeholderType` → `ownerType`, `useStakeholder…` → `useOwner…`, `isStakeholder` → `isOwner`
+- Role checks comparing to `'stakeholder'` string → `'owner'`
+- `recipient_type === 'stakeholder'` → `'owner'`
+- `category === 'stakeholder'` → `'owner'`
 
-**Institutional / Technology / other stakeholders — 4 generic roles**
+### 5. UI copy (every visible string)
+"Stakeholder" → "Owner", "Stakeholders" → "Owners", "stakeholder" → "owner" in:
+- Page titles, breadcrumbs, headings, sidebar labels, dialog titles, tooltips, toasts, alt text, empty states, table headers, button labels, descriptions, helper text, placeholders
+- Activity log message templates
+- PDF/CSV export labels
+- Modules registry (`StakeholderModules.tsx` → `OwnerModules.tsx`), permission sheets, settings pages
+- Admin pages, owner portal pages, institutional pages that mention stakeholders
 
-| Key | Label |
-|---|---|
-| `org_admin` | Admin |
-| `finance` | Finance |
-| `project_manager` | Project Manager |
-| `user` | User |
+### 6. Memory & docs
+- Update `mem://index.md` core rule about "stakeholder" terminology
+- Rename memory files referencing stakeholder (`mem://stakeholder/*`, `mem://ui/stakeholder-management-actions`, `mem://features/stakeholder-portal-ui`, `mem://style/stakeholder-financial-ui-standards`, `mem://arch/stakeholder-role-logic`) → `mem://owner/*` equivalents and update index links
 
-The `org_job_role` enum holds the **union** of all keys (`field_ops`, `expert`, `operations_manager`, `project_manager`, `community_coordinator`, `impact_analyst`, `finance`, `org_admin`, `user`). The Invite User dialog filters the dropdown by the inviting org's stakeholder type.
+### 7. Verify
+- `rg -i 'stakeholder' src supabase` must return **zero hits** (except types.ts which Supabase auto-regenerates after migration — already done)
+- Build passes
+- Spot-check: sidebar shows "Owners", `/owner/dashboard` loads, admin "Owner Modules" page works, user-permissions sheet works, allocation trigger fires on tree insert
 
-### Updated section: Default permission templates
+## Technical notes
+- Supabase's `src/integrations/supabase/types.ts` regenerated automatically after the DB migration — no manual edit needed
+- Edge function changes auto-deploy
+- No data loss; FK constraints preserved (renamed columns keep their constraints)
+- Roles row updated in-place: existing users with role_id pointing at the old row keep their access (the row is the same id, only `name`/`display_name`/`role_category` changed)
 
-`org_job_role_defaults` now keyed by `(stakeholder_type, job_role)` so the same role key (e.g. `project_manager`) can have different defaults per org type.
-
-| Stakeholder type | Role | Default modules | Default sub-features |
-|---|---|---|---|
-| Plantation | (8 roles as previously specified) | … | … |
-| Institutional / Technology | Admin | All assigned org modules | All |
-| " | Finance | Financial, Payment Mgmt, Planting Costs | — |
-| " | Project Manager | Dashboard, Trip Mgmt, Tree Orders, Analytics, Reports | All sliders (read) |
-| " | User | Dashboard, Tree Orders (read) | — |
-
-### Updated section: Invite dialog behaviour
-
-- On open, hook resolves the current org's stakeholder type via `organizations.category` / sub-type.
-- Role dropdown options are filtered: Plantation orgs see all 8; others see the 4 generic roles.
-- Validation rejects role keys not allowed for the org type (server-side check in `org-invite-user`).
-
-### Migration delta (additive)
-
-- `org_job_role` enum: include `user` in addition to the previously listed keys.
-- `org_job_role_defaults` table: add `stakeholder_type text not null` column; PK = `(stakeholder_type, job_role)`.
-- Seed rows for both Plantation (8) and Generic (4) defaults.
-
-### Files affected (delta)
-
-- `src/components/stakeholder/settings/users/InviteUserDialog.tsx` — filter role options by stakeholder type.
-- `src/components/stakeholder/settings/users/UserPermissionsSheet.tsx` — labels/defaults per type.
-- `src/hooks/useOrgStakeholderType.ts` (new) — returns `'plantation' | 'institutional' | 'technology' | 'other'`.
-- `supabase/functions/org-invite-user/index.ts` — validate role ↔ stakeholder type.
-
-All other sections of the previously approved plan (tabbed shell, Users listing, Manage Permissions sheet, module gating, Tree Orders sub-feature enforcement, build order) are unchanged.
-
+## Out of scope (intentionally unchanged)
+- Sub-type names ("Plantation Partner", "Institutional Partner", "Technology Partner") — these are owner sub-types, not the word "stakeholder"
+- Other roles (admin, super_admin, lodge, tourist, institutional_partner, business_partner, travel_agent)
+- Historical activity log rows already written with the word "stakeholder" — left as-is (audit trail)
+- Old `/stakeholder/*` URL redirects — **not added**, per your instruction

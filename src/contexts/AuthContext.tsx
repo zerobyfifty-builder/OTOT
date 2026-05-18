@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             userId: session.user.id,
             action_type: 'login',
             resource_type: 'auth',
-            description: 'Signed in to stakeholder portal',
+            description: 'Signed in to owner portal',
             metadata: { event },
           });
         }
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userId: user.id,
         action_type: 'logout',
         resource_type: 'auth',
-        description: 'Signed out of stakeholder portal',
+        description: 'Signed out of owner portal',
       });
     }
     await supabase.auth.signOut();

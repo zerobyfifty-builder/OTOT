@@ -338,7 +338,7 @@ export const TreePurchase = () => {
           payment_date: new Date().toISOString(),
           payment_method: paymentMethod,
           transaction_reference: paymentReference,
-          plantation_partner_id: insertedTrees[0].stakeholder_org_id || null,
+          plantation_partner_id: insertedTrees[0].owner_org_id || null,
           status: 'contribution_confirmed',
         } as any)
         .select('contribution_id')

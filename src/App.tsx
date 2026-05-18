@@ -19,7 +19,7 @@ import { LodgeRoute } from "@/components/auth/LodgeRoute";
 import { AgentRoute } from "@/components/auth/AgentRoute";
 import { BusinessPartnerRoute } from "@/components/auth/BusinessPartnerRoute";
 import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
-import { StakeholderRoute } from "@/components/auth/StakeholderRoute";
+import { OwnerRoute } from "@/components/auth/OwnerRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
@@ -80,43 +80,43 @@ import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
 
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
-import { StakeholderSidebar } from "@/components/stakeholder/StakeholderSidebar";
+import { OwnerSidebar } from "@/components/owner/OwnerSidebar";
 import TravelAgentsManagement from "@/pages/admin/TravelAgentsManagement";
 import AgentTicketsOverview from "@/pages/admin/AgentTicketsOverview";
-import AllStakeholders from "@/pages/admin/AllStakeholders";
-import CreateStakeholder from "@/pages/admin/CreateStakeholder";
-import StakeholderModules from "@/pages/admin/StakeholderModules";
-import StakeholderLogs from "@/pages/admin/StakeholderLogs";
+import AllOwners from "@/pages/admin/AllOwners";
+import CreateOwner from "@/pages/admin/CreateOwner";
+import OwnerModules from "@/pages/admin/OwnerModules";
+import OwnerLogs from "@/pages/admin/OwnerLogs";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
 import { AgentTickets } from "@/pages/agent/AgentTickets";
 import { AgentReimbursements } from "@/pages/agent/AgentReimbursements";
 import { AgentHelp } from "@/pages/agent/AgentHelp";
-import { StakeholderDashboard } from "@/pages/stakeholder/StakeholderDashboard";
-import { StakeholderNurseries } from "@/pages/stakeholder/StakeholderNurseries";
-import { StakeholderPlanting } from "@/pages/stakeholder/StakeholderPlanting";
-import { StakeholderMonitoring } from "@/pages/stakeholder/StakeholderMonitoring";
-import { StakeholderFinancial } from "@/pages/stakeholder/StakeholderFinancial";
-import { StakeholderOutcomes } from "@/pages/stakeholder/StakeholderOutcomes";
-import { StakeholderAdmin } from "@/pages/stakeholder/StakeholderAdmin";
-import { OrganizationSettings } from "@/pages/stakeholder/OrganizationSettings";
-import { StakeholderOrders } from "@/pages/stakeholder/StakeholderOrders";
-import { StakeholderImpact } from "@/pages/stakeholder/StakeholderImpact";
-import { StakeholderImpactInsights } from "@/pages/stakeholder/StakeholderImpactInsights";
+import { OwnerDashboard } from "@/pages/owner/OwnerDashboard";
+import { OwnerNurseries } from "@/pages/owner/OwnerNurseries";
+import { OwnerPlanting } from "@/pages/owner/OwnerPlanting";
+import { OwnerMonitoring } from "@/pages/owner/OwnerMonitoring";
+import { OwnerFinancial } from "@/pages/owner/OwnerFinancial";
+import { OwnerOutcomes } from "@/pages/owner/OwnerOutcomes";
+import { OwnerAdmin } from "@/pages/owner/OwnerAdmin";
+import { OrganizationSettings } from "@/pages/owner/OrganizationSettings";
+import { OwnerOrders } from "@/pages/owner/OwnerOrders";
+import { OwnerImpact } from "@/pages/owner/OwnerImpact";
+import { OwnerImpactInsights } from "@/pages/owner/OwnerImpactInsights";
 import InstitutionalDisbursements from "@/pages/institutional/InstitutionalDisbursements";
-import StakeholderTravelAgents from "@/pages/stakeholder/StakeholderTravelAgents";
-import StakeholderTreeManagement from "@/pages/stakeholder/StakeholderTreeManagement";
-import StakeholderTripManagement from "@/pages/stakeholder/StakeholderTripManagement";
-import StakeholderAnalytics from "@/pages/stakeholder/StakeholderAnalytics";
-import StakeholderPayments from "@/pages/stakeholder/StakeholderPayments";
-import { StakeholderForestLocations } from "@/pages/stakeholder/StakeholderForestLocations";
-import { StakeholderMdmSpecies } from "@/pages/stakeholder/StakeholderMdmSpecies";
-import { StakeholderMdmNurseries } from "@/pages/stakeholder/StakeholderMdmNurseries";
-import { StakeholderMdmPlanters } from "@/pages/stakeholder/StakeholderMdmPlanters";
-import { StakeholderMdmSequestration } from "@/pages/stakeholder/StakeholderMdmSequestration";
+import OwnerTravelAgents from "@/pages/owner/OwnerTravelAgents";
+import OwnerTreeManagement from "@/pages/owner/OwnerTreeManagement";
+import OwnerTripManagement from "@/pages/owner/OwnerTripManagement";
+import OwnerAnalytics from "@/pages/owner/OwnerAnalytics";
+import OwnerPayments from "@/pages/owner/OwnerPayments";
+import { OwnerForestLocations } from "@/pages/owner/OwnerForestLocations";
+import { OwnerMdmSpecies } from "@/pages/owner/OwnerMdmSpecies";
+import { OwnerMdmNurseries } from "@/pages/owner/OwnerMdmNurseries";
+import { OwnerMdmPlanters } from "@/pages/owner/OwnerMdmPlanters";
+import { OwnerMdmSequestration } from "@/pages/owner/OwnerMdmSequestration";
 import WalletSettings from "@/pages/admin/WalletSettings";
-import { TreeOperations } from "@/pages/stakeholder/TreeOperations";
+import { TreeOperations } from "@/pages/owner/TreeOperations";
 import PlantingCostsConfig from "@/pages/admin/PlantingCostsConfig";
 import ContributionTierSettings from "@/pages/admin/ContributionTierSettings";
 import NotFound from "./pages/NotFound";
@@ -188,10 +188,10 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
   </SidebarProvider>
 );
 
-const StakeholderLayout = ({ children }: { children: React.ReactNode }) => (
+const OwnerLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
-      <StakeholderSidebar />
+      <OwnerSidebar />
       <main className="flex-1 overflow-auto bg-background">
         {children}
       </main>
@@ -459,32 +459,32 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
-            {/* Stakeholder admin routes */}
-            <Route path="/admin/stakeholders" element={
+            {/* Owner admin routes */}
+            <Route path="/admin/owners" element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <AllStakeholders />
+                  <AllOwners />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
-            <Route path="/admin/stakeholders/create" element={
+            <Route path="/admin/owners/create" element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <CreateStakeholder />
+                  <CreateOwner />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
-            <Route path="/admin/stakeholders/modules" element={
+            <Route path="/admin/owners/modules" element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <StakeholderModules />
+                  <OwnerModules />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
-            <Route path="/admin/stakeholders/logs" element={
+            <Route path="/admin/owners/logs" element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <StakeholderLogs />
+                  <OwnerLogs />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
@@ -512,78 +512,78 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
-            {/* Stakeholder Portal routes */}
-            <Route path="/stakeholder/dashboard" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderDashboard /></StakeholderLayout></StakeholderRoute>
+            {/* Owner Portal routes */}
+            <Route path="/owner/dashboard" element={
+              <OwnerRoute><OwnerLayout><OwnerDashboard /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/orders" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderOrders /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/orders" element={
+              <OwnerRoute><OwnerLayout><OwnerOrders /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/impact" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderImpact /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/impact" element={
+              <OwnerRoute><OwnerLayout><OwnerImpact /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/impact-insights" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderImpactInsights /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/impact-insights" element={
+              <OwnerRoute><OwnerLayout><OwnerImpactInsights /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/nurseries" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderNurseries /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/nurseries" element={
+              <OwnerRoute><OwnerLayout><OwnerNurseries /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/planting" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderPlanting /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/planting" element={
+              <OwnerRoute><OwnerLayout><OwnerPlanting /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/monitoring" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderMonitoring /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/monitoring" element={
+              <OwnerRoute><OwnerLayout><OwnerMonitoring /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/financial" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderFinancial /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/financial" element={
+              <OwnerRoute><OwnerLayout><OwnerFinancial /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/outcomes" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderOutcomes /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/outcomes" element={
+              <OwnerRoute><OwnerLayout><OwnerOutcomes /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/admin" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderAdmin /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/admin" element={
+              <OwnerRoute><OwnerLayout><OwnerAdmin /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/settings" element={
-              <StakeholderRoute><StakeholderLayout><OrganizationSettings /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/settings" element={
+              <OwnerRoute><OwnerLayout><OrganizationSettings /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/travel-agents" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderTravelAgents /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/travel-agents" element={
+              <OwnerRoute><OwnerLayout><OwnerTravelAgents /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/per-tree-insights" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderTreeManagement /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/per-tree-insights" element={
+              <OwnerRoute><OwnerLayout><OwnerTreeManagement /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/tree-management" element={
-              <Navigate to="/stakeholder/per-tree-insights" replace />
+            <Route path="/owner/tree-management" element={
+              <Navigate to="/owner/per-tree-insights" replace />
             } />
-            <Route path="/stakeholder/pre-tree-management" element={
-              <Navigate to="/stakeholder/per-tree-insights" replace />
+            <Route path="/owner/pre-tree-management" element={
+              <Navigate to="/owner/per-tree-insights" replace />
             } />
-            <Route path="/stakeholder/trip-management" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderTripManagement /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/trip-management" element={
+              <OwnerRoute><OwnerLayout><OwnerTripManagement /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/analytics" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderAnalytics /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/analytics" element={
+              <OwnerRoute><OwnerLayout><OwnerAnalytics /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/payments" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderPayments /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/payments" element={
+              <OwnerRoute><OwnerLayout><OwnerPayments /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/locations" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderForestLocations /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/locations" element={
+              <OwnerRoute><OwnerLayout><OwnerForestLocations /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/mdm-species" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderMdmSpecies /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/mdm-species" element={
+              <OwnerRoute><OwnerLayout><OwnerMdmSpecies /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/mdm-nurseries" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderMdmNurseries /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/mdm-nurseries" element={
+              <OwnerRoute><OwnerLayout><OwnerMdmNurseries /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/mdm-planters" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderMdmPlanters /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/mdm-planters" element={
+              <OwnerRoute><OwnerLayout><OwnerMdmPlanters /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/mdm-sequestration" element={
-              <StakeholderRoute><StakeholderLayout><StakeholderMdmSequestration /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/mdm-sequestration" element={
+              <OwnerRoute><OwnerLayout><OwnerMdmSequestration /></OwnerLayout></OwnerRoute>
             } />
-            <Route path="/stakeholder/orders/:contributionId/operations" element={
-              <StakeholderRoute><StakeholderLayout><TreeOperations /></StakeholderLayout></StakeholderRoute>
+            <Route path="/owner/orders/:contributionId/operations" element={
+              <OwnerRoute><OwnerLayout><TreeOperations /></OwnerLayout></OwnerRoute>
             } />
 
             {/* Legacy Admin routes */}
