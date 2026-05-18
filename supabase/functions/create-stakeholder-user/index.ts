@@ -26,16 +26,16 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Get stakeholder role id
+    // Get owner role id
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('roles')
       .select('id')
-      .eq('name', 'stakeholder')
+      .eq('name', 'owner')
       .single()
 
     if (roleError || !roleData) {
       return new Response(
-        JSON.stringify({ error: 'Stakeholder role not found' }),
+        JSON.stringify({ error: 'Owner role not found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

@@ -11,14 +11,14 @@ import { Plus, TreePine, RefreshCw } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export const StakeholderPlanting = () => {
+export const OwnerPlanting = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ block_name: '', beat: '', seedlings_planted: '', planter_name: '', date_planted: '', notes: '' });
 
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -29,7 +29,7 @@ export const StakeholderPlanting = () => {
   const { data: records, isLoading, refetch } = useQuery({
     queryKey: ["plantingRecords", orgId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("planting_records").select("*").eq("stakeholder_org_id", orgId!).order("date_planted", { ascending: false });
+      const { data, error } = await supabase.from("planting_records").select("*").eq("owner_org_id", orgId!).order("date_planted", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -39,7 +39,7 @@ export const StakeholderPlanting = () => {
   const addMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("planting_records").insert({
-        stakeholder_org_id: orgId!,
+        owner_org_id: orgId!,
         block_name: form.block_name,
         beat: form.beat,
         seedlings_planted: parseInt(form.seedlings_planted) || 0,

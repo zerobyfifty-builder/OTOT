@@ -68,13 +68,13 @@ const menuItems = [
     icon: Trees,
   },
   {
-    title: "Stakeholders",
+    title: "Owners",
     icon: Landmark,
     items: [
-      { title: "All Stakeholders", url: "/admin/stakeholders" },
-      { title: "Create New", url: "/admin/stakeholders/create" },
-      { title: "Module Assignment", url: "/admin/stakeholders/modules" },
-      { title: "Activity Logs", url: "/admin/stakeholders/logs" },
+      { title: "All Owners", url: "/admin/owners" },
+      { title: "Create New", url: "/admin/owners/create" },
+      { title: "Module Assignment", url: "/admin/owners/modules" },
+      { title: "Activity Logs", url: "/admin/owners/logs" },
     ],
   },
   {

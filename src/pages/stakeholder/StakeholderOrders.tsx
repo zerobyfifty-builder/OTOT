@@ -240,7 +240,7 @@ const getContriTypeLabel = (type: string | null): string => {
   return type;
 };
 
-export const StakeholderOrders = () => {
+export const OwnerOrders = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -328,7 +328,7 @@ export const StakeholderOrders = () => {
   const [treePhotoIdx, setTreePhotoIdx] = useState(0);
   
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -337,7 +337,7 @@ export const StakeholderOrders = () => {
   });
 
   const { data: contributions, isLoading, refetch } = useQuery({
-    queryKey: ["stakeholderOrderContributions"],
+    queryKey: ["ownerOrderContributions"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contribution_tracking" as any)
@@ -350,7 +350,7 @@ export const StakeholderOrders = () => {
   });
 
   const { data: trees } = useQuery({
-    queryKey: ["stakeholderOrderTrees"],
+    queryKey: ["ownerOrderTrees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trees")
@@ -363,7 +363,7 @@ export const StakeholderOrders = () => {
   });
 
   const { data: tripsData } = useQuery({
-    queryKey: ["stakeholderOrderTrips", contributions],
+    queryKey: ["ownerOrderTrips", contributions],
     queryFn: async () => {
       const tripIds = [...new Set(contributions?.map(c => c.trip_id).filter(Boolean) || [])];
       if (tripIds.length === 0) return {};
@@ -379,12 +379,12 @@ export const StakeholderOrders = () => {
   const trips = tripsData || {};
 
   const { data: disbursements } = useQuery({
-    queryKey: ["stakeholderDisbursementTotal", orgId],
+    queryKey: ["ownerDisbursementTotal", orgId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("stakeholder_disbursements")
+        .from("owner_disbursements")
         .select("amount, status")
-        .eq("stakeholder_org_id", orgId!);
+        .eq("owner_org_id", orgId!);
       if (error) throw error;
       return data;
     },
@@ -683,7 +683,7 @@ export const StakeholderOrders = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+      queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
       toast.success("Planting status updated");
     },
     onError: () => toast.error("Failed to update status"),
@@ -698,7 +698,7 @@ export const StakeholderOrders = () => {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+      queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
       toast.success(`Updated ${variables.treeIds.length} tree(s) to ${STATUS_LABELS[variables.status]}`);
       setBulkSelections({});
     },
@@ -836,9 +836,9 @@ export const StakeholderOrders = () => {
   const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
   const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
 
-  // Check if current stakeholder is plantation type (not institutional)
+  // Check if current owner is plantation type (not institutional)
   const { data: isPlantationType } = useQuery({
-    queryKey: ["isPlantationStakeholder", orgId],
+    queryKey: ["isPlantationOwner", orgId],
     queryFn: async () => {
       if (!orgId) return false;
       const { data: org } = await supabase
@@ -982,7 +982,7 @@ export const StakeholderOrders = () => {
         .insert(records);
       if (insertError) throw insertError;
 
-      queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+      queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
       setBulkSelections({});
       toast.success(`Reverted ${treeIds.length} tree(s) to ${STATUS_LABELS[toStatus]}. Forward records deleted.`);
     } catch (err: any) {
@@ -1230,7 +1230,7 @@ export const StakeholderOrders = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {canTreeOperations && (
-                                <DropdownMenuItem onClick={() => navigate(`/stakeholder/orders/${group.contribution_id}/operations`)}>
+                                <DropdownMenuItem onClick={() => navigate(`/owner/orders/${group.contribution_id}/operations`)}>
                                   <Eye className="h-3.5 w-3.5 mr-2" />
                                   Tree Operations
                                 </DropdownMenuItem>
@@ -1825,7 +1825,7 @@ export const StakeholderOrders = () => {
           if (insertError) throw insertError;
 
           // 3. Refresh data
-          queryClient.invalidateQueries({ queryKey: ["stakeholderOrderTrees"] });
+          queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
           setBulkSelections({});
           toast.success(`Updated ${req.treeIds.length} tree(s) to ${STATUS_LABELS[req.toStatus]}`);
         }}

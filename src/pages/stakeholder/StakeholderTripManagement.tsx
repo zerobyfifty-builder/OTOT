@@ -120,7 +120,7 @@ const DateTimeCell = ({ value }: { value: string | null }) => {
   } catch { return <span>-</span>; }
 };
 
-export function StakeholderTripManagement() {
+export function OwnerTripManagement() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("trip_management");
   const [trips, setTrips] = useState<Trip[]>([]);
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
@@ -692,4 +692,4 @@ export function StakeholderTripManagement() {
   );
 }
 
-export default StakeholderTripManagement;
+export default OwnerTripManagement;

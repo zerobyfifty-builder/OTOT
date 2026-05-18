@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       organization_id, email, password, first_name, last_name, position,
-      job_role, personal_message, stakeholder_type,
+      job_role, personal_message, owner_type,
     } = body || {};
 
     if (!organization_id || !email || !job_role) {
@@ -37,9 +37,9 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowed = stakeholder_type === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
+    const allowed = owner_type === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
     if (!allowed.has(job_role)) {
-      return new Response(JSON.stringify({ error: `Role '${job_role}' is not allowed for ${stakeholder_type} organizations` }),
+      return new Response(JSON.stringify({ error: `Role '${job_role}' is not allowed for ${owner_type} organizations` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -104,11 +104,11 @@ Deno.serve(async (req) => {
     if (insertErr) throw insertErr;
 
     // Seed permissions from role defaults
-    const bucket = stakeholder_type === "plantation" ? "plantation" : "generic";
+    const bucket = owner_type === "plantation" ? "plantation" : "generic";
     const { data: defaults } = await admin
       .from("org_job_role_defaults")
       .select("module_name, permissions, sub_features")
-      .eq("stakeholder_type", bucket)
+      .eq("owner_type", bucket)
       .eq("job_role", job_role);
 
     const seedRows = (defaults || [])
@@ -126,14 +126,14 @@ Deno.serve(async (req) => {
         .upsert(seedRows, { onConflict: "org_user_id,module_name" });
     }
 
-    // Ensure public.users row reflects stakeholder role + organization so login routes to the correct portal
-    const { data: stakeholderRole } = await admin
-      .from("roles").select("id").eq("name", "stakeholder").maybeSingle();
-    if (stakeholderRole?.id) {
+    // Ensure public.users row reflects owner role + organization so login routes to the correct portal
+    const { data: ownerRole } = await admin
+      .from("roles").select("id").eq("name", "owner").maybeSingle();
+    if (ownerRole?.id) {
       await admin.from("users").upsert({
         user_id: userId,
         email,
-        role_id: stakeholderRole.id,
+        role_id: ownerRole.id,
         organization_id,
       }, { onConflict: "user_id" });
     }

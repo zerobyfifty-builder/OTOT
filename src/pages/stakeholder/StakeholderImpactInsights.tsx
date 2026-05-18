@@ -9,11 +9,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useImpactInsights, aggregateMetrics, type Period } from "@/hooks/useImpactInsights";
-import { HeroKpis } from "@/components/stakeholder/impact-insights/HeroKpis";
-import { CarbonTab } from "@/components/stakeholder/impact-insights/CarbonTab";
-import { EcosystemTab } from "@/components/stakeholder/impact-insights/EcosystemTab";
-import { CommunityTab } from "@/components/stakeholder/impact-insights/CommunityTab";
-import { StoriesFeed } from "@/components/stakeholder/impact-insights/StoriesFeed";
+import { HeroKpis } from "@/components/owner/impact-insights/HeroKpis";
+import { CarbonTab } from "@/components/owner/impact-insights/CarbonTab";
+import { EcosystemTab } from "@/components/owner/impact-insights/EcosystemTab";
+import { CommunityTab } from "@/components/owner/impact-insights/CommunityTab";
+import { StoriesFeed } from "@/components/owner/impact-insights/StoriesFeed";
 import { exportImpactCsv, exportImpactPdf } from "@/utils/impactInsightsExport";
 
 const periodLabels: Record<Period, string> = {
@@ -23,7 +23,7 @@ const periodLabels: Record<Period, string> = {
   all: "All time",
 };
 
-export const StakeholderImpactInsights = () => {
+export const OwnerImpactInsights = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("30d");
@@ -84,7 +84,7 @@ export const StakeholderImpactInsights = () => {
             Ask a super-admin to assign the <span className="font-mono">impact_insights</span> module to your organisation
             from the Module Assignment page.
           </p>
-          <Button variant="outline" onClick={() => navigate("/stakeholder/dashboard")}>Back to Dashboard</Button>
+          <Button variant="outline" onClick={() => navigate("/owner/dashboard")}>Back to Dashboard</Button>
         </Card>
       </div>
     );
@@ -264,4 +264,4 @@ const StoriesFeedPreview = ({
   );
 };
 
-export default StakeholderImpactInsights;
+export default OwnerImpactInsights;

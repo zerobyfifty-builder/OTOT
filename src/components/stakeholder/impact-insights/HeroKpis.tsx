@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { TreePine, Cloud, Users, Leaf } from "lucide-react";
-import { useCountUp } from "@/components/stakeholder/dashboard/useCountUp";
+import { useCountUp } from "@/components/owner/dashboard/useCountUp";
 
 interface Props {
   treesPlanted: number;

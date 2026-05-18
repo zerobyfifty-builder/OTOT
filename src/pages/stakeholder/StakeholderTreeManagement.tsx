@@ -104,7 +104,7 @@ const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
-export function StakeholderTreeManagement() {
+export function OwnerTreeManagement() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("tree_management");
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -900,4 +900,4 @@ export function StakeholderTreeManagement() {
   );
 }
 
-export default StakeholderTreeManagement;
+export default OwnerTreeManagement;

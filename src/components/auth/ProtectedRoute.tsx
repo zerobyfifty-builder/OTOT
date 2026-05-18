@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 /**
  * ProtectedRoute guards tourist/end-user pages.
  * It checks the user's role and redirects non-tourist users
- * (institutional partners, stakeholders, super admins, etc.)
+ * (institutional partners, owners, super admins, etc.)
  * to their correct portal dashboard.
  */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
@@ -41,8 +41,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           case 'business_partner':
             navigate('/lodge/dashboard', { replace: true });
             return;
-          case 'stakeholder':
-            navigate('/stakeholder/dashboard', { replace: true });
+          case 'owner':
+            navigate('/owner/dashboard', { replace: true });
             return;
           case 'travel_agent':
             navigate('/agent/dashboard', { replace: true });

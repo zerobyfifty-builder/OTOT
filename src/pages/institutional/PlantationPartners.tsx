@@ -33,7 +33,7 @@ export default function PlantationPartners() {
           onboarded_date,
           partner_types(name, category)
         `)
-        .in("category", ["stakeholder", "business"])
+        .in("category", ["owner", "business"])
         .eq("archived", false)
         .order("created_at", { ascending: false });
 
@@ -48,13 +48,13 @@ export default function PlantationPartners() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trees")
-        .select("stakeholder_org_id, num_trees, planting_status")
-        .not("stakeholder_org_id", "is", null);
+        .select("owner_org_id, num_trees, planting_status")
+        .not("owner_org_id", "is", null);
       if (error) throw error;
       
       const grouped: Record<string, { total: number; planted: number }> = {};
       data?.forEach(t => {
-        const key = t.stakeholder_org_id!;
+        const key = t.owner_org_id!;
         if (!grouped[key]) grouped[key] = { total: 0, planted: 0 };
         grouped[key].total += t.num_trees;
         if (t.planting_status === 'planted' || t.planting_status === 'monitored') {
@@ -126,7 +126,7 @@ export default function PlantationPartners() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {partner.category === 'stakeholder' ? 'Plantation Partner' : partner.partner_types?.name || 'Business Partner'}
+                          {partner.category === 'owner' ? 'Plantation Partner' : partner.partner_types?.name || 'Business Partner'}
                         </Badge>
                       </TableCell>
                       <TableCell>

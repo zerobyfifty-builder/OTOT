@@ -44,7 +44,7 @@ const emptyForm: SpeciesFormData = {
   description: '',
 };
 
-export function StakeholderMdmSpecies() {
+export function OwnerMdmSpecies() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');

@@ -12,7 +12,7 @@ import { Settings2, Globe, Lock, Eye } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SidebarPreviewDialog } from "@/components/admin/SidebarPreviewDialog";
-import type { StakeholderType } from "@/hooks/useOrgStakeholderType";
+import type { OwnerType } from "@/hooks/useOrgOwnerType";
 
 const PERMISSIONS = ["read", "write", "edit", "delete"] as const;
 const PERMISSION_LABELS: Record<string, string> = {
@@ -36,7 +36,7 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
   "Outcomes": "Environmental Impact",
 };
 
-// Modules permanently removed from stakeholder allocation
+// Modules permanently removed from owner allocation
 const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management"];
 
 function getDefaultPermissions(accessType: string): string[] {
@@ -44,17 +44,17 @@ function getDefaultPermissions(accessType: string): string[] {
   return ["read"];
 }
 
-export default function StakeholderModules() {
+export default function OwnerModules() {
   const queryClient = useQueryClient();
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
 
-  const { data: stakeholders, isLoading: loadingOrgs } = useQuery({
-    queryKey: ["stakeholderOrgs"],
+  const { data: owners, isLoading: loadingOrgs } = useQuery({
+    queryKey: ["ownerOrgs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, is_active, category, partner_types(name, category)")
-        .eq("category", "stakeholder")
+        .eq("category", "owner")
         .eq("archived", false);
       if (error) throw error;
       return data || [];
@@ -85,7 +85,7 @@ export default function StakeholderModules() {
     return orgModules?.find(om => om.organization_id === orgId && om.module_id === moduleId && om.is_active);
   };
 
-  const getStakeholderType = (org: any): StakeholderType => {
+  const getOwnerType = (org: any): OwnerType => {
     const ptName = (org?.partner_types?.name || "").toLowerCase();
     const ptCat = (org?.partner_types?.category || "").toLowerCase();
     const orgCat = (org?.category || "").toLowerCase();
@@ -105,7 +105,7 @@ export default function StakeholderModules() {
       .filter(Boolean) as string[];
   };
 
-  const previewOrg = stakeholders?.find((s: any) => s.id === previewOrgId) || null;
+  const previewOrg = owners?.find((s: any) => s.id === previewOrgId) || null;
 
   const toggleModule = async (orgId: string, moduleId: string, accessType: string, currentlyEnabled: boolean) => {
     try {
@@ -155,16 +155,16 @@ export default function StakeholderModules() {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-admin-primary">Stakeholder Modules</h1>
-        <p className="text-muted-foreground mt-1">Assign modules and configure permissions for each stakeholder</p>
+        <h1 className="text-3xl font-bold text-admin-primary">Owner Modules</h1>
+        <p className="text-muted-foreground mt-1">Assign modules and configure permissions for each owner</p>
       </div>
 
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
-      ) : !stakeholders?.length ? (
+      ) : !owners?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">No stakeholders found. Create a stakeholder first.</p>
+            <p className="text-muted-foreground">No owners found. Create a owner first.</p>
           </CardContent>
         </Card>
       ) : (
@@ -174,7 +174,7 @@ export default function StakeholderModules() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[220px]">Module</TableHead>
-                  {stakeholders.map(s => (
+                  {owners.map(s => (
                     <TableHead key={s.id} className="text-center min-w-[160px]">
                       <div className="flex flex-col items-center gap-1">
                         <span>{s.name}</span>
@@ -212,7 +212,7 @@ export default function StakeholderModules() {
                           </Badge>
                         </div>
                       </TableCell>
-                      {stakeholders.map(s => {
+                      {owners.map(s => {
                         const om = getOrgModule(s.id, m.id);
                         const enabled = !!om;
                         const perms = (om?.permissions as string[]) || [];
@@ -270,7 +270,7 @@ export default function StakeholderModules() {
         open={!!previewOrg}
         onOpenChange={(o) => !o && setPreviewOrgId(null)}
         organizationName={previewOrg?.name || ""}
-        stakeholderType={previewOrg ? getStakeholderType(previewOrg) : "other"}
+        ownerType={previewOrg ? getOwnerType(previewOrg) : "other"}
         assignedModuleNames={previewOrg ? getAssignedModuleNames(previewOrg.id) : []}
       />
     </div>

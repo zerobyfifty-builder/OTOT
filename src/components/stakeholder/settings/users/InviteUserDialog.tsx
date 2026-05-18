@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useOrgStakeholderType, getRolesForStakeholderType } from "@/hooks/useOrgStakeholderType";
+import { useOrgOwnerType, getRolesForOwnerType } from "@/hooks/useOrgOwnerType";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -14,9 +14,9 @@ import { Eye, EyeOff } from "lucide-react";
 interface Props { open: boolean; onOpenChange: (o: boolean) => void; }
 
 export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
   const qc = useQueryClient();
-  const roles = getRolesForStakeholderType(orgCtx?.stakeholderType || "other");
+  const roles = getRolesForOwnerType(orgCtx?.ownerType || "other");
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -55,7 +55,7 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           position: position.trim() || null,
           job_role: jobRole,
           personal_message: message.trim() || null,
-          stakeholder_type: orgCtx.stakeholderType,
+          owner_type: orgCtx.ownerType,
         },
       });
       if (error) throw error;

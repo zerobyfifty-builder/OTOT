@@ -1,14 +1,14 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GeneralTab } from "@/components/stakeholder/settings/GeneralTab";
-import { OrganizationTab } from "@/components/stakeholder/settings/OrganizationTab";
-import { UsersTab } from "@/components/stakeholder/settings/UsersTab";
-import { NotificationsTab } from "@/components/stakeholder/settings/NotificationsTab";
+import { GeneralTab } from "@/components/owner/settings/GeneralTab";
+import { OrganizationTab } from "@/components/owner/settings/OrganizationTab";
+import { UsersTab } from "@/components/owner/settings/UsersTab";
+import { NotificationsTab } from "@/components/owner/settings/NotificationsTab";
 import { PlantingCostsTab } from "@/components/settings/PlantingCostsTab";
 import { PlantingCostsKTBTab } from "@/components/settings/PlantingCostsKTBTab";
-import { LogsTab } from "@/components/stakeholder/settings/LogsTab";
-import { useOrgStakeholderType } from "@/hooks/useOrgStakeholderType";
+import { LogsTab } from "@/components/owner/settings/LogsTab";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, Users, Building2, DollarSign, Bell, ScrollText } from "lucide-react";
@@ -16,10 +16,10 @@ import { User, Users, Building2, DollarSign, Bell, ScrollText } from "lucide-rea
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "general";
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
   const { data: isOrgAdmin } = useIsOrgAdmin();
 
-  const isInstitutional = orgCtx?.stakeholderType === "institutional";
+  const isInstitutional = orgCtx?.ownerType === "institutional";
 
   const setTab = (t: string) => setSearchParams({ tab: t }, { replace: true });
 

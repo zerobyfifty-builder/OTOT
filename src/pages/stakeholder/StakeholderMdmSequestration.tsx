@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export function StakeholderMdmSequestration() {
+export function OwnerMdmSequestration() {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -31,4 +31,4 @@ export function StakeholderMdmSequestration() {
   return <SequestrationRatesTab readOnly={!isAdmin} />;
 }
 
-export default StakeholderMdmSequestration;
+export default OwnerMdmSequestration;

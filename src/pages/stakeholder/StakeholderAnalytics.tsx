@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const COLORS = ["hsl(138, 70%, 35%)", "hsl(200, 70%, 50%)", "hsl(45, 90%, 55%)", "hsl(340, 70%, 50%)", "hsl(270, 60%, 55%)"];
 
-export function StakeholderAnalytics() {
+export function OwnerAnalytics() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("analytics");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -194,4 +194,4 @@ export function StakeholderAnalytics() {
   );
 }
 
-export default StakeholderAnalytics;
+export default OwnerAnalytics;

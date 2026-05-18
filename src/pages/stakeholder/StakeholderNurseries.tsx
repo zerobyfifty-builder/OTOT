@@ -41,7 +41,7 @@ const emptyForm: NurseryForm = {
 
 type SheetMode = 'add' | 'view' | 'edit';
 
-export const StakeholderNurseries = () => {
+export const OwnerNurseries = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -53,7 +53,7 @@ export const StakeholderNurseries = () => {
   const [statusTarget, setStatusTarget] = useState<{ id: string; name: string; is_active: boolean } | null>(null);
 
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -64,7 +64,7 @@ export const StakeholderNurseries = () => {
   const { data: nurseries, isLoading, refetch } = useQuery({
     queryKey: ["nurseries", orgId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("nurseries").select("*").eq("stakeholder_org_id", orgId!).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("nurseries").select("*").eq("owner_org_id", orgId!).order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -150,7 +150,7 @@ export const StakeholderNurseries = () => {
   const addMutation = useMutation({
     mutationFn: async () => {
       const { data: nursery, error } = await supabase.from("nurseries").insert({
-        stakeholder_org_id: orgId!,
+        owner_org_id: orgId!,
         cbo_name: form.cbo_name,
         block_name: form.block_name,
         location: form.location,

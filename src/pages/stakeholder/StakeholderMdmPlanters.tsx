@@ -48,7 +48,7 @@ const emptyForm: PlanterForm = {
   date_registered: new Date().toISOString().split('T')[0], photo_url: '', notes: '',
 };
 
-export function StakeholderMdmPlanters() {
+export function OwnerMdmPlanters() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -100,7 +100,7 @@ export function StakeholderMdmPlanters() {
   const { data: nurseries = [] } = useQuery({
     queryKey: ['mdm_nurseries_for_planters', orgId],
     queryFn: async () => {
-      const { data } = await supabase.from('nurseries').select('id, cbo_name, block_name').eq('stakeholder_org_id', orgId!).eq('is_active', true).order('cbo_name');
+      const { data } = await supabase.from('nurseries').select('id, cbo_name, block_name').eq('owner_org_id', orgId!).eq('is_active', true).order('cbo_name');
       return data || [];
     },
     enabled: !!orgId,
@@ -852,4 +852,4 @@ function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url
   );
 }
 
-export default StakeholderMdmPlanters;
+export default OwnerMdmPlanters;

@@ -92,7 +92,7 @@ export const useImpactInsights = (period: Period = "30d") => {
       const { data: trees, error: tErr } = await supabase
         .from("trees")
         .select("contribution_id, status")
-        .eq("stakeholder_org_id", orgId!)
+        .eq("owner_org_id", orgId!)
         .not("contribution_id", "is", null);
       if (tErr) throw tErr;
 
@@ -138,7 +138,7 @@ export const useImpactInsights = (period: Period = "30d") => {
       const reportsQ = supabase
         .from("community_impact")
         .select("*")
-        .eq("stakeholder_org_id", orgId!)
+        .eq("owner_org_id", orgId!)
         .order("reporting_period", { ascending: false });
 
       const filtered = cutoffIso

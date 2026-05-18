@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export const StakeholderMonitoring = () => {
+export const OwnerMonitoring = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
@@ -21,7 +21,7 @@ export const StakeholderMonitoring = () => {
   const [form, setForm] = useState({ measurement_date: '', height_cm: '', survival_count: '', original_count: '', notes: '' });
 
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -32,7 +32,7 @@ export const StakeholderMonitoring = () => {
   const { data: plantings } = useQuery({
     queryKey: ["plantingsForMonitoring", orgId],
     queryFn: async () => {
-      const { data } = await supabase.from("planting_records").select("id, block_name, beat, date_planted").eq("stakeholder_org_id", orgId!);
+      const { data } = await supabase.from("planting_records").select("id, block_name, beat, date_planted").eq("owner_org_id", orgId!);
       return data || [];
     },
     enabled: !!orgId,
@@ -43,10 +43,10 @@ export const StakeholderMonitoring = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("monitoring_records")
-        .select("*, planting_records!inner(block_name, beat, stakeholder_org_id)")
+        .select("*, planting_records!inner(block_name, beat, owner_org_id)")
         .order("measurement_date", { ascending: false });
       if (error) throw error;
-      return data?.filter(r => (r.planting_records as any)?.stakeholder_org_id === orgId) || [];
+      return data?.filter(r => (r.planting_records as any)?.owner_org_id === orgId) || [];
     },
     enabled: !!orgId,
   });

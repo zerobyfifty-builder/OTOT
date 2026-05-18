@@ -13,7 +13,7 @@ import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-export const StakeholderImpact = () => {
+export const OwnerImpact = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export const StakeholderImpact = () => {
   });
 
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -42,7 +42,7 @@ export const StakeholderImpact = () => {
       const { data, error } = await supabase
         .from("community_impact")
         .select("*")
-        .eq("stakeholder_org_id", orgId!)
+        .eq("owner_org_id", orgId!)
         .order("reporting_period", { ascending: false });
       if (error) throw error;
       return data;
@@ -53,7 +53,7 @@ export const StakeholderImpact = () => {
   const addRecord = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("community_impact").insert({
-        stakeholder_org_id: orgId!,
+        owner_org_id: orgId!,
         reporting_period: form.reporting_period,
         families_supported: form.families_supported,
         jobs_created: form.jobs_created,

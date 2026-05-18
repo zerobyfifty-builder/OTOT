@@ -99,7 +99,7 @@ const getNextStatuses = (currentStatus: string) => {
   return [STATUS_SEQUENCE[currentIndex + 1]];
 };
 
-export const StakeholderFinancial = () => {
+export const OwnerFinancial = () => {
   const { user } = useAuth();
   const { logActivity } = useActivityLogger();
   const queryClient = useQueryClient();
@@ -137,7 +137,7 @@ export const StakeholderFinancial = () => {
   });
 
   const { data: userOrg } = useQuery({
-    queryKey: ["stakeholderOrg", user?.id],
+    queryKey: ["ownerOrg", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("users")
@@ -171,7 +171,7 @@ export const StakeholderFinancial = () => {
       const { data } = await supabase
         .from("organizations")
         .select("id, name")
-        .eq("category", "stakeholder")
+        .eq("category", "owner")
         .eq("is_active", true);
       return data || [];
     },
@@ -184,7 +184,7 @@ export const StakeholderFinancial = () => {
 
   const isTechPartner = partnerTypeName === "Tech Partner" || partnerTypeName === "Technology Partner";
 
-  const isPlantationPartner = orgCategory === "stakeholder" && !isKtbUser && !isTechPartner;
+  const isPlantationPartner = orgCategory === "owner" && !isKtbUser && !isTechPartner;
 
   // Fetch trips for Trip ID display
   const { data: tripsMap } = useQuery({

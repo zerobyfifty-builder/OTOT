@@ -78,7 +78,7 @@ export const PlantingCostsTab: React.FC = () => {
       const { data } = await supabase
         .from('planting_cost_submissions')
         .select('*')
-        .eq('stakeholder_org', orgName)
+        .eq('owner_org', orgName)
         .order('submitted_at', { ascending: false });
       return data || [];
     },
@@ -106,7 +106,7 @@ export const PlantingCostsTab: React.FC = () => {
       const { data } = await supabase
         .from('planting_cost_submissions')
         .select('*')
-        .eq('stakeholder_org', orgName)
+        .eq('owner_org', orgName)
         .eq('status', 'returned')
         .order('reviewed_at', { ascending: false })
         .limit(1)
@@ -149,7 +149,7 @@ export const PlantingCostsTab: React.FC = () => {
     mutationFn: async () => {
       const row: Record<string, any> = {
         submitted_by: user!.id,
-        stakeholder_org: orgName,
+        owner_org: orgName,
         status: 'pending_review',
         total_cost_kes: totalKES,
       };

@@ -2,27 +2,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-export type StakeholderType = "plantation" | "institutional" | "technology" | "other";
+export type OwnerType = "plantation" | "institutional" | "technology" | "other";
 
 export interface OrgContext {
   organizationId: string | null;
   organizationName: string | null;
-  stakeholderType: StakeholderType;
+  ownerType: OwnerType;
   /** Bucket used for role-default lookups: 'plantation' | 'generic' */
   defaultsBucket: "plantation" | "generic";
 }
 
-export function useOrgStakeholderType() {
+export function useOrgOwnerType() {
   const { user } = useAuth();
 
   return useQuery<OrgContext>({
-    queryKey: ["orgStakeholderType", user?.id],
+    queryKey: ["orgOwnerType", user?.id],
     queryFn: async () => {
       if (!user) {
         return {
           organizationId: null,
           organizationName: null,
-          stakeholderType: "other" as StakeholderType,
+          ownerType: "other" as OwnerType,
           defaultsBucket: "generic" as const,
         };
       }
@@ -38,7 +38,7 @@ export function useOrgStakeholderType() {
         return {
           organizationId: null,
           organizationName: null,
-          stakeholderType: "other" as StakeholderType,
+          ownerType: "other" as OwnerType,
           defaultsBucket: "generic" as const,
         };
       }
@@ -53,17 +53,17 @@ export function useOrgStakeholderType() {
       const ptName = ((org as any)?.partner_types?.name || "").toLowerCase();
       const orgCategory = (org?.category || "").toLowerCase();
 
-      let stakeholderType: StakeholderType = "other";
+      let ownerType: OwnerType = "other";
       const haystack = `${orgCategory} ${ptCategory} ${ptName}`;
-      if (haystack.includes("plantation")) stakeholderType = "plantation";
-      else if (haystack.includes("institutional") || haystack.includes("ktb")) stakeholderType = "institutional";
-      else if (haystack.includes("technology") || haystack.includes("tech")) stakeholderType = "technology";
+      if (haystack.includes("plantation")) ownerType = "plantation";
+      else if (haystack.includes("institutional") || haystack.includes("ktb")) ownerType = "institutional";
+      else if (haystack.includes("technology") || haystack.includes("tech")) ownerType = "technology";
 
       return {
         organizationId: orgId,
         organizationName: org?.name ?? null,
-        stakeholderType,
-        defaultsBucket: stakeholderType === "plantation" ? "plantation" : "generic",
+        ownerType,
+        defaultsBucket: ownerType === "plantation" ? "plantation" : "generic",
       };
     },
     enabled: !!user,
@@ -90,7 +90,7 @@ export const GENERIC_ROLES = [
   { key: "user", label: "Staff" },
 ] as const;
 
-export function getRolesForStakeholderType(t: StakeholderType) {
+export function getRolesForOwnerType(t: OwnerType) {
   return t === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
 }
 

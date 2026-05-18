@@ -18,7 +18,7 @@ export default function InstitutionalDisbursements() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    stakeholder_org_id: '',
+    owner_org_id: '',
     amount: 0,
     tree_count: 0,
     reference: '',
@@ -27,14 +27,14 @@ export default function InstitutionalDisbursements() {
     disbursement_date: '',
   });
 
-  // Fetch stakeholder organizations
-  const { data: stakeholders } = useQuery({
-    queryKey: ["stakeholderOrgs"],
+  // Fetch owner organizations
+  const { data: owners } = useQuery({
+    queryKey: ["ownerOrgs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name")
-        .eq("category", "stakeholder")
+        .eq("category", "owner")
         .eq("is_active", true)
         .eq("archived", false);
       if (error) throw error;
@@ -47,27 +47,27 @@ export default function InstitutionalDisbursements() {
     queryKey: ["allDisbursements"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("stakeholder_disbursements")
-        .select("*, organizations:stakeholder_org_id(name)")
+        .from("owner_disbursements")
+        .select("*, organizations:owner_org_id(name)")
         .order("disbursement_date", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  // Fetch tree allocations per stakeholder
+  // Fetch tree allocations per owner
   const { data: allocations } = useQuery({
     queryKey: ["treeAllocations"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trees")
-        .select("stakeholder_org_id, num_trees, amount_paid, planting_status")
-        .not("stakeholder_org_id", "is", null);
+        .select("owner_org_id, num_trees, amount_paid, planting_status")
+        .not("owner_org_id", "is", null);
       if (error) throw error;
       
       const grouped: Record<string, { trees: number; amount: number; planted: number }> = {};
       data?.forEach(t => {
-        const key = t.stakeholder_org_id!;
+        const key = t.owner_org_id!;
         if (!grouped[key]) grouped[key] = { trees: 0, amount: 0, planted: 0 };
         grouped[key].trees += t.num_trees;
         grouped[key].amount += Number(t.amount_paid);
@@ -81,8 +81,8 @@ export default function InstitutionalDisbursements() {
 
   const createDisbursement = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("stakeholder_disbursements").insert({
-        stakeholder_org_id: form.stakeholder_org_id,
+      const { error } = await supabase.from("owner_disbursements").insert({
+        owner_org_id: form.owner_org_id,
         amount: form.amount,
         tree_count: form.tree_count,
         reference: form.reference,
@@ -98,7 +98,7 @@ export default function InstitutionalDisbursements() {
       queryClient.invalidateQueries({ queryKey: ["allDisbursements"] });
       toast.success("Disbursement created");
       setOpen(false);
-      setForm({ stakeholder_org_id: '', amount: 0, tree_count: 0, reference: '', ktb_transfer_reference: '', notes: '', disbursement_date: '' });
+      setForm({ owner_org_id: '', amount: 0, tree_count: 0, reference: '', ktb_transfer_reference: '', notes: '', disbursement_date: '' });
     },
     onError: () => toast.error("Failed to create disbursement"),
   });
@@ -133,10 +133,10 @@ export default function InstitutionalDisbursements() {
               <div className="space-y-4">
                 <div>
                   <Label>Plantation Partner</Label>
-                  <Select value={form.stakeholder_org_id} onValueChange={v => setForm({ ...form, stakeholder_org_id: v })}>
+                  <Select value={form.owner_org_id} onValueChange={v => setForm({ ...form, owner_org_id: v })}>
                     <SelectTrigger><SelectValue placeholder="Select partner" /></SelectTrigger>
                     <SelectContent>
-                      {stakeholders?.map(s => (
+                      {owners?.map(s => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -168,7 +168,7 @@ export default function InstitutionalDisbursements() {
                   <Label>Notes</Label>
                   <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
                 </div>
-                <Button className="w-full" onClick={() => createDisbursement.mutate()} disabled={!form.stakeholder_org_id || !form.amount || !form.disbursement_date || createDisbursement.isPending}>
+                <Button className="w-full" onClick={() => createDisbursement.mutate()} disabled={!form.owner_org_id || !form.amount || !form.disbursement_date || createDisbursement.isPending}>
                   {createDisbursement.isPending ? 'Creating...' : 'Create Disbursement'}
                 </Button>
               </div>
@@ -193,13 +193,13 @@ export default function InstitutionalDisbursements() {
         <Card><CardContent className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-100"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
-            <div><p className="text-xs text-muted-foreground">Partners</p><p className="text-2xl font-bold">{stakeholders?.length || 0}</p></div>
+            <div><p className="text-xs text-muted-foreground">Partners</p><p className="text-2xl font-bold">{owners?.length || 0}</p></div>
           </div>
         </CardContent></Card>
       </div>
 
       {/* Allocation Summary */}
-      {stakeholders && allocations && Object.keys(allocations).length > 0 && (
+      {owners && allocations && Object.keys(allocations).length > 0 && (
         <Card>
           <CardHeader><CardTitle>Partner Allocations Summary</CardTitle></CardHeader>
           <CardContent>
@@ -214,7 +214,7 @@ export default function InstitutionalDisbursements() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stakeholders.filter(s => allocations[s.id]).map(s => (
+                  {owners.filter(s => allocations[s.id]).map(s => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
                       <TableCell>{formatNumber(allocations[s.id].trees)}</TableCell>

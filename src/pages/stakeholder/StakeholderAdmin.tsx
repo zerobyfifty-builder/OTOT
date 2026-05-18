@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Settings, Users, Shield } from "lucide-react";
 
-export const StakeholderAdmin = () => {
+export const OwnerAdmin = () => {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>

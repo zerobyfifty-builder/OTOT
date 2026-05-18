@@ -37,43 +37,43 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
 // Core menu items (gated by module permissions: dashboard, financial_management)
 const coreMenuItems: { title: string; url: string; icon: LucideIcon; moduleKey: string }[] = [
-  { title: 'Dashboard', url: '/stakeholder/dashboard', icon: Home, moduleKey: 'dashboard' },
-  { title: 'Climate Funding', url: '/stakeholder/financial', icon: DollarSign, moduleKey: 'financial_management' },
+  { title: 'Dashboard', url: '/owner/dashboard', icon: Home, moduleKey: 'dashboard' },
+  { title: 'Climate Funding', url: '/owner/financial', icon: DollarSign, moduleKey: 'financial_management' },
 ];
 
 // Module-based menu items that appear as flat items after core + collapsible groups
 // sortOrder determines the display order among flat module items
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  trip_management: { title: 'Impact Journeys', url: '/stakeholder/trip-management', icon: Map, sortOrder: 0 },
-  tree_orders: { title: 'Tree Orders', url: '/stakeholder/orders', icon: TreePine, sortOrder: 1 },
+  trip_management: { title: 'Impact Journeys', url: '/owner/trip-management', icon: Map, sortOrder: 0 },
+  tree_orders: { title: 'Tree Orders', url: '/owner/orders', icon: TreePine, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
-  outcomes: { title: 'Environmental Impact', url: '/stakeholder/outcomes', icon: Target, sortOrder: 4 },
-  impact_insights: { title: 'Impact Insights', url: '/stakeholder/impact-insights', icon: Sparkles, sortOrder: 5 },
-  analytics: { title: 'Analytics', url: '/stakeholder/analytics', icon: BarChart3, sortOrder: 99 },
+  outcomes: { title: 'Environmental Impact', url: '/owner/outcomes', icon: Target, sortOrder: 4 },
+  impact_insights: { title: 'Impact Insights', url: '/owner/impact-insights', icon: Sparkles, sortOrder: 5 },
+  analytics: { title: 'Analytics', url: '/owner/analytics', icon: BarChart3, sortOrder: 99 },
   
-  travel_agents: { title: 'Travel Agents', url: '/stakeholder/travel-agents', icon: Plane, sortOrder: 9 },
+  travel_agents: { title: 'Travel Agents', url: '/owner/travel-agents', icon: Plane, sortOrder: 9 },
 };
 
 // Tree Operations modules that appear under collapsible group
 const treeOpsModuleItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  tree_management: { title: 'Per-Tree Insights', url: '/stakeholder/per-tree-insights', icon: TreePine, sortOrder: 3 },
-  community_impact: { title: 'Community Impact', url: '/stakeholder/impact', icon: Target, sortOrder: 4 },
+  tree_management: { title: 'Per-Tree Insights', url: '/owner/per-tree-insights', icon: TreePine, sortOrder: 3 },
+  community_impact: { title: 'Community Impact', url: '/owner/impact', icon: Target, sortOrder: 4 },
 };
 
 // MDM modules that appear under "Forest Registry" collapsible
 const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideIcon }> = {
-  mdm_locations: { title: 'Forest Locations', url: '/stakeholder/locations', icon: MapPin },
-  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/stakeholder/mdm-nurseries', icon: Sprout },
-  mdm_species: { title: 'Species & Seedlings', url: '/stakeholder/mdm-species', icon: Leaf },
-  mdm_planters: { title: 'Planters Registry', url: '/stakeholder/mdm-planters', icon: Users },
-  mdm_sequestration: { title: 'Sequestration Rates', url: '/stakeholder/mdm-sequestration', icon: BarChart3 },
+  mdm_locations: { title: 'Forest Locations', url: '/owner/locations', icon: MapPin },
+  mdm_nurseries: { title: 'Nurseries & CBOs', url: '/owner/mdm-nurseries', icon: Sprout },
+  mdm_species: { title: 'Species & Seedlings', url: '/owner/mdm-species', icon: Leaf },
+  mdm_planters: { title: 'Planters Registry', url: '/owner/mdm-planters', icon: Users },
+  mdm_sequestration: { title: 'Sequestration Rates', url: '/owner/mdm-sequestration', icon: BarChart3 },
 };
 
-interface StakeholderSidebarProps {
+interface OwnerSidebarProps {
   organizationName?: string;
 }
 
-export function StakeholderSidebar({ organizationName: propOrgName }: StakeholderSidebarProps) {
+export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
   const { user, signOut } = useAuth();
   const location = useLocation();
@@ -81,7 +81,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
   const collapsed = state === 'collapsed';
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [partnerTypeName, setPartnerTypeName] = useState<string>('Stakeholder');
+  const [partnerTypeName, setPartnerTypeName] = useState<string>('Owner');
   const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
   const [userJobRole, setUserJobRole] = useState<string>('');
@@ -139,7 +139,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   // Fetch org-assigned modules
   const { data: orgModules } = useQuery({
-    queryKey: ['stakeholderAssignedModules', orgId],
+    queryKey: ['ownerAssignedModules', orgId],
     queryFn: async () => {
       if (!orgId) return [];
       const { data, error } = await supabase
@@ -155,7 +155,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   // Fetch this user's per-module permissions (only when not org admin)
   const { data: userModulePerms } = useQuery({
-    queryKey: ['stakeholderUserModulePerms', orgUserId],
+    queryKey: ['ownerUserModulePerms', orgUserId],
     queryFn: async () => {
       if (!orgUserId) return [] as string[];
       const { data, error } = await supabase
@@ -208,7 +208,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
 
   const organizationName = orgName || undefined;
 
-  // Dynamic sidebar color based on stakeholder type name
+  // Dynamic sidebar color based on owner type name
   const sidebarColor = (() => {
     const name = partnerTypeName.toLowerCase();
     if (name.includes('institutional') || name.includes('ktb')) return 'hsl(348 70% 30%)';
@@ -420,7 +420,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full text-white">
-                    {userName || organizationName || 'Stakeholder'}
+                    {userName || organizationName || 'Owner'}
                   </span>
                   <span className="text-xs truncate w-full text-white/60 capitalize">
                     {(userJobRole || (isOrgAdmin ? 'Org Admin' : partnerTypeName)).replace(/_/g, ' ')}
@@ -431,7 +431,7 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{userName || organizationName || 'Stakeholder'}</p>
+              <p className="text-sm font-medium">{userName || organizationName || 'Owner'}</p>
               <p className="text-xs text-muted-foreground capitalize">
                 {(userJobRole || (isOrgAdmin ? 'Org Admin' : partnerTypeName)).replace(/_/g, ' ')}
               </p>
@@ -440,13 +440,13 @@ export function StakeholderSidebar({ organizationName: propOrgName }: Stakeholde
               )}
             </div>
             {isOrgAdmin && partnerCategory !== 'plantation' && (
-              <DropdownMenuItem onClick={() => navigate('/stakeholder/admin')} className="flex items-center gap-2 cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate('/owner/admin')} className="flex items-center gap-2 cursor-pointer">
                 <Settings className="h-4 w-4" />
                 <span>Admin</span>
               </DropdownMenuItem>
             )}
             {isOrgAdmin && (
-              <DropdownMenuItem onClick={() => navigate('/stakeholder/settings')} className="flex items-center gap-2 cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate('/owner/settings')} className="flex items-center gap-2 cursor-pointer">
                 <SlidersHorizontal className="h-4 w-4" />
                 <span>Organization Settings</span>
               </DropdownMenuItem>

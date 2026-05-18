@@ -30,7 +30,7 @@ const statusColors: Record<string, string> = {
   rejected: "bg-red-100 text-red-800",
 };
 
-export function StakeholderPayments() {
+export function OwnerPayments() {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("payment_management");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,4 +196,4 @@ export function StakeholderPayments() {
   );
 }
 
-export default StakeholderPayments;
+export default OwnerPayments;

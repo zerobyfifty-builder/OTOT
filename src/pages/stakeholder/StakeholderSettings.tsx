@@ -33,12 +33,12 @@ interface UserDetails {
   phone_number: string | null;
 }
 
-export const StakeholderSettings = () => {
+export const OwnerSettings = () => {
   const { user } = useAuth();
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stakeholderType, setStakeholderType] = useState<'plantation' | 'institutional'>('plantation');
+  const [ownerType, setOwnerType] = useState<'plantation' | 'institutional'>('plantation');
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -79,12 +79,12 @@ export const StakeholderSettings = () => {
           setPhoneNumber(userData.phone_number || '');
           setNewEmail(userData.email);
 
-          // Determine stakeholder type
+          // Determine owner type
           const roleName = (userData.roles as any)?.name || '';
           const orgCategory = (userData.organizations as any)?.category || '';
           const ptName = (userData.organizations as any)?.partner_types?.name || '';
           if (roleName === 'institutional_partner' || orgCategory === 'institutional' || ptName.toLowerCase().includes('institutional')) {
-            setStakeholderType('institutional');
+            setOwnerType('institutional');
           }
 
           // Fetch org details
@@ -432,11 +432,11 @@ export const StakeholderSettings = () => {
         </TabsContent>
 
         <TabsContent value="planting-costs" className="mt-4">
-          {stakeholderType === 'institutional' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
+          {ownerType === 'institutional' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default StakeholderSettings;
+export default OwnerSettings;

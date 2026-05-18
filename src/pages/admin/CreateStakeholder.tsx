@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-export default function CreateStakeholder() {
+export default function CreateOwner() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -38,9 +38,9 @@ export default function CreateStakeholder() {
   });
 
   const { data: partnerTypes } = useQuery({
-    queryKey: ["stakeholderPartnerTypes"],
+    queryKey: ["ownerPartnerTypes"],
     queryFn: async () => {
-      const { data } = await supabase.from("partner_types").select("*").eq("category", "stakeholder").eq("is_active", true);
+      const { data } = await supabase.from("partner_types").select("*").eq("category", "owner").eq("is_active", true);
       return data || [];
     },
   });
@@ -54,7 +54,7 @@ export default function CreateStakeholder() {
         .insert({
           name: form.name,
           legal_name: form.legalName,
-          category: 'stakeholder',
+          category: 'owner',
           contact_person: form.contactPerson,
           contact_email: form.contactEmail,
           contact_phone: form.contactPhone,
@@ -69,9 +69,9 @@ export default function CreateStakeholder() {
 
       if (orgError) throw orgError;
 
-      // Create stakeholder user via edge function
+      // Create owner user via edge function
       if (form.userEmail && form.userPassword) {
-        const { data: fnData, error: fnError } = await supabase.functions.invoke('create-stakeholder-user', {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('create-owner-user', {
           body: {
             name: form.userName || form.contactPerson,
             email: form.userEmail,
@@ -81,17 +81,17 @@ export default function CreateStakeholder() {
         });
 
         if (fnError) {
-          console.error('Error creating stakeholder user:', fnError);
+          console.error('Error creating owner user:', fnError);
           toast.error('Organization created but user account failed: ' + fnError.message);
         }
       }
 
       setCreatedId(org.id);
       setShowSuccess(true);
-      toast.success("Stakeholder created successfully!");
+      toast.success("Owner created successfully!");
     } catch (error: any) {
-      console.error("Error creating stakeholder:", error);
-      toast.error(error.message || "Failed to create stakeholder");
+      console.error("Error creating owner:", error);
+      toast.error(error.message || "Failed to create owner");
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export default function CreateStakeholder() {
           ))}
         </div>
         <div className="text-center mt-2 text-sm text-muted-foreground">
-          Step {step}: {step === 1 ? 'Stakeholder Type' : step === 2 ? 'Organization Details' : 'User Account & Review'}
+          Step {step}: {step === 1 ? 'Owner Type' : step === 2 ? 'Organization Details' : 'User Account & Review'}
         </div>
       </div>
 
@@ -123,8 +123,8 @@ export default function CreateStakeholder() {
         {step === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Select Stakeholder Type</CardTitle>
-              <CardDescription>Choose the type of stakeholder you're onboarding</CardDescription>
+              <CardTitle>Select Owner Type</CardTitle>
+              <CardDescription>Choose the type of owner you're onboarding</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select value={form.partnerTypeId} onValueChange={v => setForm({...form, partnerTypeId: v})}>
@@ -136,7 +136,7 @@ export default function CreateStakeholder() {
                 </SelectContent>
               </Select>
               <div className="flex justify-between">
-                <Button variant="outline" onClick={() => navigate('/admin/stakeholders')}>Cancel</Button>
+                <Button variant="outline" onClick={() => navigate('/admin/owners')}>Cancel</Button>
                 <Button onClick={() => setStep(2)} disabled={!form.partnerTypeId}><ArrowRight className="h-4 w-4 ml-2" /></Button>
               </div>
             </CardContent>
@@ -148,7 +148,7 @@ export default function CreateStakeholder() {
           <Card>
             <CardHeader>
               <CardTitle>Organization Details</CardTitle>
-              <CardDescription>Enter the stakeholder organization information</CardDescription>
+              <CardDescription>Enter the owner organization information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -176,7 +176,7 @@ export default function CreateStakeholder() {
           <Card>
             <CardHeader>
               <CardTitle>User Account & Review</CardTitle>
-              <CardDescription>Create a portal login for this stakeholder</CardDescription>
+              <CardDescription>Create a portal login for this owner</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="p-4 rounded-lg bg-muted space-y-2">
@@ -194,7 +194,7 @@ export default function CreateStakeholder() {
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
                 <Button onClick={handleCreate} disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Stakeholder'}
+                  {loading ? 'Creating...' : 'Create Owner'}
                 </Button>
               </div>
             </CardContent>
@@ -206,12 +206,12 @@ export default function CreateStakeholder() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" />Stakeholder Created
+              <CheckCircle2 className="h-5 w-5 text-primary" />Owner Created
             </DialogTitle>
-            <DialogDescription>The stakeholder has been onboarded successfully.</DialogDescription>
+            <DialogDescription>The owner has been onboarded successfully.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Button onClick={() => navigate('/admin/stakeholders')}>Back to Stakeholders</Button>
+            <Button onClick={() => navigate('/admin/owners')}>Back to Owners</Button>
             <Button variant="outline" onClick={() => { setShowSuccess(false); setStep(1); setForm({ partnerTypeId: '', name: '', legalName: '', description: '', contactPerson: '', contactEmail: '', contactPhone: '', street: '', city: '', county: '', website: '', mouReference: '', userEmail: '', userPassword: '', userName: '' }); }}>
               Create Another
             </Button>

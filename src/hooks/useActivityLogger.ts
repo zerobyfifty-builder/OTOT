@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrgStakeholderType } from "@/hooks/useOrgStakeholderType";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 
 interface LogParams {
   action_type: string;
@@ -84,7 +84,7 @@ export async function createActivityLogEntry({
 
 export function useActivityLogger() {
   const { user } = useAuth();
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
   const organizationId = orgCtx?.organizationId ?? null;
 
   const logActivity = useCallback(

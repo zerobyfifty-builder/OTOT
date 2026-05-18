@@ -45,7 +45,7 @@ const CHILD_LEVEL: Record<LevelType, LevelType | null> = {
   county: 'subcounty', subcounty: 'block', block: 'station', station: 'beat', beat: null,
 };
 
-export function StakeholderForestLocations() {
+export function OwnerForestLocations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');

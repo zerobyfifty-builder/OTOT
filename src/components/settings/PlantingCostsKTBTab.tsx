@@ -122,7 +122,7 @@ export const PlantingCostsKTBTab: React.FC = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm">{sub.stakeholder_org}</p>
+                  <p className="font-medium text-sm">{sub.owner_org}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(sub.submitted_at || sub.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                     {' · '}

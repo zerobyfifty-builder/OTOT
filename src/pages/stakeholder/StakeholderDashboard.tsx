@@ -12,8 +12,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, ReferenceLine, Cell 
 } from "recharts";
-import { useCountUp } from "@/components/stakeholder/dashboard/useCountUp";
-import { ExportButton } from "@/components/stakeholder/dashboard/ExportButton";
+import { useCountUp } from "@/components/owner/dashboard/useCountUp";
+import { ExportButton } from "@/components/owner/dashboard/ExportButton";
 import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
@@ -115,7 +115,7 @@ const DCard = ({ children, className = '', delay = 0 }: { children: React.ReactN
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════
-export const StakeholderDashboard = () => {
+export const OwnerDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
@@ -142,7 +142,7 @@ export const StakeholderDashboard = () => {
 
   // ─── User profile ─────────────────────────────────────
   const { data: userProfile } = useQuery({
-    queryKey: ["stakeholderProfile", user?.id],
+    queryKey: ["ownerProfile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
@@ -162,7 +162,7 @@ export const StakeholderDashboard = () => {
     : null;
 
   // Check if institutional
-  const stakeholderType = (() => {
+  const ownerType = (() => {
     const roleName = (userProfile?.roles as any)?.name || '';
     if (roleName === 'institutional_partner') return 'institutional';
     const category = orgInfo?.category || '';
@@ -179,7 +179,7 @@ export const StakeholderDashboard = () => {
       const { data } = await supabase
         .from("trees")
         .select("planting_status")
-        .eq("stakeholder_org_id", orgInfo.id);
+        .eq("owner_org_id", orgInfo.id);
       const counts: Record<string, number> = {};
       (data || []).forEach((t: any) => {
         counts[t.planting_status] = (counts[t.planting_status] || 0) + 1;
@@ -237,7 +237,7 @@ export const StakeholderDashboard = () => {
       const { data } = await supabase
         .from("community_impact")
         .select("*")
-        .eq("stakeholder_org_id", orgInfo.id);
+        .eq("owner_org_id", orgInfo.id);
       return data || [];
     },
     enabled: !!orgInfo?.id,
@@ -250,7 +250,7 @@ export const StakeholderDashboard = () => {
       const { data } = await supabase
         .from("nurseries")
         .select("id, cbo_name, is_active, nursery_type, county")
-        .eq("stakeholder_org_id", orgInfo.id);
+        .eq("owner_org_id", orgInfo.id);
       return data || [];
     },
     enabled: !!orgInfo?.id,
@@ -400,7 +400,7 @@ export const StakeholderDashboard = () => {
   const communityUp = useCountUp(communityMembers);
 
   // ─── Institutional redirect ───────────────────────────
-  if (stakeholderType === 'institutional' && userProfile) {
+  if (ownerType === 'institutional' && userProfile) {
     return <InstitutionalDashboard />;
   }
 
@@ -417,7 +417,7 @@ export const StakeholderDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
           <div>
             <h1 className="text-[24px] font-medium text-foreground">
-              Welcome, {orgInfo?.name || 'Stakeholder Dashboard'}
+              Welcome, {orgInfo?.name || 'Owner Dashboard'}
             </h1>
             <p className="text-[13px] text-[#6B7280] dark:text-gray-400 mt-0.5 flex items-center gap-1.5">
               {userName && <>Logged in as {userName} · </>}
@@ -716,7 +716,7 @@ export const StakeholderDashboard = () => {
                 <div className="h-[140px] flex items-center justify-center text-[12px] text-[#6B7280]">No beat data yet</div>
               )}
               <div className="mt-3 pt-3 border-t border-[#E5E7EB] dark:border-gray-700">
-                <a href="/stakeholder/forest-locations" className="text-[12px] text-[#1D9E75] hover:underline flex items-center gap-1">
+                <a href="/owner/forest-locations" className="text-[12px] text-[#1D9E75] hover:underline flex items-center gap-1">
                   View all beats <ChevronRight className="h-3 w-3" />
                 </a>
               </div>

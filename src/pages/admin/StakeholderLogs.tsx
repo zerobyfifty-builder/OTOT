@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogsTab } from "@/components/stakeholder/settings/LogsTab";
+import { LogsTab } from "@/components/owner/settings/LogsTab";
 import { Landmark, Trees, Cpu, Building2 } from "lucide-react";
 
 interface OrgRow {
@@ -30,7 +30,7 @@ function groupOf(o: OrgRow): GroupKey {
   return "other";
 }
 
-export default function StakeholderLogs() {
+export default function OwnerLogs() {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<GroupKey>("institutional");
@@ -44,7 +44,7 @@ export default function StakeholderLogs() {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, category, partner_types(name, category)")
-        .eq("category", "stakeholder")
+        .eq("category", "owner")
         .eq("archived", false)
         .order("name");
       if (!error) setOrgs((data as any) || []);
@@ -75,8 +75,8 @@ export default function StakeholderLogs() {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Stakeholder Activity Logs</h1>
-        <p className="text-muted-foreground mt-1">Review actions performed by users within each stakeholder organization for accountability.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Owner Activity Logs</h1>
+        <p className="text-muted-foreground mt-1">Review actions performed by users within each owner organization for accountability.</p>
       </div>
 
       <Tabs value={activeGroup} onValueChange={(v) => setActiveGroup(v as GroupKey)} className="w-full">
@@ -102,7 +102,7 @@ export default function StakeholderLogs() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <CardTitle>{GROUP_META[k].label} Stakeholders</CardTitle>
+                    <CardTitle>{GROUP_META[k].label} Owners</CardTitle>
                     <CardDescription>Choose an organization to view its activity logs.</CardDescription>
                   </div>
                   <Select
@@ -119,7 +119,7 @@ export default function StakeholderLogs() {
               </CardHeader>
               <CardContent>
                 {grouped[k].length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground text-sm">No {GROUP_META[k].label.toLowerCase()} stakeholders.</div>
+                  <div className="text-center py-10 text-muted-foreground text-sm">No {GROUP_META[k].label.toLowerCase()} owners.</div>
                 ) : (
                   <LogsTab organizationId={selectedOrg[k]} />
                 )}

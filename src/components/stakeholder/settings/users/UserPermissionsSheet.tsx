@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { OrgUserRow } from "@/hooks/useOrgUsers";
-import { useOrgStakeholderType, ROLE_LABELS } from "@/hooks/useOrgStakeholderType";
+import { useOrgOwnerType, ROLE_LABELS } from "@/hooks/useOrgOwnerType";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
   { key: "tree_orders.action.engagement", label: "Engagement" },
 ];
 
-// Mirrors the StakeholderSidebar render order so the Manage Permissions sheet
+// Mirrors the OwnerSidebar render order so the Manage Permissions sheet
 // lists modules in the exact same sequence the user sees on the left navbar.
 // Modules not listed are appended at the end.
 const MODULE_DISPLAY_ORDER: string[] = [
@@ -67,7 +67,7 @@ const MODULE_DISPLAY_NAME_OVERRIDES: Record<string, string> = {
 };
 
 export const UserPermissionsSheet: React.FC<Props> = ({ user, onOpenChange }) => {
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
   const qc = useQueryClient();
   const [perms, setPerms] = useState<Record<string, PermRow>>({});
   const [saving, setSaving] = useState(false);

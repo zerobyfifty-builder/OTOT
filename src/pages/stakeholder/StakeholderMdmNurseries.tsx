@@ -64,7 +64,7 @@ const emptyForm: NurseryForm = {
 
 type SheetMode = 'add' | 'view' | 'edit';
 
-export function StakeholderMdmNurseries() {
+export function OwnerMdmNurseries() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -98,7 +98,7 @@ export function StakeholderMdmNurseries() {
       const { data, error } = await supabase
         .from('nurseries')
         .select('*')
-        .eq('stakeholder_org_id', orgId!)
+        .eq('owner_org_id', orgId!)
         .order('cbo_name');
       if (error) throw error;
       return data || [];
@@ -280,7 +280,7 @@ export function StakeholderMdmNurseries() {
     mutationFn: async () => {
       if (!orgId) throw new Error('Organization not found');
       const { data: nursery, error } = await supabase.from('nurseries').insert({
-        stakeholder_org_id: orgId,
+        owner_org_id: orgId,
         cbo_name: form.cbo_name,
         block_name: form.block_name,
         location: form.location || null,

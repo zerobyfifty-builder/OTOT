@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-interface StakeholderRouteProps {
+interface OwnerRouteProps {
   children: React.ReactNode;
 }
 
-export const StakeholderRoute: React.FC<StakeholderRouteProps> = ({ children }) => {
+export const OwnerRoute: React.FC<OwnerRouteProps> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [isStakeholder, setIsStakeholder] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkStakeholderRole = async () => {
+    const checkOwnerRole = async () => {
       if (!user) {
         navigate('/auth/login');
         return;
@@ -24,15 +24,15 @@ export const StakeholderRoute: React.FC<StakeholderRouteProps> = ({ children }) 
         const { data: userRole, error } = await supabase
           .rpc('get_user_role', { input_user_id: user.id });
 
-        if (userRole === 'stakeholder') {
-          setIsStakeholder(true);
+        if (userRole === 'owner') {
+          setIsOwner(true);
         } else if (userRole === 'super_admin') {
           navigate('/admin', { replace: true });
         } else {
           navigate('/dashboard', { replace: true });
         }
       } catch (error) {
-        console.error('Error checking stakeholder role:', error);
+        console.error('Error checking owner role:', error);
         navigate('/dashboard', { replace: true });
       } finally {
         setLoading(false);
@@ -40,7 +40,7 @@ export const StakeholderRoute: React.FC<StakeholderRouteProps> = ({ children }) 
     };
 
     if (!authLoading) {
-      checkStakeholderRole();
+      checkOwnerRole();
     }
   }, [user, authLoading, navigate]);
 
@@ -52,7 +52,7 @@ export const StakeholderRoute: React.FC<StakeholderRouteProps> = ({ children }) 
     );
   }
 
-  if (!user || !isStakeholder) {
+  if (!user || !isOwner) {
     return null;
   }
 

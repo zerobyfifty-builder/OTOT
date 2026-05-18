@@ -7,11 +7,11 @@ import { formatNumber } from "@/lib/utils";
 import SDG13 from "@/assets/SDG_13.png";
 import SDG15 from "@/assets/SDG_15.png";
 
-export const StakeholderOutcomes = () => {
+export const OwnerOutcomes = () => {
   const { user } = useAuth();
 
   const { data: orgId } = useQuery({
-    queryKey: ["stakeholderOrgId", user?.id],
+    queryKey: ["ownerOrgId", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).single();
       return data?.organization_id;
@@ -23,13 +23,13 @@ export const StakeholderOutcomes = () => {
     queryKey: ["outcomeStats", orgId],
     queryFn: async () => {
       const [plantingRes, monitoringRes] = await Promise.all([
-        supabase.from("planting_records").select("seedlings_planted").eq("stakeholder_org_id", orgId!),
-        supabase.from("monitoring_records").select("survival_rate, planting_records!inner(stakeholder_org_id)"),
+        supabase.from("planting_records").select("seedlings_planted").eq("owner_org_id", orgId!),
+        supabase.from("monitoring_records").select("survival_rate, planting_records!inner(owner_org_id)"),
       ]);
       const totalPlanted = plantingRes.data?.reduce((s, p) => s + (p.seedlings_planted || 0), 0) || 0;
       const co2Sequestered = totalPlanted * 25; // 25kg CO2 per tree
       const hectaresRestored = Math.round(totalPlanted / 1100); // ~1100 trees per hectare
-      const monitoringData = monitoringRes.data?.filter(r => (r.planting_records as any)?.stakeholder_org_id === orgId) || [];
+      const monitoringData = monitoringRes.data?.filter(r => (r.planting_records as any)?.owner_org_id === orgId) || [];
       const avgSurvival = monitoringData.length > 0
         ? monitoringData.reduce((s, m) => s + (Number(m.survival_rate) || 0), 0) / monitoringData.length
         : 0;

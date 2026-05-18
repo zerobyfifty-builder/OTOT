@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useOrgStakeholderType } from "@/hooks/useOrgStakeholderType";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Building2 } from "lucide-react";
 
 export const OrganizationTab: React.FC = () => {
-  const { data: orgCtx } = useOrgStakeholderType();
+  const { data: orgCtx } = useOrgOwnerType();
   const [org, setOrg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

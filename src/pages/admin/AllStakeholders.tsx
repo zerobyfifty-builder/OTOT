@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Stakeholder {
+interface Owner {
   id: string;
   name: string;
   legal_name: string | null;
@@ -30,15 +30,15 @@ interface Stakeholder {
   partner_types?: { name: string; category: string } | null;
 }
 
-export default function AllStakeholders() {
+export default function AllOwners() {
   const navigate = useNavigate();
-  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
+  const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Edit sheet state
   const [editOpen, setEditOpen] = useState(false);
-  const [editStakeholder, setEditStakeholder] = useState<Stakeholder | null>(null);
+  const [editOwner, setEditOwner] = useState<Owner | null>(null);
   const [editForm, setEditForm] = useState({
     name: "", legal_name: "", contact_person: "", contact_email: "", contact_phone: "",
     website: "", street: "", city: "", county: "", mouReference: "", description: "",
@@ -47,20 +47,20 @@ export default function AllStakeholders() {
 
   // Status dialog state
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [statusTarget, setStatusTarget] = useState<Stakeholder | null>(null);
+  const [statusTarget, setStatusTarget] = useState<Owner | null>(null);
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Stakeholder | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Owner | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchStakeholders = async () => {
+  const fetchOwners = async () => {
     setLoading(true);
     try {
       let query = supabase
         .from("organizations")
         .select("id, name, legal_name, category, contact_person, contact_email, contact_phone, website, address, metadata, is_active, verified, created_at, partner_types(name, category)")
-        .eq("category", "stakeholder")
+        .eq("category", "owner")
         .eq("archived", false);
 
       if (searchTerm) {
@@ -69,20 +69,20 @@ export default function AllStakeholders() {
 
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
-      setStakeholders(data || []);
+      setOwners(data || []);
     } catch (error) {
-      console.error("Error fetching stakeholders:", error);
-      toast.error("Failed to fetch stakeholders");
+      console.error("Error fetching owners:", error);
+      toast.error("Failed to fetch owners");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchStakeholders(); }, [searchTerm]);
+  useEffect(() => { fetchOwners(); }, [searchTerm]);
 
   // --- Edit ---
-  const openEdit = (s: Stakeholder) => {
-    setEditStakeholder(s);
+  const openEdit = (s: Owner) => {
+    setEditOwner(s);
     const addr = s.address || {};
     const meta = s.metadata || {};
     setEditForm({
@@ -102,7 +102,7 @@ export default function AllStakeholders() {
   };
 
   const handleSaveEdit = async () => {
-    if (!editStakeholder) return;
+    if (!editOwner) return;
     setSaving(true);
     try {
       const { error } = await supabase
@@ -117,21 +117,21 @@ export default function AllStakeholders() {
           address: { street: editForm.street, city: editForm.city, county: editForm.county },
           metadata: { mou_reference: editForm.mouReference, description: editForm.description },
         })
-        .eq("id", editStakeholder.id);
+        .eq("id", editOwner.id);
 
       if (error) throw error;
-      toast.success("Stakeholder updated successfully");
+      toast.success("Owner updated successfully");
       setEditOpen(false);
-      fetchStakeholders();
+      fetchOwners();
     } catch (error: any) {
-      toast.error(error.message || "Failed to update stakeholder");
+      toast.error(error.message || "Failed to update owner");
     } finally {
       setSaving(false);
     }
   };
 
   // --- Activate / Deactivate ---
-  const openStatusToggle = (s: Stakeholder) => {
+  const openStatusToggle = (s: Owner) => {
     setStatusTarget(s);
     setStatusDialogOpen(true);
   };
@@ -145,16 +145,16 @@ export default function AllStakeholders() {
         .eq("id", statusTarget.id);
 
       if (error) throw error;
-      toast.success(`Stakeholder ${statusTarget.is_active ? "deactivated" : "activated"} successfully`);
+      toast.success(`Owner ${statusTarget.is_active ? "deactivated" : "activated"} successfully`);
       setStatusDialogOpen(false);
-      fetchStakeholders();
+      fetchOwners();
     } catch (error: any) {
       toast.error(error.message || "Failed to update status");
     }
   };
 
   // --- Delete ---
-  const openDelete = (s: Stakeholder) => {
+  const openDelete = (s: Owner) => {
     setDeleteTarget(s);
     setDeleteDialogOpen(true);
   };
@@ -169,11 +169,11 @@ export default function AllStakeholders() {
         .eq("id", deleteTarget.id);
 
       if (error) throw error;
-      toast.success("Stakeholder deleted successfully");
+      toast.success("Owner deleted successfully");
       setDeleteDialogOpen(false);
-      fetchStakeholders();
+      fetchOwners();
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete stakeholder");
+      toast.error(error.message || "Failed to delete owner");
     } finally {
       setDeleting(false);
     }
@@ -183,13 +183,13 @@ export default function AllStakeholders() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-admin-primary">All Stakeholders</h1>
-          <p className="text-muted-foreground mt-1">Manage plantation and project stakeholders</p>
+          <h1 className="text-3xl font-bold text-admin-primary">All Owners</h1>
+          <p className="text-muted-foreground mt-1">Manage plantation and project owners</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={fetchStakeholders} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
-          <Button onClick={() => navigate("/admin/stakeholders/create")} className="gap-2">
-            <Plus className="h-4 w-4" />Create Stakeholder
+          <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
+          <Button onClick={() => navigate("/admin/owners/create")} className="gap-2">
+            <Plus className="h-4 w-4" />Create Owner
           </Button>
         </div>
       </div>
@@ -198,17 +198,17 @@ export default function AllStakeholders() {
         <CardHeader>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search stakeholders..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+            <Input placeholder="Search owners..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary" /></div>
-          ) : stakeholders.length === 0 ? (
+          ) : owners.length === 0 ? (
             <div className="text-center py-12">
               <Landmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No stakeholders found.</p>
-              <Button onClick={() => navigate("/admin/stakeholders/create")} className="mt-4">Create Your First Stakeholder</Button>
+              <p className="text-muted-foreground">No owners found.</p>
+              <Button onClick={() => navigate("/admin/owners/create")} className="mt-4">Create Your First Owner</Button>
             </div>
           ) : (
             <Table>
@@ -223,10 +223,10 @@ export default function AllStakeholders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stakeholders.map(s => (
+                {owners.map(s => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell><Badge variant="outline">{s.partner_types?.name || 'Stakeholder'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{s.partner_types?.name || 'Owner'}</Badge></TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div>{s.contact_email || '-'}</div>
@@ -270,8 +270,8 @@ export default function AllStakeholders() {
       <Sheet open={editOpen} onOpenChange={setEditOpen}>
         <SheetContent className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Edit Stakeholder</SheetTitle>
-            <SheetDescription>Update stakeholder organization details</SheetDescription>
+            <SheetTitle>Edit Owner</SheetTitle>
+            <SheetDescription>Update owner organization details</SheetDescription>
           </SheetHeader>
           <div className="space-y-4 mt-6">
             <div className="space-y-2">
@@ -337,7 +337,7 @@ export default function AllStakeholders() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {statusTarget?.is_active ? "Deactivate" : "Activate"} Stakeholder
+              {statusTarget?.is_active ? "Deactivate" : "Activate"} Owner
             </AlertDialogTitle>
             <AlertDialogDescription>
               {statusTarget?.is_active
@@ -358,9 +358,9 @@ export default function AllStakeholders() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Stakeholder</AlertDialogTitle>
+            <AlertDialogTitle>Delete Owner</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteTarget?.name}"? This will archive the stakeholder and deactivate all associated user accounts. This action cannot be easily undone.
+              Are you sure you want to delete "{deleteTarget?.name}"? This will archive the owner and deactivate all associated user accounts. This action cannot be easily undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

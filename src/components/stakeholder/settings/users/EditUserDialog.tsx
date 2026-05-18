@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useOrgStakeholderType, getRolesForStakeholderType } from "@/hooks/useOrgStakeholderType";
+import { useOrgOwnerType, getRolesForOwnerType } from "@/hooks/useOrgOwnerType";
 import { OrgUserRow, useUpdateOrgUser } from "@/hooks/useOrgUsers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,8 +14,8 @@ import { KeyRound } from "lucide-react";
 interface Props { user: OrgUserRow | null; onOpenChange: (o: boolean) => void; }
 
 export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
-  const { data: orgCtx } = useOrgStakeholderType();
-  const roles = getRolesForStakeholderType(orgCtx?.stakeholderType || "other");
+  const { data: orgCtx } = useOrgOwnerType();
+  const roles = getRolesForOwnerType(orgCtx?.ownerType || "other");
   const update = useUpdateOrgUser();
 
   const [firstName, setFirstName] = useState("");
