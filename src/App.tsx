@@ -460,31 +460,21 @@ const App = () => (
             } />
             
             {/* Owner admin routes */}
-            <Route path="/admin/owners" element={
+            <Route element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <AllOwners />
+                  <OwnersLayout />
                 </AdminLayout>
               </SuperAdminRoute>
-            } />
+            }>
+              <Route path="/admin/owners" element={<AllOwners />} />
+              <Route path="/admin/owners/modules" element={<OwnerModules />} />
+              <Route path="/admin/owners/logs" element={<OwnerLogs />} />
+            </Route>
             <Route path="/admin/owners/create" element={
               <SuperAdminRoute>
                 <AdminLayout>
                   <CreateOwner />
-                </AdminLayout>
-              </SuperAdminRoute>
-            } />
-            <Route path="/admin/owners/modules" element={
-              <SuperAdminRoute>
-                <AdminLayout>
-                  <OwnerModules />
-                </AdminLayout>
-              </SuperAdminRoute>
-            } />
-            <Route path="/admin/owners/logs" element={
-              <SuperAdminRoute>
-                <AdminLayout>
-                  <OwnerLogs />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
