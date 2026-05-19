@@ -87,6 +87,7 @@ import AllOwners from "@/pages/admin/AllOwners";
 import CreateOwner from "@/pages/admin/CreateOwner";
 import OwnerModules from "@/pages/admin/OwnerModules";
 import OwnerLogs from "@/pages/admin/OwnerLogs";
+import OwnersLayout from "@/pages/admin/owners/OwnersLayout";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
