@@ -71,10 +71,8 @@ const menuItems = [
     title: "Owners",
     icon: Landmark,
     items: [
-      { title: "All Owners", url: "/admin/owners" },
+      { title: "Owners", url: "/admin/owners" },
       { title: "Create New", url: "/admin/owners/create" },
-      { title: "Module Assignment", url: "/admin/owners/modules" },
-      { title: "Activity Logs", url: "/admin/owners/logs" },
     ],
   },
   {
