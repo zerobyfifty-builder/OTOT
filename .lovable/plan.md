@@ -1,71 +1,64 @@
-## Status
+# Plan: Unified Owners Admin Page with Tabs (route-backed)
 
-✅ **Database migration already approved and applied** (this step is done):
-- Table `stakeholder_disbursements` → `owner_disbursements`
-- Columns `stakeholder_org_id` → `owner_org_id` on trees, nurseries, planting_records, community_impact, owner_disbursements
-- Columns `stakeholder_org` → `owner_org` (planting_cost_submissions), `stakeholder_type` → `owner_type` (org_job_role_defaults)
-- Values `'stakeholder'` → `'owner'` in roles, organizations.category, partner_types.category, notifications.recipient_type (+ all CHECK constraints updated)
-- Functions renamed: `is_stakeholder` → `is_owner`, `stakeholder_has_module` → `owner_has_module`, `stakeholder_has_module_permission` → `owner_has_module_permission`, `notify_stakeholder_allocation` → `notify_owner_allocation`
-- Triggers renamed; all ~45 RLS policies recreated against new names
+Consolidate three admin Owner pages into one tabbed UI while keeping a distinct URL for each tab. Pure UI/navigation refactor — no business logic, data, or feature changes.
 
-The three sub-types (Institutional, Plantation, Technology) and all other roles (admin, super_admin, lodge, tourist, institutional_partner, business_partner, travel_agent) are unchanged.
+## Why this structure works
 
-## What remains to implement
+- **Clutter-free UI**: one page header, one tab strip — instead of three sidebar entries.
+- **Deep-linkable**: each tab has its own URL, so bookmarks, browser back/forward, and direct links keep working.
+- **Expandable**: adding a future tab (e.g. "Workflow Assignment" like the reference) is one new route + one new `TabsTrigger`.
+- **Zero risk to features**: existing page components are reused as-is inside `TabsContent`.
 
-### 1. Edge function
-- Rename folder `supabase/functions/create-stakeholder-user/` → `create-owner-user/`
-- Update the function body (table refs are unchanged; only literal strings/role lookups need `'owner'`)
-- Update all frontend callers of `supabase.functions.invoke('create-stakeholder-user', …)` → `'create-owner-user'`
-- Delete the old function from Supabase
+## Current state
 
-### 2. Frontend folders & files
-Rename (preserving git history via `git mv`):
-- `src/components/stakeholder/` → `src/components/owner/`
-- `src/pages/stakeholder/` → `src/pages/owner/`
-- Files: `Stakeholder*.tsx`, `StakeholderSidebar.tsx`, `useOrgStakeholderType.ts` → `useOrgOwnerType.ts`, `useStakeholder*.ts` → `useOwner*.ts`, etc.
-- Update every import path
+- `/admin/owners` → `AllOwners.tsx`
+- `/admin/owners/modules` → `OwnerModules.tsx`
+- `/admin/owners/logs` → `OwnerLogs.tsx`
+- `/admin/owners/create` → `CreateOwner.tsx` (sub-page, stays)
+- Sidebar lists All Owners / Create New / Module Assignment / Activity Logs as four separate items.
 
-### 3. Routes (no legacy redirects — per your direction)
-In `src/App.tsx`:
-- `/stakeholder/*` → `/owner/*`
-- `/admin/stakeholders` → `/admin/owners`
-- `/admin/stakeholders/:id` → `/admin/owners/:id`
-- Update every `navigate(...)`, `<Link to=...>`, and `<Navigate to=...>` site-wide
+## Target state
 
-### 4. Code identifiers (find/replace, case-preserving)
-- `stakeholder_org_id` → `owner_org_id` (all Supabase queries in src/)
-- `stakeholder_disbursements` table refs → `owner_disbursements`
-- `is_stakeholder` RPC → `is_owner`; same for `stakeholder_has_module*` → `owner_has_module*`
-- Hooks/types/vars: `stakeholderType` → `ownerType`, `useStakeholder…` → `useOwner…`, `isStakeholder` → `isOwner`
-- Role checks comparing to `'stakeholder'` string → `'owner'`
-- `recipient_type === 'stakeholder'` → `'owner'`
-- `category === 'stakeholder'` → `'owner'`
+A shared layout component renders the page header ("Owners" / "Create and manage owner portals") and a `Tabs` strip with three triggers. Each route below mounts the same layout and pre-selects its tab:
 
-### 5. UI copy (every visible string)
-"Stakeholder" → "Owner", "Stakeholders" → "Owners", "stakeholder" → "owner" in:
-- Page titles, breadcrumbs, headings, sidebar labels, dialog titles, tooltips, toasts, alt text, empty states, table headers, button labels, descriptions, helper text, placeholders
-- Activity log message templates
-- PDF/CSV export labels
-- Modules registry (`StakeholderModules.tsx` → `OwnerModules.tsx`), permission sheets, settings pages
-- Admin pages, owner portal pages, institutional pages that mention stakeholders
+| URL | Tab active | Content |
+|---|---|---|
+| `/admin/owners` | All Owners | `<AllOwners />` |
+| `/admin/owners/modules` | Module Assignment | `<OwnerModules />` |
+| `/admin/owners/logs` | Activity Log | `<OwnerLogs />` |
 
-### 6. Memory & docs
-- Update `mem://index.md` core rule about "stakeholder" terminology
-- Rename memory files referencing stakeholder (`mem://stakeholder/*`, `mem://ui/stakeholder-management-actions`, `mem://features/stakeholder-portal-ui`, `mem://style/stakeholder-financial-ui-standards`, `mem://arch/stakeholder-role-logic`) → `mem://owner/*` equivalents and update index links
+Clicking a tab uses `navigate(url)` so the URL stays in sync (no `?tab=` query param needed). `/admin/owners/create` remains a separate full page reached from the "Create New Owner" button.
 
-### 7. Verify
-- `rg -i 'stakeholder' src supabase` must return **zero hits** (except types.ts which Supabase auto-regenerates after migration — already done)
-- Build passes
-- Spot-check: sidebar shows "Owners", `/owner/dashboard` loads, admin "Owner Modules" page works, user-permissions sheet works, allocation trigger fires on tree insert
+## Changes
 
-## Technical notes
-- Supabase's `src/integrations/supabase/types.ts` regenerated automatically after the DB migration — no manual edit needed
-- Edge function changes auto-deploy
-- No data loss; FK constraints preserved (renamed columns keep their constraints)
-- Roles row updated in-place: existing users with role_id pointing at the old row keep their access (the row is the same id, only `name`/`display_name`/`role_category` changed)
+### New shared layout
+- `src/pages/admin/owners/OwnersLayout.tsx`
+  - Renders header + `Tabs` with `value` derived from `useLocation().pathname`
+  - `onValueChange` calls `navigate(targetUrl)`
+  - Renders `<Outlet />` inside the active `TabsContent`
 
-## Out of scope (intentionally unchanged)
-- Sub-type names ("Plantation Partner", "Institutional Partner", "Technology Partner") — these are owner sub-types, not the word "stakeholder"
-- Other roles (admin, super_admin, lodge, tourist, institutional_partner, business_partner, travel_agent)
-- Historical activity log rows already written with the word "stakeholder" — left as-is (audit trail)
-- Old `/stakeholder/*` URL redirects — **not added**, per your instruction
+### Routing (`src/App.tsx`)
+- Wrap the three existing routes as nested children of a parent route using `OwnersLayout` as the element.
+- All three routes preserved (no redirects removed, no new redirects added).
+- `/admin/owners/create` stays outside the layout (full page).
+
+### Existing pages
+- `AllOwners.tsx`, `OwnerModules.tsx`, `OwnerLogs.tsx` keep all logic.
+- Trim only their outer page-header block (title + description) since the layout now owns it. All tables, dialogs, filters, mutations untouched.
+
+### Sidebar (`AdminSidebar.tsx`)
+- Collapse the four entries under Owners into two: **Owners** (`/admin/owners`) and **Create New** (`/admin/owners/create`).
+- Tab switching happens inside the page; sidebar stays clean.
+
+## Out of scope / unchanged
+- Supabase queries, mutations, RLS, edge functions
+- `CreateOwner` flow
+- Owner portal (`/owner/*`) routes and components
+- Visual identity / branding tokens
+
+## Verification
+- Visiting each of the three URLs lands on the right tab with header visible.
+- Clicking tabs updates the URL; browser back/forward moves between tabs.
+- "Create New Owner" button still routes to `/admin/owners/create`.
+- Module toggles + log filters behave identically.
+- Sidebar "Owners" item stays highlighted on all three tab URLs.

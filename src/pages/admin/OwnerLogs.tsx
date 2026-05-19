@@ -73,11 +73,13 @@ export default function OwnerLogs() {
   const currentGroups = visibleGroups.length ? visibleGroups : (["institutional"] as GroupKey[]);
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Owner Activity Logs</h1>
-        <p className="text-muted-foreground mt-1">Review actions performed by users within each owner organization for accountability.</p>
+        <h2 className="text-xl font-semibold tracking-tight">Activity Log</h2>
+        <p className="text-muted-foreground text-sm mt-1">Review actions performed by users within each owner organization for accountability.</p>
       </div>
+
+
 
       <Tabs value={activeGroup} onValueChange={(v) => setActiveGroup(v as GroupKey)} className="w-full">
         <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-1 overflow-x-auto">
