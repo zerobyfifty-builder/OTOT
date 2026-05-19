@@ -180,11 +180,11 @@ export default function AllOwners() {
   };
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-admin-primary">All Owners</h1>
-          <p className="text-muted-foreground mt-1">Manage plantation and project owners</p>
+          <h2 className="text-xl font-semibold text-admin-primary">All Owners</h2>
+          <p className="text-muted-foreground text-sm mt-1">Manage plantation and project owners</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
