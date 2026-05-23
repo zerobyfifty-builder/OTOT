@@ -94,6 +94,7 @@ const menuItems = [
       { title: "Planters Registry", url: "/admin/mdm/planters" },
       { title: "Sequestration Rates", url: "/admin/mdm/sequestration" },
     ],
+  },
   {
     title: "Owners",
     url: "/admin/owners",
