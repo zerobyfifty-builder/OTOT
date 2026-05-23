@@ -12,6 +12,7 @@ import {
   Home,
   DollarSign,
   TreePine,
+  Trees,
   Map,
   Target,
   Sparkles,
