@@ -76,7 +76,7 @@ const menuItems = [
   {
     title: "Travel Offsets",
     url: "/admin/impact-journeys",
-    icon: Map,
+    icon: Plane,
   },
   {
     title: "Owners",
