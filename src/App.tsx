@@ -90,6 +90,7 @@ import OwnerLogs from "@/pages/admin/OwnerLogs";
 import OwnersLayout from "@/pages/admin/owners/OwnersLayout";
 import PerTreeInsights from "@/pages/admin/PerTreeInsights";
 import ImpactJourneys from "@/pages/admin/ImpactJourneys";
+import ImpactOverview from "@/pages/admin/ImpactOverview";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
