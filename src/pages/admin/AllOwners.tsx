@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { CreateOwnerSheet } from "@/components/admin/owners/CreateOwnerSheet";
 
 interface Owner {
   id: string;
@@ -35,6 +36,7 @@ export default function AllOwners() {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Edit sheet state
   const [editOpen, setEditOpen] = useState(false);
@@ -183,10 +185,11 @@ export default function AllOwners() {
     <div className="space-y-6">
       <div className="flex items-center justify-end gap-2">
         <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
-        <Button onClick={() => navigate("/admin/owners/create")} className="gap-2">
+        <Button onClick={() => setCreateOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />Create Owner
         </Button>
       </div>
+      <CreateOwnerSheet open={createOpen} onOpenChange={setCreateOpen} onCreated={fetchOwners} />
 
       <Card>
         <CardHeader>
@@ -202,7 +205,7 @@ export default function AllOwners() {
             <div className="text-center py-12">
               <Landmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No owners found.</p>
-              <Button onClick={() => navigate("/admin/owners/create")} className="mt-4">Create Your First Owner</Button>
+              <Button onClick={() => setCreateOpen(true)} className="mt-4">Create Your First Owner</Button>
             </div>
           ) : (
             <Table>
