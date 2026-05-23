@@ -32,7 +32,7 @@ export const OwnerImpactInsights = ({ skipPermissionCheck = false }: { skipPermi
   // Module gating
   const { data: gating, isLoading: gatingLoading } = useQuery({
     queryKey: ["impact-insights-gating", user?.id],
-    enabled: !!user,
+    enabled: !!user && !skipPermissionCheck,
     queryFn: async () => {
       const { data: u } = await supabase
         .from("users")
