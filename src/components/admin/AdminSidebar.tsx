@@ -58,7 +58,7 @@ const menuItems = [
     ],
   },
   {
-    title: "Contribution Tracking",
+    title: "Climate Funding",
     url: "/admin/contributions",
     icon: DollarSign,
   },
