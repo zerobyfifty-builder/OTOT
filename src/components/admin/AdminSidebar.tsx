@@ -18,6 +18,7 @@ import {
   Plane,
   Landmark,
   Map,
+  Sparkles,
 } from "lucide-react";
 import {
   Sidebar,
