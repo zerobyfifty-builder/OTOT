@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Settings2, Globe, Lock, Eye } from "lucide-react";
+import { Settings2, Globe, Lock, Eye, ChevronRight, TreePine } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SidebarPreviewDialog } from "@/components/admin/SidebarPreviewDialog";
@@ -39,6 +40,9 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
 // Modules permanently removed from owner allocation
 const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management"];
 
+// Modules grouped under "Forest Registry" accordion
+const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];
@@ -47,6 +51,7 @@ function getDefaultPermissions(accessType: string): string[] {
 export default function OwnerModules() {
   const queryClient = useQueryClient();
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
+  const [forestExpanded, setForestExpanded] = useState(true);
 
   const { data: owners, isLoading: loadingOrgs } = useQuery({
     queryKey: ["ownerOrgs"],
@@ -127,6 +132,32 @@ export default function OwnerModules() {
     }
   };
 
+  const toggleGroup = async (orgId: string, groupModules: any[], enableAll: boolean) => {
+    try {
+      if (enableAll) {
+        const rows = groupModules
+          .filter((m) => !getOrgModule(orgId, m.id))
+          .map((m) => ({
+            organization_id: orgId,
+            module_id: m.id,
+            is_active: true,
+            permissions: getDefaultPermissions((m as any).access_type || "shared"),
+          }));
+        if (rows.length) await supabase.from("organization_modules").insert(rows);
+      } else {
+        await supabase
+          .from("organization_modules")
+          .delete()
+          .eq("organization_id", orgId)
+          .in("module_id", groupModules.map((m) => m.id));
+      }
+      toast.success("Forest Registry access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch {
+      toast.error("Failed to update Forest Registry access");
+    }
+  };
+
   const updatePermissions = async (orgId: string, moduleId: string, permissions: string[]) => {
     try {
       await supabase
@@ -191,73 +222,127 @@ export default function OwnerModules() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {modules?.filter(m => !HIDDEN_MODULE_NAMES.includes(m.name)).map(m => {
-                  const accessType = (m as any).access_type || "shared";
-                  return (
-                    <TableRow key={m.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <p className="font-medium">{MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}</p>
-                            <p className="text-xs text-muted-foreground">{m.category}</p>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
-                            {accessType === "scoped" ? (
-                              <><Lock className="h-3 w-3" /> Own data</>
-                            ) : (
-                              <><Globe className="h-3 w-3" /> Shared</>
-                            )}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      {owners.map(s => {
-                        const om = getOrgModule(s.id, m.id);
-                        const enabled = !!om;
-                        const perms = (om?.permissions as string[]) || [];
+                {(() => {
+                  const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
+                  const forestModules = visibleModules.filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name));
+                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
 
-                        return (
-                          <TableCell key={s.id} className="text-center">
-                            <div className="flex flex-col items-center gap-1.5">
-                              <Switch
-                                checked={enabled}
-                                onCheckedChange={() => toggleModule(s.id, m.id, accessType, enabled)}
-                              />
-                              {enabled && (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-[10px] font-mono text-muted-foreground">
-                                    {perms.map(p => PERMISSION_SHORT[p] || p[0].toUpperCase()).join("")}
-                                  </span>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-5 w-5">
-                                        <Settings2 className="h-3 w-3" />
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-48 p-3" align="center">
-                                      <p className="text-xs font-medium mb-2">Permissions</p>
-                                      <div className="space-y-2">
-                                        {PERMISSIONS.map(perm => (
-                                          <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer">
-                                            <Checkbox
-                                              checked={perms.includes(perm)}
-                                              onCheckedChange={() => togglePermission(s.id, m.id, perms, perm)}
-                                              disabled={perm === "read" && perms.length > 1}
-                                            />
-                                            {PERMISSION_LABELS[perm]}
-                                          </label>
-                                        ))}
-                                      </div>
-                                    </PopoverContent>
-                                  </Popover>
-                                </div>
-                              )}
+                  const renderModuleRow = (m: any, indent = false) => {
+                    const accessType = (m as any).access_type || "shared";
+                    return (
+                      <TableRow key={m.id}>
+                        <TableCell>
+                          <div className={cn("flex items-center gap-2", indent && "pl-8")}>
+                            <div>
+                              <p className="font-medium">{MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}</p>
+                              <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
+                            <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
+                              {accessType === "scoped" ? (
+                                <><Lock className="h-3 w-3" /> Own data</>
+                              ) : (
+                                <><Globe className="h-3 w-3" /> Shared</>
+                              )}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        {owners.map((s) => {
+                          const om = getOrgModule(s.id, m.id);
+                          const enabled = !!om;
+                          const perms = (om?.permissions as string[]) || [];
+                          return (
+                            <TableCell key={s.id} className="text-center">
+                              <div className="flex flex-col items-center gap-1.5">
+                                <Switch
+                                  checked={enabled}
+                                  onCheckedChange={() => toggleModule(s.id, m.id, accessType, enabled)}
+                                />
+                                {enabled && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] font-mono text-muted-foreground">
+                                      {perms.map((p) => PERMISSION_SHORT[p] || p[0].toUpperCase()).join("")}
+                                    </span>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-5 w-5">
+                                          <Settings2 className="h-3 w-3" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-48 p-3" align="center">
+                                        <p className="text-xs font-medium mb-2">Permissions</p>
+                                        <div className="space-y-2">
+                                          {PERMISSIONS.map((perm) => (
+                                            <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer">
+                                              <Checkbox
+                                                checked={perms.includes(perm)}
+                                                onCheckedChange={() => togglePermission(s.id, m.id, perms, perm)}
+                                                disabled={perm === "read" && perms.length > 1}
+                                              />
+                                              {PERMISSION_LABELS[perm]}
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  };
+
+                  return (
+                    <>
+                      {otherModules.map((m: any) => renderModuleRow(m))}
+
+                      {forestModules.length > 0 && (
+                        <>
+                          <TableRow className="bg-muted/40 hover:bg-muted/50">
+                            <TableCell>
+                              <button
+                                type="button"
+                                onClick={() => setForestExpanded((v) => !v)}
+                                className="flex items-center gap-2 font-medium w-full text-left"
+                              >
+                                <ChevronRight
+                                  className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
+                                />
+                                <TreePine className="h-4 w-4 text-primary" />
+                                <span>Forest Registry</span>
+                                <Badge variant="outline" className="text-[10px] ml-2">
+                                  Group · {forestModules.length}
+                                </Badge>
+                              </button>
+                            </TableCell>
+                            {owners.map((s) => {
+                              const enabledCount = forestModules.filter((m: any) => !!getOrgModule(s.id, m.id)).length;
+                              const allOn = enabledCount === forestModules.length;
+                              const someOn = enabledCount > 0 && !allOn;
+                              return (
+                                <TableCell key={s.id} className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Switch
+                                      checked={allOn}
+                                      onCheckedChange={() => toggleGroup(s.id, forestModules, !allOn)}
+                                      className={cn(someOn && "data-[state=unchecked]:bg-primary/40")}
+                                    />
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {enabledCount}/{forestModules.length}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                          {forestExpanded && forestModules.map((m: any) => renderModuleRow(m, true))}
+                        </>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </TableBody>
             </Table>
           </CardContent>
