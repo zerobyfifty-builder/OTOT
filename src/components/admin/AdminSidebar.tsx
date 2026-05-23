@@ -85,6 +85,16 @@ const menuItems = [
     icon: Sparkles,
   },
   {
+    title: "Forest Registry",
+    icon: Trees,
+    items: [
+      { title: "Forest Locations", url: "/admin/mdm/locations" },
+      { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
+      { title: "Species & Seedlings", url: "/admin/mdm/species" },
+      { title: "Planters Registry", url: "/admin/mdm/planters" },
+      { title: "Sequestration Rates", url: "/admin/mdm/sequestration" },
+    ],
+  {
     title: "Owners",
     url: "/admin/owners",
     icon: Landmark,
