@@ -372,7 +372,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
-                        <TreePine className="h-5 w-5 flex-shrink-0" />
+                        <Trees className="h-5 w-5 flex-shrink-0" />
                         {!collapsed && <span>Forest Registry</span>}
                         {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
                       </SidebarMenuButton>
