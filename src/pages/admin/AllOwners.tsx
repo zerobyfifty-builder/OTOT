@@ -36,6 +36,7 @@ export default function AllOwners() {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Edit sheet state
   const [editOpen, setEditOpen] = useState(false);
