@@ -310,7 +310,7 @@ export default function OwnerModules() {
                                 <ChevronRight
                                   className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
                                 />
-                                <TreePine className="h-4 w-4 text-primary" />
+                                <Trees className="h-4 w-4 text-primary" />
                                 <span>Forest Registry</span>
                                 <Badge variant="outline" className="text-[10px] ml-2">
                                   Group · {forestModules.length}
