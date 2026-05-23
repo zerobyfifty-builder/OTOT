@@ -210,7 +210,7 @@ export function SidebarPreviewDialog({
               {forest.length > 0 && (
                 <div>
                   <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/80 text-sm font-medium">
-                    <TreePine className="h-5 w-5" />
+                    <Trees className="h-5 w-5" />
                     <span>Forest Registry</span>
                     <ChevronDown className="ml-auto h-4 w-4" />
                   </div>
