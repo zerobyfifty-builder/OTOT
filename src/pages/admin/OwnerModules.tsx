@@ -242,7 +242,16 @@ export default function OwnerModules() {
                 {(() => {
                   const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
                   const forestModules = visibleModules.filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name));
-                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+                  const otherModules = visibleModules
+                    .filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name))
+                    .sort((a: any, b: any) => {
+                      const nameA = MODULE_DISPLAY_OVERRIDES[a.display_name] || a.display_name;
+                      const nameB = MODULE_DISPLAY_OVERRIDES[b.display_name] || b.display_name;
+                      const priorityA = MODULE_PRIORITY[nameA] || 999;
+                      const priorityB = MODULE_PRIORITY[nameB] || 999;
+                      if (priorityA !== priorityB) return priorityA - priorityB;
+                      return (a.sort_order || 0) - (b.sort_order || 0);
+                    });
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
