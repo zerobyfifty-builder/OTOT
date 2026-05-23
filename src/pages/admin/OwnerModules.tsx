@@ -157,6 +157,8 @@ export default function OwnerModules() {
       toast.error("Failed to update Forest Registry access");
     }
   };
+
+  const updatePermissions = async (orgId: string, moduleId: string, permissions: string[]) => {
     try {
       await supabase
         .from("organization_modules")
