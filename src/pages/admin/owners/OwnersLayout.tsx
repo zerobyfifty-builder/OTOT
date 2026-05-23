@@ -37,11 +37,13 @@ export default function OwnersLayout() {
       .find((t) => pathname === t.value || pathname.startsWith(t.value + "/"))?.value ??
     "/admin/owners";
 
+  const activeTab = TABS.find((t) => t.value === active) ?? TABS[0];
+
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Owners</h1>
-        <p className="text-sm text-muted-foreground mt-1">Create and manage owner portals, modules etc.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{activeTab.title}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{activeTab.subtitle}</p>
       </div>
       <Tabs value={active} onValueChange={(v) => navigate(v)} className="w-full">
         <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-1 overflow-x-auto">
