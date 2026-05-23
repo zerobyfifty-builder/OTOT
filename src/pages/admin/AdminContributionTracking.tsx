@@ -363,7 +363,7 @@ export default function AdminContributionTracking() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-admin-primary">Contribution Tracking</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-admin-primary">Climate Funding</h1>
           <p className="text-sm text-muted-foreground mt-1">Holistic view of all platform fund movements across owner types</p>
         </div>
         <div className="flex gap-2">
