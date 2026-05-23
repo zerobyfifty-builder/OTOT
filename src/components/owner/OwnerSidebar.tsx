@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map, Sparkles } from 'lucide-react';
+import { Home, Sprout, TreePine, Trees, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map, Sparkles } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,8 +44,8 @@ const coreMenuItems: { title: string; url: string; icon: LucideIcon; moduleKey: 
 // Module-based menu items that appear as flat items after core + collapsible groups
 // sortOrder determines the display order among flat module items
 const moduleMenuItems: Record<string, { title: string; url: string; icon: LucideIcon; sortOrder: number }> = {
-  trip_management: { title: 'Travel Offsets', url: '/owner/trip-management', icon: Map, sortOrder: 0 },
-  tree_orders: { title: 'Tree Orders', url: '/owner/orders', icon: TreePine, sortOrder: 1 },
+  trip_management: { title: 'Travel Offsets', url: '/owner/trip-management', icon: Plane, sortOrder: 0 },
+  tree_orders: { title: 'Tree Orders', url: '/owner/orders', icon: Trees, sortOrder: 1 },
   // Tree Operations and Forest Registry are collapsible groups inserted at sortOrder 2 and 3
   outcomes: { title: 'Environmental Impact', url: '/owner/outcomes', icon: Target, sortOrder: 4 },
   impact_insights: { title: 'Impact Insights', url: '/owner/impact-insights', icon: Sparkles, sortOrder: 5 },

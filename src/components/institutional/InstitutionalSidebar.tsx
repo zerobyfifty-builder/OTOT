@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, TreePine, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane } from 'lucide-react';
+import { Home, TreePine, Trees, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -27,7 +27,7 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 const menuItems = [
   { title: 'Dashboard', url: '/institutional/dashboard', icon: Home },
   { title: 'Recent Trips', url: '/institutional/trips', icon: DollarSign },
-  { title: 'Tree Orders', url: '/institutional/trees', icon: TreePine },
+  { title: 'Tree Orders', url: '/institutional/trees', icon: Trees },
   { title: 'Travel Agents', url: '/institutional/travel-agents', icon: Plane },
   { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
   { title: 'Disbursements', url: '/institutional/disbursements', icon: DollarSign },
