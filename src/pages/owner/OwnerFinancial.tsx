@@ -781,7 +781,7 @@ export const OwnerFinancial = () => {
                         {isKtbUser && <TableCell className="text-sm">{c.payment_method || "-"}</TableCell>}
                         {isKtbUser && <TableCell className="text-amber-700 font-medium text-sm tabular-nums">${getRetained(c).toFixed(2)}</TableCell>}
                         {isKtbUser && <TableCell className="text-blue-700 font-medium text-sm tabular-nums">${getToBeTransferred(c).toFixed(2)}</TableCell>}
-                        {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">${isKtbUser ? getTransferred(c).toFixed(2) : Number(c.amount_transferred || 0).toFixed(2)}</TableCell>}
+                        {(isKtbUser || isPlantationPartner) && <TableCell className="text-violet-700 font-medium text-sm tabular-nums">{isKtbUser ? (c.status === "transferred_for_planting" || c.status === "received_for_planting" ? `$${getTransferred(c).toFixed(2)}` : "-") : `$${Number(c.amount_transferred || 0).toFixed(2)}`}</TableCell>}
                         {isPlantationPartner && <TableCell><DateTimeCell value={c.transfer_date} /></TableCell>}
                         {(isKtbUser || isPlantationPartner) && <TableCell className="text-sm">{c.transfer_mode || "-"}</TableCell>}
                         {isPlantationPartner && <TableCell><DateTimeCell value={c.partner_received_date} /></TableCell>}
