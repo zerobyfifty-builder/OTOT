@@ -69,11 +69,8 @@ const menuItems = [
   },
   {
     title: "Owners",
+    url: "/admin/owners",
     icon: Landmark,
-    items: [
-      { title: "Owners", url: "/admin/owners" },
-      { title: "Create New", url: "/admin/owners/create" },
-    ],
   },
   {
     title: "Partners",
