@@ -120,7 +120,7 @@ const DateTimeCell = ({ value }: { value: string | null }) => {
   } catch { return <span>-</span>; }
 };
 
-export function OwnerTripManagement() {
+export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermissionCheck?: boolean }) {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("trip_management");
   const [trips, setTrips] = useState<Trip[]>([]);
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
@@ -275,7 +275,7 @@ export function OwnerTripManagement() {
 
   if (permLoading) return <Skeleton className="h-64 w-full m-8" />;
 
-  if (!isEnabled) {
+  if (!skipPermissionCheck && !isEnabled) {
     return (
       <div className="p-8">
         <Card>
