@@ -23,7 +23,7 @@ const periodLabels: Record<Period, string> = {
   all: "All time",
 };
 
-export const OwnerImpactInsights = () => {
+export const OwnerImpactInsights = ({ skipPermissionCheck = false }: { skipPermissionCheck?: boolean } = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("30d");
