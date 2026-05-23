@@ -118,7 +118,7 @@ export const OwnerImpactInsights = ({ skipPermissionCheck = false }: { skipPermi
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Impact Insights</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Impact Overview</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
