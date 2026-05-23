@@ -17,6 +17,7 @@ import {
   LogOut,
   Plane,
   Landmark,
+  Map,
 } from "lucide-react";
 import {
   Sidebar,
@@ -66,6 +67,16 @@ const menuItems = [
     title: "Tree Orders",
     url: "/admin/trees",
     icon: Trees,
+  },
+  {
+    title: "Per-Tree Insights",
+    url: "/admin/per-tree-insights",
+    icon: TreePine,
+  },
+  {
+    title: "Impact Journeys",
+    url: "/admin/impact-journeys",
+    icon: Map,
   },
   {
     title: "Owners",

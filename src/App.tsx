@@ -88,6 +88,8 @@ import CreateOwner from "@/pages/admin/CreateOwner";
 import OwnerModules from "@/pages/admin/OwnerModules";
 import OwnerLogs from "@/pages/admin/OwnerLogs";
 import OwnersLayout from "@/pages/admin/owners/OwnersLayout";
+import PerTreeInsights from "@/pages/admin/PerTreeInsights";
+import ImpactJourneys from "@/pages/admin/ImpactJourneys";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
@@ -440,6 +442,20 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <TreesAll />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/per-tree-insights" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <PerTreeInsights />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/impact-journeys" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <ImpactJourneys />
                 </AdminLayout>
               </SuperAdminRoute>
             } />

@@ -104,7 +104,7 @@ const CONTRIBUTION_STATUS_COLORS: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
-export function OwnerTreeManagement() {
+export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermissionCheck?: boolean }) {
   const { isEnabled, isLoading: permLoading } = useModulePermissions("tree_management");
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -396,7 +396,7 @@ export function OwnerTreeManagement() {
 
   if (permLoading) return <Skeleton className="h-64 w-full m-8" />;
 
-  if (!isEnabled) {
+  if (!skipPermissionCheck && !isEnabled) {
     return (
       <div className="p-8">
         <Card>
