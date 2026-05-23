@@ -1,0 +1,1 @@
+UPDATE public.modules SET display_name = 'Travel Offsets' WHERE name = 'trip_management';
