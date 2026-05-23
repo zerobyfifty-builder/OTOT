@@ -17,6 +17,7 @@ import {
   LogOut,
   Plane,
   Landmark,
+  Map,
 } from "lucide-react";
 import {
   Sidebar,
