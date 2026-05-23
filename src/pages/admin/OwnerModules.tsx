@@ -33,7 +33,8 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
   "Financial Management": "Climate Funding",
   "Financial": "Climate Funding",
   "Tree Management": "Per-Tree Insights",
-  "Trip Management": "Impact Journeys",
+  "Trip Management": "Travel Offsets",
+  "Impact Journeys": "Travel Offsets",
   "Outcomes": "Environmental Impact",
 };
 
@@ -42,6 +43,22 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
+// Custom sort priority for module assignment table (lower = higher up)
+const MODULE_PRIORITY: Record<string, number> = {
+  "Dashboard": 1,
+  "Climate Funding": 2,
+  "Financial Management": 2,
+  "Financial": 2,
+  "Tree Orders": 3,
+  "Per-Tree Insights": 4,
+  "Tree Management": 4,
+  "Travel Offsets": 5,
+  "Trip Management": 5,
+  "Impact Journeys": 5,
+  "Impact Overview": 6,
+  "Impact Insights": 6,
+};
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
