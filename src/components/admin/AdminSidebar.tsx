@@ -80,6 +80,11 @@ const menuItems = [
     icon: Plane,
   },
   {
+    title: "Impact Overview",
+    url: "/admin/impact-overview",
+    icon: Sparkles,
+  },
+  {
     title: "Owners",
     url: "/admin/owners",
     icon: Landmark,
