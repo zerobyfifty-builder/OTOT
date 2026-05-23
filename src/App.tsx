@@ -90,6 +90,7 @@ import OwnerLogs from "@/pages/admin/OwnerLogs";
 import OwnersLayout from "@/pages/admin/owners/OwnersLayout";
 import PerTreeInsights from "@/pages/admin/PerTreeInsights";
 import ImpactJourneys from "@/pages/admin/ImpactJourneys";
+import ImpactOverview from "@/pages/admin/ImpactOverview";
 import { AgentLogin } from "@/pages/agent/AgentLogin";
 import { AgentDashboard } from "@/pages/agent/AgentDashboard";
 import { AgentCalculateOffset } from "@/pages/agent/AgentCalculateOffset";
@@ -456,6 +457,13 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <ImpactJourneys />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/impact-overview" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <ImpactOverview />
                 </AdminLayout>
               </SuperAdminRoute>
             } />

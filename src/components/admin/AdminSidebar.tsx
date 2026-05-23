@@ -18,6 +18,7 @@ import {
   Plane,
   Landmark,
   Map,
+  Sparkles,
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,6 +78,11 @@ const menuItems = [
     title: "Travel Offsets",
     url: "/admin/impact-journeys",
     icon: Plane,
+  },
+  {
+    title: "Impact Overview",
+    url: "/admin/impact-overview",
+    icon: Sparkles,
   },
   {
     title: "Owners",

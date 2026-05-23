@@ -23,7 +23,7 @@ const periodLabels: Record<Period, string> = {
   all: "All time",
 };
 
-export const OwnerImpactInsights = () => {
+export const OwnerImpactInsights = ({ skipPermissionCheck = false }: { skipPermissionCheck?: boolean } = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("30d");
@@ -32,7 +32,7 @@ export const OwnerImpactInsights = () => {
   // Module gating
   const { data: gating, isLoading: gatingLoading } = useQuery({
     queryKey: ["impact-insights-gating", user?.id],
-    enabled: !!user,
+    enabled: !!user && !skipPermissionCheck,
     queryFn: async () => {
       const { data: u } = await supabase
         .from("users")
@@ -65,7 +65,7 @@ export const OwnerImpactInsights = () => {
   const { data, isLoading } = useImpactInsights(period);
   const metrics = useMemo(() => aggregateMetrics(data), [data]);
 
-  if (gatingLoading) {
+  if (gatingLoading && !skipPermissionCheck) {
     return (
       <div className="p-6 space-y-4">
         <Skeleton className="h-12 w-1/3" />
@@ -74,12 +74,12 @@ export const OwnerImpactInsights = () => {
     );
   }
 
-  if (!gating?.allowed) {
+  if (!skipPermissionCheck && !gating?.allowed) {
     return (
       <div className="p-6">
         <Card className="p-12 text-center max-w-xl mx-auto">
           <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Impact Insights is not enabled</h2>
+          <h2 className="text-lg font-semibold mb-2">Impact Overview is not enabled</h2>
           <p className="text-sm text-muted-foreground mb-6">
             Ask a super-admin to assign the <span className="font-mono">impact_insights</span> module to your organisation
             from the Module Assignment page.
@@ -118,7 +118,7 @@ export const OwnerImpactInsights = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Impact Insights</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Impact Overview</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
