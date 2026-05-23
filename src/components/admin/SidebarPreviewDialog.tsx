@@ -41,8 +41,8 @@ const CORE: { key: string; title: string; icon: LucideIcon }[] = [
 ];
 
 const FLAT: Record<string, { title: string; icon: LucideIcon; sortOrder: number }> = {
-  trip_management: { title: "Impact Journeys", icon: Map, sortOrder: 0 },
-  tree_orders: { title: "Tree Orders", icon: TreePine, sortOrder: 1 },
+  trip_management: { title: "Travel Offsets", icon: Plane, sortOrder: 0 },
+  tree_orders: { title: "Tree Orders", icon: Trees, sortOrder: 1 },
   outcomes: { title: "Environmental Impact", icon: Target, sortOrder: 4 },
   impact_insights: { title: "Impact Insights", icon: Sparkles, sortOrder: 5 },
   travel_agents: { title: "Travel Agents", icon: Plane, sortOrder: 9 },
