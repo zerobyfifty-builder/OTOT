@@ -467,6 +467,21 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            <Route path="/admin/mdm/locations" element={
+              <SuperAdminRoute><AdminLayout><OwnerForestLocations /></AdminLayout></SuperAdminRoute>
+            } />
+            <Route path="/admin/mdm/nurseries" element={
+              <SuperAdminRoute><AdminLayout><OwnerMdmNurseries /></AdminLayout></SuperAdminRoute>
+            } />
+            <Route path="/admin/mdm/species" element={
+              <SuperAdminRoute><AdminLayout><OwnerMdmSpecies /></AdminLayout></SuperAdminRoute>
+            } />
+            <Route path="/admin/mdm/planters" element={
+              <SuperAdminRoute><AdminLayout><OwnerMdmPlanters /></AdminLayout></SuperAdminRoute>
+            } />
+            <Route path="/admin/mdm/sequestration" element={
+              <SuperAdminRoute><AdminLayout><OwnerMdmSequestration /></AdminLayout></SuperAdminRoute>
+            } />
             
             {/* Travel Agent admin routes */}
             <Route path="/admin/travel-agents" element={
