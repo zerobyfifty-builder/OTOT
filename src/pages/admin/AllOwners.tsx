@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { CreateOwnerSheet } from "@/components/admin/owners/CreateOwnerSheet";
 
 interface Owner {
   id: string;
