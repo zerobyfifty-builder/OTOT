@@ -3,9 +3,27 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Layers, Activity } from "lucide-react";
 
 const TABS = [
-  { value: "/admin/owners", label: "All Owners", icon: Users },
-  { value: "/admin/owners/modules", label: "Module Assignment", icon: Layers },
-  { value: "/admin/owners/logs", label: "Activity Log", icon: Activity },
+  {
+    value: "/admin/owners",
+    label: "All Owners",
+    icon: Users,
+    title: "Owners",
+    subtitle: "Create and manage owner portals, modules etc.",
+  },
+  {
+    value: "/admin/owners/modules",
+    label: "Module Assignment",
+    icon: Layers,
+    title: "Module Assignment",
+    subtitle: "Assign modules and configure permissions for each owner",
+  },
+  {
+    value: "/admin/owners/logs",
+    label: "Activity Log",
+    icon: Activity,
+    title: "Activity Log",
+    subtitle: "Review actions performed by users within each owner organization for accountability.",
+  },
 ] as const;
 
 export default function OwnersLayout() {
