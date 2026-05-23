@@ -205,7 +205,7 @@ export default function AllOwners() {
             <div className="text-center py-12">
               <Landmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No owners found.</p>
-              <Button onClick={() => navigate("/admin/owners/create")} className="mt-4">Create Your First Owner</Button>
+              <Button onClick={() => setCreateOpen(true)} className="mt-4">Create Your First Owner</Button>
             </div>
           ) : (
             <Table>
