@@ -74,7 +74,7 @@ const menuItems = [
     icon: TreePine,
   },
   {
-    title: "Impact Journeys",
+    title: "Travel Offsets",
     url: "/admin/impact-journeys",
     icon: Map,
   },
