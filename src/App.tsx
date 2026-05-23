@@ -460,6 +460,13 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            <Route path="/admin/impact-overview" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <ImpactOverview />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             
             {/* Travel Agent admin routes */}
             <Route path="/admin/travel-agents" element={
