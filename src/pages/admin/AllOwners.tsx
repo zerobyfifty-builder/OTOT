@@ -185,10 +185,11 @@ export default function AllOwners() {
     <div className="space-y-6">
       <div className="flex items-center justify-end gap-2">
         <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
-        <Button onClick={() => navigate("/admin/owners/create")} className="gap-2">
+        <Button onClick={() => setCreateOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />Create Owner
         </Button>
       </div>
+      <CreateOwnerSheet open={createOpen} onOpenChange={setCreateOpen} onCreated={fetchOwners} />
 
       <Card>
         <CardHeader>
