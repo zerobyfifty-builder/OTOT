@@ -181,17 +181,11 @@ export default function AllOwners() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-admin-primary">All Owners</h2>
-          <p className="text-muted-foreground text-sm mt-1">Manage plantation and project owners</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
-          <Button onClick={() => navigate("/admin/owners/create")} className="gap-2">
-            <Plus className="h-4 w-4" />Create Owner
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-2">
+        <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
+        <Button onClick={() => navigate("/admin/owners/create")} className="gap-2">
+          <Plus className="h-4 w-4" />Create Owner
+        </Button>
       </div>
 
       <Card>
