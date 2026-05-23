@@ -132,7 +132,31 @@ export default function OwnerModules() {
     }
   };
 
-  const updatePermissions = async (orgId: string, moduleId: string, permissions: string[]) => {
+  const toggleGroup = async (orgId: string, groupModules: any[], enableAll: boolean) => {
+    try {
+      if (enableAll) {
+        const rows = groupModules
+          .filter((m) => !getOrgModule(orgId, m.id))
+          .map((m) => ({
+            organization_id: orgId,
+            module_id: m.id,
+            is_active: true,
+            permissions: getDefaultPermissions((m as any).access_type || "shared"),
+          }));
+        if (rows.length) await supabase.from("organization_modules").insert(rows);
+      } else {
+        await supabase
+          .from("organization_modules")
+          .delete()
+          .eq("organization_id", orgId)
+          .in("module_id", groupModules.map((m) => m.id));
+      }
+      toast.success("Forest Registry access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch {
+      toast.error("Failed to update Forest Registry access");
+    }
+  };
     try {
       await supabase
         .from("organization_modules")
