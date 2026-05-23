@@ -74,10 +74,6 @@ export default function OwnerLogs() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">Activity Log</h2>
-        <p className="text-muted-foreground text-sm mt-1">Review actions performed by users within each owner organization for accountability.</p>
-      </div>
 
 
 

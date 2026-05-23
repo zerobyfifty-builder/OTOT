@@ -154,10 +154,6 @@ export default function OwnerModules() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-admin-primary">Module Assignment</h2>
-        <p className="text-muted-foreground text-sm mt-1">Assign modules and configure permissions for each owner</p>
-      </div>
 
 
 
