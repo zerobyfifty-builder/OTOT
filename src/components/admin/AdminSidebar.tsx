@@ -64,11 +64,16 @@ const menuItems = [
       { title: "Per-Tree Insights", url: "/admin/per-tree-insights" },
       { title: "Travel Offsets", url: "/admin/impact-journeys" },
       { title: "Impact Overview", url: "/admin/impact-overview" },
-      { title: "Forest Locations", url: "/admin/mdm/locations" },
-      { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
-      { title: "Species & Seedlings", url: "/admin/mdm/species" },
-      { title: "Planters Registry", url: "/admin/mdm/planters" },
-      { title: "Sequestration Rates", url: "/admin/mdm/sequestration" },
+      {
+        title: "Forest Registry",
+        children: [
+          { title: "Forest Locations", url: "/admin/mdm/locations" },
+          { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
+          { title: "Species & Seedlings", url: "/admin/mdm/species" },
+          { title: "Planters Registry", url: "/admin/mdm/planters" },
+          { title: "Sequestration Rates", url: "/admin/mdm/sequestration" },
+        ],
+      },
     ],
   },
   {
@@ -188,23 +193,57 @@ export function AdminSidebar() {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                className="text-admin-cream/80 hover:bg-admin-cream/10 hover:text-admin-cream"
-                              >
-                                <NavLink
-                                  to={subItem.url}
-                                  className={({ isActive }) =>
-                                    isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
-                                  }
+                          {item.items.map((subItem: any) =>
+                            subItem.children ? (
+                              <Collapsible key={subItem.title} asChild defaultOpen={false}>
+                                <SidebarMenuSubItem>
+                                  <CollapsibleTrigger asChild>
+                                    <SidebarMenuSubButton className="text-admin-cream/80 hover:bg-admin-cream/10 hover:text-admin-cream cursor-pointer">
+                                      <span>{subItem.title}</span>
+                                      {!collapsed && <ChevronDown className="ml-auto h-3 w-3" />}
+                                    </SidebarMenuSubButton>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent>
+                                    <SidebarMenuSub>
+                                      {subItem.children.map((leaf: any) => (
+                                        <SidebarMenuSubItem key={leaf.title}>
+                                          <SidebarMenuSubButton
+                                            asChild
+                                            className="text-admin-cream/80 hover:bg-admin-cream/10 hover:text-admin-cream"
+                                          >
+                                            <NavLink
+                                              to={leaf.url}
+                                              className={({ isActive }) =>
+                                                isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
+                                              }
+                                            >
+                                              <span>{leaf.title}</span>
+                                            </NavLink>
+                                          </SidebarMenuSubButton>
+                                        </SidebarMenuSubItem>
+                                      ))}
+                                    </SidebarMenuSub>
+                                  </CollapsibleContent>
+                                </SidebarMenuSubItem>
+                              </Collapsible>
+                            ) : (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  className="text-admin-cream/80 hover:bg-admin-cream/10 hover:text-admin-cream"
                                 >
-                                  <span>{subItem.title}</span>
-                                </NavLink>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
+                                  <NavLink
+                                    to={subItem.url}
+                                    className={({ isActive }) =>
+                                      isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
+                                    }
+                                  >
+                                    <span>{subItem.title}</span>
+                                  </NavLink>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            )
+                          )}
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
