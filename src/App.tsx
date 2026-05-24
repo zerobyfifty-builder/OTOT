@@ -468,6 +468,13 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            <Route path="/admin/owners-dashboard" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <OwnersDashboard />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
             <Route path="/admin/mdm/locations" element={
               <SuperAdminRoute><AdminLayout><OwnerForestLocations /></AdminLayout></SuperAdminRoute>
             } />
