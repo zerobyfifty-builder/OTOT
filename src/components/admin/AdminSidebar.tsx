@@ -19,7 +19,7 @@ import {
   Landmark,
   Map,
   Sparkles,
-} from "lucide-react";
+  Layers,
 import {
   Sidebar,
   SidebarContent,
