@@ -60,6 +60,22 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Insights": 6,
 };
 
+// Owners-module short codes for identification (OM01..OM06)
+const MODULE_CODES: Record<string, string> = {
+  "Climate Funding": "OM01",
+  "Financial Management": "OM01",
+  "Financial": "OM01",
+  "Tree Orders": "OM02",
+  "Per-Tree Insights": "OM03",
+  "Tree Management": "OM03",
+  "Travel Offsets": "OM04",
+  "Trip Management": "OM04",
+  "Impact Journeys": "OM04",
+  "Impact Overview": "OM05",
+  "Impact Insights": "OM05",
+  "Forest Registry": "OM06",
+};
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];
