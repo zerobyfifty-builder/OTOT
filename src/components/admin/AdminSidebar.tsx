@@ -20,6 +20,7 @@ import {
   Map,
   Sparkles,
   Layers,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
