@@ -276,7 +276,14 @@ export default function OwnerModules() {
                         <TableCell>
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
-                              <p className="font-medium">{MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}</p>
+                              <p className="font-medium flex items-center gap-2">
+                                {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name] && (
+                                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
+                                    {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name]}
+                                  </Badge>
+                                )}
+                                {MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}
+                              </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
                             <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
