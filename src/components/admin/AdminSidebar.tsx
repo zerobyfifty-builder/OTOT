@@ -60,29 +60,17 @@ const menuItems = [
     ],
   },
   {
-    title: "Climate Funding",
-    url: "/admin/contributions",
-    icon: DollarSign,
-  },
-  {
-    title: "Tree Orders",
-    url: "/admin/trees",
-    icon: Trees,
-  },
-  {
-    title: "Per-Tree Insights",
-    url: "/admin/per-tree-insights",
-    icon: TreePine,
-  },
-  {
-    title: "Travel Offsets",
-    url: "/admin/impact-journeys",
-    icon: Plane,
-  },
-  {
-    title: "Impact Overview",
-    url: "/admin/impact-overview",
-    icon: Sparkles,
+    title: "Owners Modules",
+    icon: Layers,
+    items: [
+      { title: "Dashboard", url: "/admin/owners-dashboard" },
+      { title: "Climate Funding", url: "/admin/contributions" },
+      { title: "Tree Orders", url: "/admin/trees" },
+      { title: "Per-Tree Insights", url: "/admin/per-tree-insights" },
+      { title: "Travel Offsets", url: "/admin/impact-journeys" },
+      { title: "Impact Overview", url: "/admin/impact-overview" },
+      { title: "Forest Registry", url: "/admin/mdm/locations" },
+    ],
   },
   {
     title: "Forest Registry",
