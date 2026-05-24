@@ -44,20 +44,19 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
-// Custom sort priority for module assignment table (lower = higher up)
+// Custom sort priority for module assignment table (matches OM codes OM01..OM05; OM06 Forest Registry is grouped separately)
 const MODULE_PRIORITY: Record<string, number> = {
-  "Dashboard": 1,
-  "Climate Funding": 2,
-  "Financial Management": 2,
-  "Financial": 2,
-  "Tree Orders": 3,
-  "Per-Tree Insights": 4,
-  "Tree Management": 4,
-  "Travel Offsets": 5,
-  "Trip Management": 5,
-  "Impact Journeys": 5,
-  "Impact Overview": 6,
-  "Impact Insights": 6,
+  "Climate Funding": 1,
+  "Financial Management": 1,
+  "Financial": 1,
+  "Tree Orders": 2,
+  "Per-Tree Insights": 3,
+  "Tree Management": 3,
+  "Travel Offsets": 4,
+  "Trip Management": 4,
+  "Impact Journeys": 4,
+  "Impact Overview": 5,
+  "Impact Insights": 5,
 };
 
 // Owners-module short codes for identification (OM01..OM06)
