@@ -64,13 +64,6 @@ const menuItems = [
       { title: "Per-Tree Insights", url: "/admin/per-tree-insights" },
       { title: "Travel Offsets", url: "/admin/impact-journeys" },
       { title: "Impact Overview", url: "/admin/impact-overview" },
-      { title: "Forest Registry", url: "/admin/mdm/locations" },
-    ],
-  },
-  {
-    title: "Forest Registry",
-    icon: Trees,
-    items: [
       { title: "Forest Locations", url: "/admin/mdm/locations" },
       { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
       { title: "Species & Seedlings", url: "/admin/mdm/species" },
