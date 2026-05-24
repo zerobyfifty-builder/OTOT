@@ -5,9 +5,6 @@ import {
   Building2,
   Shield,
   BarChart3,
-  DollarSign,
-  Trees,
-  TreePine,
   Activity,
   FileText,
   Settings,
@@ -15,10 +12,7 @@ import {
   ShieldAlert,
   ChevronDown,
   LogOut,
-  Plane,
   Landmark,
-  Map,
-  Sparkles,
   Layers,
 } from "lucide-react";
 import {
