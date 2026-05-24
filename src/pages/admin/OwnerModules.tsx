@@ -60,6 +60,22 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Insights": 6,
 };
 
+// Owners-module short codes for identification (OM01..OM06)
+const MODULE_CODES: Record<string, string> = {
+  "Climate Funding": "OM01",
+  "Financial Management": "OM01",
+  "Financial": "OM01",
+  "Tree Orders": "OM02",
+  "Per-Tree Insights": "OM03",
+  "Tree Management": "OM03",
+  "Travel Offsets": "OM04",
+  "Trip Management": "OM04",
+  "Impact Journeys": "OM04",
+  "Impact Overview": "OM05",
+  "Impact Insights": "OM05",
+  "Forest Registry": "OM06",
+};
+
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
   return ["read"];
@@ -260,7 +276,14 @@ export default function OwnerModules() {
                         <TableCell>
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
-                              <p className="font-medium">{MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}</p>
+                              <p className="font-medium flex items-center gap-2">
+                                {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name] && (
+                                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
+                                    {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name]}
+                                  </Badge>
+                                )}
+                                {MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}
+                              </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
                             <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
@@ -337,6 +360,7 @@ export default function OwnerModules() {
                                   className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
                                 />
                                 <Trees className="h-4 w-4 text-primary" />
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM06</Badge>
                                 <span>Forest Registry</span>
                                 <Badge variant="outline" className="text-[10px] ml-2">
                                   Group · {forestModules.length}
