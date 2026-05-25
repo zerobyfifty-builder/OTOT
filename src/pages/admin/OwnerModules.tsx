@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -352,7 +352,7 @@ export default function OwnerModules() {
                   };
 
                   const renderForestRegistryRows = () => (
-                    <>
+                    <Fragment key="forest-registry-group">
                           <TableRow className="bg-muted/40 hover:bg-muted/50">
                             <TableCell>
                               <button
@@ -392,7 +392,7 @@ export default function OwnerModules() {
                             })}
                           </TableRow>
                           {forestExpanded && forestModules.map((m: any) => renderModuleRow(m, true))}
-                        </>
+                        </Fragment>
                   );
 
                   return (
