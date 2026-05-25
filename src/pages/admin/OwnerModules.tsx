@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -58,6 +58,7 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Journeys": 4,
   "Impact Overview": 5,
   "Impact Insights": 5,
+  "Forest Registry": 6,
 };
 
 // Owners-module short codes for identification (CM01 Dashboard, OM01..OM06)
@@ -76,6 +77,10 @@ const MODULE_CODES: Record<string, string> = {
   "Impact Insights": "OM05",
   "Forest Registry": "OM06",
 };
+
+const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
+
+const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
@@ -259,16 +264,18 @@ export default function OwnerModules() {
                 {(() => {
                   const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
                   const forestModules = visibleModules.filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name));
-                  const otherModules = visibleModules
-                    .filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name))
-                    .sort((a: any, b: any) => {
-                      const nameA = MODULE_DISPLAY_OVERRIDES[a.display_name] || a.display_name;
-                      const nameB = MODULE_DISPLAY_OVERRIDES[b.display_name] || b.display_name;
-                      const priorityA = MODULE_PRIORITY[nameA] || 999;
-                      const priorityB = MODULE_PRIORITY[nameB] || 999;
-                      if (priorityA !== priorityB) return priorityA - priorityB;
-                      return (a.sort_order || 0) - (b.sort_order || 0);
-                    });
+                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+
+                  const assignmentRows = [
+                    ...otherModules.map((module: any) => ({ type: "module" as const, module })),
+                    ...(forestModules.length > 0 ? [{ type: "forest" as const }] : []),
+                  ].sort((a, b) => {
+                    const priorityA = a.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(a.module));
+                    const priorityB = b.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(b.module));
+                    if (priorityA !== priorityB) return priorityA - priorityB;
+                    if (a.type === "forest" || b.type === "forest") return a.type === "forest" ? -1 : 1;
+                    return (a.module.sort_order || 0) - (b.module.sort_order || 0);
+                  });
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
@@ -278,12 +285,12 @@ export default function OwnerModules() {
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
                               <p className="font-medium flex items-center gap-2">
-                                {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name] && (
+                                {MODULE_CODES[getModuleDisplayName(m)] && (
                                   <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
-                                    {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name]}
+                                    {MODULE_CODES[getModuleDisplayName(m)]}
                                   </Badge>
                                 )}
-                                {MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}
+                                {getModuleDisplayName(m)}
                               </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
@@ -344,12 +351,8 @@ export default function OwnerModules() {
                     );
                   };
 
-                  return (
-                    <>
-                      {otherModules.map((m: any) => renderModuleRow(m))}
-
-                      {forestModules.length > 0 && (
-                        <>
+                  const renderForestRegistryRows = () => (
+                    <Fragment key="forest-registry-group">
                           <TableRow className="bg-muted/40 hover:bg-muted/50">
                             <TableCell>
                               <button
@@ -389,8 +392,12 @@ export default function OwnerModules() {
                             })}
                           </TableRow>
                           {forestExpanded && forestModules.map((m: any) => renderModuleRow(m, true))}
-                        </>
-                      )}
+                        </Fragment>
+                  );
+
+                  return (
+                    <>
+                      {assignmentRows.map((row) => row.type === "forest" ? renderForestRegistryRows() : renderModuleRow(row.module))}
                     </>
                   );
                 })()}
