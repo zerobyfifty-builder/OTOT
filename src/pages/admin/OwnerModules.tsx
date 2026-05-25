@@ -276,7 +276,10 @@ export default function OwnerModules() {
               <TableBody>
                 {(() => {
                   const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
-                  const forestModules = visibleModules.filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name));
+                  const forestModules = visibleModules
+                    .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
+                    .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
+
                   const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
 
                   const assignmentRows = [
