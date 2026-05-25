@@ -60,8 +60,9 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Insights": 5,
 };
 
-// Owners-module short codes for identification (OM01..OM06)
+// Owners-module short codes for identification (CM01 Dashboard, OM01..OM06)
 const MODULE_CODES: Record<string, string> = {
+  "Dashboard": "CM01",
   "Climate Funding": "OM01",
   "Financial Management": "OM01",
   "Financial": "OM01",
