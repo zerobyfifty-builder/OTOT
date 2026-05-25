@@ -301,11 +301,12 @@ export default function OwnerModules() {
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
                               <p className="font-medium flex items-center gap-2">
-                                {MODULE_CODES[getModuleDisplayName(m)] && (
+                                {getModuleCode(m) && (
                                   <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
-                                    {MODULE_CODES[getModuleDisplayName(m)]}
+                                    {getModuleCode(m)}
                                   </Badge>
                                 )}
+
                                 {getModuleDisplayName(m)}
                               </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
