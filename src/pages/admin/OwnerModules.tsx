@@ -351,12 +351,8 @@ export default function OwnerModules() {
                     );
                   };
 
-                  return (
+                  const renderForestRegistryRows = () => (
                     <>
-                      {otherModules.map((m: any) => renderModuleRow(m))}
-
-                      {forestModules.length > 0 && (
-                        <>
                           <TableRow className="bg-muted/40 hover:bg-muted/50">
                             <TableCell>
                               <button
@@ -397,7 +393,11 @@ export default function OwnerModules() {
                           </TableRow>
                           {forestExpanded && forestModules.map((m: any) => renderModuleRow(m, true))}
                         </>
-                      )}
+                  );
+
+                  return (
+                    <>
+                      {assignmentRows.map((row) => row.type === "forest" ? renderForestRegistryRows() : renderModuleRow(row.module))}
                     </>
                   );
                 })()}
