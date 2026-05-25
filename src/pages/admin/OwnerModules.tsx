@@ -58,6 +58,7 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Journeys": 4,
   "Impact Overview": 5,
   "Impact Insights": 5,
+  "Forest Registry": 6,
 };
 
 // Owners-module short codes for identification (CM01 Dashboard, OM01..OM06)
@@ -76,6 +77,10 @@ const MODULE_CODES: Record<string, string> = {
   "Impact Insights": "OM05",
   "Forest Registry": "OM06",
 };
+
+const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
+
+const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
