@@ -264,16 +264,18 @@ export default function OwnerModules() {
                 {(() => {
                   const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
                   const forestModules = visibleModules.filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name));
-                  const otherModules = visibleModules
-                    .filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name))
-                    .sort((a: any, b: any) => {
-                      const nameA = MODULE_DISPLAY_OVERRIDES[a.display_name] || a.display_name;
-                      const nameB = MODULE_DISPLAY_OVERRIDES[b.display_name] || b.display_name;
-                      const priorityA = MODULE_PRIORITY[nameA] || 999;
-                      const priorityB = MODULE_PRIORITY[nameB] || 999;
-                      if (priorityA !== priorityB) return priorityA - priorityB;
-                      return (a.sort_order || 0) - (b.sort_order || 0);
-                    });
+                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+
+                  const assignmentRows = [
+                    ...otherModules.map((module: any) => ({ type: "module" as const, module })),
+                    ...(forestModules.length > 0 ? [{ type: "forest" as const }] : []),
+                  ].sort((a, b) => {
+                    const priorityA = a.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(a.module));
+                    const priorityB = b.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(b.module));
+                    if (priorityA !== priorityB) return priorityA - priorityB;
+                    if (a.type === "forest" || b.type === "forest") return a.type === "forest" ? -1 : 1;
+                    return (a.module.sort_order || 0) - (b.module.sort_order || 0);
+                  });
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
@@ -283,12 +285,12 @@ export default function OwnerModules() {
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
                               <p className="font-medium flex items-center gap-2">
-                                {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name] && (
+                                {MODULE_CODES[getModuleDisplayName(m)] && (
                                   <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
-                                    {MODULE_CODES[MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name]}
+                                    {MODULE_CODES[getModuleDisplayName(m)]}
                                   </Badge>
                                 )}
-                                {MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name}
+                                {getModuleDisplayName(m)}
                               </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
