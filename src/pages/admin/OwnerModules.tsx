@@ -79,9 +79,21 @@ const MODULE_CODES: Record<string, string> = {
 
 };
 
+// Forest Registry sub-module codes keyed by module.name
+const FOREST_SUB_CODES: Record<string, string> = {
+  mdm_locations: "CM07A",
+  mdm_nurseries: "CM07B",
+  mdm_species: "CM07C",
+  mdm_planters: "CM07D",
+  mdm_sequestration: "CM07E",
+};
+const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
 const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
+const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
 
 const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
+
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
