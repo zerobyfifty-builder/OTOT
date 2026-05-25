@@ -61,21 +61,22 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Forest Registry": 6,
 };
 
-// Owners-module short codes for identification (CM01 Dashboard, OM01..OM06)
+// Owners-module short codes for identification (CM01..CM07)
 const MODULE_CODES: Record<string, string> = {
   "Dashboard": "CM01",
-  "Climate Funding": "OM01",
-  "Financial Management": "OM01",
-  "Financial": "OM01",
-  "Tree Orders": "OM02",
-  "Per-Tree Insights": "OM03",
-  "Tree Management": "OM03",
-  "Travel Offsets": "OM04",
-  "Trip Management": "OM04",
-  "Impact Journeys": "OM04",
-  "Impact Overview": "OM05",
-  "Impact Insights": "OM05",
-  "Forest Registry": "OM06",
+  "Climate Funding": "CM02",
+  "Financial Management": "CM02",
+  "Financial": "CM02",
+  "Tree Orders": "CM03",
+  "Per-Tree Insights": "CM04",
+  "Tree Management": "CM04",
+  "Travel Offsets": "CM05",
+  "Trip Management": "CM05",
+  "Impact Journeys": "CM05",
+  "Impact Overview": "CM06",
+  "Impact Insights": "CM06",
+  "Forest Registry": "CM07",
+
 };
 
 const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
@@ -364,7 +365,7 @@ export default function OwnerModules() {
                                   className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
                                 />
                                 <Trees className="h-4 w-4 text-primary" />
-                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM06</Badge>
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">CM07</Badge>
                                 <span>Forest Registry</span>
                                 <Badge variant="outline" className="text-[10px] ml-2">
                                   Group · {forestModules.length}
