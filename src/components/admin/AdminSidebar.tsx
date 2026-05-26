@@ -83,8 +83,12 @@ const menuItems = [
   },
   {
     title: "Partners",
-    url: "/admin/partners",
     icon: Building2,
+    items: [
+      { title: "All Partners", url: "/admin/partners" },
+      { title: "Module Assignment", url: "/admin/partners/modules" },
+      { title: "Activity Logs", url: "/admin/partners/logs" },
+    ],
   },
   {
     title: "Access Control",
