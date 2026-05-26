@@ -83,13 +83,8 @@ const menuItems = [
   },
   {
     title: "Partners",
+    url: "/admin/partners",
     icon: Building2,
-    items: [
-      { title: "All Partners", url: "/admin/partners" },
-      { title: "Institutional", url: "/admin/partners/institutional" },
-      { title: "Business", url: "/admin/partners/business" },
-      { title: "Create New Partner", url: "/admin/partners/create" },
-    ],
   },
   {
     title: "Access Control",
