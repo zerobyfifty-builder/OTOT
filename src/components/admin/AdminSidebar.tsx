@@ -13,7 +13,6 @@ import {
   ChevronDown,
   LogOut,
   Landmark,
-  Layers,
 } from "lucide-react";
 import {
   Sidebar,
