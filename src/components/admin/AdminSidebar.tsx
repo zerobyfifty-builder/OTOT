@@ -13,7 +13,6 @@ import {
   ChevronDown,
   LogOut,
   Landmark,
-  Layers,
 } from "lucide-react";
 import {
   Sidebar,
@@ -56,30 +55,8 @@ const menuItems = [
   },
   {
     title: "Owners",
-    url: "/admin/owners",
+    url: "/admin/users",
     icon: Landmark,
-  },
-  {
-    title: "Owners Modules",
-    icon: Layers,
-    items: [
-      { title: "Dashboard", url: "/admin/owners-dashboard" },
-      { title: "Climate Funding", url: "/admin/contributions" },
-      { title: "Tree Orders", url: "/admin/trees" },
-      { title: "Per-Tree Insights", url: "/admin/per-tree-insights" },
-      { title: "Travel Offsets", url: "/admin/impact-journeys" },
-      { title: "Impact Overview", url: "/admin/impact-overview" },
-      {
-        title: "Forest Registry",
-        children: [
-          { title: "Forest Locations", url: "/admin/mdm/locations" },
-          { title: "Nurseries & CBOs", url: "/admin/mdm/nurseries" },
-          { title: "Species & Seedlings", url: "/admin/mdm/species" },
-          { title: "Planters Registry", url: "/admin/mdm/planters" },
-          { title: "Sequestration Rates", url: "/admin/mdm/sequestration" },
-        ],
-      },
-    ],
   },
   {
     title: "Partners",
