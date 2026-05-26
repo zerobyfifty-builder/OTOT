@@ -84,7 +84,8 @@ export default function AllPartners() {
         `,
           { count: "exact" }
         )
-        .eq("archived", false); // Exclude archived partners
+        .eq("archived", false)
+        .in("category", ["institutional", "business"]); // Partners only (exclude owners)
 
       if (searchTerm) {
         query = query.or(
