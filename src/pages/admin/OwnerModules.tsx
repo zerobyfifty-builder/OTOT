@@ -44,7 +44,7 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
-// Custom sort priority for module assignment table (CM01 Dashboard, then OM01..OM06)
+// Custom sort priority for module assignment table (OM01 Dashboard, then OM01..OM06)
 const MODULE_PRIORITY: Record<string, number> = {
   "Dashboard": 0,
   "Climate Funding": 1,
@@ -61,31 +61,31 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Forest Registry": 6,
 };
 
-// Owners-module short codes for identification (CM01..CM07)
+// Owners-module short codes for identification (OM01..OM07)
 const MODULE_CODES: Record<string, string> = {
-  "Dashboard": "CM01",
-  "Climate Funding": "CM02",
-  "Financial Management": "CM02",
-  "Financial": "CM02",
-  "Tree Orders": "CM03",
-  "Per-Tree Insights": "CM04",
-  "Tree Management": "CM04",
-  "Travel Offsets": "CM05",
-  "Trip Management": "CM05",
-  "Impact Journeys": "CM05",
-  "Impact Overview": "CM06",
-  "Impact Insights": "CM06",
-  "Forest Registry": "CM07",
+  "Dashboard": "OM01",
+  "Climate Funding": "OM02",
+  "Financial Management": "OM02",
+  "Financial": "OM02",
+  "Tree Orders": "OM03",
+  "Per-Tree Insights": "OM04",
+  "Tree Management": "OM04",
+  "Travel Offsets": "OM05",
+  "Trip Management": "OM05",
+  "Impact Journeys": "OM05",
+  "Impact Overview": "OM06",
+  "Impact Insights": "OM06",
+  "Forest Registry": "OM07",
 
 };
 
 // Forest Registry sub-module codes keyed by module.name
 const FOREST_SUB_CODES: Record<string, string> = {
-  mdm_locations: "CM07A",
-  mdm_nurseries: "CM07B",
-  mdm_species: "CM07C",
-  mdm_planters: "CM07D",
-  mdm_sequestration: "CM07E",
+  mdm_locations: "OM07A",
+  mdm_nurseries: "OM07B",
+  mdm_species: "OM07C",
+  mdm_planters: "OM07D",
+  mdm_sequestration: "OM07E",
 };
 const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
@@ -386,7 +386,7 @@ export default function OwnerModules() {
                                   className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
                                 />
                                 <Trees className="h-4 w-4 text-primary" />
-                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">CM07</Badge>
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM07</Badge>
                                 <span>Forest Registry</span>
                                 <Badge variant="outline" className="text-[10px] ml-2">
                                   Group · {forestModules.length}
