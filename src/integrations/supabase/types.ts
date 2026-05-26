@@ -1283,6 +1283,7 @@ export type Database = {
       modules: {
         Row: {
           access_type: string
+          audience: string
           category: string
           created_at: string | null
           description: string | null
@@ -1297,6 +1298,7 @@ export type Database = {
         }
         Insert: {
           access_type?: string
+          audience?: string
           category: string
           created_at?: string | null
           description?: string | null
@@ -1311,6 +1313,7 @@ export type Database = {
         }
         Update: {
           access_type?: string
+          audience?: string
           category?: string
           created_at?: string | null
           description?: string | null

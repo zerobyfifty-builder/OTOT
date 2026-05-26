@@ -119,9 +119,14 @@ export default function OwnerModules() {
   });
 
   const { data: modules, isLoading: loadingModules } = useQuery({
-    queryKey: ["allModules"],
+    queryKey: ["ownerModulesCatalog"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("modules")
+        .select("*")
+        .eq("is_active", true)
+        .in("audience", ["owner", "both"])
+        .order("sort_order");
       if (error) throw error;
       return data || [];
     },
