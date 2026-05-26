@@ -1,0 +1,436 @@
+import { Fragment, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Settings2, Globe, Lock, Eye, ChevronRight, Trees } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { SidebarPreviewDialog } from "@/components/admin/SidebarPreviewDialog";
+import type { OwnerType } from "@/hooks/useOrgOwnerType";
+
+const PERMISSIONS = ["read", "write", "edit", "delete"] as const;
+const PERMISSION_LABELS: Record<string, string> = {
+  read: "Read",
+  write: "Write",
+  edit: "Edit",
+  delete: "Delete",
+};
+const PERMISSION_SHORT: Record<string, string> = {
+  read: "R",
+  write: "W",
+  edit: "E",
+  delete: "D",
+};
+
+const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
+  "Financial Management": "Climate Funding",
+  "Financial": "Climate Funding",
+  "Tree Management": "Per-Tree Insights",
+  "Trip Management": "Travel Offsets",
+  "Impact Journeys": "Travel Offsets",
+  "Outcomes": "Environmental Impact",
+};
+
+// Modules permanently removed from owner allocation
+const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management"];
+
+// Modules grouped under "Forest Registry" accordion
+const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
+// Custom sort priority for module assignment table (CM01 Dashboard, then OM01..OM06)
+const MODULE_PRIORITY: Record<string, number> = {
+  "Dashboard": 0,
+  "Climate Funding": 1,
+  "Financial Management": 1,
+  "Financial": 1,
+  "Tree Orders": 2,
+  "Per-Tree Insights": 3,
+  "Tree Management": 3,
+  "Travel Offsets": 4,
+  "Trip Management": 4,
+  "Impact Journeys": 4,
+  "Impact Overview": 5,
+  "Impact Insights": 5,
+  "Forest Registry": 6,
+};
+
+// Owners-module short codes for identification (CM01..CM07)
+const MODULE_CODES: Record<string, string> = {
+  "Dashboard": "CM01",
+  "Climate Funding": "CM02",
+  "Financial Management": "CM02",
+  "Financial": "CM02",
+  "Tree Orders": "CM03",
+  "Per-Tree Insights": "CM04",
+  "Tree Management": "CM04",
+  "Travel Offsets": "CM05",
+  "Trip Management": "CM05",
+  "Impact Journeys": "CM05",
+  "Impact Overview": "CM06",
+  "Impact Insights": "CM06",
+  "Forest Registry": "CM07",
+
+};
+
+// Forest Registry sub-module codes keyed by module.name
+const FOREST_SUB_CODES: Record<string, string> = {
+  mdm_locations: "CM07A",
+  mdm_nurseries: "CM07B",
+  mdm_species: "CM07C",
+  mdm_planters: "CM07D",
+  mdm_sequestration: "CM07E",
+};
+const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
+const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
+const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
+
+const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
+
+
+function getDefaultPermissions(accessType: string): string[] {
+  if (accessType === "scoped") return ["read", "write", "edit", "delete"];
+  return ["read"];
+}
+
+export default function PartnerModules() {
+  const queryClient = useQueryClient();
+  const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
+  const [forestExpanded, setForestExpanded] = useState(true);
+
+  const { data: partners, isLoading: loadingOrgs } = useQuery({
+    queryKey: ["partnerOrgs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("id, name, is_active, category, partner_types(name, category)")
+        .in("category", ["institutional","business"])
+        .eq("archived", false);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: modules, isLoading: loadingModules } = useQuery({
+    queryKey: ["allModules"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: orgModules, isLoading: loadingOrgModules } = useQuery({
+    queryKey: ["orgModules"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("organization_modules").select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const isLoading = loadingOrgs || loadingModules || loadingOrgModules;
+
+  const getOrgModule = (orgId: string, moduleId: string) => {
+    return orgModules?.find(om => om.organization_id === orgId && om.module_id === moduleId && om.is_active);
+  };
+
+  const getOwnerType = (org: any): OwnerType => {
+    const ptName = (org?.partner_types?.name || "").toLowerCase();
+    const ptCat = (org?.partner_types?.category || "").toLowerCase();
+    const orgCat = (org?.category || "").toLowerCase();
+    const haystack = `${orgCat} ${ptCat} ${ptName} ${(org?.name || "").toLowerCase()}`;
+    if (haystack.includes("plantation")) return "plantation";
+    if (haystack.includes("institutional") || haystack.includes("ktb")) return "institutional";
+    if (haystack.includes("technology") || haystack.includes("tech")) return "technology";
+    return "other";
+  };
+
+  const getAssignedModuleNames = (orgId: string): string[] => {
+    if (!orgModules || !modules) return [];
+    const moduleIdToName = new Map(modules.map((m: any) => [m.id, m.name as string]));
+    return orgModules
+      .filter((om: any) => om.organization_id === orgId && om.is_active)
+      .map((om: any) => moduleIdToName.get(om.module_id))
+      .filter(Boolean) as string[];
+  };
+
+  const previewOrg = partners?.find((s: any) => s.id === previewOrgId) || null;
+
+  const toggleModule = async (orgId: string, moduleId: string, accessType: string, currentlyEnabled: boolean) => {
+    try {
+      if (currentlyEnabled) {
+        await supabase.from("organization_modules").delete().eq("organization_id", orgId).eq("module_id", moduleId);
+      } else {
+        const defaultPerms = getDefaultPermissions(accessType);
+        await supabase.from("organization_modules").insert({
+          organization_id: orgId,
+          module_id: moduleId,
+          is_active: true,
+          permissions: defaultPerms,
+        });
+      }
+      toast.success("Module access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch (error) {
+      toast.error("Failed to update module access");
+    }
+  };
+
+  const toggleGroup = async (orgId: string, groupModules: any[], enableAll: boolean) => {
+    try {
+      if (enableAll) {
+        const rows = groupModules
+          .filter((m) => !getOrgModule(orgId, m.id))
+          .map((m) => ({
+            organization_id: orgId,
+            module_id: m.id,
+            is_active: true,
+            permissions: getDefaultPermissions((m as any).access_type || "shared"),
+          }));
+        if (rows.length) await supabase.from("organization_modules").insert(rows);
+      } else {
+        await supabase
+          .from("organization_modules")
+          .delete()
+          .eq("organization_id", orgId)
+          .in("module_id", groupModules.map((m) => m.id));
+      }
+      toast.success("Forest Registry access updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch {
+      toast.error("Failed to update Forest Registry access");
+    }
+  };
+
+  const updatePermissions = async (orgId: string, moduleId: string, permissions: string[]) => {
+    try {
+      await supabase
+        .from("organization_modules")
+        .update({ permissions })
+        .eq("organization_id", orgId)
+        .eq("module_id", moduleId);
+      toast.success("Permissions updated");
+      queryClient.invalidateQueries({ queryKey: ["orgModules"] });
+    } catch (error) {
+      toast.error("Failed to update permissions");
+    }
+  };
+
+  const togglePermission = (orgId: string, moduleId: string, currentPerms: string[], perm: string) => {
+    const newPerms = currentPerms.includes(perm)
+      ? currentPerms.filter(p => p !== perm)
+      : [...currentPerms, perm];
+    // Always keep "read" if any other permission is set
+    if (newPerms.length > 0 && !newPerms.includes("read")) {
+      newPerms.unshift("read");
+    }
+    updatePermissions(orgId, moduleId, newPerms);
+  };
+
+  return (
+    <div className="space-y-6">
+
+
+
+      {isLoading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : !partners?.length ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">No partners found. Create a partner first.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="pt-6 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[220px]">Module</TableHead>
+                  {partners.map(s => (
+                    <TableHead key={s.id} className="text-center min-w-[160px]">
+                      <div className="flex flex-col items-center gap-1">
+                        <span>{s.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => setPreviewOrgId(s.id)}
+                        >
+                          <Eye className="h-3 w-3" />
+                          Preview sidebar
+                        </Button>
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(() => {
+                  const visibleModules = (modules || []).filter((m: any) => !HIDDEN_MODULE_NAMES.includes(m.name));
+                  const forestModules = visibleModules
+                    .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
+                    .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
+
+                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+
+                  const assignmentRows = [
+                    ...otherModules.map((module: any) => ({ type: "module" as const, module })),
+                    ...(forestModules.length > 0 ? [{ type: "forest" as const }] : []),
+                  ].sort((a, b) => {
+                    const priorityA = a.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(a.module));
+                    const priorityB = b.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(b.module));
+                    if (priorityA !== priorityB) return priorityA - priorityB;
+                    if (a.type === "forest" || b.type === "forest") return a.type === "forest" ? -1 : 1;
+                    return (a.module.sort_order || 0) - (b.module.sort_order || 0);
+                  });
+
+                  const renderModuleRow = (m: any, indent = false) => {
+                    const accessType = (m as any).access_type || "shared";
+                    return (
+                      <TableRow key={m.id}>
+                        <TableCell>
+                          <div className={cn("flex items-center gap-2", indent && "pl-8")}>
+                            <div>
+                              <p className="font-medium flex items-center gap-2">
+                                {getModuleCode(m) && (
+                                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">
+                                    {getModuleCode(m)}
+                                  </Badge>
+                                )}
+
+                                {getModuleDisplayName(m)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{m.category}</p>
+                            </div>
+                            <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
+                              {accessType === "scoped" ? (
+                                <><Lock className="h-3 w-3" /> Own data</>
+                              ) : (
+                                <><Globe className="h-3 w-3" /> Shared</>
+                              )}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        {partners.map((s) => {
+                          const om = getOrgModule(s.id, m.id);
+                          const enabled = !!om;
+                          const perms = (om?.permissions as string[]) || [];
+                          return (
+                            <TableCell key={s.id} className="text-center">
+                              <div className="flex flex-col items-center gap-1.5">
+                                <Switch
+                                  checked={enabled}
+                                  onCheckedChange={() => toggleModule(s.id, m.id, accessType, enabled)}
+                                />
+                                {enabled && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] font-mono text-muted-foreground">
+                                      {perms.map((p) => PERMISSION_SHORT[p] || p[0].toUpperCase()).join("")}
+                                    </span>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-5 w-5">
+                                          <Settings2 className="h-3 w-3" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-48 p-3" align="center">
+                                        <p className="text-xs font-medium mb-2">Permissions</p>
+                                        <div className="space-y-2">
+                                          {PERMISSIONS.map((perm) => (
+                                            <label key={perm} className="flex items-center gap-2 text-sm cursor-pointer">
+                                              <Checkbox
+                                                checked={perms.includes(perm)}
+                                                onCheckedChange={() => togglePermission(s.id, m.id, perms, perm)}
+                                                disabled={perm === "read" && perms.length > 1}
+                                              />
+                                              {PERMISSION_LABELS[perm]}
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  };
+
+                  const renderForestRegistryRows = () => (
+                    <Fragment key="forest-registry-group">
+                          <TableRow className="bg-muted/40 hover:bg-muted/50">
+                            <TableCell>
+                              <button
+                                type="button"
+                                onClick={() => setForestExpanded((v) => !v)}
+                                className="flex items-center gap-2 font-medium w-full text-left"
+                              >
+                                <ChevronRight
+                                  className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
+                                />
+                                <Trees className="h-4 w-4 text-primary" />
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">CM07</Badge>
+                                <span>Forest Registry</span>
+                                <Badge variant="outline" className="text-[10px] ml-2">
+                                  Group · {forestModules.length}
+                                </Badge>
+                              </button>
+                            </TableCell>
+                            {partners.map((s) => {
+                              const enabledCount = forestModules.filter((m: any) => !!getOrgModule(s.id, m.id)).length;
+                              const allOn = enabledCount === forestModules.length;
+                              const someOn = enabledCount > 0 && !allOn;
+                              return (
+                                <TableCell key={s.id} className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Switch
+                                      checked={allOn}
+                                      onCheckedChange={() => toggleGroup(s.id, forestModules, !allOn)}
+                                      className={cn(someOn && "data-[state=unchecked]:bg-primary/40")}
+                                    />
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {enabledCount}/{forestModules.length}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                          {forestExpanded && forestModules.map((m: any) => renderModuleRow(m, true))}
+                        </Fragment>
+                  );
+
+                  return (
+                    <>
+                      {assignmentRows.map((row) => row.type === "forest" ? renderForestRegistryRows() : renderModuleRow(row.module))}
+                    </>
+                  );
+                })()}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      <SidebarPreviewDialog
+        open={!!previewOrg}
+        onOpenChange={(o) => !o && setPreviewOrgId(null)}
+        organizationName={previewOrg?.name || ""}
+        ownerType={previewOrg ? getOwnerType(previewOrg) : "other"}
+        assignedModuleNames={previewOrg ? getAssignedModuleNames(previewOrg.id) : []}
+      />
+    </div>
+  );
+}

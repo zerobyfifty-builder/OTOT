@@ -84,7 +84,8 @@ export default function AllPartners() {
         `,
           { count: "exact" }
         )
-        .eq("archived", false); // Exclude archived partners
+        .eq("archived", false)
+        .in("category", ["institutional", "business"]); // Partners only (exclude owners)
 
       if (searchTerm) {
         query = query.or(
@@ -126,30 +127,18 @@ export default function AllPartners() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-admin-primary">
-              All Partners
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Manage institutional and business partners
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchPartners} variant="outline" size="icon">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={() => navigate("/admin/partners/create")}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Partner
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-end gap-2">
+        <Button onClick={fetchPartners} variant="outline" size="icon">
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+        <Button
+          onClick={() => navigate("/admin/partners/create")}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Create New Partner
+        </Button>
       </div>
 
       <Card>
