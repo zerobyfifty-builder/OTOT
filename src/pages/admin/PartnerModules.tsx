@@ -162,7 +162,7 @@ export default function PartnerModules() {
       .filter(Boolean) as string[];
   };
 
-  const previewOrg = owners?.find((s: any) => s.id === previewOrgId) || null;
+  const previewOrg = partners?.find((s: any) => s.id === previewOrgId) || null;
 
   const toggleModule = async (orgId: string, moduleId: string, accessType: string, currentlyEnabled: boolean) => {
     try {
@@ -242,7 +242,7 @@ export default function PartnerModules() {
 
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
-      ) : !owners?.length ? (
+      ) : !partners?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">No partners found. Create a partner first.</p>
@@ -255,7 +255,7 @@ export default function PartnerModules() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[220px]">Module</TableHead>
-                  {owners.map(s => (
+                  {partners.map(s => (
                     <TableHead key={s.id} className="text-center min-w-[160px]">
                       <div className="flex flex-col items-center gap-1">
                         <span>{s.name}</span>
@@ -320,7 +320,7 @@ export default function PartnerModules() {
                             </Badge>
                           </div>
                         </TableCell>
-                        {owners.map((s) => {
+                        {partners.map((s) => {
                           const om = getOrgModule(s.id, m.id);
                           const enabled = !!om;
                           const perms = (om?.permissions as string[]) || [];
@@ -388,7 +388,7 @@ export default function PartnerModules() {
                                 </Badge>
                               </button>
                             </TableCell>
-                            {owners.map((s) => {
+                            {partners.map((s) => {
                               const enabledCount = forestModules.filter((m: any) => !!getOrgModule(s.id, m.id)).length;
                               const allOn = enabledCount === forestModules.length;
                               const someOn = enabledCount > 0 && !allOn;
