@@ -52,6 +52,9 @@ import PartnersInstitutional from "@/pages/admin/PartnersInstitutional";
 import PartnersBusiness from "@/pages/admin/PartnersBusiness";
 import Users from "@/pages/admin/Users";
 import AllPartners from "@/pages/admin/AllPartners";
+import PartnerModules from "@/pages/admin/PartnerModules";
+import PartnerLogs from "@/pages/admin/PartnerLogs";
+import PartnersLayout from "@/pages/admin/partners/PartnersLayout";
 import AccessControlRoles from "@/pages/admin/AccessControlRoles";
 import AccessControlModules from "@/pages/admin/AccessControlModules";
 import FinancialTransactions from "@/pages/admin/FinancialTransactions";
@@ -376,14 +379,18 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
-            {/* Partners routes */}
-            <Route path="/admin/partners" element={
+            {/* Partners routes (with shared layout for list/modules/logs) */}
+            <Route element={
               <SuperAdminRoute>
                 <AdminLayout>
-                  <AllPartners />
+                  <PartnersLayout />
                 </AdminLayout>
               </SuperAdminRoute>
-            } />
+            }>
+              <Route path="/admin/partners" element={<AllPartners />} />
+              <Route path="/admin/partners/modules" element={<PartnerModules />} />
+              <Route path="/admin/partners/logs" element={<PartnerLogs />} />
+            </Route>
             <Route path="/admin/partners/institutional" element={
               <SuperAdminRoute>
                 <AdminLayout>
