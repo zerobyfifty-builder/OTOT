@@ -100,18 +100,18 @@ function getDefaultPermissions(accessType: string): string[] {
   return ["read"];
 }
 
-export default function OwnerModules() {
+export default function PartnerModules() {
   const queryClient = useQueryClient();
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
   const [forestExpanded, setForestExpanded] = useState(true);
 
-  const { data: owners, isLoading: loadingOrgs } = useQuery({
-    queryKey: ["ownerOrgs"],
+  const { data: partners, isLoading: loadingOrgs } = useQuery({
+    queryKey: ["partnerOrgs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, is_active, category, partner_types(name, category)")
-        .eq("category", "owner")
+        .in("category", ["institutional","business"])
         .eq("archived", false);
       if (error) throw error;
       return data || [];
@@ -245,7 +245,7 @@ export default function OwnerModules() {
       ) : !owners?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">No owners found. Create a owner first.</p>
+            <p className="text-muted-foreground">No partners found. Create a partner first.</p>
           </CardContent>
         </Card>
       ) : (
