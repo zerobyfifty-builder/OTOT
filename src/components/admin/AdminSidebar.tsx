@@ -55,6 +55,11 @@ const menuItems = [
     ],
   },
   {
+    title: "Owners",
+    url: "/admin/owners",
+    icon: Landmark,
+  },
+  {
     title: "Owners Modules",
     icon: Layers,
     items: [
@@ -75,11 +80,6 @@ const menuItems = [
         ],
       },
     ],
-  },
-  {
-    title: "Owners",
-    url: "/admin/owners",
-    icon: Landmark,
   },
   {
     title: "Partners",
