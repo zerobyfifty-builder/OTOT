@@ -39,7 +39,7 @@ const MODULE_DISPLAY_OVERRIDES: Record<string, string> = {
 };
 
 // Modules permanently removed from owner allocation
-const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management"];
+const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_management", "audit_logs", "api_management", "user_management", "org_users"];
 
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
