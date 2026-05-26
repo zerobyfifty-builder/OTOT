@@ -119,9 +119,14 @@ export default function PartnerModules() {
   });
 
   const { data: modules, isLoading: loadingModules } = useQuery({
-    queryKey: ["allModules"],
+    queryKey: ["partnerModulesCatalog"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
+      const { data, error } = await supabase
+        .from("modules")
+        .select("*")
+        .eq("is_active", true)
+        .in("audience", ["partner", "both"])
+        .order("sort_order");
       if (error) throw error;
       return data || [];
     },
