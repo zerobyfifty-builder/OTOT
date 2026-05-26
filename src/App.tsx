@@ -58,6 +58,7 @@ import FinancialTransactions from "@/pages/admin/FinancialTransactions";
 import AdminContributionTracking from "@/pages/admin/AdminContributionTracking";
 import TreesAll from "@/pages/admin/TreesAll";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import PlaceholderPage from "@/pages/admin/PlaceholderPage";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
 import Reimbursements from "@/pages/admin/Reimbursements";
@@ -549,6 +550,36 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+
+            {/* Placeholder admin routes (reserved for upcoming modules) */}
+            {[
+              { path: "/admin/users/tourists", title: "Tourists" },
+              { path: "/admin/users/partners", title: "Partner Users" },
+              { path: "/admin/users/admins", title: "Admin Users" },
+              { path: "/admin/access/custom", title: "Custom Access" },
+              { path: "/admin/activity", title: "Activity Monitor" },
+              { path: "/admin/audit", title: "Audit Logs" },
+              { path: "/admin/config/system", title: "System Settings" },
+              { path: "/admin/config/payment", title: "Payment Settings" },
+              { path: "/admin/config/email", title: "Email Templates" },
+              { path: "/admin/config/flags", title: "Feature Flags" },
+              { path: "/admin/api/keys", title: "API Keys" },
+              { path: "/admin/api/webhooks", title: "Webhooks" },
+              { path: "/admin/api/logs", title: "Integration Logs" },
+              { path: "/admin/security", title: "Security" },
+            ].map(({ path, title }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <SuperAdminRoute>
+                    <AdminLayout>
+                      <PlaceholderPage title={title} />
+                    </AdminLayout>
+                  </SuperAdminRoute>
+                }
+              />
+            ))}
             
             {/* Owner Portal routes */}
             <Route path="/owner/dashboard" element={
