@@ -58,6 +58,7 @@ import FinancialTransactions from "@/pages/admin/FinancialTransactions";
 import AdminContributionTracking from "@/pages/admin/AdminContributionTracking";
 import TreesAll from "@/pages/admin/TreesAll";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import PlaceholderPage from "@/pages/admin/PlaceholderPage";
 import TreesManagement from "@/pages/admin/TreesManagement";
 import LodgesManagement from "@/pages/admin/LodgesManagement";
 import Reimbursements from "@/pages/admin/Reimbursements";
