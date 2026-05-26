@@ -1,64 +1,48 @@
-# Plan: Unified Owners Admin Page with Tabs (route-backed)
-
-Consolidate three admin Owner pages into one tabbed UI while keeping a distinct URL for each tab. Pure UI/navigation refactor — no business logic, data, or feature changes.
-
-## Why this structure works
-
-- **Clutter-free UI**: one page header, one tab strip — instead of three sidebar entries.
-- **Deep-linkable**: each tab has its own URL, so bookmarks, browser back/forward, and direct links keep working.
-- **Expandable**: adding a future tab (e.g. "Workflow Assignment" like the reference) is one new route + one new `TabsTrigger`.
-- **Zero risk to features**: existing page components are reused as-is inside `TabsContent`.
+# Separate Owners and Partners as distinct stakeholder categories
 
 ## Current state
 
-- `/admin/owners` → `AllOwners.tsx`
-- `/admin/owners/modules` → `OwnerModules.tsx`
-- `/admin/owners/logs` → `OwnerLogs.tsx`
-- `/admin/owners/create` → `CreateOwner.tsx` (sub-page, stays)
-- Sidebar lists All Owners / Create New / Module Assignment / Activity Logs as four separate items.
-
-## Target state
-
-A shared layout component renders the page header ("Owners" / "Create and manage owner portals") and a `Tabs` strip with three triggers. Each route below mounts the same layout and pre-selects its tab:
-
-| URL | Tab active | Content |
-|---|---|---|
-| `/admin/owners` | All Owners | `<AllOwners />` |
-| `/admin/owners/modules` | Module Assignment | `<OwnerModules />` |
-| `/admin/owners/logs` | Activity Log | `<OwnerLogs />` |
-
-Clicking a tab uses `navigate(url)` so the URL stays in sync (no `?tab=` query param needed). `/admin/owners/create` remains a separate full page reached from the "Create New Owner" button.
+- `organizations.category` already holds the distinction: `owner` (4 rows) vs `institutional` / `business` (1 each).
+- `AllOwners.tsx` correctly filters `category = 'owner'`.
+- `AllPartners.tsx` has **no category filter** — it returns every non-archived organization, so owner orgs leak into the Partners list.
+- `OwnerModules.tsx` and `OwnerLogs.tsx` are scoped to `category = 'owner'`. There is no equivalent Partner Modules / Partner Logs page.
+- Sidebar (after the last change) links `Partners` → `/admin/partners` (the All Partners list). No Modules/Logs entries exist for partners.
+- The partner creation wizard already restricts choices to `institutional | business` (see `src/types/partner.ts`), so new partners are tagged correctly; new owners come through `CreateOwnerSheet` with `category='owner'`. No backend schema change is needed — the data model is already separated; only the UI queries and missing partner-side screens need work.
 
 ## Changes
 
-### New shared layout
-- `src/pages/admin/owners/OwnersLayout.tsx`
-  - Renders header + `Tabs` with `value` derived from `useLocation().pathname`
-  - `onValueChange` calls `navigate(targetUrl)`
-  - Renders `<Outlet />` inside the active `TabsContent`
+### 1. Stop owners showing under Partners (UI scoping only)
+- `src/pages/admin/AllPartners.tsx`
+  - Add `.in("category", ["institutional", "business"])` to the base query.
+  - Update the category filter `Select` to only offer `All / Institutional / Business` (already correct) and ensure "All" maps to the `in(...)` list, not unfiltered.
+- `src/pages/admin/Partners.tsx` (the landing tiles): no data change needed; tiles already split institutional vs business.
 
-### Routing (`src/App.tsx`)
-- Wrap the three existing routes as nested children of a parent route using `OwnersLayout` as the element.
-- All three routes preserved (no redirects removed, no new redirects added).
-- `/admin/owners/create` stays outside the layout (full page).
+### 2. Add Partner Modules page (mirrors Owner Modules)
+- New file `src/pages/admin/PartnerModules.tsx` — copy `OwnerModules.tsx` and change:
+  - Query filter: `.in("category", ["institutional","business"])` instead of `.eq("category","owner")`.
+  - Labels: "Owner" → "Partner".
+  - Reuse the same `organization_modules` table and `useModulePermissions` plumbing (no schema change). Module assignment is per-organization, so partners get the same mechanism owners already use.
+- Route in `src/App.tsx`: `/admin/partners/modules` wrapped in `SuperAdminRoute + AdminLayout`.
 
-### Existing pages
-- `AllOwners.tsx`, `OwnerModules.tsx`, `OwnerLogs.tsx` keep all logic.
-- Trim only their outer page-header block (title + description) since the layout now owns it. All tables, dialogs, filters, mutations untouched.
+### 3. Add Partner Activity Logs page (mirrors Owner Logs)
+- New file `src/pages/admin/PartnerLogs.tsx` — copy `OwnerLogs.tsx`, swap filter to partner categories and labels.
+- Route `/admin/partners/logs` in `src/App.tsx`.
 
-### Sidebar (`AdminSidebar.tsx`)
-- Collapse the four entries under Owners into two: **Owners** (`/admin/owners`) and **Create New** (`/admin/owners/create`).
-- Tab switching happens inside the page; sidebar stays clean.
+### 4. Sidebar
+- `src/components/admin/AdminSidebar.tsx`: convert the single `Partners` link back into a small group with three children — `All Partners` (`/admin/partners`), `Module Assignment` (`/admin/partners/modules`), `Activity Logs` (`/admin/partners/logs`) — symmetrical to the Owners group.
 
-## Out of scope / unchanged
-- Supabase queries, mutations, RLS, edge functions
-- `CreateOwner` flow
-- Owner portal (`/owner/*`) routes and components
-- Visual identity / branding tokens
+### 5. Verify no cross-contamination elsewhere
+- Grep audit of `from("organizations")` calls in `src/pages/admin/**`:
+  - `AllOwners`, `OwnerModules`, `OwnerLogs`, `OwnersDashboard` → all already filter `category='owner'`. Leave as-is.
+  - `PartnersBusiness.tsx`, `PartnersInstitutional.tsx` → confirm they filter by their specific category; tighten if missing.
+- No edits to portals, routing guards (`OwnerRoute`, `BusinessPartnerRoute`, `InstitutionalRoute`), or backend RLS — they already key off role + organization, which is unchanged.
 
-## Verification
-- Visiting each of the three URLs lands on the right tab with header visible.
-- Clicking tabs updates the URL; browser back/forward moves between tabs.
-- "Create New Owner" button still routes to `/admin/owners/create`.
-- Module toggles + log filters behave identically.
-- Sidebar "Owners" item stays highlighted on all three tab URLs.
+## Out of scope
+
+- No database migration. The `category` column and `partner_types` table already model the separation. Adding a DB-level CHECK constraint isn't requested and would risk breaking existing rows.
+- No changes to owner/partner portal features, modules table, or RLS policies — functionality is preserved exactly.
+
+## Technical notes
+
+- The leak is a single missing `.in()` filter on the Partners list query; everything else is additive (two new admin pages + sidebar entries + routes).
+- New pages reuse existing components (`useModulePermissions`, sidebar preview dialog) so no new business logic is introduced.
