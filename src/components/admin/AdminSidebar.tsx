@@ -46,13 +46,8 @@ const menuItems = [
   },
   {
     title: "Users",
+    url: "/admin/users",
     icon: Users,
-    items: [
-      { title: "All Users", url: "/admin/users" },
-      { title: "Tourists", url: "/admin/users/tourists" },
-      { title: "Partners", url: "/admin/users/partners" },
-      { title: "Admins", url: "/admin/users/admins" },
-    ],
   },
   {
     title: "Owners",
