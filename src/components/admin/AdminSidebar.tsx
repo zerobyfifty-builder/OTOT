@@ -82,6 +82,14 @@ const menuItems = [
     icon: Building2,
   },
   {
+    title: "Partners Modules",
+    icon: Layers,
+    items: [
+      { title: "Partner Management", url: "/admin/partners" },
+      { title: "Travel Agents", url: "/admin/travel-agents" },
+    ],
+  },
+  {
     title: "Access Control",
     icon: Shield,
     items: [
