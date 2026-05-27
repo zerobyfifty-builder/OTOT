@@ -16,6 +16,7 @@ interface Partner {
   id: string;
   name: string;
   contact_email: string;
+  category?: string;
 }
 
 interface PartnerResetPasswordDialogProps {
@@ -34,7 +35,7 @@ export function PartnerResetPasswordDialog({
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -42,7 +43,6 @@ export function PartnerResetPasswordDialog({
 
     setLoading(true);
     try {
-      // Get the user_id from users table using organization_id
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("user_id")
@@ -50,15 +50,30 @@ export function PartnerResetPasswordDialog({
         .maybeSingle();
 
       if (userError) throw userError;
-      if (!userData?.user_id) throw new Error("No user account found for this partner");
 
-      const { error } = await supabase.functions.invoke("admin-set-user-password", {
-        body: { userId: userData.user_id, newPassword },
-      });
+      if (userData?.user_id) {
+        const { error } = await supabase.functions.invoke("admin-set-user-password", {
+          body: { userId: userData.user_id, newPassword },
+        });
+        if (error) throw error;
+      } else {
+        if (!partner.contact_email) {
+          throw new Error("Partner has no contact email — cannot create login account");
+        }
+        const { data, error } = await supabase.functions.invoke("create-partner-user", {
+          body: {
+            name: partner.name,
+            email: partner.contact_email,
+            password: newPassword,
+            organization_id: partner.id,
+            category: partner.category || "government",
+          },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+      }
 
-      if (error) throw error;
-
-      toast.success(`Password reset for ${partner.name}`);
+      toast.success(`Password set for ${partner.name}. They can now log in.`);
       setNewPassword("");
       onOpenChange(false);
     } catch (error: any) {
