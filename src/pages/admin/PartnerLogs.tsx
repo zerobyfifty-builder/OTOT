@@ -13,7 +13,7 @@ interface OrgRow {
   category: string;
 }
 
-type GroupKey = "institutional" | "business" | "other";
+type GroupKey = "government" | "business" | "other";
 
 const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<any> }> = {
   institutional: { label: "Institutional", icon: Landmark },
@@ -23,7 +23,7 @@ const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<an
 
 function groupOf(o: OrgRow): GroupKey {
   const cat = (o.category || "").toLowerCase();
-  if (cat === "institutional") return "institutional";
+  if (cat === "government") return "government";
   if (cat === "business") return "business";
   return "other";
 }
@@ -31,7 +31,7 @@ function groupOf(o: OrgRow): GroupKey {
 export default function PartnerLogs() {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeGroup, setActiveGroup] = useState<GroupKey>("institutional");
+  const [activeGroup, setActiveGroup] = useState<GroupKey>("government");
   const [selectedOrg, setSelectedOrg] = useState<Record<GroupKey, string | null>>({
     institutional: null, business: null, other: null,
   });
@@ -42,7 +42,7 @@ export default function PartnerLogs() {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, category, partner_types(name, category)")
-        .in("category", ["institutional", "business"])
+        .in("category", ["government", "business"])
         .eq("archived", false)
         .order("name");
       if (!error) setOrgs((data as any) || []);
@@ -67,7 +67,7 @@ export default function PartnerLogs() {
   }, [grouped]);
 
   const visibleGroups = (Object.keys(GROUP_META) as GroupKey[]).filter((k) => grouped[k].length > 0);
-  const currentGroups = visibleGroups.length ? visibleGroups : (["institutional"] as GroupKey[]);
+  const currentGroups = visibleGroups.length ? visibleGroups : (["government"] as GroupKey[]);
 
   return (
     <div className="space-y-6">

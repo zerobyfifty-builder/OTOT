@@ -111,7 +111,7 @@ export default function PartnerModules() {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, is_active, category, partner_types(name, category)")
-        .in("category", ["institutional","business"])
+        .in("category", ["government","business"])
         .eq("archived", false);
       if (error) throw error;
       return data || [];
@@ -153,7 +153,7 @@ export default function PartnerModules() {
     const orgCat = (org?.category || "").toLowerCase();
     const haystack = `${orgCat} ${ptCat} ${ptName} ${(org?.name || "").toLowerCase()}`;
     if (haystack.includes("plantation")) return "plantation";
-    if (haystack.includes("institutional") || haystack.includes("ktb")) return "institutional";
+    if (haystack.includes("government") || haystack.includes("ktb")) return "government";
     if (haystack.includes("technology") || haystack.includes("tech")) return "technology";
     return "other";
   };

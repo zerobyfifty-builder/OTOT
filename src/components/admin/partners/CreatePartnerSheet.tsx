@@ -18,7 +18,7 @@ interface CreatePartnerSheetProps {
 }
 
 const emptyForm = {
-  category: '' as '' | 'institutional' | 'business',
+  category: '' as '' | 'government' | 'business',
   partnerTypeId: '',
   name: '', legalName: '', description: '',
   contactPerson: '', contactEmail: '', contactPhone: '',
@@ -122,7 +122,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                 >
                   <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="institutional">Institutional</SelectItem>
+                    <SelectItem value="government">Institutional</SelectItem>
                     <SelectItem value="business">Business</SelectItem>
                   </SelectContent>
                 </Select>

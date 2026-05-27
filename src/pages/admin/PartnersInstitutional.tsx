@@ -64,7 +64,7 @@ export default function PartnersInstitutional() {
           onboarded_date,
           partner_types(name, category)
         `)
-        .eq("category", "institutional")
+        .eq("category", "government")
         .eq("archived", false); // Exclude archived partners
 
       if (searchTerm) {

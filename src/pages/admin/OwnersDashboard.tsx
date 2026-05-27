@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Landmark, Trees, Cpu, Layers } from "lucide-react";
 
-type OwnerType = "technology" | "institutional" | "plantation" | "other";
+type OwnerType = "technology" | "government" | "plantation" | "other";
 
 function classifyOwner(org: any): OwnerType {
   const ptName = (org?.partner_types?.name || "").toLowerCase();
@@ -15,7 +15,7 @@ function classifyOwner(org: any): OwnerType {
   const orgCat = (org?.category || "").toLowerCase();
   const haystack = `${orgCat} ${ptCat} ${ptName} ${(org?.name || "").toLowerCase()}`;
   if (haystack.includes("plantation")) return "plantation";
-  if (haystack.includes("institutional") || haystack.includes("ktb")) return "institutional";
+  if (haystack.includes("government") || haystack.includes("ktb")) return "government";
   if (haystack.includes("technology") || haystack.includes("tech")) return "technology";
   return "other";
 }
@@ -144,7 +144,7 @@ export default function OwnersDashboard() {
           <TabsTrigger value="technology">
             Tech <Badge variant="secondary" className="ml-2 tabular-nums">{counts.technology}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="institutional">
+          <TabsTrigger value="government">
             Institutional <Badge variant="secondary" className="ml-2 tabular-nums">{counts.institutional}</Badge>
           </TabsTrigger>
           <TabsTrigger value="plantation">
@@ -157,8 +157,8 @@ export default function OwnersDashboard() {
         <TabsContent value="technology" className="mt-6">
           <OwnerTypePanel type="technology" owners={owners || []} loading={isLoading} />
         </TabsContent>
-        <TabsContent value="institutional" className="mt-6">
-          <OwnerTypePanel type="institutional" owners={owners || []} loading={isLoading} />
+        <TabsContent value="government" className="mt-6">
+          <OwnerTypePanel type="government" owners={owners || []} loading={isLoading} />
         </TabsContent>
         <TabsContent value="plantation" className="mt-6">
           <OwnerTypePanel type="plantation" owners={owners || []} loading={isLoading} />

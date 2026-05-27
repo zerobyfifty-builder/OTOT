@@ -85,7 +85,7 @@ export default function AllPartners() {
           { count: "exact" }
         )
         .eq("archived", false)
-        .in("category", ["institutional", "business"]); // Partners only (exclude owners)
+        .in("category", ["government", "business"]); // Partners only (exclude owners)
 
       if (searchTerm) {
         query = query.or(
@@ -115,7 +115,7 @@ export default function AllPartners() {
 
   const getCategoryBadgeVariant = (category: string) => {
     switch (category) {
-      case "institutional":
+      case "government":
         return "default";
       case "business":
         return "secondary";
@@ -168,7 +168,7 @@ export default function AllPartners() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="institutional">Institutional</SelectItem>
+                <SelectItem value="government">Institutional</SelectItem>
                 <SelectItem value="business">Business</SelectItem>
               </SelectContent>
             </Select>

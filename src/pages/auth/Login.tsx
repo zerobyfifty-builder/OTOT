@@ -95,7 +95,7 @@ export const Login: React.FC = () => {
           console.log('[LOGIN] Role query error:', roleError);
 
           const isSuperAdmin = userRole === 'super_admin';
-          const isInstitutionalPartner = userRole === 'institutional_partner';
+          const isInstitutionalPartner = userRole === 'government_partner';
           const isBusinessPartner = userRole === 'business_partner';
           const isTravelAgent = userRole === 'travel_agent';
           const isOwner = userRole === 'owner';

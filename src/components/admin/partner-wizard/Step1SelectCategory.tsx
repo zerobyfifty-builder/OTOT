@@ -27,16 +27,16 @@ export function Step1SelectCategory({
         {/* Institutional Partner Card */}
         <Card
           className={`p-6 cursor-pointer transition-all border-2 hover:shadow-lg ${
-            selectedCategory === 'institutional'
+            selectedCategory === 'government'
               ? 'border-admin-primary bg-admin-primary/5'
               : 'border-border hover:border-admin-primary/50'
           }`}
-          onClick={() => onSelectCategory('institutional')}
+          onClick={() => onSelectCategory('government')}
         >
           <div className="space-y-4">
             <div className="flex items-start gap-4">
               <div className={`p-3 rounded-lg ${
-                selectedCategory === 'institutional' 
+                selectedCategory === 'government' 
                   ? 'bg-admin-primary text-admin-cream' 
                   : 'bg-muted'
               }`}>
@@ -55,8 +55,8 @@ export function Step1SelectCategory({
             <div className="flex justify-end">
               <input
                 type="radio"
-                checked={selectedCategory === 'institutional'}
-                onChange={() => onSelectCategory('institutional')}
+                checked={selectedCategory === 'government'}
+                onChange={() => onSelectCategory('government')}
                 className="h-5 w-5 accent-admin-primary"
               />
             </div>

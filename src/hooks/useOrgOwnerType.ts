@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-export type OwnerType = "plantation" | "institutional" | "technology" | "other";
+export type OwnerType = "plantation" | "government" | "technology" | "other";
 
 export interface OrgContext {
   organizationId: string | null;
@@ -56,7 +56,7 @@ export function useOrgOwnerType() {
       let ownerType: OwnerType = "other";
       const haystack = `${orgCategory} ${ptCategory} ${ptName}`;
       if (haystack.includes("plantation")) ownerType = "plantation";
-      else if (haystack.includes("institutional") || haystack.includes("ktb")) ownerType = "institutional";
+      else if (haystack.includes("government") || haystack.includes("ktb")) ownerType = "government";
       else if (haystack.includes("technology") || haystack.includes("tech")) ownerType = "technology";
 
       return {

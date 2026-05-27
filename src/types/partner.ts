@@ -1,4 +1,4 @@
-export type PartnerCategory = 'institutional' | 'business';
+export type PartnerCategory = 'government' | 'business';
 
 export interface PartnerFormData {
   // Step 1
@@ -91,7 +91,7 @@ export interface ApiConfiguration {
 export interface PartnerType {
   id: string;
   name: string;
-  category: 'institutional' | 'business';
+  category: 'government' | 'business';
   description?: string;
   default_modules?: any;
   requires_api: boolean;

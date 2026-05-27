@@ -211,7 +211,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
   // Dynamic sidebar color based on owner type name
   const sidebarColor = (() => {
     const name = partnerTypeName.toLowerCase();
-    if (name.includes('institutional') || name.includes('ktb')) return 'hsl(348 70% 30%)';
+    if (name.includes('government') || name.includes('ktb')) return 'hsl(348 70% 30%)';
     if (name.includes('technology') || name.includes('tech')) return 'hsl(212 100% 50%)';
     return 'hsl(138 70% 22%)'; // Plantation / default
   })();

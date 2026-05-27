@@ -26,7 +26,7 @@ export default function AuthCallback() {
             .rpc('get_user_role', { input_user_id: session.user.id });
 
           const isSuperAdmin = userRole === 'super_admin';
-          const isInstitutionalPartner = userRole === 'institutional_partner';
+          const isInstitutionalPartner = userRole === 'government_partner';
           const isTravelAgent = userRole === 'travel_agent';
           
           // Check if there's stored pledge context

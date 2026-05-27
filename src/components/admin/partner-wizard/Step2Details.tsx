@@ -122,7 +122,7 @@ export function Step2Details({ category, initialData, onNext, onBack, onSaveDraf
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-admin-primary mb-2">
-          {category === 'institutional' ? 'Institutional' : 'Business'} Partner Details
+          {category === 'government' ? 'Institutional' : 'Business'} Partner Details
         </h2>
         <p className="text-muted-foreground">Fill in the partner information</p>
       </div>

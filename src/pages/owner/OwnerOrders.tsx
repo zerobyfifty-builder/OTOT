@@ -847,15 +847,15 @@ export const OwnerOrders = () => {
         .eq("id", orgId)
         .single();
       if (!org) return false;
-      // Institutional partners have category 'institutional' or partner type containing 'institutional'/'ktb'
-      if (org.category === 'institutional') return false;
+      // Institutional partners have category 'government' or partner type containing 'government'/'ktb'
+      if (org.category === 'government') return false;
       if (org.partner_type_id) {
         const { data: pt } = await supabase
           .from("partner_types")
           .select("name")
           .eq("id", org.partner_type_id)
           .single();
-        if (pt?.name?.toLowerCase().includes('institutional') || pt?.name?.toLowerCase().includes('ktb')) return false;
+        if (pt?.name?.toLowerCase().includes('government') || pt?.name?.toLowerCase().includes('ktb')) return false;
       }
       return true;
     },

@@ -13,7 +13,7 @@ interface OrgRow {
   category: string;
 }
 
-type GroupKey = "institutional" | "plantation" | "technology" | "other";
+type GroupKey = "government" | "plantation" | "technology" | "other";
 
 const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<any> }> = {
   institutional: { label: "Institutional", icon: Landmark },
@@ -25,7 +25,7 @@ const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<an
 function groupOf(o: OrgRow): GroupKey {
   const hay = `${(o.category || "").toLowerCase()} ${(o.partner_types?.name || "").toLowerCase()} ${(o.partner_types?.category || "").toLowerCase()}`;
   if (hay.includes("plantation")) return "plantation";
-  if (hay.includes("institutional") || hay.includes("ktb")) return "institutional";
+  if (hay.includes("government") || hay.includes("ktb")) return "government";
   if (hay.includes("technology") || hay.includes("tech")) return "technology";
   return "other";
 }
@@ -33,7 +33,7 @@ function groupOf(o: OrgRow): GroupKey {
 export default function OwnerLogs() {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeGroup, setActiveGroup] = useState<GroupKey>("institutional");
+  const [activeGroup, setActiveGroup] = useState<GroupKey>("government");
   const [selectedOrg, setSelectedOrg] = useState<Record<GroupKey, string | null>>({
     institutional: null, plantation: null, technology: null, other: null,
   });
@@ -70,7 +70,7 @@ export default function OwnerLogs() {
   }, [grouped]);
 
   const visibleGroups = (Object.keys(GROUP_META) as GroupKey[]).filter((k) => grouped[k].length > 0);
-  const currentGroups = visibleGroups.length ? visibleGroups : (["institutional"] as GroupKey[]);
+  const currentGroups = visibleGroups.length ? visibleGroups : (["government"] as GroupKey[]);
 
   return (
     <div className="space-y-6">

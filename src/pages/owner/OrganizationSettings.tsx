@@ -19,7 +19,7 @@ export const OrganizationSettings: React.FC = () => {
   const { data: orgCtx } = useOrgOwnerType();
   const { data: isOrgAdmin } = useIsOrgAdmin();
 
-  const isInstitutional = orgCtx?.ownerType === "institutional";
+  const isInstitutional = orgCtx?.ownerType === "government";
 
   const setTab = (t: string) => setSearchParams({ tab: t }, { replace: true });
 
