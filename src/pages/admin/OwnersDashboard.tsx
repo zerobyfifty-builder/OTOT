@@ -29,7 +29,7 @@ const TYPE_META: Record<OwnerType, { label: string; icon: any; description: stri
   government: {
     label: "Government",
     icon: Landmark,
-    description: "Institutional owner dashboards — KTB and partner program overview.",
+    description: "Government owner dashboards — KTB and partner program overview.",
   },
   plantation: {
     label: "Plantation",
