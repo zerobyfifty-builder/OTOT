@@ -70,7 +70,7 @@ export default function GodModeOverview() {
       if (rolesError) throw rolesError;
       const userBreakdown = {
         tourists: rolesData?.filter((u: any) => u.roles?.name === 'tourist').length || 0,
-        partners: rolesData?.filter((u: any) => u.roles?.name === 'business_partner' || u.roles?.name === 'institutional_partner').length || 0,
+        partners: rolesData?.filter((u: any) => u.roles?.name === 'business_partner' || u.roles?.name === 'government_partner').length || 0,
         admins: rolesData?.filter((u: any) => u.roles?.name === 'super_admin').length || 0
       };
 

@@ -178,9 +178,9 @@ export const OwnerFinancial = () => {
   });
 
   const isKtbUser =
-    orgCategory === "institutional" ||
-    userRole === "institutional_partner" ||
-    partnerTypeName === "Institutional Partner";
+    orgCategory === "government" ||
+    userRole === "government_partner" ||
+    partnerTypeName === "Government Partner";
 
   const isTechPartner = partnerTypeName === "Tech Partner" || partnerTypeName === "Technology Partner";
 

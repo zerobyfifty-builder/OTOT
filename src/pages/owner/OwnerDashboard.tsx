@@ -164,11 +164,11 @@ export const OwnerDashboard = () => {
   // Check if institutional
   const ownerType = (() => {
     const roleName = (userProfile?.roles as any)?.name || '';
-    if (roleName === 'institutional_partner') return 'institutional';
+    if (roleName === 'government_partner') return 'government';
     const category = orgInfo?.category || '';
-    if (category === 'institutional') return 'institutional';
+    if (category === 'government') return 'government';
     const partnerTypeName = orgInfo?.partner_types?.name || '';
-    if (partnerTypeName.toLowerCase().includes('institutional')) return 'institutional';
+    if (partnerTypeName.toLowerCase().includes('government')) return 'government';
     return 'plantation';
   })();
 
@@ -400,7 +400,7 @@ export const OwnerDashboard = () => {
   const communityUp = useCountUp(communityMembers);
 
   // ─── Institutional redirect ───────────────────────────
-  if (ownerType === 'institutional' && userProfile) {
+  if (ownerType === 'government' && userProfile) {
     return <InstitutionalDashboard />;
   }
 

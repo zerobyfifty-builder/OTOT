@@ -122,7 +122,7 @@ export function SidebarPreviewDialog({
   }, [role, roleDefaults, assignedSet]);
 
   const sidebarColor =
-    ownerType === "institutional"
+    ownerType === "government"
       ? "hsl(348 70% 30%)"
       : ownerType === "technology"
       ? "hsl(212 100% 50%)"

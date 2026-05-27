@@ -30,7 +30,7 @@ export const InstitutionalRoute: React.FC<InstitutionalRouteProps> = ({ children
         console.log('[INSTITUTIONAL_ROUTE] User role from RPC:', userRole);
         console.log('[INSTITUTIONAL_ROUTE] Role error:', roleError);
         
-        if (userRole === 'institutional_partner') {
+        if (userRole === 'government_partner') {
           console.log('[INSTITUTIONAL_ROUTE] User is institutional partner, granting access');
           setIsInstitutional(true);
         } else {

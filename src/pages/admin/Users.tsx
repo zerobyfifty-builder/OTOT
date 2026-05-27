@@ -151,7 +151,7 @@ export default function Users() {
     switch (role) {
       case "super_admin":
         return "destructive";
-      case "institutional_partner":
+      case "government_partner":
       case "business_partner":
         return "default";
       default:
@@ -204,8 +204,8 @@ export default function Users() {
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="tourist">Tourists</SelectItem>
                 <SelectItem value="business_partner">Business Partners</SelectItem>
-                <SelectItem value="institutional_partner">
-                  Institutional Partners
+                <SelectItem value="government_partner">
+                  Government Partners
                 </SelectItem>
                 <SelectItem value="super_admin">Super Admins</SelectItem>
               </SelectContent>

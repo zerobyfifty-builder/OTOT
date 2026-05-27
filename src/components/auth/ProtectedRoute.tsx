@@ -35,7 +35,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           case 'super_admin':
             navigate('/admin', { replace: true });
             return;
-          case 'institutional_partner':
+          case 'government_partner':
             navigate('/institutional/dashboard', { replace: true });
             return;
           case 'business_partner':

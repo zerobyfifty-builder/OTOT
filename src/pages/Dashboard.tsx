@@ -76,7 +76,7 @@ export const Dashboard: React.FC = () => {
       console.log('[DASHBOARD] User role from RPC:', userRole);
       console.log('[DASHBOARD] Role error:', roleError);
       
-      if (userRole === 'institutional_partner') {
+      if (userRole === 'government_partner') {
         console.log('[DASHBOARD] User is institutional partner, redirecting to institutional dashboard');
         navigate('/institutional/dashboard', { replace: true });
       } else if (userRole === 'super_admin') {

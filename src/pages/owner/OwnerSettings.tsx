@@ -38,7 +38,7 @@ export const OwnerSettings = () => {
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ownerType, setOwnerType] = useState<'plantation' | 'institutional'>('plantation');
+  const [ownerType, setOwnerType] = useState<'plantation' | 'government'>('plantation');
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -83,8 +83,8 @@ export const OwnerSettings = () => {
           const roleName = (userData.roles as any)?.name || '';
           const orgCategory = (userData.organizations as any)?.category || '';
           const ptName = (userData.organizations as any)?.partner_types?.name || '';
-          if (roleName === 'institutional_partner' || orgCategory === 'institutional' || ptName.toLowerCase().includes('institutional')) {
-            setOwnerType('institutional');
+          if (roleName === 'government_partner' || orgCategory === 'government' || ptName.toLowerCase().includes('government')) {
+            setOwnerType('government');
           }
 
           // Fetch org details
@@ -432,7 +432,7 @@ export const OwnerSettings = () => {
         </TabsContent>
 
         <TabsContent value="planting-costs" className="mt-4">
-          {ownerType === 'institutional' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
+          {ownerType === 'government' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
         </TabsContent>
       </Tabs>
     </div>

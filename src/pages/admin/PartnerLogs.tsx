@@ -13,17 +13,17 @@ interface OrgRow {
   category: string;
 }
 
-type GroupKey = "institutional" | "business" | "other";
+type GroupKey = "government" | "business" | "other";
 
 const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<any> }> = {
-  institutional: { label: "Institutional", icon: Landmark },
+  government: { label: "Government", icon: Landmark },
   business: { label: "Business", icon: Briefcase },
   other: { label: "Other", icon: Building2 },
 };
 
 function groupOf(o: OrgRow): GroupKey {
   const cat = (o.category || "").toLowerCase();
-  if (cat === "institutional") return "institutional";
+  if (cat === "government") return "government";
   if (cat === "business") return "business";
   return "other";
 }
@@ -31,9 +31,9 @@ function groupOf(o: OrgRow): GroupKey {
 export default function PartnerLogs() {
   const [orgs, setOrgs] = useState<OrgRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeGroup, setActiveGroup] = useState<GroupKey>("institutional");
+  const [activeGroup, setActiveGroup] = useState<GroupKey>("government");
   const [selectedOrg, setSelectedOrg] = useState<Record<GroupKey, string | null>>({
-    institutional: null, business: null, other: null,
+    government: null, business: null, other: null,
   });
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function PartnerLogs() {
       const { data, error } = await supabase
         .from("organizations")
         .select("id, name, category, partner_types(name, category)")
-        .in("category", ["institutional", "business"])
+        .in("category", ["government", "business"])
         .eq("archived", false)
         .order("name");
       if (!error) setOrgs((data as any) || []);
@@ -51,7 +51,7 @@ export default function PartnerLogs() {
   }, []);
 
   const grouped = useMemo(() => {
-    const g: Record<GroupKey, OrgRow[]> = { institutional: [], business: [], other: [] };
+    const g: Record<GroupKey, OrgRow[]> = { government: [], business: [], other: [] };
     orgs.forEach((o) => g[groupOf(o)].push(o));
     return g;
   }, [orgs]);
@@ -67,7 +67,7 @@ export default function PartnerLogs() {
   }, [grouped]);
 
   const visibleGroups = (Object.keys(GROUP_META) as GroupKey[]).filter((k) => grouped[k].length > 0);
-  const currentGroups = visibleGroups.length ? visibleGroups : (["institutional"] as GroupKey[]);
+  const currentGroups = visibleGroups.length ? visibleGroups : (["government"] as GroupKey[]);
 
   return (
     <div className="space-y-6">
