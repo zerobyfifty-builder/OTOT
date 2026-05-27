@@ -55,6 +55,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [ministryOpen, setMinistryOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   const { data: partnerTypes } = useQuery({
