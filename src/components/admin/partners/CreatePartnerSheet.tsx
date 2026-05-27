@@ -8,7 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { CheckCircle2, ArrowLeft, ArrowRight, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 interface CreatePartnerSheetProps {
@@ -17,9 +20,32 @@ interface CreatePartnerSheetProps {
   onCreated?: () => void;
 }
 
+const KENYAN_MINISTRIES = [
+  "Agriculture and Livestock Development",
+  "Co-operatives and Micro, Small and Medium Enterprises (MSMEs) Development",
+  "Defence",
+  "Education",
+  "Energy and Petroleum",
+  "Environment, Climate Change and Forestry",
+  "Foreign and Diaspora Affairs",
+  "Health",
+  "Information, Communications and the Digital Economy",
+  "Interior and National Administration",
+  "Investments, Trade and Industry",
+  "Labour and Social Protection",
+  "Lands, Public Works, Housing and Urban Development",
+  "Mining, Blue Economy and Maritime Affairs",
+  "National Treasury and Economic Planning",
+  "Roads and Transport",
+  "Tourism and Wildlife",
+  "Water, Sanitation and Irrigation",
+  "Youth Affairs, Creative Economy and Sports",
+];
+
 const emptyForm = {
   category: '' as '' | 'government' | 'business',
   partnerTypeId: '',
+  ministry: '',
   name: '', legalName: '', description: '',
   contactPerson: '', contactEmail: '', contactPhone: '',
   street: '', city: '', county: '', website: '', mouReference: '',
