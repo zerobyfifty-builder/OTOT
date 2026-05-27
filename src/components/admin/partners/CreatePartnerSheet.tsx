@@ -95,7 +95,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
           partner_type_id: form.partnerTypeId || null,
           is_active: true,
           verified: false,
-          metadata: { mou_reference: form.mouReference, description: form.description },
+          metadata: { mou_reference: form.mouReference, description: form.description, ...(form.category === 'government' && form.ministry ? { ministry: form.ministry } : {}) },
         });
 
       if (orgError) throw orgError;
