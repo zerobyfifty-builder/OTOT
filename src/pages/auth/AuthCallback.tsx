@@ -27,38 +27,28 @@ export default function AuthCallback() {
 
           const isSuperAdmin = userRole === 'super_admin';
           const isInstitutionalPartner = userRole === 'government_partner';
+          const isBusinessPartner = userRole === 'business_partner';
           const isTravelAgent = userRole === 'travel_agent';
-          
+          const isOwner = userRole === 'owner';
+
+          const roleHome =
+            isSuperAdmin ? '/admin'
+            : isInstitutionalPartner ? '/institutional/dashboard'
+            : isBusinessPartner ? '/lodge/dashboard'
+            : isTravelAgent ? '/agent/dashboard'
+            : isOwner ? '/owner/dashboard'
+            : '/dashboard';
+
           // Check if there's stored pledge context
           const pledgeContextStr = sessionStorage.getItem('pledge_context');
           if (pledgeContextStr) {
             const pledgeContext = JSON.parse(pledgeContextStr);
             sessionStorage.removeItem('pledge_context');
-            
-            // Redirect based on pledge context
-            if (pledgeContext.redirectUrl) {
-              navigate(pledgeContext.redirectUrl);
-            } else if (isSuperAdmin) {
-              navigate('/admin');
-            } else if (isInstitutionalPartner) {
-              navigate('/institutional/dashboard');
-            } else if (isTravelAgent) {
-              navigate('/agent/dashboard');
-            } else {
-              navigate('/dashboard');
-            }
+            navigate(pledgeContext.redirectUrl || roleHome);
           } else {
-            // Default redirect based on role
-            if (isSuperAdmin) {
-              navigate('/admin');
-            } else if (isInstitutionalPartner) {
-              navigate('/institutional/dashboard');
-            } else if (isTravelAgent) {
-              navigate('/agent/dashboard');
-            } else {
-              navigate('/dashboard');
-            }
+            navigate(roleHome);
           }
+
           
           toast.success("Successfully signed in!");
         } else {
