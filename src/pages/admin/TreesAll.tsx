@@ -425,7 +425,7 @@ export default function TreesAll() {
               <div className="p-2 rounded-lg bg-primary/10"><TreePine className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Trees</p>
-                <p className="text-2xl font-bold">{formatNumber(totalTrees)}</p>
+                <p className="text-2xl font-bold">{totalTrees.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -436,7 +436,7 @@ export default function TreesAll() {
               <div className="p-2 rounded-lg bg-green-100"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Planted</p>
-                <p className="text-2xl font-bold">{formatNumber(planted)}</p>
+                <p className="text-2xl font-bold">{planted.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -458,7 +458,7 @@ export default function TreesAll() {
               <div className="p-2 rounded-lg bg-orange-100"><Clock className="h-5 w-5 text-orange-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Pending Planting</p>
-                <p className="text-2xl font-bold">{formatNumber(pendingPlanting)}</p>
+                <p className="text-2xl font-bold">{pendingPlanting.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
