@@ -244,6 +244,9 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
               <div className="p-4 rounded-lg bg-muted space-y-2">
                 <h3 className="font-semibold">Organization Summary</h3>
                 <p className="text-sm"><span className="text-muted-foreground">Category:</span> {form.category}</p>
+                {form.category === 'government' && (
+                  <p className="text-sm"><span className="text-muted-foreground">Ministry:</span> {form.ministry || 'N/A'}</p>
+                )}
                 <p className="text-sm"><span className="text-muted-foreground">Name:</span> {form.name}</p>
                 <p className="text-sm"><span className="text-muted-foreground">Contact:</span> {form.contactPerson} ({form.contactEmail})</p>
                 <p className="text-sm"><span className="text-muted-foreground">Phone:</span> {form.contactPhone || 'N/A'}</p>
