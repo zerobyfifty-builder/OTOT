@@ -169,12 +169,50 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                   </SelectContent>
                 </Select>
               </div>
+              {form.category === 'government' && (
+                <div>
+                  <Label>Ministry</Label>
+                  <Popover open={ministryOpen} onOpenChange={setMinistryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn("w-full justify-between font-normal", !form.ministry && "text-muted-foreground")}
+                      >
+                        {form.ministry || "Select ministry"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search ministry..." />
+                        <CommandList>
+                          <CommandEmpty>No ministry found.</CommandEmpty>
+                          <CommandGroup>
+                            {KENYAN_MINISTRIES.map(m => (
+                              <CommandItem
+                                key={m}
+                                value={m}
+                                onSelect={() => { setForm({ ...form, ministry: m }); setMinistryOpen(false); }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", form.ministry === m ? "opacity-100" : "opacity-0")} />
+                                {m}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
               <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={() => handleClose(false)}>Cancel</Button>
-                <Button onClick={() => setStep(2)} disabled={!form.category || !form.partnerTypeId}>
+                <Button onClick={() => setStep(2)} disabled={!form.category || !form.partnerTypeId || (form.category === 'government' && !form.ministry)}>
                   Next<ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
+
             </div>
           )}
 
