@@ -26,8 +26,8 @@ const TYPE_META: Record<OwnerType, { label: string; icon: any; description: stri
     icon: Cpu,
     description: "Tech partner owner dashboards — platform, API, and integrations focus.",
   },
-  institutional: {
-    label: "Institutional",
+  government: {
+    label: "Government",
     icon: Landmark,
     description: "Institutional owner dashboards — KTB and partner program overview.",
   },
@@ -120,7 +120,7 @@ export default function OwnersDashboard() {
   });
 
   const counts = useMemo(() => {
-    const c: Record<OwnerType, number> = { technology: 0, institutional: 0, plantation: 0, other: 0 };
+    const c: Record<OwnerType, number> = { technology: 0, government: 0, plantation: 0, other: 0 };
     (owners || []).forEach((o) => {
       c[classifyOwner(o)]++;
     });
@@ -145,7 +145,7 @@ export default function OwnersDashboard() {
             Tech <Badge variant="secondary" className="ml-2 tabular-nums">{counts.technology}</Badge>
           </TabsTrigger>
           <TabsTrigger value="government">
-            Institutional <Badge variant="secondary" className="ml-2 tabular-nums">{counts.institutional}</Badge>
+            Government <Badge variant="secondary" className="ml-2 tabular-nums">{counts.government}</Badge>
           </TabsTrigger>
           <TabsTrigger value="plantation">
             Plantation <Badge variant="secondary" className="ml-2 tabular-nums">{counts.plantation}</Badge>

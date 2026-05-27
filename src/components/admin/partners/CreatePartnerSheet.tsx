@@ -122,7 +122,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                 >
                   <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="government">Institutional</SelectItem>
+                    <SelectItem value="government">Government</SelectItem>
                     <SelectItem value="business">Business</SelectItem>
                   </SelectContent>
                 </Select>

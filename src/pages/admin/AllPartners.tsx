@@ -168,7 +168,7 @@ export default function AllPartners() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="government">Institutional</SelectItem>
+                <SelectItem value="government">Government</SelectItem>
                 <SelectItem value="business">Business</SelectItem>
               </SelectContent>
             </Select>

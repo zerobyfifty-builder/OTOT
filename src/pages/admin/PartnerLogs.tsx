@@ -16,7 +16,7 @@ interface OrgRow {
 type GroupKey = "government" | "business" | "other";
 
 const GROUP_META: Record<GroupKey, { label: string; icon: React.ComponentType<any> }> = {
-  institutional: { label: "Institutional", icon: Landmark },
+  government: { label: "Government", icon: Landmark },
   business: { label: "Business", icon: Briefcase },
   other: { label: "Other", icon: Building2 },
 };
@@ -33,7 +33,7 @@ export default function PartnerLogs() {
   const [loading, setLoading] = useState(true);
   const [activeGroup, setActiveGroup] = useState<GroupKey>("government");
   const [selectedOrg, setSelectedOrg] = useState<Record<GroupKey, string | null>>({
-    institutional: null, business: null, other: null,
+    government: null, business: null, other: null,
   });
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function PartnerLogs() {
   }, []);
 
   const grouped = useMemo(() => {
-    const g: Record<GroupKey, OrgRow[]> = { institutional: [], business: [], other: [] };
+    const g: Record<GroupKey, OrgRow[]> = { government: [], business: [], other: [] };
     orgs.forEach((o) => g[groupOf(o)].push(o));
     return g;
   }, [orgs]);

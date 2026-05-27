@@ -205,7 +205,7 @@ export default function Users() {
                 <SelectItem value="tourist">Tourists</SelectItem>
                 <SelectItem value="business_partner">Business Partners</SelectItem>
                 <SelectItem value="government_partner">
-                  Institutional Partners
+                  Government Partners
                 </SelectItem>
                 <SelectItem value="super_admin">Super Admins</SelectItem>
               </SelectContent>

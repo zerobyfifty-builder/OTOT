@@ -90,7 +90,7 @@ export default function PartnersInstitutional() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-admin-primary">Institutional Partners</h1>
+          <h1 className="text-3xl font-bold text-admin-primary">Government Partners</h1>
           <p className="text-muted-foreground mt-1">
             Tourism boards, conservation organizations, and government agencies
           </p>

@@ -29,7 +29,7 @@ export default function Partners() {
                 <Building2 className="h-6 w-6 text-admin-primary" />
               </div>
               <div>
-                <CardTitle>Institutional Partners</CardTitle>
+                <CardTitle>Government Partners</CardTitle>
                 <CardDescription>Tourism boards, conservation organizations</CardDescription>
               </div>
             </div>
