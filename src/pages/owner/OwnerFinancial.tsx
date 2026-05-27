@@ -180,7 +180,7 @@ export const OwnerFinancial = () => {
   const isKtbUser =
     orgCategory === "government" ||
     userRole === "government_partner" ||
-    partnerTypeName === "Institutional Partner";
+    partnerTypeName === "Government Partner";
 
   const isTechPartner = partnerTypeName === "Tech Partner" || partnerTypeName === "Technology Partner";
 

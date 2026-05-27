@@ -353,7 +353,7 @@ export const InstitutionalDashboard = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           {organizationInfo?.name || 'Kenya Tourism Board'}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Institutional Partner Dashboard</p>
+        <p className="text-sm text-muted-foreground mt-1">Government Partner Dashboard</p>
       </div>
 
       {/* ─── TOP KPI CARDS ─── */}
