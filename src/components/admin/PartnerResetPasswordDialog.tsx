@@ -42,38 +42,33 @@ export function PartnerResetPasswordDialog({
 
     setLoading(true);
     try {
-      // First, get the user_id from users table using organization_id
+      // Get the user_id from users table using organization_id
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select("user_id")
         .eq("organization_id", partner.id)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
-      if (!userData) throw new Error("No user found for this partner");
+      if (!userData?.user_id) throw new Error("No user account found for this partner");
 
-      // Call edge function to reset password
-      const { data, error } = await supabase.functions.invoke("set-password", {
-        body: {
-          userId: userData.user_id,
-          newPassword: newPassword,
-        },
+      const { error } = await supabase.functions.invoke("admin-set-user-password", {
+        body: { userId: userData.user_id, newPassword },
       });
 
       if (error) throw error;
 
-      toast.success(
-        `Password reset successfully for ${partner.name}. New password: ${newPassword}`
-      );
+      toast.success(`Password reset for ${partner.name}`);
       setNewPassword("");
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resetting password:", error);
-      toast.error("Failed to reset password");
+      toast.error(error.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
