@@ -81,9 +81,17 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
   };
 
   const handleCreate = async () => {
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
     setLoading(true);
     try {
-      const { error: orgError } = await supabase
+      const { data: orgRow, error: orgError } = await supabase
         .from("organizations")
         .insert({
           name: form.name,
@@ -98,9 +106,22 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
           is_active: true,
           verified: false,
           metadata: { mou_reference: form.mouReference, description: form.description, ...(form.category === 'government' && form.ministry ? { ministry: form.ministry } : {}) },
-        });
+        })
+        .select("id")
+        .single();
 
       if (orgError) throw orgError;
+
+      const { error: userError } = await supabase.functions.invoke("create-partner-user", {
+        body: {
+          name: form.contactPerson || form.name,
+          email: form.contactEmail,
+          password: form.password,
+          organization_id: orgRow.id,
+          category: form.category,
+        },
+      });
+      if (userError) throw userError;
 
       setShowSuccess(true);
       toast.success("Partner created successfully!");
@@ -112,6 +133,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
       setLoading(false);
     }
   };
+
 
   return (
     <>
