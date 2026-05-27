@@ -8,7 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { CheckCircle2, ArrowLeft, ArrowRight, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 interface CreatePartnerSheetProps {
@@ -17,9 +20,32 @@ interface CreatePartnerSheetProps {
   onCreated?: () => void;
 }
 
+const KENYAN_MINISTRIES = [
+  "Agriculture and Livestock Development",
+  "Co-operatives and Micro, Small and Medium Enterprises (MSMEs) Development",
+  "Defence",
+  "Education",
+  "Energy and Petroleum",
+  "Environment, Climate Change and Forestry",
+  "Foreign and Diaspora Affairs",
+  "Health",
+  "Information, Communications and the Digital Economy",
+  "Interior and National Administration",
+  "Investments, Trade and Industry",
+  "Labour and Social Protection",
+  "Lands, Public Works, Housing and Urban Development",
+  "Mining, Blue Economy and Maritime Affairs",
+  "National Treasury and Economic Planning",
+  "Roads and Transport",
+  "Tourism and Wildlife",
+  "Water, Sanitation and Irrigation",
+  "Youth Affairs, Creative Economy and Sports",
+];
+
 const emptyForm = {
   category: '' as '' | 'government' | 'business',
   partnerTypeId: '',
+  ministry: '',
   name: '', legalName: '', description: '',
   contactPerson: '', contactEmail: '', contactPhone: '',
   street: '', city: '', county: '', website: '', mouReference: '',
@@ -29,6 +55,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [ministryOpen, setMinistryOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   const { data: partnerTypes } = useQuery({
@@ -68,7 +95,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
           partner_type_id: form.partnerTypeId || null,
           is_active: true,
           verified: false,
-          metadata: { mou_reference: form.mouReference, description: form.description },
+          metadata: { mou_reference: form.mouReference, description: form.description, ...(form.category === 'government' && form.ministry ? { ministry: form.ministry } : {}) },
         });
 
       if (orgError) throw orgError;
@@ -142,12 +169,50 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                   </SelectContent>
                 </Select>
               </div>
+              {form.category === 'government' && (
+                <div>
+                  <Label>Ministry</Label>
+                  <Popover open={ministryOpen} onOpenChange={setMinistryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn("w-full justify-between font-normal", !form.ministry && "text-muted-foreground")}
+                      >
+                        {form.ministry || "Select ministry"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search ministry..." />
+                        <CommandList>
+                          <CommandEmpty>No ministry found.</CommandEmpty>
+                          <CommandGroup>
+                            {KENYAN_MINISTRIES.map(m => (
+                              <CommandItem
+                                key={m}
+                                value={m}
+                                onSelect={() => { setForm({ ...form, ministry: m }); setMinistryOpen(false); }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", form.ministry === m ? "opacity-100" : "opacity-0")} />
+                                {m}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
               <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={() => handleClose(false)}>Cancel</Button>
-                <Button onClick={() => setStep(2)} disabled={!form.category || !form.partnerTypeId}>
+                <Button onClick={() => setStep(2)} disabled={!form.category || !form.partnerTypeId || (form.category === 'government' && !form.ministry)}>
                   Next<ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
+
             </div>
           )}
 
@@ -179,6 +244,9 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
               <div className="p-4 rounded-lg bg-muted space-y-2">
                 <h3 className="font-semibold">Organization Summary</h3>
                 <p className="text-sm"><span className="text-muted-foreground">Category:</span> {form.category}</p>
+                {form.category === 'government' && (
+                  <p className="text-sm"><span className="text-muted-foreground">Ministry:</span> {form.ministry || 'N/A'}</p>
+                )}
                 <p className="text-sm"><span className="text-muted-foreground">Name:</span> {form.name}</p>
                 <p className="text-sm"><span className="text-muted-foreground">Contact:</span> {form.contactPerson} ({form.contactEmail})</p>
                 <p className="text-sm"><span className="text-muted-foreground">Phone:</span> {form.contactPhone || 'N/A'}</p>
