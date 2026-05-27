@@ -254,12 +254,26 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
               </div>
               <div><Label>MoU Reference</Label><Input value={form.mouReference} onChange={e => setForm({ ...form, mouReference: e.target.value })} placeholder="e.g. MoU/KTB/PARTNER/2025" /></div>
               <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Password *</Label>
+                  <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 6 characters" />
+                </div>
+                <div>
+                  <Label>Retype Password *</Label>
+                  <Input type="password" value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })} />
+                  {form.confirmPassword && form.password !== form.confirmPassword && (
+                    <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+                  )}
+                </div>
+              </div>
               <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="h-4 w-4 mr-2" />Back</Button>
-                <Button onClick={() => setStep(3)} disabled={!form.name || !form.contactPerson || !form.contactEmail}>
+                <Button onClick={() => setStep(3)} disabled={!form.name || !form.contactPerson || !form.contactEmail || !form.password || form.password.length < 6 || form.password !== form.confirmPassword}>
                   Next<ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
+
             </div>
           )}
 
