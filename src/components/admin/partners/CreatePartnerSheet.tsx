@@ -49,7 +49,9 @@ const emptyForm = {
   name: '', legalName: '', description: '',
   contactPerson: '', contactEmail: '', contactPhone: '',
   street: '', city: '', county: '', website: '', mouReference: '',
+  password: '', confirmPassword: '',
 };
+
 
 export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePartnerSheetProps) {
   const [step, setStep] = useState(1);
