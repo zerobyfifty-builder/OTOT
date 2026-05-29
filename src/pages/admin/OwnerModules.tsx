@@ -259,7 +259,7 @@ export default function OwnerModules() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[220px]">Module</TableHead>
+                  <TableHead className="sticky left-0 z-10 bg-background min-w-[220px]">Module</TableHead>
                   {owners.map(s => (
                     <TableHead key={s.id} className="text-center min-w-[160px]">
                       <div className="flex flex-col items-center gap-1">
