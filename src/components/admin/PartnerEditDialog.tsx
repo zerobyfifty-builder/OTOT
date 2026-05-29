@@ -180,7 +180,7 @@ export function PartnerEditDialog({ open, onOpenChange, partner, onUpdate }: Par
                 </Select>
               </div>
               <div>
-                <Label>Partner Type</Label>
+                <Label>Sub-category</Label>
                 <Select value={form.partner_type_id} onValueChange={v => setForm({ ...form, partner_type_id: v })} disabled={!form.category}>
                   <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                   <SelectContent>
