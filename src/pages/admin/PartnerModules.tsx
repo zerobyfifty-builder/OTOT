@@ -54,6 +54,7 @@ export default function PartnerModules() {
         .from("partner_types")
         .select("id, name, category")
         .in("category", ["government", "business"])
+        .eq("is_active", true)
         .order("category")
         .order("name");
       if (error) throw error;
