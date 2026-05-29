@@ -259,7 +259,7 @@ export default function OwnerModules() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[220px]">Module</TableHead>
+                  <TableHead className="sticky left-0 z-10 bg-background min-w-[220px]">Module</TableHead>
                   {owners.map(s => (
                     <TableHead key={s.id} className="text-center min-w-[160px]">
                       <div className="flex flex-col items-center gap-1">
@@ -302,7 +302,7 @@ export default function OwnerModules() {
                     const accessType = (m as any).access_type || "shared";
                     return (
                       <TableRow key={m.id}>
-                        <TableCell>
+                        <TableCell className="sticky left-0 z-10 bg-background border-r">
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
                               <p className="font-medium flex items-center gap-2">
@@ -376,7 +376,7 @@ export default function OwnerModules() {
                   const renderForestRegistryRows = () => (
                     <Fragment key="forest-registry-group">
                           <TableRow className="bg-muted/40 hover:bg-muted/50">
-                            <TableCell>
+                          <TableCell className="sticky left-0 z-10 bg-muted/40 border-r">
                               <button
                                 type="button"
                                 onClick={() => setForestExpanded((v) => !v)}
