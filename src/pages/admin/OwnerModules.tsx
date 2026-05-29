@@ -302,7 +302,7 @@ export default function OwnerModules() {
                     const accessType = (m as any).access_type || "shared";
                     return (
                       <TableRow key={m.id}>
-                        <TableCell>
+                        <TableCell className="sticky left-0 z-10 bg-background border-r">
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
                               <p className="font-medium flex items-center gap-2">
