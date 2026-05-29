@@ -49,33 +49,40 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
 
-  // Resolve org for logged-in user
-  const { data: orgId } = useQuery({
+  // Resolve org + partner sub-category for logged-in user
+  const { data: orgInfo } = useQuery({
     queryKey: ['institutionalSidebarOrg', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data } = await supabase.from('users').select('organization_id').eq('user_id', user.id).maybeSingle();
-      return data?.organization_id || null;
+      const { data } = await supabase
+        .from('users')
+        .select('organization_id, organizations(partner_type_id)')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return {
+        organizationId: (data as any)?.organization_id || null,
+        partnerTypeId: (data as any)?.organizations?.partner_type_id || null,
+      };
     },
     enabled: !!user?.id,
   });
 
-  // Modules allocated to this org by Super Admin
+  // Modules allocated to this partner sub-category by Super Admin
   const { data: assignedModules } = useQuery({
-    queryKey: ['institutionalAssignedModules', orgId],
+    queryKey: ['institutionalAssignedModules', orgInfo?.partnerTypeId],
     queryFn: async () => {
-      if (!orgId) return [] as string[];
+      if (!orgInfo?.partnerTypeId) return [] as string[];
       const { data, error } = await supabase
-        .from('organization_modules')
+        .from('partner_type_modules')
         .select('is_active, modules(name, is_active)')
-        .eq('organization_id', orgId)
+        .eq('partner_type_id', orgInfo.partnerTypeId)
         .eq('is_active', true);
       if (error) throw error;
       return (data || [])
         .map((om: any) => (om.modules?.is_active ? (om.modules?.name as string) : null))
         .filter(Boolean) as string[];
     },
-    enabled: !!orgId,
+    enabled: !!orgInfo?.partnerTypeId,
   });
 
   // Build menu dynamically; always append the meta "Available Modules" page.

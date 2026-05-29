@@ -61,22 +61,28 @@ export function LodgeSidebar() {
     enabled: !!lodge,
   });
 
-  // Allocated modules for this lodge (lodge.id mapped to organizations.id where present)
+  // Allocated modules for the Lodge partner sub-category (Business → Lodge)
   const { data: assignedModules } = useQuery({
-    queryKey: ['lodgeAssignedModules', lodge?.id],
+    queryKey: ['lodgeAssignedModules'],
     queryFn: async () => {
-      if (!lodge?.id) return null;
+      const { data: types } = await supabase
+        .from('partner_types')
+        .select('id, name, category')
+        .eq('category', 'business');
+      const lodgeTypeIds = (types || [])
+        .filter((t: any) => (t.name || '').toLowerCase() === 'lodge')
+        .map((t: any) => t.id);
+      if (!lodgeTypeIds.length) return null;
       const { data, error } = await supabase
-        .from('organization_modules')
+        .from('partner_type_modules')
         .select('is_active, modules(name, is_active)')
-        .eq('organization_id', lodge.id)
+        .in('partner_type_id', lodgeTypeIds)
         .eq('is_active', true);
       if (error) throw error;
       return (data || [])
         .map((om: any) => (om.modules?.is_active ? (om.modules?.name as string) : null))
         .filter(Boolean) as string[];
     },
-    enabled: !!lodge?.id,
   });
 
   // Build menu: if no allocation rows exist for this lodge, fall back to ALL items (safe default
