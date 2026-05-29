@@ -214,6 +214,7 @@ export default function AllPartners() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Legal Name</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
