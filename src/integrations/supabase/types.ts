@@ -2011,6 +2011,51 @@ export type Database = {
           },
         ]
       }
+      partner_type_modules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          module_id: string
+          partner_type_id: string
+          permissions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id: string
+          partner_type_id: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id?: string
+          partner_type_id?: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_type_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_type_modules_partner_type_id_fkey"
+            columns: ["partner_type_id"]
+            isOneToOne: false
+            referencedRelation: "partner_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_types: {
         Row: {
           category: string
