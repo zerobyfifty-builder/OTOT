@@ -13,7 +13,7 @@ import { PartnerCategory, PartnerType } from "@/types/partner";
 import { toast } from "sonner";
 
 const detailsSchema = z.object({
-  partnerTypeId: z.string().min(1, "Partner type is required"),
+  partnerTypeId: z.string().min(1, "Sub-category is required"),
   organizationName: z.string().min(1, "Organization name is required"),
   legalName: z.string().min(1, "Legal name is required"),
   description: z.string().optional(),
