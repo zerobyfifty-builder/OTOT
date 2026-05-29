@@ -214,6 +214,7 @@ export default function AllPartners() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Legal Name</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
@@ -233,8 +234,14 @@ export default function AllPartners() {
                           <Badge
                             variant={getCategoryBadgeVariant(partner.category)}
                           >
-                            {partner.partner_types?.name || partner.category}
+                            {partner.category
+                              ? partner.category.charAt(0).toUpperCase() +
+                                partner.category.slice(1)
+                              : "-"}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {partner.partner_types?.name || "-"}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
