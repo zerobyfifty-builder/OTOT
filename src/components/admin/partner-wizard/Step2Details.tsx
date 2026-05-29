@@ -129,15 +129,15 @@ export function Step2Details({ category, initialData, onNext, onBack, onSaveDraf
 
       <Card className="p-6 max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Partner Type */}
+          {/* Sub-category */}
           <div className="space-y-2">
-            <Label htmlFor="partnerTypeId">Partner Type *</Label>
+            <Label htmlFor="partnerTypeId">Sub-category *</Label>
             <Select
               value={form.watch('partnerTypeId')}
               onValueChange={(value) => form.setValue('partnerTypeId', value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select partner type" />
+                <SelectValue placeholder="Select sub-category" />
               </SelectTrigger>
               <SelectContent>
                 {partnerTypes.map((type) => (
