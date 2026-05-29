@@ -234,8 +234,14 @@ export default function AllPartners() {
                           <Badge
                             variant={getCategoryBadgeVariant(partner.category)}
                           >
-                            {partner.partner_types?.name || partner.category}
+                            {partner.category
+                              ? partner.category.charAt(0).toUpperCase() +
+                                partner.category.slice(1)
+                              : "-"}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {partner.partner_types?.name || "-"}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
