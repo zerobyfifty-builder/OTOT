@@ -179,13 +179,13 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                 </Select>
               </div>
               <div>
-                <Label>Partner Type</Label>
+                <Label>Sub-category</Label>
                 <Select
                   value={form.partnerTypeId}
                   onValueChange={v => setForm({ ...form, partnerTypeId: v })}
                   disabled={!form.category}
                 >
-                  <SelectTrigger><SelectValue placeholder={form.category ? "Select type" : "Select category first"} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={form.category ? "Select sub-category" : "Select category first"} /></SelectTrigger>
                   <SelectContent>
                     {partnerTypes?.map(pt => (
                       <SelectItem key={pt.id} value={pt.id}>{pt.name}{pt.description ? ` — ${pt.description}` : ''}</SelectItem>
