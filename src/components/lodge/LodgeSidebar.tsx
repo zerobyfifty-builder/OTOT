@@ -26,15 +26,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-const menuItems = [
-  { title: 'Dashboard', url: '/lodge/dashboard', icon: Home },
-  { title: 'Tourist Assignments', url: '/lodge/tourists', icon: Users },
-  { title: 'My Trees', url: '/lodge/trees', icon: TreePine },
-  { title: 'Reimbursements', url: '/lodge/reimbursements', icon: DollarSign },
-  { title: 'View Performance', url: '/lodge/performance', icon: TrendingUp },
-  { title: 'Notifications', url: '/lodge/notifications', icon: Bell, showBadge: true },
-  { title: 'Help & Support', url: '/lodge/help', icon: HelpCircle },
-];
+// Module name → menu metadata; mirrors `modules` rows seeded for category='lodge'.
+const moduleMenuItems: Record<string, { title: string; url: string; icon: any; sortOrder: number; showBadge?: boolean }> = {
+  lodge_dashboard:      { title: 'Dashboard',           url: '/lodge/dashboard',       icon: Home,        sortOrder: 200 },
+  lodge_tourists:       { title: 'Tourist Assignments', url: '/lodge/tourists',        icon: Users,       sortOrder: 201 },
+  lodge_trees:          { title: 'My Trees',            url: '/lodge/trees',           icon: TreePine,    sortOrder: 202 },
+  lodge_reimbursements: { title: 'Reimbursements',      url: '/lodge/reimbursements',  icon: DollarSign,  sortOrder: 203 },
+  lodge_performance:    { title: 'View Performance',    url: '/lodge/performance',     icon: TrendingUp,  sortOrder: 204 },
+  lodge_notifications:  { title: 'Notifications',       url: '/lodge/notifications',   icon: Bell,        sortOrder: 205, showBadge: true },
+};
+
+const helpItem = { title: 'Help & Support', url: '/lodge/help', icon: HelpCircle };
 
 export function LodgeSidebar() {
   const { state, toggleSidebar } = useSidebar();
@@ -43,7 +45,7 @@ export function LodgeSidebar() {
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
 
-  // Fetch unread notifications count
+  // Unread notifications
   const { data: unreadCount } = useQuery({
     queryKey: ['lodge-unread-notifications', lodge?.id],
     queryFn: async () => {
@@ -53,12 +55,43 @@ export function LodgeSidebar() {
         .eq('recipient_id', lodge?.id)
         .eq('recipient_type', 'lodge')
         .eq('is_read', false);
-      
       if (error) throw error;
       return count || 0;
     },
     enabled: !!lodge,
   });
+
+  // Allocated modules for this lodge (lodge.id mapped to organizations.id where present)
+  const { data: assignedModules } = useQuery({
+    queryKey: ['lodgeAssignedModules', lodge?.id],
+    queryFn: async () => {
+      if (!lodge?.id) return null;
+      const { data, error } = await supabase
+        .from('organization_modules')
+        .select('is_active, modules(name, is_active)')
+        .eq('organization_id', lodge.id)
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data || [])
+        .map((om: any) => (om.modules?.is_active ? (om.modules?.name as string) : null))
+        .filter(Boolean) as string[];
+    },
+    enabled: !!lodge?.id,
+  });
+
+  // Build menu: if no allocation rows exist for this lodge, fall back to ALL items (safe default
+  // for lodges not yet present in the organizations registry).
+  const menuItems = React.useMemo(() => {
+    const allKnown = Object.values(moduleMenuItems).sort((a, b) => a.sortOrder - b.sortOrder);
+    const items =
+      assignedModules && assignedModules.length > 0
+        ? Object.entries(moduleMenuItems)
+            .filter(([key]) => assignedModules.includes(key))
+            .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+            .map(([, v]) => v)
+        : allKnown;
+    return [...items, helpItem];
+  }, [assignedModules]);
 
   const handleSignOut = async () => {
     try {
@@ -81,17 +114,11 @@ export function LodgeSidebar() {
       collapsible="icon"
     >
       <SidebarContent>
-        {/* Logo Section with Collapse Button */}
         <div className={`p-4 border-b border-sidebar-border flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
-          {/* Expanded state: icon + text */}
           {!collapsed && (
             <>
               <div className="flex items-center gap-2">
-                <img 
-                  src={ototTreeIcon} 
-                  alt="OTOT" 
-                  className="h-10 w-10"
-                />
+                <img src={ototTreeIcon} alt="OTOT" className="h-10 w-10" />
                 <span className="text-xl font-bold text-sidebar-foreground">OTOT</span>
               </div>
               <Button
@@ -105,22 +132,14 @@ export function LodgeSidebar() {
             </>
           )}
           
-          {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
               className="relative group/logo w-full flex items-center justify-center py-2 cursor-pointer"
               onClick={toggleSidebar}
             >
-              {/* Tree icon with circular background - hidden on hover */}
               <div className="h-14 w-14 rounded-full bg-sidebar-primary flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
-                <img 
-                  src={ototTreeIcon} 
-                  alt="OTOT" 
-                  className="h-12 w-12 object-contain"
-                />
+                <img src={ototTreeIcon} alt="OTOT" className="h-12 w-12 object-contain" />
               </div>
-              
-              {/* Grey box with chevron - shown on hover */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-14 w-14 flex items-center justify-center bg-sidebar-accent rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
                   <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
@@ -130,11 +149,10 @@ export function LodgeSidebar() {
           )}
         </div>
 
-        {/* Navigation Menu */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {menuItems.map((item: any) => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -149,7 +167,7 @@ export function LodgeSidebar() {
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
-                        {item.showBadge && unreadCount > 0 && (
+                        {item.showBadge && (unreadCount || 0) > 0 && (
                           <span className="absolute top-1 left-7 h-2 w-2 rounded-full bg-destructive" />
                         )}
                       </NavLink>
@@ -162,7 +180,6 @@ export function LodgeSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* User Profile Footer */}
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

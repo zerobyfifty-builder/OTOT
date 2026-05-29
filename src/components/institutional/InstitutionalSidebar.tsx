@@ -1,8 +1,10 @@
 import React from 'react';
-import { Home, TreePine, Trees, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane } from 'lucide-react';
+import { Home, TreePine, Trees, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane, Package } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Sidebar,
   SidebarContent,
@@ -24,16 +26,16 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
-const menuItems = [
-  { title: 'Dashboard', url: '/institutional/dashboard', icon: Home },
-  { title: 'Recent Trips', url: '/institutional/trips', icon: DollarSign },
-  { title: 'Tree Orders', url: '/institutional/trees', icon: Trees },
-  { title: 'Travel Agents', url: '/institutional/travel-agents', icon: Plane },
-  { title: 'Plantation Partners', url: '/institutional/partners', icon: Building2 },
-  { title: 'Disbursements', url: '/institutional/disbursements', icon: DollarSign },
-  { title: 'Reports', url: '/institutional/reports', icon: FileText },
-  { title: 'Available Modules', url: '/institutional/modules', icon: Home },
-];
+// Module name → menu metadata (mirrors `modules` rows seeded for category='institutional').
+const moduleMenuItems: Record<string, { title: string; url: string; icon: any; sortOrder: number }> = {
+  inst_dashboard:     { title: 'Dashboard',            url: '/institutional/dashboard',     icon: Home,       sortOrder: 100 },
+  inst_trips:         { title: 'Recent Trips',         url: '/institutional/trips',         icon: DollarSign, sortOrder: 101 },
+  inst_tree_orders:   { title: 'Tree Orders',          url: '/institutional/trees',         icon: Trees,      sortOrder: 102 },
+  inst_travel_agents: { title: 'Travel Agents',        url: '/institutional/travel-agents', icon: Plane,      sortOrder: 103 },
+  inst_partners:      { title: 'Plantation Partners',  url: '/institutional/partners',      icon: Building2,  sortOrder: 104 },
+  inst_disbursements: { title: 'Disbursements',        url: '/institutional/disbursements', icon: DollarSign, sortOrder: 105 },
+  inst_reports:       { title: 'Reports',              url: '/institutional/reports',       icon: FileText,   sortOrder: 106 },
+};
 
 interface InstitutionalSidebarProps {
   organizationName?: string;
@@ -42,10 +44,50 @@ interface InstitutionalSidebarProps {
 
 export function InstitutionalSidebar({ organizationName, organizationCategory }: InstitutionalSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+
+  // Resolve org for logged-in user
+  const { data: orgId } = useQuery({
+    queryKey: ['institutionalSidebarOrg', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase.from('users').select('organization_id').eq('user_id', user.id).maybeSingle();
+      return data?.organization_id || null;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Modules allocated to this org by Super Admin
+  const { data: assignedModules } = useQuery({
+    queryKey: ['institutionalAssignedModules', orgId],
+    queryFn: async () => {
+      if (!orgId) return [] as string[];
+      const { data, error } = await supabase
+        .from('organization_modules')
+        .select('is_active, modules(name, is_active)')
+        .eq('organization_id', orgId)
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data || [])
+        .map((om: any) => (om.modules?.is_active ? (om.modules?.name as string) : null))
+        .filter(Boolean) as string[];
+    },
+    enabled: !!orgId,
+  });
+
+  // Build menu dynamically; always append the meta "Available Modules" page.
+  const menuItems = React.useMemo(() => {
+    const allowed = new Set(assignedModules || []);
+    const items = Object.entries(moduleMenuItems)
+      .filter(([key]) => allowed.has(key))
+      .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
+      .map(([, v]) => ({ title: v.title, url: v.url, icon: v.icon }));
+    items.push({ title: 'Available Modules', url: '/institutional/modules', icon: Package });
+    return items;
+  }, [assignedModules]);
 
   const handleSignOut = async () => {
     try {
@@ -79,15 +121,10 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
           style={{ backgroundColor: '#f8f9fa' }}
           className={`p-4 border-b border-gray-300 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}
         >
-          {/* Expanded state: icon + text */}
           {!collapsed && (
             <>
               <div className="flex items-center gap-2">
-                <img 
-                  src={ototTreeIcon} 
-                  alt="OTOT" 
-                  className="h-10 w-10"
-                />
+                <img src={ototTreeIcon} alt="OTOT" className="h-10 w-10" />
                 <span className="text-xl font-bold" style={{ color: '#000000' }}>OTOT</span>
               </div>
               <Button
@@ -102,20 +139,14 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
             </>
           )}
           
-          {/* Collapsed state: icon with hover to show chevron */}
           {collapsed && (
             <div 
               className="relative group/logo w-full flex items-center justify-center py-2 cursor-pointer"
               onClick={toggleSidebar}
             >
               <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center group-hover/logo:opacity-0 transition-opacity duration-200">
-                <img 
-                  src={ototTreeIcon} 
-                  alt="OTOT" 
-                  className="h-12 w-12 object-contain"
-                />
+                <img src={ototTreeIcon} alt="OTOT" className="h-12 w-12 object-contain" />
               </div>
-              
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-14 w-14 flex items-center justify-center bg-gray-200 rounded-full opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200">
                   <ChevronRight className="h-5 w-5" style={{ color: '#000000' }} />
@@ -125,7 +156,6 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
           )}
         </div>
 
-        {/* Navigation Menu */}
         <SidebarGroup style={{ backgroundColor: '#f8f9fa' }}>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -155,7 +185,6 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
         </SidebarGroup>
       </SidebarContent>
 
-      {/* User Profile Footer */}
       <SidebarFooter style={{ backgroundColor: '#f8f9fa' }}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
