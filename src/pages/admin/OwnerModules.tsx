@@ -385,7 +385,6 @@ export default function OwnerModules() {
                                 <ChevronRight
                                   className={cn("h-4 w-4 transition-transform", forestExpanded && "rotate-90")}
                                 />
-                                <Trees className="h-4 w-4 text-primary" />
                                 <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM07</Badge>
                                 <span>Forest Registry</span>
                                 <Badge variant="outline" className="text-[10px] ml-2">
