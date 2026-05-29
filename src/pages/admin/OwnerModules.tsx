@@ -376,7 +376,7 @@ export default function OwnerModules() {
                   const renderForestRegistryRows = () => (
                     <Fragment key="forest-registry-group">
                           <TableRow className="bg-muted/40 hover:bg-muted/50">
-                            <TableCell>
+                          <TableCell className="sticky left-0 z-10 bg-muted/40 border-r">
                               <button
                                 type="button"
                                 onClick={() => setForestExpanded((v) => !v)}
