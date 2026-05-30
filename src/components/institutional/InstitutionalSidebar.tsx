@@ -85,15 +85,13 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
     enabled: !!orgInfo?.partnerTypeId,
   });
 
-  // Build menu dynamically; always append the meta "Available Modules" page.
+  // Build menu dynamically from allocated modules only.
   const menuItems = React.useMemo(() => {
     const allowed = new Set(assignedModules || []);
-    const items = Object.entries(moduleMenuItems)
+    return Object.entries(moduleMenuItems)
       .filter(([key]) => allowed.has(key))
       .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
       .map(([, v]) => ({ title: v.title, url: v.url, icon: v.icon }));
-    items.push({ title: 'Available Modules', url: '/institutional/modules', icon: Package });
-    return items;
   }, [assignedModules]);
 
   const handleSignOut = async () => {
