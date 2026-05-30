@@ -68,7 +68,7 @@ export const AgentAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Get agent details from travel_agents table by email
         const { data: agentData, error } = await supabase
           .from('travel_agents')
-          .select('id, name, business_name, email, username')
+          .select('id, name, business_name, email, username, organization_id, organizations:organization_id(name)')
           .eq('email', user.email!)
           .eq('is_active', true)
           .single();
@@ -81,6 +81,8 @@ export const AgentAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             email: agentData.email,
             username: agentData.username || '',
             auth_user_id: user.id,
+            organization_id: agentData.organization_id,
+            organization_name: (agentData as any).organizations?.name ?? null,
           });
         } else {
           setAgent(null);
