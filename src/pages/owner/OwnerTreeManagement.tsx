@@ -109,6 +109,7 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [infoSheet, setInfoSheet] = useState<Tree | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
