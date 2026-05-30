@@ -36,8 +36,30 @@ interface Trip {
   from_date: string;
   to_date: string | null;
   created_at: string;
-  user_id: string;
+  user_id: string | null;
+  source_type?: string | null;
+  source_ref_table?: string | null;
+  source_ref_id?: string | null;
+  agent_id?: string | null;
+  staff_name?: string | null;
+  department?: string | null;
+  ticket_number?: string | null;
+  pnr_number?: string | null;
+  lpo_number?: string | null;
 }
+
+const SOURCE_LABELS: Record<string, string> = {
+  tourist: "Tourist",
+  travel_agent: "Travel Agent",
+  b2b: "B2B",
+  airline: "Airline",
+};
+const SOURCE_BADGE_COLORS: Record<string, string> = {
+  tourist: "bg-teal-50 text-teal-700 border-teal-200",
+  travel_agent: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  b2b: "bg-amber-50 text-amber-700 border-amber-200",
+  airline: "bg-sky-50 text-sky-700 border-sky-200",
+};
 
 interface UserCountryMap {
   [userId: string]: string | null;
