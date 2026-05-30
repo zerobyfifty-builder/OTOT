@@ -1,0 +1,1 @@
+ALTER VIEW public.v_contribution_source_drift SET (security_invoker = true);
