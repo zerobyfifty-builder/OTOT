@@ -217,8 +217,8 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium" style={{ color: '#000000' }}>{organizationName || 'Organization'}</p>
-              <p className="text-xs truncate" style={{ color: '#6b7280' }}>{organizationCategory || 'Government Partner'}</p>
+              <p className="text-sm font-medium" style={{ color: '#000000' }}>{organizationName || 'Partner'}</p>
+              <p className="text-xs truncate" style={{ color: '#6b7280' }}>{user?.email || ''}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
