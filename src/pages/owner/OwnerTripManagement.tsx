@@ -482,13 +482,23 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
+                          <TableCell>
+                            <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap border ${SOURCE_BADGE_COLORS[trip.source_type || "tourist"] || SOURCE_BADGE_COLORS.tourist}`}>
+                              {SOURCE_LABELS[trip.source_type || "tourist"] || "Tourist"}
+                            </Badge>
+                          </TableCell>
                           <TableCell><DateTimeCell value={trip.created_at} /></TableCell>
                           <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>
                           <TableCell className="text-sm">{trip.num_travelers}</TableCell>
                           <TableCell>
-                            {userCountries[trip.user_id] ? (
+                            {trip.source_type === "travel_agent" ? (
+                              <div className="leading-tight">
+                                <div className="text-xs font-medium">{trip.agent_id ? agentNames[trip.agent_id] || "-" : "-"}</div>
+                                {trip.staff_name && <div className="text-[11px] text-muted-foreground">{trip.staff_name}</div>}
+                              </div>
+                            ) : trip.user_id && userCountries[trip.user_id] ? (
                               <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(userCountries[trip.user_id]!)}`}>
                                 {userCountries[trip.user_id]}
                               </Badge>
