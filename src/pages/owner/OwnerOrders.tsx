@@ -1065,6 +1065,16 @@ export const OwnerOrders = () => {
             className="pl-9"
           />
         </div>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Contri type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filter by status" />
