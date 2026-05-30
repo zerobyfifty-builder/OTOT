@@ -240,7 +240,7 @@ export const AgentCalculateOffset = () => {
                     <FormField control={ticketForm.control} name="department" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Department *</FormLabel>
-                        <FormControl><Input placeholder="e.g. KTB, Ministry of Tourism" {...field} /></FormControl>
+                        <FormControl><Input {...field} readOnly disabled className="bg-muted cursor-not-allowed" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
