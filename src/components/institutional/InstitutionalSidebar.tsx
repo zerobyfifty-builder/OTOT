@@ -85,15 +85,13 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
     enabled: !!orgInfo?.partnerTypeId,
   });
 
-  // Build menu dynamically; always append the meta "Available Modules" page.
+  // Build menu dynamically from allocated modules only.
   const menuItems = React.useMemo(() => {
     const allowed = new Set(assignedModules || []);
-    const items = Object.entries(moduleMenuItems)
+    return Object.entries(moduleMenuItems)
       .filter(([key]) => allowed.has(key))
       .sort(([, a], [, b]) => a.sortOrder - b.sortOrder)
       .map(([, v]) => ({ title: v.title, url: v.url, icon: v.icon }));
-    items.push({ title: 'Available Modules', url: '/institutional/modules', icon: Package });
-    return items;
   }, [assignedModules]);
 
   const handleSignOut = async () => {
@@ -208,10 +206,10 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full" style={{ color: '#000000' }}>
-                    {organizationName || 'Organization'}
+                    {organizationName || 'Partner'}
                   </span>
                   <span className="text-xs truncate w-full" style={{ color: '#4b5563' }}>
-                    {organizationCategory || 'Government Partner'}
+                    {user?.email || ''}
                   </span>
                 </div>
               )}
@@ -219,8 +217,8 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium" style={{ color: '#000000' }}>{organizationName || 'Organization'}</p>
-              <p className="text-xs truncate" style={{ color: '#6b7280' }}>{organizationCategory || 'Government Partner'}</p>
+              <p className="text-sm font-medium" style={{ color: '#000000' }}>{organizationName || 'Partner'}</p>
+              <p className="text-xs truncate" style={{ color: '#6b7280' }}>{user?.email || ''}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
