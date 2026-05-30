@@ -1,105 +1,59 @@
-## North-star architecture: two-layer contribution model
+# Plan: Unified Travel Offsets Module
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 1 — Source-of-truth per channel (domain tables)      │
-│  agent_tickets   tourist_purchases*  lodge_plantings*  …    │
-│  Rich, channel-specific fields: PNR/LPO, trip, lodge, etc.  │
-│  Owns: validation, RLS for that channel, operational data   │
-└──────────────┬──────────────────────────────────────────────┘
-               │  ONE-WAY sync via SECURITY DEFINER triggers
-               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 2 — Unified ledger (single source of truth)          │
-│  contribution_tracking  ──<  trees                          │
-│  CTR-NNNNN  +  contribution_type ∈ {tourist, travel_agent,  │
-│                                     lodge, corporate, …}    │
-│  All Owner modules read ONLY from here                      │
-└─────────────────────────────────────────────────────────────┘
-(* = future domain tables; tourist purchases currently write the ledger directly)
-```
+## Goal
+Make the Travel Offsets module (currently "Trip Management" / `trips`) the single source of truth for every travel-related CO₂ offset on OTOT — tourist self-offsets today, travel-agent (KTB staff) offsets now, and B2B / airline offsets later — each tagged by a `source_type` and linked to its existing contribution ID, mirroring how Climate Funding and Tree Orders already unify contributions.
 
-### Invariants (apply to every channel, present and future)
+## Current state (verified)
+- `public.trips` — tourist-entered trips. Has `friendly_trip_id` (e.g. `TRIP-0000001`), `entry_source` enum (`entry_source_type`, currently only "Manual"), CO₂ + trees_needed, linked to contributions via `contribution_tracking.trip_id`.
+- `public.agent_tickets` — travel-agent (KTB) tickets. Has its own CO₂ fields, `trees_needed`, `contribution_id` (text), but is NOT represented as a row in `trips`. Owner "Trip Management" page only queries `trips`, so agent travels are invisible there.
+- `contribution_tracking` already has `contribution_type` ('tourist' | 'travel_agent') and `source_table` / `source_id` — the contribution side is already unified; only the **travel/trip** side is not.
 
-1. Domain tables write to the ledger via trigger/edge function — **never** the other way around.
-2. The ledger issues the canonical `CTR-NNNNN` (existing `generate_contribution_id` trigger). Domain row stores it back as `contribution_id` for two-way lookup.
-3. Trees always belong to the ledger row (`trees.contribution_id`), never to the domain row.
-4. Owner / Admin modules render `contribution_type` as a badge and never branch on source.
-5. Sync functions are idempotent: skip if the domain row already has a `contribution_id`.
+## Approach
+Extend `trips` to be the canonical travel record for all sources, and backfill/sync agent tickets into it. No destructive changes to `agent_tickets` (additive-only, per project Core rules).
 
-## Incremental rollout
+### 1. Schema changes (migration)
+On `public.trips`:
+- Add `source_type text NOT NULL DEFAULT 'tourist'` with CHECK in (`tourist`, `travel_agent`, `b2b`, `airline`) — chosen over reusing `entry_source` because that enum describes *how* a row was entered (Manual/Import), not *who* the traveller is.
+- Add `source_ref_table text` and `source_ref_id uuid` (pointer back to `agent_tickets.id` etc., analogous to `contribution_tracking.source_table`/`source_id`).
+- Add `agent_id uuid`, `staff_name text`, `department text`, `ticket_number text`, `pnr_number text`, `lpo_number text` — nullable; populated only for agent rows so the same table can render agent context without joins.
+- Index on `source_type`, on `source_ref_id`, and unique partial index on `(source_ref_table, source_ref_id)` to prevent duplicate syncs.
+- Keep `friendly_trip_id` as the universal human ID across all source types (agent rows get one too).
 
-### Phase 1 (NOW) — Travel-agent channel projects into the ledger
+### 2. Backfill + ongoing sync
+- One-time backfill: for every `agent_tickets` row, insert a matching `trips` row with `source_type='travel_agent'`, copying CO₂, dates, airports, traveller count, and pointing `source_ref_id` at the ticket. Reuse / generate `friendly_trip_id`.
+- Trigger `agent_tickets_sync_to_trips` (AFTER INSERT/UPDATE) to upsert the mirrored `trips` row on every agent-ticket change, so the unified module stays live.
+- `contribution_tracking.trip_id` for agent contributions gets set to the new trips row id (so existing climate-funding / tree-orders joins keep working unchanged).
 
-Unblocks the immediate need: travel-agent orders appearing in Owner Tree Orders, Climate Funding, Tree Operations, Impact.
+### 3. UI — Travel Offsets module (rename of Trip Management)
+`src/pages/owner/OwnerTripManagement.tsx`:
+- Rename page heading + sidebar label from "Trip Management" to "Travel Offsets" (route stays for compatibility).
+- New **Source** column showing a colored badge: Tourist / Travel Agent / B2B / Airline.
+- New **Source filter** dropdown (All / Tourist / Travel Agent / …) next to the existing status filter, mirroring the Contri-type pattern just added on Tree Orders.
+- Search expanded to also match `ticket_number`, `pnr_number`, `staff_name`, `department`.
+- Expanded row: when `source_type='travel_agent'`, show ticket #, PNR, LPO, department, staff name, agent (org) name — instead of tourist name/country block.
+- Summary cards (Total Trips, Total CO₂, Trees Needed, Fully/Partial/Not Offset) auto-include agent rows since they're now in `trips`. Add a small per-source breakdown strip under the cards.
 
-**DB migration**
-- Add `agent_tickets.contribution_id text` (nullable, indexed).
-- Create `public.sync_agent_ticket_to_contribution()` (SECURITY DEFINER, search_path=public):
-  - Skip if `NEW.contribution_id IS NOT NULL`.
-  - Insert one row into `contribution_tracking`:
-    - `contribution_type = 'travel_agent'`
-    - `num_trees = trees_needed`
-    - `amount_paid = offset_amount_paid`, `currency = 'KES'`
-    - `tourist_name = staff_name`
-    - `country` from joined travel_agent / org
-    - `payment_date`, `payment_method = 'Agent Offset'`, `transaction_reference = ticket_number`
-    - `plantation_partner_id` = first active `organizations.category='owner'` (matches `auto_allocate_tree`)
-    - `status = 'contribution_confirmed'` (or `_received` when paid)
-  - Capture the new `contribution_id`.
-  - Insert `trees_needed` rows into `trees` with that `contribution_id`, `owner_org_id = plantation_partner_id`, status `Planted` if ticket paid else `Waiting to be Assigned`.
-  - `UPDATE agent_tickets SET contribution_id = ... WHERE id = NEW.id`.
-- Triggers:
-  - `trg_agent_ticket_to_contribution_ins` AFTER INSERT.
-  - `trg_agent_ticket_to_contribution_upd` AFTER UPDATE OF `tree_status`, `offset_amount_paid`, `trees_planted` (only when the row crosses into a paid/planted state).
-- Backfill: one-shot block at the end of the migration loops existing `agent_tickets` where `offset_amount_paid > 0 OR tree_status = 'Planted'` and have no `contribution_id`.
+### 4. Analytics / dashboards
+- Owner Dashboard + Analytics tiles that read from `trips` automatically pick up agent travel.
+- Add a "By source" segment to the CO₂ / trees charts (group by `trips.source_type`).
+- Climate Funding & Tree Orders need no change — they already key off `contribution_type`.
 
-**Frontend (light)**
-- `AgentCalculateOffset.tsx` — no logic change. Optionally re-read `contribution_id` from `agent_tickets` after insert and show it in the success toast.
-- `AgentTickets`, `InstitutionalAgentTickets` — add a read-only "Contribution ID" column linking to `CTR-XXXXX`.
-- Owner / Admin tables (`OwnerOrders`, `OwnerFinancial`, `AdminContributionTracking`, `TreesAll`) already group by `contribution_id` and render the `travel_agent` badge — verify KES currency formatting (integers with commas, no `$`) on rows where `currency = 'KES'`.
+### 5. Future sources (B2B, airlines)
+- Adding a new source is now: insert into `trips` with the new `source_type` value (extend CHECK list) + optional mirror table & sync trigger. No UI rework required beyond adding the badge color + filter option.
 
-**Acceptance**
-- A new paid agent ticket appears in Owner Tree Orders and Climate Funding within one request, with a fresh `CTR-NNNNN`, correct tree count, and KES amount.
-- Fee allocation (`calculate_wallet_allocation`, `auto_populate_receipt_fields`) runs automatically on the new ledger row.
-- Existing UI for tourist purchases is unchanged.
+## Out of scope
+- No edits to `agent_tickets` schema or to the Agent / Institutional portals' write paths.
+- No change to existing contribution lifecycle, planting status, or fee allocation logic.
+- No rename of the underlying `trips` table or its route — UI label only, to keep all existing imports/links stable.
 
-### Phase 2 (NEXT) — Backfill + reconciliation guardrails
+## Technical notes
+- Migration must include GRANTs for the new columns' table (no new table created, so no new GRANT block needed — existing `trips` grants cover it).
+- Sync trigger runs as `SECURITY DEFINER` with `SET search_path = public` so agent-portal inserts (which run under anon/authenticated RLS) can still write the mirrored trip row.
+- `friendly_trip_id` generator already exists for tourist trips; reuse the same sequence so IDs remain globally unique across sources (per the Trip ID System memory).
+- Cache safety: the new `source_type` filter state follows the existing `Map`/`Set` defensive pattern used elsewhere.
 
-- Add `contribution_tracking.source_table text` and `source_id uuid` (nullable for historical rows). New sync functions populate both.
-- Reconciliation view `v_contribution_source_drift` flags ledger rows whose key projected fields (num_trees, amount_paid) diverge from the domain row.
-- Nightly (or on-demand) job logs drift to `mdm_audit_log`.
-
-### Phase 3 (LATER, optional refactor) — Tourists become a real domain table
-
-Today `TreePurchase.tsx` writes `contribution_tracking` directly. To bring tourists under the same invariant:
-
-- Create `public.tourist_purchases` (id, user_id, trip_id, num_trees, total_cost_usd, payment_method, payment_reference, dedication_name, contribution_id back-ref, timestamps). RLS: tourist can insert/read own rows; admin/owner read all.
-- Create `public.sync_tourist_purchase_to_contribution()` mirroring the agent sync.
-- Refactor `TreePurchase.tsx` to insert into `tourist_purchases` only; remove the direct `contribution_tracking` and per-tree inserts.
-- One-shot backfill: synthesize `tourist_purchases` rows from existing ledger rows where `contribution_type IN (NULL, 'tourist')`, linking by `contribution_id`.
-
-Defer until Phase 1 + 2 are stable. The ledger already contains the data, so this is purely a hygiene refactor.
-
-### Phase 4 (AS NEEDED) — New channels
-
-For each new source (lodge plantings, corporate sponsors, partner API, mobile app):
-
-1. Create a domain table with channel-specific columns + `contribution_id` back-ref.
-2. Create `sync_<channel>_to_contribution()` following the same recipe.
-3. Add new value to `contribution_type` taxonomy.
-4. **Zero changes** in Owner / Admin / Climate Funding UIs.
-
-## Technical details
-
-- Sync functions all SECURITY DEFINER, `SET search_path = public`. They bypass INSERT RLS so domain RLS (open insert for agents, authenticated for tourists) is unchanged.
-- `contribution_tracking.currency` already exists; populate `'KES'` for agent flows, `'USD'` for tourist flows. UI formatters (per memory: KES integer/commas, USD two decimals/`$`) branch on `currency`.
-- `auto_populate_receipt_fields` and `calculate_wallet_allocation` triggers continue to fire on the ledger — no change.
-- New back-ref columns are nullable + indexed. No constraint that would block legacy rows.
-- No edits to `src/integrations/supabase/types.ts` (regenerated post-migration).
-
-## Out of scope (call-outs)
-
-- Refunds / cancellations of agent tickets — separate workstream (would need a `voided_at` projection on the ledger).
-- Per-channel fee % overrides — current global `wallet_settings` apply uniformly; revisit when channel-specific economics emerge.
-- Splitting one agent ticket across multiple plantation partners.
+## Deliverables
+1. Migration: add columns, indexes, backfill agent_tickets → trips, install sync trigger.
+2. `OwnerTripManagement.tsx`: rename, Source column, Source filter, agent-context expanded row, search expansion.
+3. Sidebar label update ("Trip Management" → "Travel Offsets").
+4. Small "By source" breakdown on the summary strip.
