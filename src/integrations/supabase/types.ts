@@ -2541,6 +2541,66 @@ export type Database = {
           },
         ]
       }
+      tourist_purchases: {
+        Row: {
+          contribution_id: string | null
+          created_at: string
+          dedication_email: string | null
+          dedication_message: string | null
+          dedication_name: string | null
+          id: string
+          is_dedicated: boolean
+          location_name: string
+          num_trees: number
+          payment_method: string | null
+          payment_reference: string | null
+          price_per_tree_usd: number | null
+          purchase_type: string
+          total_cost_usd: number
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contribution_id?: string | null
+          created_at?: string
+          dedication_email?: string | null
+          dedication_message?: string | null
+          dedication_name?: string | null
+          id?: string
+          is_dedicated?: boolean
+          location_name?: string
+          num_trees: number
+          payment_method?: string | null
+          payment_reference?: string | null
+          price_per_tree_usd?: number | null
+          purchase_type?: string
+          total_cost_usd?: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contribution_id?: string | null
+          created_at?: string
+          dedication_email?: string | null
+          dedication_message?: string | null
+          dedication_name?: string | null
+          id?: string
+          is_dedicated?: boolean
+          location_name?: string
+          num_trees?: number
+          payment_method?: string | null
+          payment_reference?: string | null
+          price_per_tree_usd?: number | null
+          purchase_type?: string
+          total_cost_usd?: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       travel_agent_sessions: {
         Row: {
           agent_id: string
