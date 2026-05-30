@@ -109,6 +109,7 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [infoSheet, setInfoSheet] = useState<Tree | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
@@ -133,20 +134,20 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contribution_tracking" as any)
-        .select("tree_id, contribution_id, trip_id, status, created_at")
+        .select("tree_id, contribution_id, trip_id, status, contribution_type, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
       // Build direct tree_id -> contribution map
-      const directMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; created_at: string }>();
+      const directMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; contribution_type: string | null; created_at: string }>();
       // Build trip_id -> contribution map for fallback
-      const tripMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; created_at: string }>();
+      const tripMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; contribution_type: string | null; created_at: string }>();
       (data || []).forEach((c: any) => {
         if (c.tree_id && !directMap.has(c.tree_id)) {
-          directMap.set(c.tree_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, created_at: c.created_at });
+          directMap.set(c.tree_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, contribution_type: c.contribution_type, created_at: c.created_at });
         }
         if (c.trip_id && !tripMap.has(c.trip_id)) {
-          tripMap.set(c.trip_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, created_at: c.created_at });
+          tripMap.set(c.trip_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, contribution_type: c.contribution_type, created_at: c.created_at });
         }
       });
 
@@ -387,9 +388,13 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
         t.location_name?.toLowerCase().includes(search.toLowerCase());
       const status = t.planting_status || 'waiting_to_be_assigned';
       const matchStatus = statusFilter === "all" || status === statusFilter;
-      return matchSearch && matchStatus;
+      const contribType = contriData?.contribution_type || "tourist";
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && contribType === "travel_agent") ||
+        (typeFilter === "tourist" && contribType !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     });
-  }, [trees, search, statusFilter, contributions]);
+  }, [trees, search, statusFilter, typeFilter, contributions]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -426,6 +431,16 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
             className="pl-9"
           />
         </div>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Contri type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filter by status" />
