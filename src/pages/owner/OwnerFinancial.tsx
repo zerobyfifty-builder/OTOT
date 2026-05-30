@@ -77,6 +77,8 @@ interface ContributionRow {
   tech_fee_received: number;
   tech_fee_percent: number | null;
   ktb_fee_percent: number | null;
+  source_table: string | null;
+  source_id: string | null;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
@@ -200,6 +202,45 @@ export const OwnerFinancial = () => {
     },
     enabled: !!contributions && contributions.length > 0,
   });
+
+  // Fetch travel agent names for agent-sourced contributions
+  const { data: agentNameMap } = useQuery({
+    queryKey: ["financialAgentNames", contributions],
+    queryFn: async () => {
+      const ticketIds = [...new Set(
+        (contributions || [])
+          .filter(c => c.contribution_type === "travel_agent" && c.source_table === "agent_tickets" && c.source_id)
+          .map(c => c.source_id as string)
+      )];
+      if (ticketIds.length === 0) return {} as Record<string, string>;
+      const { data: tickets } = await supabase
+        .from("agent_tickets")
+        .select("id, agent_id")
+        .in("id", ticketIds);
+      const agentIds = [...new Set((tickets || []).map(t => t.agent_id).filter(Boolean))] as string[];
+      if (agentIds.length === 0) return {} as Record<string, string>;
+      const { data: agents } = await supabase
+        .from("travel_agents")
+        .select("id, name, business_name")
+        .in("id", agentIds);
+      const agentById = (agents || []).reduce((acc, a: any) => {
+        acc[a.id] = a.name || a.business_name || "";
+        return acc;
+      }, {} as Record<string, string>);
+      return (tickets || []).reduce((acc, t: any) => {
+        if (t.agent_id && agentById[t.agent_id]) acc[t.id] = agentById[t.agent_id];
+        return acc;
+      }, {} as Record<string, string>);
+    },
+    enabled: !!contributions && contributions.length > 0,
+  });
+
+  const getContributorName = (c: ContributionRow) => {
+    if (c.contribution_type === "travel_agent" && c.source_id && agentNameMap?.[c.source_id]) {
+      return agentNameMap[c.source_id];
+    }
+    return c.tourist_name || "-";
+  };
 
   // Fetch wallet settings for fee calculations
   const { data: walletSettings } = useQuery({
@@ -759,7 +800,7 @@ export const OwnerFinancial = () => {
                         <TableCell className="font-mono text-xs text-muted-foreground">{c.trip_id && tripsMap ? (tripsMap[c.trip_id] || c.trip_id.slice(0, 8)) : "-"}</TableCell>
                         {(isTechPartner || isKtbUser) && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
-                        <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
+                        <TableCell className="font-medium text-sm">{getContributorName(c)}</TableCell>
                         <TableCell>
                           {c.country ? (
                             <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(c.country)}`}>
@@ -914,7 +955,7 @@ export const OwnerFinancial = () => {
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                     <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{getContributorName(selectedRow)}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Trip ID</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Trees</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
@@ -1012,7 +1053,7 @@ export const OwnerFinancial = () => {
                </SheetHeader>
                <div className="mt-6 space-y-4">
                  <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
-                   <div className="flex justify-between"><span className="text-muted-foreground">Contributor:</span> <span className="font-medium">{selectedRow.tourist_name || "-"}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Contributor:</span> <span className="font-medium">{getContributorName(selectedRow)}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Trees:</span> <span className="font-medium">{selectedRow.num_trees}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span> <span className="font-medium">${formatNumber(selectedRow.amount_paid)}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Date:</span> <span className="font-medium">{formatDate(selectedRow.payment_date)}</span></div>
