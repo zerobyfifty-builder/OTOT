@@ -116,7 +116,7 @@ export const AgentTickets = () => {
             <TableBody>
               {(!tickets || tickets.length === 0) ? (
                 <TableRow>
-                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                     No tickets yet. Start by calculating a carbon offset.
                   </TableCell>
                 </TableRow>
@@ -127,6 +127,7 @@ export const AgentTickets = () => {
                     <TableCell>{ticket.department}</TableCell>
                     <TableCell>{ticket.pnr_number}</TableCell>
                     <TableCell>{ticket.ticket_number}</TableCell>
+                    <TableCell className="font-mono text-xs">{(ticket as any).contribution_id ?? "—"}</TableCell>
                     <TableCell>{ticket.origin_airport} → {ticket.destination_airport}</TableCell>
                     <TableCell>{format(new Date(ticket.from_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{Math.round(Number(ticket.total_co2)).toLocaleString()}</TableCell>
