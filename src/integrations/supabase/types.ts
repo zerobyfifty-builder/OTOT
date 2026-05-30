@@ -75,6 +75,7 @@ export type Database = {
           accommodation_co2: number
           accommodation_type: string | null
           agent_id: string
+          contribution_id: string | null
           created_at: string
           department: string
           destination_airport: string
@@ -109,6 +110,7 @@ export type Database = {
           accommodation_co2?: number
           accommodation_type?: string | null
           agent_id: string
+          contribution_id?: string | null
           created_at?: string
           department?: string
           destination_airport: string
@@ -143,6 +145,7 @@ export type Database = {
           accommodation_co2?: number
           accommodation_type?: string | null
           agent_id?: string
+          contribution_id?: string | null
           created_at?: string
           department?: string
           destination_airport?: string
@@ -566,6 +569,8 @@ export type Database = {
           payment_date: string | null
           payment_method: string | null
           plantation_partner_id: string | null
+          source_id: string | null
+          source_table: string | null
           status: string
           tech_fee_percent: number | null
           tech_fee_received: number | null
@@ -604,6 +609,8 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           plantation_partner_id?: string | null
+          source_id?: string | null
+          source_table?: string | null
           status?: string
           tech_fee_percent?: number | null
           tech_fee_received?: number | null
@@ -642,6 +649,8 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           plantation_partner_id?: string | null
+          source_id?: string | null
+          source_table?: string | null
           status?: string
           tech_fee_percent?: number | null
           tech_fee_received?: number | null
@@ -3260,7 +3269,7 @@ export type Database = {
           tree_type: string | null
           trip_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_paid: number
@@ -3290,7 +3299,7 @@ export type Database = {
           tree_type?: string | null
           trip_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_paid?: number
@@ -3320,7 +3329,7 @@ export type Database = {
           tree_type?: string | null
           trip_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
