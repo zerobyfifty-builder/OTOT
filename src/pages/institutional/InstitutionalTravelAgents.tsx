@@ -50,6 +50,7 @@ export default function InstitutionalTravelAgents() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState(EMPTY_FORM);
+  const [confirmAgent, setConfirmAgent] = useState<TravelAgent | null>(null);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userOrgProfile', user?.id],
