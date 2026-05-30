@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,9 +24,21 @@ interface TravelAgent {
   email: string;
   username: string | null;
   contact_phone: string | null;
+  mobile_number: string | null;
+  reference_id: string | null;
   is_active: boolean;
   created_at: string;
 }
+
+const EMPTY_FORM = {
+  name: '',
+  business_name: '',
+  email: '',
+  password: '',
+  contact_phone: '',
+  mobile_number: '',
+  reference_id: '',
+};
 
 export default function InstitutionalTravelAgents() {
   const { user } = useAuth();
@@ -36,14 +47,9 @@ export default function InstitutionalTravelAgents() {
   const [editingAgent, setEditingAgent] = useState<TravelAgent | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    business_name: '',
-    email: '',
-    username: '',
-    password: '',
-    contact_phone: '',
-  });
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [initialForm, setInitialForm] = useState(EMPTY_FORM);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userOrgProfile', user?.id],
@@ -135,31 +141,50 @@ export default function InstitutionalTravelAgents() {
   // Agent CRUD handlers
   const handleEdit = (agent: TravelAgent) => {
     setEditingAgent(agent);
-    setFormData({
+    const data = {
       name: agent.name,
       business_name: agent.business_name,
       email: agent.email,
-      username: agent.username || '',
       password: '',
       contact_phone: agent.contact_phone || '',
-    });
+      mobile_number: agent.mobile_number || '',
+      reference_id: agent.reference_id || '',
+    };
+    setFormData(data);
+    setInitialForm(data);
   };
 
   const handleCreate = () => {
     setIsCreating(true);
-    setFormData({ name: '', business_name: '', email: '', username: '', password: '', contact_phone: '' });
+    setFormData(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
   };
+
+  const closeSheet = () => {
+    setEditingAgent(null);
+    setIsCreating(false);
+    setFormData(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
+  };
+
+  const isDirty = useMemo(
+    () => JSON.stringify(formData) !== JSON.stringify(initialForm),
+    [formData, initialForm]
+  );
 
   const handleSave = async () => {
     if (!organizationId) return;
+    setSaving(true);
     try {
       if (editingAgent) {
         const updateData: any = {
           name: formData.name,
           business_name: formData.business_name,
           email: formData.email,
-          username: formData.username || null,
+          username: formData.email,
           contact_phone: formData.contact_phone || null,
+          mobile_number: formData.mobile_number || null,
+          reference_id: formData.reference_id || null,
         };
         if (formData.password) updateData.password_hash = formData.password;
         const { error } = await supabase.from('travel_agents').update(updateData).eq('id', editingAgent.id);
@@ -170,20 +195,24 @@ export default function InstitutionalTravelAgents() {
           name: formData.name,
           business_name: formData.business_name,
           email: formData.email,
-          username: formData.username || null,
+          username: formData.email,
           password_hash: '__supabase_auth__',
           contact_phone: formData.contact_phone || null,
+          mobile_number: formData.mobile_number || null,
+          reference_id: formData.reference_id || null,
           organization_id: organizationId,
-        }]);
+        } as any]);
         if (insertError) throw insertError;
 
-        const { data: fnData, error: fnError } = await supabase.functions.invoke('create-agent-user', {
+        const { error: fnError } = await supabase.functions.invoke('create-agent-user', {
           body: {
             name: formData.name,
             email: formData.email,
             password: formData.password,
             business_name: formData.business_name,
             contact_phone: formData.contact_phone || null,
+            mobile_number: formData.mobile_number || null,
+            reference_id: formData.reference_id || null,
             organization_id: organizationId,
           }
         });
@@ -195,12 +224,13 @@ export default function InstitutionalTravelAgents() {
           toast({ title: 'Success', description: 'Travel agent created successfully.' });
         }
       }
-      setEditingAgent(null);
-      setIsCreating(false);
+      closeSheet();
       refetchAgents();
     } catch (error) {
       console.error('Error saving agent:', error);
       toast({ title: 'Error', description: 'Failed to save travel agent', variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -393,8 +423,8 @@ export default function InstitutionalTravelAgents() {
                   <TableHead>Name</TableHead>
                   <TableHead>Business Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Reference ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -412,8 +442,8 @@ export default function InstitutionalTravelAgents() {
                       <TableCell className="font-medium">{agent.name}</TableCell>
                       <TableCell>{agent.business_name}</TableCell>
                       <TableCell>{agent.email}</TableCell>
-                      <TableCell>{agent.username || '-'}</TableCell>
-                      <TableCell>{agent.contact_phone || '-'}</TableCell>
+                      <TableCell>{agent.mobile_number || agent.contact_phone || '-'}</TableCell>
+                      <TableCell>{agent.reference_id || '-'}</TableCell>
                       <TableCell>
                         <span className={agent.is_active ? 'text-green-600' : 'text-red-600'}>
                           {agent.is_active ? 'Active' : 'Inactive'}
@@ -440,23 +470,60 @@ export default function InstitutionalTravelAgents() {
         </TabsContent>
       </Tabs>
 
-      {/* Create/Edit Agent Dialog */}
-      <Dialog open={!!editingAgent || isCreating} onOpenChange={() => { setEditingAgent(null); setIsCreating(false); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingAgent ? 'Edit Travel Agent' : 'Create Travel Agent'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div><Label>Name *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div><Label>Business Name *</Label><Input value={formData.business_name} onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} /></div>
-            <div><Label>Email *</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-            <div><Label>Username *</Label><Input value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} /></div>
-            <div><Label>{editingAgent ? 'New Password (leave blank to keep current)' : 'Password *'}</Label><Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>
-            <div><Label>Contact Phone</Label><Input value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} /></div>
-            <Button onClick={handleSave} className="w-full">{editingAgent ? 'Update' : 'Create'} Agent</Button>
+      {/* Create/Edit Agent Right Sheet */}
+      <Sheet open={!!editingAgent || isCreating} onOpenChange={(open) => { if (!open) closeSheet(); }}>
+        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto flex flex-col">
+          <SheetHeader>
+            <SheetTitle>{editingAgent ? 'Edit Travel Agent' : 'Add Travel Agent'}</SheetTitle>
+            <SheetDescription>
+              {editingAgent ? 'Update agent details. The email also serves as the username.' : 'Create a new travel agent. The email will be used as the login username.'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-4 mt-6 flex-1">
+            <div>
+              <Label>Name *</Label>
+              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Business Name *</Label>
+              <Input value={formData.business_name} onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Email (used as username) *</Label>
+              <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+            </div>
+            <div>
+              <Label>Mobile Number</Label>
+              <Input value={formData.mobile_number} onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })} placeholder="+254 ..." />
+            </div>
+            <div>
+              <Label>Reference ID</Label>
+              <Input value={formData.reference_id} onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })} placeholder="Internal reference / staff ID" />
+            </div>
+            <div>
+              <Label>Contact Phone</Label>
+              <Input value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} />
+            </div>
+            <div>
+              <Label>{editingAgent ? 'New Password (leave blank to keep current)' : 'Password *'}</Label>
+              <Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter className="mt-6 gap-2 sm:gap-2">
+            <Button variant="outline" onClick={closeSheet} disabled={saving}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || (editingAgent ? !isDirty : !(formData.name && formData.business_name && formData.email && formData.password))}
+            >
+              {saving ? 'Saving...' : editingAgent ? 'Update Agent' : 'Create Agent'}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+
 
       {/* View Ticket Info Sheet */}
       <Sheet open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>

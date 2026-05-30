@@ -2575,9 +2575,11 @@ export type Database = {
           email: string
           id: string
           is_active: boolean
+          mobile_number: string | null
           name: string
           organization_id: string | null
           password_hash: string | null
+          reference_id: string | null
           updated_at: string
           username: string | null
         }
@@ -2588,9 +2590,11 @@ export type Database = {
           email: string
           id?: string
           is_active?: boolean
+          mobile_number?: string | null
           name: string
           organization_id?: string | null
           password_hash?: string | null
+          reference_id?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -2601,9 +2605,11 @@ export type Database = {
           email?: string
           id?: string
           is_active?: boolean
+          mobile_number?: string | null
           name?: string
           organization_id?: string | null
           password_hash?: string | null
+          reference_id?: string | null
           updated_at?: string
           username?: string | null
         }
