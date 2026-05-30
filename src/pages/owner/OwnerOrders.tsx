@@ -804,7 +804,7 @@ export const OwnerOrders = () => {
     });
 
     return result;
-  }, [contributionGroups, search, statusFilter, sortField, sortDir]);
+  }, [contributionGroups, search, statusFilter, typeFilter, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
