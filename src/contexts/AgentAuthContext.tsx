@@ -9,6 +9,8 @@ interface Agent {
   email: string;
   username: string;
   auth_user_id: string;
+  organization_id: string | null;
+  organization_name: string | null;
 }
 
 interface AgentAuthContextType {
