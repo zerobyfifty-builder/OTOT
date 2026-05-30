@@ -3428,7 +3428,9 @@ export type Database = {
           accommodation_type:
             | Database["public"]["Enums"]["accommodation_type"]
             | null
+          agent_id: string | null
           created_at: string
+          department: string | null
           destination_airport: string
           entry_source: Database["public"]["Enums"]["entry_source_type"]
           flight_co2: number
@@ -3436,22 +3438,31 @@ export type Database = {
           from_date: string
           id: string
           is_return: boolean
+          lpo_number: string | null
           num_travelers: number
           organization_id: string | null
           origin_airport: string
+          pnr_number: string | null
+          source_ref_id: string | null
+          source_ref_table: string | null
+          source_type: string
+          staff_name: string | null
+          ticket_number: string | null
           to_date: string | null
           total_co2: number
           travel_class: Database["public"]["Enums"]["travel_class_type"]
           trees_needed: number
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           accommodation_co2?: number
           accommodation_type?:
             | Database["public"]["Enums"]["accommodation_type"]
             | null
+          agent_id?: string | null
           created_at?: string
+          department?: string | null
           destination_airport: string
           entry_source?: Database["public"]["Enums"]["entry_source_type"]
           flight_co2?: number
@@ -3459,22 +3470,31 @@ export type Database = {
           from_date: string
           id?: string
           is_return?: boolean
+          lpo_number?: string | null
           num_travelers?: number
           organization_id?: string | null
           origin_airport: string
+          pnr_number?: string | null
+          source_ref_id?: string | null
+          source_ref_table?: string | null
+          source_type?: string
+          staff_name?: string | null
+          ticket_number?: string | null
           to_date?: string | null
           total_co2?: number
           travel_class: Database["public"]["Enums"]["travel_class_type"]
           trees_needed?: number
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           accommodation_co2?: number
           accommodation_type?:
             | Database["public"]["Enums"]["accommodation_type"]
             | null
+          agent_id?: string | null
           created_at?: string
+          department?: string | null
           destination_airport?: string
           entry_source?: Database["public"]["Enums"]["entry_source_type"]
           flight_co2?: number
@@ -3482,15 +3502,22 @@ export type Database = {
           from_date?: string
           id?: string
           is_return?: boolean
+          lpo_number?: string | null
           num_travelers?: number
           organization_id?: string | null
           origin_airport?: string
+          pnr_number?: string | null
+          source_ref_id?: string | null
+          source_ref_table?: string | null
+          source_type?: string
+          staff_name?: string | null
+          ticket_number?: string | null
           to_date?: string | null
           total_co2?: number
           travel_class?: Database["public"]["Enums"]["travel_class_type"]
           trees_needed?: number
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }

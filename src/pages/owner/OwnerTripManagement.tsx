@@ -36,8 +36,30 @@ interface Trip {
   from_date: string;
   to_date: string | null;
   created_at: string;
-  user_id: string;
+  user_id: string | null;
+  source_type?: string | null;
+  source_ref_table?: string | null;
+  source_ref_id?: string | null;
+  agent_id?: string | null;
+  staff_name?: string | null;
+  department?: string | null;
+  ticket_number?: string | null;
+  pnr_number?: string | null;
+  lpo_number?: string | null;
 }
+
+const SOURCE_LABELS: Record<string, string> = {
+  tourist: "Tourist",
+  travel_agent: "Travel Agent",
+  b2b: "B2B",
+  airline: "Airline",
+};
+const SOURCE_BADGE_COLORS: Record<string, string> = {
+  tourist: "bg-teal-50 text-teal-700 border-teal-200",
+  travel_agent: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  b2b: "bg-amber-50 text-amber-700 border-amber-200",
+  airline: "bg-sky-50 text-sky-700 border-sky-200",
+};
 
 interface UserCountryMap {
   [userId: string]: string | null;
@@ -128,6 +150,8 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
   const [search, setSearch] = useState("");
   const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [agentNames, setAgentNames] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -140,10 +164,11 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
 
   const fetchData = async () => {
     setLoading(true);
-    const [tripsRes, contribRes, usersRes] = await Promise.all([
+    const [tripsRes, contribRes, usersRes, agentsRes] = await Promise.all([
       supabase.from("trips").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("contribution_tracking" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("users").select("user_id, country"),
+      supabase.from("travel_agents" as any).select("id, name, business_name"),
     ]);
     if (tripsRes.data) setTrips(tripsRes.data as any);
     if (contribRes.data) setContributions(contribRes.data as unknown as ContributionRow[]);
@@ -151,6 +176,11 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const map: UserCountryMap = {};
       for (const u of usersRes.data) map[u.user_id] = u.country;
       setUserCountries(map);
+    }
+    if (agentsRes.data) {
+      const map: Record<string, string> = {};
+      for (const a of agentsRes.data as any[]) map[a.id] = a.name || a.business_name || "";
+      setAgentNames(map);
     }
     setLoading(false);
   };
@@ -219,9 +249,17 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const matchSearch = !search ||
         t.friendly_trip_id?.toLowerCase().includes(s) ||
         t.origin_airport.toLowerCase().includes(s) ||
-        t.destination_airport.toLowerCase().includes(s);
+        t.destination_airport.toLowerCase().includes(s) ||
+        t.ticket_number?.toLowerCase().includes(s) ||
+        t.pnr_number?.toLowerCase().includes(s) ||
+        t.lpo_number?.toLowerCase().includes(s) ||
+        t.staff_name?.toLowerCase().includes(s) ||
+        t.department?.toLowerCase().includes(s) ||
+        (t.agent_id && agentNames[t.agent_id]?.toLowerCase().includes(s));
       const matchStatus = statusFilter === "all" || getOffsetStatus(t) === statusFilter;
-      return matchSearch && matchStatus;
+      const src = t.source_type || "tourist";
+      const matchSource = sourceFilter === "all" || src === sourceFilter;
+      return matchSearch && matchStatus && matchSource;
     });
 
     result.sort((a, b) => {
@@ -248,7 +286,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
     });
 
     return result;
-  }, [trips, search, statusFilter, sortField, sortDir, treesCommittedByTrip]);
+  }, [trips, search, statusFilter, sourceFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -353,12 +391,24 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by trip ID, airport..."
+            placeholder="Search by trip ID, airport, ticket, PNR, staff..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             className="pl-9"
           />
         </div>
+        <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Sources" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="travel_agent">Travel Agent</SelectItem>
+            <SelectItem value="b2b">B2B</SelectItem>
+            <SelectItem value="airline">Airline</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Statuses" />
@@ -391,12 +441,13 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
                   <TableRow className="bg-muted/50 hover:bg-muted/50 border-b">
                     <TableHead className="w-10" />
                     <SortableHead field="friendly_trip_id" label="Trip ID" />
+                    <StaticHead label="Source" />
                     <SortableHead field="created_at" label="Date" />
                     <StaticHead label="Route" />
                     <StaticHead label="Class" />
                     <StaticHead label="Return" />
                     <StaticHead label="Travelers" />
-                    <StaticHead label="Country" />
+                    <StaticHead label="Country / Traveler" />
                     <StaticHead label="Flight CO₂" />
                     <StaticHead label="Hotel CO₂" />
                     <SortableHead field="total_co2" label="Total CO₂" />
@@ -431,13 +482,23 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs font-medium">{trip.friendly_trip_id || trip.id.slice(0, 8)}</TableCell>
+                          <TableCell>
+                            <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap border ${SOURCE_BADGE_COLORS[trip.source_type || "tourist"] || SOURCE_BADGE_COLORS.tourist}`}>
+                              {SOURCE_LABELS[trip.source_type || "tourist"] || "Tourist"}
+                            </Badge>
+                          </TableCell>
                           <TableCell><DateTimeCell value={trip.created_at} /></TableCell>
                           <TableCell className="text-sm">{trip.origin_airport} → {trip.destination_airport}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{trip.travel_class}</Badge></TableCell>
                           <TableCell className="text-sm">{trip.is_return ? "Yes" : "No"}</TableCell>
                           <TableCell className="text-sm">{trip.num_travelers}</TableCell>
                           <TableCell>
-                            {userCountries[trip.user_id] ? (
+                            {trip.source_type === "travel_agent" ? (
+                              <div className="leading-tight">
+                                <div className="text-xs font-medium">{trip.agent_id ? agentNames[trip.agent_id] || "-" : "-"}</div>
+                                {trip.staff_name && <div className="text-[11px] text-muted-foreground">{trip.staff_name}</div>}
+                              </div>
+                            ) : trip.user_id && userCountries[trip.user_id] ? (
                               <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(userCountries[trip.user_id]!)}`}>
                                 {userCountries[trip.user_id]}
                               </Badge>
@@ -476,7 +537,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
                         </TableRow>
                         {isExpanded && tripContribs.length > 0 && (
                           <TableRow key={`${trip.id}-expanded`} className="bg-muted/20 hover:bg-muted/20">
-                            <TableCell colSpan={19} className="p-0">
+                            <TableCell colSpan={20} className="p-0">
                               <div className="px-4 py-3 space-y-3">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                                   <FileText className="h-3.5 w-3.5" />
