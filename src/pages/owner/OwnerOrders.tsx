@@ -782,7 +782,11 @@ export const OwnerOrders = () => {
         g.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
         tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || g.planting_status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = (g.contribution_type || "").toLowerCase();
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && ct === "travel_agent") ||
+        (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     });
 
     result.sort((a, b) => {
