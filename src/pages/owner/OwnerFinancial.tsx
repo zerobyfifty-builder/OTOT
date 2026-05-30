@@ -77,6 +77,8 @@ interface ContributionRow {
   tech_fee_received: number;
   tech_fee_percent: number | null;
   ktb_fee_percent: number | null;
+  source_table: string | null;
+  source_id: string | null;
 }
 
 type SheetMode = "view" | "ktb" | "partner";
