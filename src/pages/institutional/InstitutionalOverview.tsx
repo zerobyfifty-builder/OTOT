@@ -83,15 +83,15 @@ export default function InstitutionalOverview() {
   const totalCO2Kg = (tickets || []).reduce((s, t: any) => s + Number(t.total_co2 || 0), 0);
   const treesCommitted = (tickets || []).reduce((s, t: any) => s + Number(t.trees_needed || 0), 0);
   const treesPlanted = (tickets || []).reduce((s, t: any) => s + Number(t.trees_planted || 0), 0);
-  const contributionsUsd = (tickets || []).reduce((s, t: any) => s + Number(t.offset_amount_paid || 0), 0);
+  const contributionsKes = (tickets || []).reduce((s, t: any) => s + Number(t.offset_amount_paid || 0), 0);
   const paymentsDue = (tickets || []).filter((t: any) => t.ktb_payment_status === 'Payment Due').length;
 
   // Monthly trend (last 6 months)
   const monthlyTrend = useMemo(() => {
-    const buckets: { key: string; label: string; tickets: number; co2: number; usd: number }[] = [];
+    const buckets: { key: string; label: string; tickets: number; co2: number; kes: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = startOfMonth(subMonths(new Date(), i));
-      buckets.push({ key: format(d, 'yyyy-MM'), label: format(d, 'MMM'), tickets: 0, co2: 0, usd: 0 });
+      buckets.push({ key: format(d, 'yyyy-MM'), label: format(d, 'MMM'), tickets: 0, co2: 0, kes: 0 });
     }
     const idx = new Map(buckets.map((b, i) => [b.key, i]));
     (tickets || []).forEach((t: any) => {
@@ -100,24 +100,24 @@ export default function InstitutionalOverview() {
       if (i === undefined) return;
       buckets[i].tickets += 1;
       buckets[i].co2 += Number(t.total_co2 || 0);
-      buckets[i].usd += Number(t.offset_amount_paid || 0);
+      buckets[i].kes += Number(t.offset_amount_paid || 0);
     });
     return buckets;
   }, [tickets]);
 
   // Top agents by contribution
   const topAgents = useMemo(() => {
-    const map = new Map<string, { name: string; tickets: number; co2: number; usd: number }>();
-    (agents || []).forEach((a: any) => map.set(a.id, { name: a.name, tickets: 0, co2: 0, usd: 0 }));
+    const map = new Map<string, { name: string; tickets: number; co2: number; kes: number }>();
+    (agents || []).forEach((a: any) => map.set(a.id, { name: a.name, tickets: 0, co2: 0, kes: 0 }));
     (tickets || []).forEach((t: any) => {
       const r = map.get(t.agent_id);
       if (!r) return;
       r.tickets += 1;
       r.co2 += Number(t.total_co2 || 0);
-      r.usd += Number(t.offset_amount_paid || 0);
+      r.kes += Number(t.offset_amount_paid || 0);
     });
     return Array.from(map.values())
-      .sort((a, b) => b.usd - a.usd)
+      .sort((a, b) => b.kes - a.kes)
       .slice(0, 5);
   }, [agents, tickets]);
 
@@ -149,7 +149,7 @@ export default function InstitutionalOverview() {
     { label: 'Travel Agents', value: totalAgents, sub: `${activeAgents} active · ${inactiveAgents} inactive`, icon: Users },
     { label: 'Tickets Issued', value: totalTickets, sub: `${paymentsDue} payment due`, icon: Ticket },
     { label: 'CO₂ Offset', value: `${(totalCO2Kg / 1000).toFixed(2)} t`, sub: `${totalCO2Kg.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg total`, icon: Leaf },
-    { label: 'Contributions', value: `$${contributionsUsd.toFixed(2)}`, sub: 'USD lifetime', icon: DollarSign },
+    { label: 'Contributions', value: `KES ${contributionsKes.toLocaleString()}`, sub: 'KES lifetime', icon: DollarSign },
     { label: 'Trees Committed', value: treesCommitted.toLocaleString(), sub: `${treesPlanted.toLocaleString()} planted`, icon: TreePine },
     { label: 'Planting Progress', value: `${treesCommitted > 0 ? Math.round((treesPlanted / treesCommitted) * 100) : 0}%`, sub: 'of committed', icon: AlertCircle },
   ];
@@ -230,7 +230,7 @@ export default function InstitutionalOverview() {
                   <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis dataKey="name" type="category" width={120} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
-                  <Bar dataKey="usd" name="USD" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="kes" name="KES" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
