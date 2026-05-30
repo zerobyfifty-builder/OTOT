@@ -3571,7 +3571,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_contribution_source_drift: {
+        Row: {
+          contribution_id: string | null
+          drift_type: string | null
+          ledger_amount_paid: number | null
+          ledger_currency: string | null
+          ledger_id: string | null
+          ledger_num_trees: number | null
+          source_amount_paid: number | null
+          source_id: string | null
+          source_num_trees: number | null
+          source_table: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_tokens: { Args: never; Returns: undefined }
@@ -3608,6 +3622,7 @@ export type Database = {
         Args: { _module_name: string; _permission: string; _user_id: string }
         Returns: boolean
       }
+      reconcile_contribution_sources: { Args: never; Returns: number }
       users_in_same_org: {
         Args: { user1_id: string; user2_id: string }
         Returns: boolean
