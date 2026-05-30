@@ -39,6 +39,11 @@ const PARTNER_MODULE_ORDER = [
   "inst_partners",
   "inst_disbursements",
   "inst_reports",
+  "lodge_performance",
+  "lodge_trees",
+  "lodge_notifications",
+  "lodge_reimbursements",
+  "lodge_tourists",
 ];
 const PARTNER_MODULE_CODES: Record<string, string> = PARTNER_MODULE_ORDER.reduce(
   (acc, name, i) => ({ ...acc, [name]: `PM${String(i + 1).padStart(2, "0")}` }),
