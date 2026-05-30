@@ -423,8 +423,8 @@ export default function InstitutionalTravelAgents() {
                   <TableHead>Name</TableHead>
                   <TableHead>Business Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Reference ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -442,8 +442,8 @@ export default function InstitutionalTravelAgents() {
                       <TableCell className="font-medium">{agent.name}</TableCell>
                       <TableCell>{agent.business_name}</TableCell>
                       <TableCell>{agent.email}</TableCell>
-                      <TableCell>{agent.username || '-'}</TableCell>
-                      <TableCell>{agent.contact_phone || '-'}</TableCell>
+                      <TableCell>{agent.mobile_number || agent.contact_phone || '-'}</TableCell>
+                      <TableCell>{agent.reference_id || '-'}</TableCell>
                       <TableCell>
                         <span className={agent.is_active ? 'text-green-600' : 'text-red-600'}>
                           {agent.is_active ? 'Active' : 'Inactive'}
@@ -470,23 +470,60 @@ export default function InstitutionalTravelAgents() {
         </TabsContent>
       </Tabs>
 
-      {/* Create/Edit Agent Dialog */}
-      <Dialog open={!!editingAgent || isCreating} onOpenChange={() => { setEditingAgent(null); setIsCreating(false); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingAgent ? 'Edit Travel Agent' : 'Create Travel Agent'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div><Label>Name *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-            <div><Label>Business Name *</Label><Input value={formData.business_name} onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} /></div>
-            <div><Label>Email *</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-            <div><Label>Username *</Label><Input value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} /></div>
-            <div><Label>{editingAgent ? 'New Password (leave blank to keep current)' : 'Password *'}</Label><Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>
-            <div><Label>Contact Phone</Label><Input value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} /></div>
-            <Button onClick={handleSave} className="w-full">{editingAgent ? 'Update' : 'Create'} Agent</Button>
+      {/* Create/Edit Agent Right Sheet */}
+      <Sheet open={!!editingAgent || isCreating} onOpenChange={(open) => { if (!open) closeSheet(); }}>
+        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto flex flex-col">
+          <SheetHeader>
+            <SheetTitle>{editingAgent ? 'Edit Travel Agent' : 'Add Travel Agent'}</SheetTitle>
+            <SheetDescription>
+              {editingAgent ? 'Update agent details. The email also serves as the username.' : 'Create a new travel agent. The email will be used as the login username.'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="space-y-4 mt-6 flex-1">
+            <div>
+              <Label>Name *</Label>
+              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Business Name *</Label>
+              <Input value={formData.business_name} onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Email (used as username) *</Label>
+              <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+            </div>
+            <div>
+              <Label>Mobile Number</Label>
+              <Input value={formData.mobile_number} onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })} placeholder="+254 ..." />
+            </div>
+            <div>
+              <Label>Reference ID</Label>
+              <Input value={formData.reference_id} onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })} placeholder="Internal reference / staff ID" />
+            </div>
+            <div>
+              <Label>Contact Phone</Label>
+              <Input value={formData.contact_phone} onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })} />
+            </div>
+            <div>
+              <Label>{editingAgent ? 'New Password (leave blank to keep current)' : 'Password *'}</Label>
+              <Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter className="mt-6 gap-2 sm:gap-2">
+            <Button variant="outline" onClick={closeSheet} disabled={saving}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || (editingAgent ? !isDirty : !(formData.name && formData.business_name && formData.email && formData.password))}
+            >
+              {saving ? 'Saving...' : editingAgent ? 'Update Agent' : 'Create Agent'}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+
 
       {/* View Ticket Info Sheet */}
       <Sheet open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
