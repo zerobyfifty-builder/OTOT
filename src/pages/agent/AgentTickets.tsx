@@ -102,6 +102,7 @@ export const AgentTickets = () => {
                 <TableHead>Dept</TableHead>
                 <TableHead>PNR</TableHead>
                 <TableHead>Ticket #</TableHead>
+                <TableHead>Contribution ID</TableHead>
                 <TableHead>Route</TableHead>
                 <TableHead>Travel Date</TableHead>
                 <TableHead>CO₂ (kg)</TableHead>
