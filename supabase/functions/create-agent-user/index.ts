@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
       }
     )
 
-    const { name, email, password, business_name, contact_phone, organization_id } = await req.json()
+    const { name, email, password, business_name, contact_phone, mobile_number, reference_id, organization_id } = await req.json()
 
     if (!name || !email || !password) {
       return new Response(
