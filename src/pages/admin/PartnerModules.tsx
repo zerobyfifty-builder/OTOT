@@ -219,7 +219,9 @@ export default function PartnerModules() {
                   const forestModules = visibleModules
                     .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
                     .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
-                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+                  const otherModules = visibleModules
+                    .filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name) && PARTNER_MODULE_ORDER.includes(m.name))
+                    .sort((a: any, b: any) => PARTNER_MODULE_ORDER.indexOf(a.name) - PARTNER_MODULE_ORDER.indexOf(b.name));
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
