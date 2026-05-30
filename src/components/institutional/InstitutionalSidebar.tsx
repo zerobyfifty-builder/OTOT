@@ -206,10 +206,10 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full" style={{ color: '#000000' }}>
-                    {organizationName || 'Organization'}
+                    {organizationName || 'Partner'}
                   </span>
                   <span className="text-xs truncate w-full" style={{ color: '#4b5563' }}>
-                    {organizationCategory || 'Government Partner'}
+                    {user?.email || ''}
                   </span>
                 </div>
               )}
