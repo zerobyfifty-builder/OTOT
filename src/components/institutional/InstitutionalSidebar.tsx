@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, TreePine, Trees, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane, Package } from 'lucide-react';
+import { Home, TreePine, Trees, DollarSign, Building2, LogOut, ChevronLeft, ChevronRight, FileText, Plane, Package, LayoutDashboard } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -28,13 +28,14 @@ import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
 // Module name → menu metadata (mirrors `modules` rows seeded for category='institutional').
 const moduleMenuItems: Record<string, { title: string; url: string; icon: any; sortOrder: number }> = {
-  inst_dashboard:     { title: 'Dashboard',            url: '/institutional/dashboard',     icon: Home,       sortOrder: 100 },
-  inst_trips:         { title: 'Recent Trips',         url: '/institutional/trips',         icon: DollarSign, sortOrder: 101 },
-  inst_tree_orders:   { title: 'Tree Orders',          url: '/institutional/trees',         icon: Trees,      sortOrder: 102 },
-  inst_travel_agents: { title: 'Travel Agents',        url: '/institutional/travel-agents', icon: Plane,      sortOrder: 103 },
-  inst_partners:      { title: 'Plantation Partners',  url: '/institutional/partners',      icon: Building2,  sortOrder: 104 },
-  inst_disbursements: { title: 'Disbursements',        url: '/institutional/disbursements', icon: DollarSign, sortOrder: 105 },
-  inst_reports:       { title: 'Reports',              url: '/institutional/reports',       icon: FileText,   sortOrder: 106 },
+  inst_dashboard:     { title: 'Dashboard',            url: '/institutional/dashboard',     icon: Home,             sortOrder: 100 },
+  inst_overview:      { title: 'Overview',             url: '/institutional/overview',      icon: LayoutDashboard,  sortOrder: 100.5 },
+  inst_trips:         { title: 'Recent Trips',         url: '/institutional/trips',         icon: DollarSign,       sortOrder: 101 },
+  inst_tree_orders:   { title: 'Tree Orders',          url: '/institutional/trees',         icon: Trees,            sortOrder: 102 },
+  inst_travel_agents: { title: 'Travel Agents',        url: '/institutional/travel-agents', icon: Plane,            sortOrder: 103 },
+  inst_partners:      { title: 'Plantation Partners',  url: '/institutional/partners',      icon: Building2,        sortOrder: 104 },
+  inst_disbursements: { title: 'Disbursements',        url: '/institutional/disbursements', icon: DollarSign,       sortOrder: 105 },
+  inst_reports:       { title: 'Reports',              url: '/institutional/reports',       icon: FileText,         sortOrder: 106 },
 };
 
 interface InstitutionalSidebarProps {
