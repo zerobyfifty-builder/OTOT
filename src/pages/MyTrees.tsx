@@ -662,9 +662,14 @@ export const MyTrees = () => {
                                           <TableCell className="text-left text-xs">Nakuru</TableCell>
                                           <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                           <TableCell>
-                                            <Badge className={PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || "bg-muted text-muted-foreground"}>
-                                              {PLANTING_STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned'] || tree.planting_status || 'Unknown'}
-                                            </Badge>
+                                            {(() => {
+                                              const stage = toTouristStage(tree.planting_status);
+                                              return (
+                                                <Badge className={PLANTING_STATUS_COLORS[stage]}>
+                                                  {PLANTING_STATUS_LABELS[stage]}
+                                                </Badge>
+                                              );
+                                            })()}
                                           </TableCell>
                                           <TableCell className="text-xs">
                                             {transitionDates[tree.id]
