@@ -56,16 +56,19 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
       if (!user?.id) return null;
       const { data } = await supabase
         .from('users')
-        .select('organization_id, organizations(partner_type_id)')
+        .select('organization_id, organizations(name, partner_type_id)')
         .eq('user_id', user.id)
         .maybeSingle();
       return {
         organizationId: (data as any)?.organization_id || null,
+        organizationName: (data as any)?.organizations?.name || null,
         partnerTypeId: (data as any)?.organizations?.partner_type_id || null,
       };
     },
     enabled: !!user?.id,
   });
+
+  const displayName = organizationName || orgInfo?.organizationName || 'Partner';
 
   // Modules allocated to this partner sub-category by Super Admin
   const { data: assignedModules } = useQuery({
