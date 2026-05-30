@@ -614,6 +614,32 @@ export default function InstitutionalTravelAgents() {
           })()}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={!!confirmAgent} onOpenChange={(open) => { if (!open) setConfirmAgent(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAgent?.is_active ? 'Deactivate travel agent?' : 'Reactivate travel agent?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAgent?.is_active
+                ? `This will deactivate ${confirmAgent?.name}. They will lose access until reactivated.`
+                : `This will reactivate ${confirmAgent?.name} and restore their access.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (confirmAgent) {
+                await handleToggleActive(confirmAgent);
+                setConfirmAgent(null);
+              }
+            }}>
+              {confirmAgent?.is_active ? 'Deactivate' : 'Reactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
