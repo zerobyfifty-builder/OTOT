@@ -82,14 +82,14 @@ export const AgentCalculateOffset = () => {
 
   const ticketForm = useForm<TicketData>({
     resolver: zodResolver(ticketSchema),
-    defaultValues: { department: agent?.business_name || "" },
+    defaultValues: { department: agent?.organization_name || "" },
   });
 
   useEffect(() => {
-    if (agent?.business_name) {
-      ticketForm.setValue("department", agent.business_name);
+    if (agent?.organization_name) {
+      ticketForm.setValue("department", agent.organization_name);
     }
-  }, [agent?.business_name]);
+  }, [agent?.organization_name]);
 
   const flightForm = useForm<FlightData>({
     resolver: zodResolver(flightSchema),
