@@ -955,7 +955,7 @@ export const OwnerFinancial = () => {
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                     <div><span className="text-muted-foreground text-xs">Contri ID</span><p className="font-mono font-medium">{selectedRow.contribution_id}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Type</span><p>{getContributionTypeBadge(selectedRow.contribution_type)}</p></div>
-                    <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{selectedRow.tourist_name || "-"}</p></div>
+                    <div><span className="text-muted-foreground text-xs">Contributor</span><p className="font-medium">{getContributorName(selectedRow)}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Country</span><p>{selectedRow.country || "-"}</p></div>
                     <div><span className="text-muted-foreground text-xs">Trip ID</span><p className="font-mono text-xs">{selectedRow.trip_id?.slice(0, 8) || "-"}</p></div>
                     <div className="text-right"><span className="text-muted-foreground text-xs">Trees</span><p className="font-semibold">{selectedRow.num_trees}</p></div>
