@@ -388,9 +388,13 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
         t.location_name?.toLowerCase().includes(search.toLowerCase());
       const status = t.planting_status || 'waiting_to_be_assigned';
       const matchStatus = statusFilter === "all" || status === statusFilter;
-      return matchSearch && matchStatus;
+      const contribType = contriData?.contribution_type || "tourist";
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && contribType === "travel_agent") ||
+        (typeFilter === "tourist" && contribType !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     });
-  }, [trees, search, statusFilter, contributions]);
+  }, [trees, search, statusFilter, typeFilter, contributions]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
