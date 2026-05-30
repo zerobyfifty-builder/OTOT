@@ -108,8 +108,8 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
   };
 
   const getInitials = () => {
-    if (!organizationName) return 'IP';
-    return organizationName
+    if (!displayName || displayName === 'Partner') return 'IP';
+    return displayName
       .split(' ')
       .map(word => word.charAt(0))
       .slice(0, 2)
