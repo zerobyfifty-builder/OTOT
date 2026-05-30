@@ -24,9 +24,21 @@ interface TravelAgent {
   email: string;
   username: string | null;
   contact_phone: string | null;
+  mobile_number: string | null;
+  reference_id: string | null;
   is_active: boolean;
   created_at: string;
 }
+
+const EMPTY_FORM = {
+  name: '',
+  business_name: '',
+  email: '',
+  password: '',
+  contact_phone: '',
+  mobile_number: '',
+  reference_id: '',
+};
 
 export default function InstitutionalTravelAgents() {
   const { user } = useAuth();
@@ -35,14 +47,9 @@ export default function InstitutionalTravelAgents() {
   const [editingAgent, setEditingAgent] = useState<TravelAgent | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    business_name: '',
-    email: '',
-    username: '',
-    password: '',
-    contact_phone: '',
-  });
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [initialForm, setInitialForm] = useState(EMPTY_FORM);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userOrgProfile', user?.id],
