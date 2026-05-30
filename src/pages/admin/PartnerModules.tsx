@@ -30,7 +30,23 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
+// Ordered partner modules with stable codes (PM01..PMnn)
+const PARTNER_MODULE_ORDER = [
+  "inst_dashboard",
+  "inst_trips",
+  "inst_tree_orders",
+  "inst_travel_agents",
+  "inst_partners",
+  "inst_disbursements",
+  "inst_reports",
+];
+const PARTNER_MODULE_CODES: Record<string, string> = PARTNER_MODULE_ORDER.reduce(
+  (acc, name, i) => ({ ...acc, [name]: `PM${String(i + 1).padStart(2, "0")}` }),
+  {} as Record<string, string>,
+);
+
 const getModuleDisplayName = (m: any) => MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name;
+const getModuleCode = (m: any) => PARTNER_MODULE_CODES[m.name];
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
@@ -203,7 +219,9 @@ export default function PartnerModules() {
                   const forestModules = visibleModules
                     .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
                     .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
-                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+                  const otherModules = visibleModules
+                    .filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name) && PARTNER_MODULE_ORDER.includes(m.name))
+                    .sort((a: any, b: any) => PARTNER_MODULE_ORDER.indexOf(a.name) - PARTNER_MODULE_ORDER.indexOf(b.name));
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
@@ -212,7 +230,12 @@ export default function PartnerModules() {
                         <TableCell className="sticky left-0 z-10 bg-background border-r">
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
-                              <p className="font-medium">{getModuleDisplayName(m)}</p>
+                              <p className="font-medium">
+                                {getModuleCode(m) && (
+                                  <span className="mr-2 font-mono text-xs text-muted-foreground">{getModuleCode(m)}</span>
+                                )}
+                                {getModuleDisplayName(m)}
+                              </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
                             <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
