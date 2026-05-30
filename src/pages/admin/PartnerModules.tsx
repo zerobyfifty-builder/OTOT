@@ -228,7 +228,12 @@ export default function PartnerModules() {
                         <TableCell className="sticky left-0 z-10 bg-background border-r">
                           <div className={cn("flex items-center gap-2", indent && "pl-8")}>
                             <div>
-                              <p className="font-medium">{getModuleDisplayName(m)}</p>
+                              <p className="font-medium">
+                                {getModuleCode(m) && (
+                                  <span className="mr-2 font-mono text-xs text-muted-foreground">{getModuleCode(m)}</span>
+                                )}
+                                {getModuleDisplayName(m)}
+                              </p>
                               <p className="text-xs text-muted-foreground">{m.category}</p>
                             </div>
                             <Badge variant="outline" className="text-[10px] gap-1 ml-auto">
