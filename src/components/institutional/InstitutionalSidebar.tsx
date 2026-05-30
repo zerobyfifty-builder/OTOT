@@ -56,16 +56,19 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
       if (!user?.id) return null;
       const { data } = await supabase
         .from('users')
-        .select('organization_id, organizations(partner_type_id)')
+        .select('organization_id, organizations(name, partner_type_id)')
         .eq('user_id', user.id)
         .maybeSingle();
       return {
         organizationId: (data as any)?.organization_id || null,
+        organizationName: (data as any)?.organizations?.name || null,
         partnerTypeId: (data as any)?.organizations?.partner_type_id || null,
       };
     },
     enabled: !!user?.id,
   });
+
+  const displayName = organizationName || orgInfo?.organizationName || 'Partner';
 
   // Modules allocated to this partner sub-category by Super Admin
   const { data: assignedModules } = useQuery({
@@ -105,8 +108,8 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
   };
 
   const getInitials = () => {
-    if (!organizationName) return 'IP';
-    return organizationName
+    if (!displayName || displayName === 'Partner') return 'IP';
+    return displayName
       .split(' ')
       .map(word => word.charAt(0))
       .slice(0, 2)
@@ -206,7 +209,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className="text-sm font-medium truncate w-full" style={{ color: '#000000' }}>
-                    {organizationName || 'Partner'}
+                    {displayName}
                   </span>
                   <span className="text-xs truncate w-full" style={{ color: '#4b5563' }}>
                     {user?.email || ''}
@@ -217,7 +220,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium" style={{ color: '#000000' }}>{organizationName || 'Partner'}</p>
+              <p className="text-sm font-medium" style={{ color: '#000000' }}>{displayName}</p>
               <p className="text-xs truncate" style={{ color: '#6b7280' }}>{user?.email || ''}</p>
             </div>
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 text-destructive cursor-pointer">
