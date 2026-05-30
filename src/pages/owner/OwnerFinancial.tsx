@@ -203,6 +203,45 @@ export const OwnerFinancial = () => {
     enabled: !!contributions && contributions.length > 0,
   });
 
+  // Fetch travel agent names for agent-sourced contributions
+  const { data: agentNameMap } = useQuery({
+    queryKey: ["financialAgentNames", contributions],
+    queryFn: async () => {
+      const ticketIds = [...new Set(
+        (contributions || [])
+          .filter(c => c.contribution_type === "travel_agent" && c.source_table === "agent_tickets" && c.source_id)
+          .map(c => c.source_id as string)
+      )];
+      if (ticketIds.length === 0) return {} as Record<string, string>;
+      const { data: tickets } = await supabase
+        .from("agent_tickets")
+        .select("id, agent_id")
+        .in("id", ticketIds);
+      const agentIds = [...new Set((tickets || []).map(t => t.agent_id).filter(Boolean))] as string[];
+      if (agentIds.length === 0) return {} as Record<string, string>;
+      const { data: agents } = await supabase
+        .from("travel_agents")
+        .select("id, name, business_name")
+        .in("id", agentIds);
+      const agentById = (agents || []).reduce((acc, a: any) => {
+        acc[a.id] = a.name || a.business_name || "";
+        return acc;
+      }, {} as Record<string, string>);
+      return (tickets || []).reduce((acc, t: any) => {
+        if (t.agent_id && agentById[t.agent_id]) acc[t.id] = agentById[t.agent_id];
+        return acc;
+      }, {} as Record<string, string>);
+    },
+    enabled: !!contributions && contributions.length > 0,
+  });
+
+  const getContributorName = (c: ContributionRow) => {
+    if (c.contribution_type === "travel_agent" && c.source_id && agentNameMap?.[c.source_id]) {
+      return agentNameMap[c.source_id];
+    }
+    return c.tourist_name || "-";
+  };
+
   // Fetch wallet settings for fee calculations
   const { data: walletSettings } = useQuery({
     queryKey: ["walletSettings"],
