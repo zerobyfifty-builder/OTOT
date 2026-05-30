@@ -30,7 +30,23 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
+// Ordered partner modules with stable codes (PM01..PMnn)
+const PARTNER_MODULE_ORDER = [
+  "inst_dashboard",
+  "inst_trips",
+  "inst_tree_orders",
+  "inst_travel_agents",
+  "inst_partners",
+  "inst_disbursements",
+  "inst_reports",
+];
+const PARTNER_MODULE_CODES: Record<string, string> = PARTNER_MODULE_ORDER.reduce(
+  (acc, name, i) => ({ ...acc, [name]: `PM${String(i + 1).padStart(2, "0")}` }),
+  {} as Record<string, string>,
+);
+
 const getModuleDisplayName = (m: any) => MODULE_DISPLAY_OVERRIDES[m.display_name] || m.display_name;
+const getModuleCode = (m: any) => PARTNER_MODULE_CODES[m.name];
 
 function getDefaultPermissions(accessType: string): string[] {
   if (accessType === "scoped") return ["read", "write", "edit", "delete"];
