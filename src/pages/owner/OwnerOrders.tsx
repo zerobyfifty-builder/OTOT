@@ -261,6 +261,7 @@ export const OwnerOrders = () => {
   const canEngagement = can("tree_orders.action.engagement");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("payment_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -781,7 +782,11 @@ export const OwnerOrders = () => {
         g.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
         tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || g.planting_status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = (g.contribution_type || "").toLowerCase();
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && ct === "travel_agent") ||
+        (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     });
 
     result.sort((a, b) => {
@@ -799,7 +804,7 @@ export const OwnerOrders = () => {
     });
 
     return result;
-  }, [contributionGroups, search, statusFilter, sortField, sortDir]);
+  }, [contributionGroups, search, statusFilter, typeFilter, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -1060,6 +1065,16 @@ export const OwnerOrders = () => {
             className="pl-9"
           />
         </div>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Contri type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filter by status" />
