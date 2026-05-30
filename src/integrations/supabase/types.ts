@@ -3362,6 +3362,7 @@ export type Database = {
           id: string
           is_return: boolean
           num_travelers: number
+          organization_id: string | null
           origin_airport: string
           to_date: string | null
           total_co2: number
@@ -3384,6 +3385,7 @@ export type Database = {
           id?: string
           is_return?: boolean
           num_travelers?: number
+          organization_id?: string | null
           origin_airport: string
           to_date?: string | null
           total_co2?: number
@@ -3406,6 +3408,7 @@ export type Database = {
           id?: string
           is_return?: boolean
           num_travelers?: number
+          organization_id?: string | null
           origin_airport?: string
           to_date?: string | null
           total_co2?: number
