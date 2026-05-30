@@ -450,16 +450,21 @@ export default function InstitutionalTravelAgents() {
                           {agent.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </TableCell>
-                      <TableCell className="space-x-2">
+                      <TableCell>
                         {hasEdit && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
-                              <Ban className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(agent)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmAgent(agent)}>
+                                <Ban className="mr-2 h-4 w-4" /> {agent.is_active ? 'Deactivate' : 'Reactivate'}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </TableCell>
                     </TableRow>
