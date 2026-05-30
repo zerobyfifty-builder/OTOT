@@ -117,6 +117,7 @@ export default function InstitutionalAgentTickets() {
               <TableHead>Staff Name</TableHead>
               <TableHead>Dept</TableHead>
               <TableHead>LPO #</TableHead>
+              <TableHead>Contribution ID</TableHead>
               <TableHead>Route</TableHead>
               <TableHead>Travel Date</TableHead>
               <TableHead>CO₂</TableHead>
