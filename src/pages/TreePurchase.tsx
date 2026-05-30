@@ -291,71 +291,34 @@ export const TreePurchase = () => {
       const totalCost = calculatePrice();
       const paymentReference = `SIMULATED-${Date.now()}`;
 
-      const treeRecords = [];
-      for (let i = 0; i < treeCount; i++) {
-        const uniqueTreeId = `TREE-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        
-        treeRecords.push({
-          user_id: user.id,
-          otot_id: uniqueTreeId,
-          num_trees: 1,
-          purchase_type: selectedOption === "subscription" ? "Subscription" : "One-time",
-          amount_paid: PRICE_PER_TREE,
-          status: "Waiting to be Assigned",
-          lodge_id: null,
-          location_name: locationName,
-          trip_id: tripId || null,
-          payment_method: paymentMethod,
-        });
-      }
-
-      const { data: insertedTrees, error: treeError } = await supabase
-        .from('trees')
-        .insert(treeRecords)
-        .select();
-
-      if (treeError) {
-        console.error('Error saving trees to database:', treeError);
-        throw new Error(`Failed to save tree purchase: ${treeError.message || 'Database error'}`);
-      }
-
-      if (!insertedTrees || insertedTrees.length === 0) {
-        throw new Error('No trees were saved to the database.');
-      }
-
-      console.log(`Successfully saved ${treeCount} tree records to database with payment reference: ${paymentReference}`);
-
-      // Create batch-level contribution tracking entry
-      const { data: contribData, error: contribError } = await supabase
-        .from('contribution_tracking' as any)
+      // Phase 3: write to the tourist_purchases domain table only.
+      // A SECURITY DEFINER trigger mirrors this row into contribution_tracking
+      // (issuing the canonical CTR-NNNNN) and creates the per-tree records in `trees`.
+      const { error: purchaseError } = await supabase
+        .from('tourist_purchases' as any)
         .insert({
-          tree_id: insertedTrees[0].id,
+          user_id: user.id,
           trip_id: tripId || null,
-          tourist_name: userData?.email || 'Unknown',
           num_trees: treeCount,
-          amount_paid: totalCost,
-          currency: 'USD',
-          payment_date: new Date().toISOString(),
+          total_cost_usd: totalCost,
+          price_per_tree_usd: PRICE_PER_TREE,
+          purchase_type: selectedOption === "subscription" ? "Subscription" : "One-time",
           payment_method: paymentMethod,
-          transaction_reference: paymentReference,
-          plantation_partner_id: insertedTrees[0].owner_org_id || null,
-          status: 'contribution_confirmed',
-        } as any)
-        .select('contribution_id')
-        .single();
+          payment_reference: paymentReference,
+          location_name: locationName,
+          is_dedicated: isDedicated,
+          dedication_name: isDedicated ? dedicationName : null,
+          dedication_email: isDedicated ? dedicationEmail : null,
+          dedication_message: isDedicated ? dedicationMessage : null,
+        } as any);
 
-      if (contribError) {
-        console.error('Error creating contribution tracking:', contribError);
+      if (purchaseError) {
+        console.error('Error saving tourist purchase:', purchaseError);
+        throw new Error(`Failed to save tree purchase: ${purchaseError.message || 'Database error'}`);
       }
 
-      // Link trees to the contribution_id for direct lookups
-      if (contribData && (contribData as any).contribution_id) {
-        const treeIds = insertedTrees.map(t => t.id);
-        await supabase
-          .from('trees')
-          .update({ contribution_id: (contribData as any).contribution_id } as any)
-          .in('id', treeIds);
-      }
+      console.log(`Successfully recorded purchase of ${treeCount} tree(s) with payment reference: ${paymentReference}`);
+
 
       // Generate certificate - use dedication name if dedicated
       const certificateRecipient = isDedicated && dedicationName 
