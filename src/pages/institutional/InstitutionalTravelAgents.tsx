@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Pencil, Ban, MoreHorizontal, Check, Eye, FileText, Download } from 'lucide-react';
@@ -50,6 +51,7 @@ export default function InstitutionalTravelAgents() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState(EMPTY_FORM);
+  const [confirmAgent, setConfirmAgent] = useState<TravelAgent | null>(null);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userOrgProfile', user?.id],
@@ -449,16 +451,21 @@ export default function InstitutionalTravelAgents() {
                           {agent.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </TableCell>
-                      <TableCell className="space-x-2">
+                      <TableCell>
                         {hasEdit && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(agent)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleToggleActive(agent)}>
-                              <Ban className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(agent)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setConfirmAgent(agent)}>
+                                <Ban className="mr-2 h-4 w-4" /> {agent.is_active ? 'Deactivate' : 'Reactivate'}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </TableCell>
                     </TableRow>
@@ -607,6 +614,32 @@ export default function InstitutionalTravelAgents() {
           })()}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={!!confirmAgent} onOpenChange={(open) => { if (!open) setConfirmAgent(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAgent?.is_active ? 'Deactivate travel agent?' : 'Reactivate travel agent?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAgent?.is_active
+                ? `This will deactivate ${confirmAgent?.name}. They will lose access until reactivated.`
+                : `This will reactivate ${confirmAgent?.name} and restore their access.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (confirmAgent) {
+                await handleToggleActive(confirmAgent);
+                setConfirmAgent(null);
+              }
+            }}>
+              {confirmAgent?.is_active ? 'Deactivate' : 'Reactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
