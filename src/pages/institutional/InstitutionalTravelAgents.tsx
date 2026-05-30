@@ -141,31 +141,50 @@ export default function InstitutionalTravelAgents() {
   // Agent CRUD handlers
   const handleEdit = (agent: TravelAgent) => {
     setEditingAgent(agent);
-    setFormData({
+    const data = {
       name: agent.name,
       business_name: agent.business_name,
       email: agent.email,
-      username: agent.username || '',
       password: '',
       contact_phone: agent.contact_phone || '',
-    });
+      mobile_number: agent.mobile_number || '',
+      reference_id: agent.reference_id || '',
+    };
+    setFormData(data);
+    setInitialForm(data);
   };
 
   const handleCreate = () => {
     setIsCreating(true);
-    setFormData({ name: '', business_name: '', email: '', username: '', password: '', contact_phone: '' });
+    setFormData(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
   };
+
+  const closeSheet = () => {
+    setEditingAgent(null);
+    setIsCreating(false);
+    setFormData(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
+  };
+
+  const isDirty = useMemo(
+    () => JSON.stringify(formData) !== JSON.stringify(initialForm),
+    [formData, initialForm]
+  );
 
   const handleSave = async () => {
     if (!organizationId) return;
+    setSaving(true);
     try {
       if (editingAgent) {
         const updateData: any = {
           name: formData.name,
           business_name: formData.business_name,
           email: formData.email,
-          username: formData.username || null,
+          username: formData.email,
           contact_phone: formData.contact_phone || null,
+          mobile_number: formData.mobile_number || null,
+          reference_id: formData.reference_id || null,
         };
         if (formData.password) updateData.password_hash = formData.password;
         const { error } = await supabase.from('travel_agents').update(updateData).eq('id', editingAgent.id);
@@ -176,20 +195,24 @@ export default function InstitutionalTravelAgents() {
           name: formData.name,
           business_name: formData.business_name,
           email: formData.email,
-          username: formData.username || null,
+          username: formData.email,
           password_hash: '__supabase_auth__',
           contact_phone: formData.contact_phone || null,
+          mobile_number: formData.mobile_number || null,
+          reference_id: formData.reference_id || null,
           organization_id: organizationId,
-        }]);
+        } as any]);
         if (insertError) throw insertError;
 
-        const { data: fnData, error: fnError } = await supabase.functions.invoke('create-agent-user', {
+        const { error: fnError } = await supabase.functions.invoke('create-agent-user', {
           body: {
             name: formData.name,
             email: formData.email,
             password: formData.password,
             business_name: formData.business_name,
             contact_phone: formData.contact_phone || null,
+            mobile_number: formData.mobile_number || null,
+            reference_id: formData.reference_id || null,
             organization_id: organizationId,
           }
         });
@@ -201,12 +224,13 @@ export default function InstitutionalTravelAgents() {
           toast({ title: 'Success', description: 'Travel agent created successfully.' });
         }
       }
-      setEditingAgent(null);
-      setIsCreating(false);
+      closeSheet();
       refetchAgents();
     } catch (error) {
       console.error('Error saving agent:', error);
       toast({ title: 'Error', description: 'Failed to save travel agent', variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 
