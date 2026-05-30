@@ -800,7 +800,7 @@ export const OwnerFinancial = () => {
                         <TableCell className="font-mono text-xs text-muted-foreground">{c.trip_id && tripsMap ? (tripsMap[c.trip_id] || c.trip_id.slice(0, 8)) : "-"}</TableCell>
                         {(isTechPartner || isKtbUser) && <TableCell><DateTimeCell value={c.payment_date || c.created_at} /></TableCell>}
                         <TableCell>{getContributionTypeBadge(c.contribution_type)}</TableCell>
-                        <TableCell className="font-medium text-sm">{c.tourist_name || "-"}</TableCell>
+                        <TableCell className="font-medium text-sm">{getContributorName(c)}</TableCell>
                         <TableCell>
                           {c.country ? (
                             <Badge className={`text-[10px] px-2 py-0.5 font-medium whitespace-nowrap ${getCountryBadgeColor(c.country)}`}>
