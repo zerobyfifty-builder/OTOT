@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,8 +82,14 @@ export const AgentCalculateOffset = () => {
 
   const ticketForm = useForm<TicketData>({
     resolver: zodResolver(ticketSchema),
-    defaultValues: { department: "KTB" },
+    defaultValues: { department: agent?.business_name || "" },
   });
+
+  useEffect(() => {
+    if (agent?.business_name) {
+      ticketForm.setValue("department", agent.business_name);
+    }
+  }, [agent?.business_name]);
 
   const flightForm = useForm<FlightData>({
     resolver: zodResolver(flightSchema),
@@ -234,7 +240,7 @@ export const AgentCalculateOffset = () => {
                     <FormField control={ticketForm.control} name="department" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Department *</FormLabel>
-                        <FormControl><Input placeholder="e.g. KTB, Ministry of Tourism" {...field} /></FormControl>
+                        <FormControl><Input {...field} readOnly disabled className="bg-muted cursor-not-allowed" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
