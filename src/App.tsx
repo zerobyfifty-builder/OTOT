@@ -82,6 +82,7 @@ import RecentTrees from "@/pages/institutional/RecentTrees";
 import AvailableModules from "@/pages/institutional/AvailableModules";
 import InstitutionalReports from "@/pages/institutional/Reports";
 import InstitutionalTravelAgents from "@/pages/institutional/InstitutionalTravelAgents";
+import InstitutionalOverview from "@/pages/institutional/InstitutionalOverview";
 
 import { InstitutionalSidebar } from "@/components/institutional/InstitutionalSidebar";
 import { OwnerSidebar } from "@/components/owner/OwnerSidebar";
@@ -315,6 +316,13 @@ const App = () => (
               <InstitutionalRoute>
                 <InstitutionalLayout>
                   <InstitutionalDashboard />
+                </InstitutionalLayout>
+              </InstitutionalRoute>
+            } />
+            <Route path="/institutional/overview" element={
+              <InstitutionalRoute>
+                <InstitutionalLayout>
+                  <InstitutionalOverview />
                 </InstitutionalLayout>
               </InstitutionalRoute>
             } />

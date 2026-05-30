@@ -33,6 +33,7 @@ const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_
 // Ordered partner modules with stable codes (PM01..PMnn)
 const PARTNER_MODULE_ORDER = [
   "inst_dashboard",
+  "inst_overview",
   "inst_trips",
   "inst_tree_orders",
   "inst_travel_agents",
