@@ -441,12 +441,13 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
                   <TableRow className="bg-muted/50 hover:bg-muted/50 border-b">
                     <TableHead className="w-10" />
                     <SortableHead field="friendly_trip_id" label="Trip ID" />
+                    <StaticHead label="Source" />
                     <SortableHead field="created_at" label="Date" />
                     <StaticHead label="Route" />
                     <StaticHead label="Class" />
                     <StaticHead label="Return" />
                     <StaticHead label="Travelers" />
-                    <StaticHead label="Country" />
+                    <StaticHead label="Country / Traveler" />
                     <StaticHead label="Flight CO₂" />
                     <StaticHead label="Hotel CO₂" />
                     <SortableHead field="total_co2" label="Total CO₂" />
