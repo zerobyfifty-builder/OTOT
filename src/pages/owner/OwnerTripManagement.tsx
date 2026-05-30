@@ -391,12 +391,24 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by trip ID, airport..."
+            placeholder="Search by trip ID, airport, ticket, PNR, staff..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             className="pl-9"
           />
         </div>
+        <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Sources" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="travel_agent">Travel Agent</SelectItem>
+            <SelectItem value="b2b">B2B</SelectItem>
+            <SelectItem value="airline">Airline</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Statuses" />
