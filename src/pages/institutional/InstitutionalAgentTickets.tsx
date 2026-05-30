@@ -130,7 +130,7 @@ export default function InstitutionalAgentTickets() {
           </TableHeader>
           <TableBody>
             {(!tickets || tickets.length === 0) ? (
-              <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">No tickets yet.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={13} className="text-center py-8 text-muted-foreground">No tickets yet.</TableCell></TableRow>
             ) : (
               tickets.map((ticket) => {
                 const agentInfo = Array.isArray(ticket.travel_agents) ? ticket.travel_agents[0] : ticket.travel_agents;
@@ -140,6 +140,7 @@ export default function InstitutionalAgentTickets() {
                     <TableCell>{ticket.staff_name}</TableCell>
                     <TableCell>{ticket.department}</TableCell>
                     <TableCell>{ticket.lpo_number}</TableCell>
+                    <TableCell className="font-mono text-xs">{(ticket as any).contribution_id ?? '—'}</TableCell>
                     <TableCell>{ticket.origin_airport} → {ticket.destination_airport}</TableCell>
                     <TableCell>{format(new Date(ticket.from_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{Math.round(Number(ticket.total_co2)).toLocaleString()} kg</TableCell>
