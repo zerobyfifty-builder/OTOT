@@ -52,27 +52,47 @@ const STATUS_COLORS: Record<TreeStatus, string> = {
   "Planted": "bg-accent/10 text-accent border-accent/20",
 };
 
-const PLANTING_STATUS_LABELS: Record<string, string> = {
-  waiting_to_be_assigned: "Waiting to be Assigned",
+// Tourist portal only surfaces four high-level planting stages.
+// The full 10-status workflow from the plantation portal is collapsed into these buckets.
+const TOURIST_STAGE_LABELS = {
+  waiting: "Waiting to be Assigned",
   assigned: "Assigned",
-  site_prepared: "Site Prepared",
-  saplings_ready: "Saplings Ready",
-  planting_scheduled: "Planting Scheduled",
-  sapling_planted: "Sapling Planted",
-  being_mapped: "Being Mapped",
-  verified: "Verified",
+  scheduled: "Planting Scheduled",
   planted: "Planted",
+} as const;
+
+type TouristStage = keyof typeof TOURIST_STAGE_LABELS;
+
+const toTouristStage = (status: string | null | undefined): TouristStage => {
+  switch (status) {
+    case "planted":
+    case "verified":
+    case "being_mapped":
+    case "sapling_planted":
+      return "planted";
+    case "planting_scheduled":
+      return "scheduled";
+    case "assigned":
+    case "site_prepared":
+    case "saplings_ready":
+      return "assigned";
+    case "waiting_to_be_assigned":
+    default:
+      return "waiting";
+  }
 };
 
-const PLANTING_STATUS_COLORS: Record<string, string> = {
-  waiting_to_be_assigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+const PLANTING_STATUS_LABELS: Record<TouristStage, string> = {
+  waiting: TOURIST_STAGE_LABELS.waiting,
+  assigned: TOURIST_STAGE_LABELS.assigned,
+  scheduled: TOURIST_STAGE_LABELS.scheduled,
+  planted: TOURIST_STAGE_LABELS.planted,
+};
+
+const PLANTING_STATUS_COLORS: Record<TouristStage, string> = {
+  waiting: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
   assigned: "bg-orange-500/10 text-orange-700 border-orange-500/20",
-  site_prepared: "bg-amber-500/10 text-amber-700 border-amber-500/20",
-  saplings_ready: "bg-lime-500/10 text-lime-700 border-lime-500/20",
-  planting_scheduled: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
-  sapling_planted: "bg-green-500/10 text-green-700 border-green-500/20",
-  being_mapped: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-  verified: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20",
+  scheduled: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
   planted: "bg-accent/10 text-accent border-accent/20",
 };
 
@@ -81,20 +101,26 @@ const SOURCE_COLORS: Record<PurchaseType, string> = {
   "Subscription": "bg-green-500/10 text-green-700 border-green-500/20",
 };
 
+const STAGE_ORDER: TouristStage[] = ["waiting", "assigned", "scheduled", "planted"];
+
 const getGroupStatus = (trees: Tree[]): string => {
-  const statuses = trees.map(t => t.planting_status || 'waiting_to_be_assigned');
-  if (statuses.every(s => s === "planted")) return "Planted";
-  if (statuses.some(s => s === "planted")) return "Partially Planted";
-  if (statuses.every(s => s === "waiting_to_be_assigned")) return "Waiting to be Assigned";
-  // Show the most advanced status
-  const label = PLANTING_STATUS_LABELS[statuses[0]] || statuses[0];
-  return label;
+  const stages = trees.map(t => toTouristStage(t.planting_status));
+  if (stages.every(s => s === "planted")) return "Planted";
+  if (stages.some(s => s === "planted")) return "Partially Planted";
+  // Show the least-advanced stage so the user sees what's still pending
+  const min = stages.reduce<TouristStage>(
+    (acc, s) => (STAGE_ORDER.indexOf(s) < STAGE_ORDER.indexOf(acc) ? s : acc),
+    "planted"
+  );
+  return TOURIST_STAGE_LABELS[min];
 };
 
 const getGroupStatusColor = (status: string): string => {
   if (status === "Planted") return "bg-accent/10 text-accent border-accent/20";
   if (status === "Partially Planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
-  if (status === "Waiting to be Assigned") return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+  if (status === TOURIST_STAGE_LABELS.waiting) return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+  if (status === TOURIST_STAGE_LABELS.assigned) return "bg-orange-500/10 text-orange-700 border-orange-500/20";
+  if (status === TOURIST_STAGE_LABELS.scheduled) return "bg-cyan-500/10 text-cyan-700 border-cyan-500/20";
   return "bg-muted text-muted-foreground";
 };
 
@@ -636,9 +662,14 @@ export const MyTrees = () => {
                                           <TableCell className="text-left text-xs">Nakuru</TableCell>
                                           <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
                                           <TableCell>
-                                            <Badge className={PLANTING_STATUS_COLORS[tree.planting_status || 'waiting_to_be_assigned'] || "bg-muted text-muted-foreground"}>
-                                              {PLANTING_STATUS_LABELS[tree.planting_status || 'waiting_to_be_assigned'] || tree.planting_status || 'Unknown'}
-                                            </Badge>
+                                            {(() => {
+                                              const stage = toTouristStage(tree.planting_status);
+                                              return (
+                                                <Badge className={PLANTING_STATUS_COLORS[stage]}>
+                                                  {PLANTING_STATUS_LABELS[stage]}
+                                                </Badge>
+                                              );
+                                            })()}
                                           </TableCell>
                                           <TableCell className="text-xs">
                                             {transitionDates[tree.id]
