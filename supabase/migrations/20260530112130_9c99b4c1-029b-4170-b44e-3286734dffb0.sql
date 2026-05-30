@@ -1,0 +1,1 @@
+CREATE POLICY "Admins can view all trips" ON public.trips FOR SELECT USING (public.is_super_admin(auth.uid()) OR public.has_role(auth.uid(), 'admin'::app_role));
