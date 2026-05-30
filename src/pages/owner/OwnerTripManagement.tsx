@@ -249,9 +249,17 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const matchSearch = !search ||
         t.friendly_trip_id?.toLowerCase().includes(s) ||
         t.origin_airport.toLowerCase().includes(s) ||
-        t.destination_airport.toLowerCase().includes(s);
+        t.destination_airport.toLowerCase().includes(s) ||
+        t.ticket_number?.toLowerCase().includes(s) ||
+        t.pnr_number?.toLowerCase().includes(s) ||
+        t.lpo_number?.toLowerCase().includes(s) ||
+        t.staff_name?.toLowerCase().includes(s) ||
+        t.department?.toLowerCase().includes(s) ||
+        (t.agent_id && agentNames[t.agent_id]?.toLowerCase().includes(s));
       const matchStatus = statusFilter === "all" || getOffsetStatus(t) === statusFilter;
-      return matchSearch && matchStatus;
+      const src = t.source_type || "tourist";
+      const matchSource = sourceFilter === "all" || src === sourceFilter;
+      return matchSearch && matchStatus && matchSource;
     });
 
     result.sort((a, b) => {
@@ -278,7 +286,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
     });
 
     return result;
-  }, [trips, search, statusFilter, sortField, sortDir, treesCommittedByTrip]);
+  }, [trips, search, statusFilter, sourceFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
