@@ -150,6 +150,8 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
   const [search, setSearch] = useState("");
   const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [agentNames, setAgentNames] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,10 +164,11 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
 
   const fetchData = async () => {
     setLoading(true);
-    const [tripsRes, contribRes, usersRes] = await Promise.all([
+    const [tripsRes, contribRes, usersRes, agentsRes] = await Promise.all([
       supabase.from("trips").select("*").order("created_at", { ascending: false }).limit(500),
       supabase.from("contribution_tracking" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("users").select("user_id, country"),
+      supabase.from("travel_agents" as any).select("id, name, business_name"),
     ]);
     if (tripsRes.data) setTrips(tripsRes.data as any);
     if (contribRes.data) setContributions(contribRes.data as unknown as ContributionRow[]);
@@ -173,6 +176,11 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const map: UserCountryMap = {};
       for (const u of usersRes.data) map[u.user_id] = u.country;
       setUserCountries(map);
+    }
+    if (agentsRes.data) {
+      const map: Record<string, string> = {};
+      for (const a of agentsRes.data as any[]) map[a.id] = a.name || a.business_name || "";
+      setAgentNames(map);
     }
     setLoading(false);
   };
