@@ -134,20 +134,20 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contribution_tracking" as any)
-        .select("tree_id, contribution_id, trip_id, status, created_at")
+        .select("tree_id, contribution_id, trip_id, status, contribution_type, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
       // Build direct tree_id -> contribution map
-      const directMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; created_at: string }>();
+      const directMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; contribution_type: string | null; created_at: string }>();
       // Build trip_id -> contribution map for fallback
-      const tripMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; created_at: string }>();
+      const tripMap = new Map<string, { contribution_id: string; trip_id: string | null; status: string; contribution_type: string | null; created_at: string }>();
       (data || []).forEach((c: any) => {
         if (c.tree_id && !directMap.has(c.tree_id)) {
-          directMap.set(c.tree_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, created_at: c.created_at });
+          directMap.set(c.tree_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, contribution_type: c.contribution_type, created_at: c.created_at });
         }
         if (c.trip_id && !tripMap.has(c.trip_id)) {
-          tripMap.set(c.trip_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, created_at: c.created_at });
+          tripMap.set(c.trip_id, { contribution_id: c.contribution_id, trip_id: c.trip_id, status: c.status, contribution_type: c.contribution_type, created_at: c.created_at });
         }
       });
 
