@@ -1053,7 +1053,7 @@ export const OwnerFinancial = () => {
                </SheetHeader>
                <div className="mt-6 space-y-4">
                  <div className="p-3 rounded-lg bg-muted/40 text-sm space-y-2">
-                   <div className="flex justify-between"><span className="text-muted-foreground">Contributor:</span> <span className="font-medium">{selectedRow.tourist_name || "-"}</span></div>
+                   <div className="flex justify-between"><span className="text-muted-foreground">Contributor:</span> <span className="font-medium">{getContributorName(selectedRow)}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Trees:</span> <span className="font-medium">{selectedRow.num_trees}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span> <span className="font-medium">${formatNumber(selectedRow.amount_paid)}</span></div>
                    <div className="flex justify-between"><span className="text-muted-foreground">Date:</span> <span className="font-medium">{formatDate(selectedRow.payment_date)}</span></div>
