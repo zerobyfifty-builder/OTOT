@@ -1,58 +1,105 @@
-## Goal
+## North-star architecture: two-layer contribution model
 
-Make the partner (Institutional / Lodge) and Owner portals render only the modules that Super Admin has allocated to that organization — same RBAC pattern Owner already uses.
+```
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 1 — Source-of-truth per channel (domain tables)      │
+│  agent_tickets   tourist_purchases*  lodge_plantings*  …    │
+│  Rich, channel-specific fields: PNR/LPO, trip, lodge, etc.  │
+│  Owns: validation, RLS for that channel, operational data   │
+└──────────────┬──────────────────────────────────────────────┘
+               │  ONE-WAY sync via SECURITY DEFINER triggers
+               ▼
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 2 — Unified ledger (single source of truth)          │
+│  contribution_tracking  ──<  trees                          │
+│  CTR-NNNNN  +  contribution_type ∈ {tourist, travel_agent,  │
+│                                     lodge, corporate, …}    │
+│  All Owner modules read ONLY from here                      │
+└─────────────────────────────────────────────────────────────┘
+(* = future domain tables; tourist purchases currently write the ledger directly)
+```
 
-## Current state
+### Invariants (apply to every channel, present and future)
 
-- **Already exists**: Super Admin pages `/admin/partners/modules` (`PartnerModules.tsx`) and `/admin/owners/modules` (`OwnerModules.tsx`) let admins toggle modules + permissions per organization in `organization_modules`.
-- **Already dynamic**: `OwnerSidebar` reads `organization_modules` and builds its menu from `assignedModules`. Hook `useModulePermissions` returns per-module access.
-- **Static today**: `InstitutionalSidebar` and `LodgeSidebar` use hardcoded menu arrays — they ignore `organization_modules`.
-- **Catalog gap**: `modules` table only has 2 partner-audience rows (`partner_management`, `travel_agents`). The actual partner pages (Trips, Tree Orders, Disbursements, Reports, etc.) have no module entries, so PartnerModules' table currently can't toggle them.
+1. Domain tables write to the ledger via trigger/edge function — **never** the other way around.
+2. The ledger issues the canonical `CTR-NNNNN` (existing `generate_contribution_id` trigger). Domain row stores it back as `contribution_id` for two-way lookup.
+3. Trees always belong to the ledger row (`trees.contribution_id`), never to the domain row.
+4. Owner / Admin modules render `contribution_type` as a badge and never branch on source.
+5. Sync functions are idempotent: skip if the domain row already has a `contribution_id`.
 
-## Plan
+## Incremental rollout
 
-### 1. Expand `modules` catalog (migration)
+### Phase 1 (NOW) — Travel-agent channel projects into the ledger
 
-Insert partner-audience module rows that mirror real Institutional + Lodge menu items:
+Unblocks the immediate need: travel-agent orders appearing in Owner Tree Orders, Climate Funding, Tree Operations, Impact.
 
-Institutional (`audience='partner'`, category='institutional'):
-- `inst_dashboard` — Dashboard — /institutional/dashboard
-- `inst_trips` — Recent Trips — /institutional/trips
-- `inst_tree_orders` — Tree Orders — /institutional/trees
-- `inst_travel_agents` — Travel Agents — /institutional/travel-agents
-- `inst_partners` — Plantation Partners — /institutional/partners
-- `inst_disbursements` — Disbursements — /institutional/disbursements
-- `inst_reports` — Reports — /institutional/reports
+**DB migration**
+- Add `agent_tickets.contribution_id text` (nullable, indexed).
+- Create `public.sync_agent_ticket_to_contribution()` (SECURITY DEFINER, search_path=public):
+  - Skip if `NEW.contribution_id IS NOT NULL`.
+  - Insert one row into `contribution_tracking`:
+    - `contribution_type = 'travel_agent'`
+    - `num_trees = trees_needed`
+    - `amount_paid = offset_amount_paid`, `currency = 'KES'`
+    - `tourist_name = staff_name`
+    - `country` from joined travel_agent / org
+    - `payment_date`, `payment_method = 'Agent Offset'`, `transaction_reference = ticket_number`
+    - `plantation_partner_id` = first active `organizations.category='owner'` (matches `auto_allocate_tree`)
+    - `status = 'contribution_confirmed'` (or `_received` when paid)
+  - Capture the new `contribution_id`.
+  - Insert `trees_needed` rows into `trees` with that `contribution_id`, `owner_org_id = plantation_partner_id`, status `Planted` if ticket paid else `Waiting to be Assigned`.
+  - `UPDATE agent_tickets SET contribution_id = ... WHERE id = NEW.id`.
+- Triggers:
+  - `trg_agent_ticket_to_contribution_ins` AFTER INSERT.
+  - `trg_agent_ticket_to_contribution_upd` AFTER UPDATE OF `tree_status`, `offset_amount_paid`, `trees_planted` (only when the row crosses into a paid/planted state).
+- Backfill: one-shot block at the end of the migration loops existing `agent_tickets` where `offset_amount_paid > 0 OR tree_status = 'Planted'` and have no `contribution_id`.
 
-Lodge (`audience='partner'`, category='lodge'):
-- `lodge_dashboard`, `lodge_tourists`, `lodge_trees`, `lodge_reimbursements`, `lodge_performance`, `lodge_notifications`
+**Frontend (light)**
+- `AgentCalculateOffset.tsx` — no logic change. Optionally re-read `contribution_id` from `agent_tickets` after insert and show it in the success toast.
+- `AgentTickets`, `InstitutionalAgentTickets` — add a read-only "Contribution ID" column linking to `CTR-XXXXX`.
+- Owner / Admin tables (`OwnerOrders`, `OwnerFinancial`, `AdminContributionTracking`, `TreesAll`) already group by `contribution_id` and render the `travel_agent` badge — verify KES currency formatting (integers with commas, no `$`) on rows where `currency = 'KES'`.
 
-Backfill: auto-grant ALL new modules to every existing partner org so behavior doesn't regress.
+**Acceptance**
+- A new paid agent ticket appears in Owner Tree Orders and Climate Funding within one request, with a fresh `CTR-NNNNN`, correct tree count, and KES amount.
+- Fee allocation (`calculate_wallet_allocation`, `auto_populate_receipt_fields`) runs automatically on the new ledger row.
+- Existing UI for tourist purchases is unchanged.
 
-### 2. Make `InstitutionalSidebar` dynamic
+### Phase 2 (NEXT) — Backfill + reconciliation guardrails
 
-Mirror OwnerSidebar pattern:
-- Resolve `organization_id` from logged-in user.
-- Query `organization_modules` joined to `modules` where `is_active=true`.
-- Build menu from a `name → {title, url, icon}` map filtered by allocated module names, sorted by `sort_order`.
-- Always keep "Available Modules" item visible (meta page).
+- Add `contribution_tracking.source_table text` and `source_id uuid` (nullable for historical rows). New sync functions populate both.
+- Reconciliation view `v_contribution_source_drift` flags ledger rows whose key projected fields (num_trees, amount_paid) diverge from the domain row.
+- Nightly (or on-demand) job logs drift to `mdm_audit_log`.
 
-### 3. Make `LodgeSidebar` dynamic
+### Phase 3 (LATER, optional refactor) — Tourists become a real domain table
 
-Lodge auth is session-token based (`LodgeAuthContext`, not Supabase auth). The lodge id maps to `organizations.id` (business category). Reuse the same approach: query `organization_modules` by `lodge.id`, filter the hardcoded menu by allocated module names.
+Today `TreePurchase.tsx` writes `contribution_tracking` directly. To bring tourists under the same invariant:
 
-### 4. Wire institutional dashboard sections (light touch)
+- Create `public.tourist_purchases` (id, user_id, trip_id, num_trees, total_cost_usd, payment_method, payment_reference, dedication_name, contribution_id back-ref, timestamps). RLS: tourist can insert/read own rows; admin/owner read all.
+- Create `public.sync_tourist_purchase_to_contribution()` mirroring the agent sync.
+- Refactor `TreePurchase.tsx` to insert into `tourist_purchases` only; remove the direct `contribution_tracking` and per-tree inserts.
+- One-shot backfill: synthesize `tourist_purchases` rows from existing ledger rows where `contribution_type IN (NULL, 'tourist')`, linking by `contribution_id`.
 
-`/institutional/dashboard` itself stays — but the sidebar links it shows control what's reachable. No route gating change in this pass (routes remain mounted; sidebar visibility is the RBAC surface, matching Owner behavior today).
+Defer until Phase 1 + 2 are stable. The ledger already contains the data, so this is purely a hygiene refactor.
 
-## Technical notes
+### Phase 4 (AS NEEDED) — New channels
 
-- No edits to existing PartnerModules / OwnerModules / OwnerSidebar.
-- Module rows use the existing schema (`name`, `display_name`, `route`, `audience`, `category`, `sort_order`, `is_active`, `access_type='shared'`).
-- Backfill uses `INSERT ... ON CONFLICT DO NOTHING` against `(organization_id, module_id)`.
-- Icon mapping lives in the sidebar component (lucide-react); fall back to `Home` when unknown.
+For each new source (lodge plantings, corporate sponsors, partner API, mobile app):
 
-## Out of scope
+1. Create a domain table with channel-specific columns + `contribution_id` back-ref.
+2. Create `sync_<channel>_to_contribution()` following the same recipe.
+3. Add new value to `contribution_type` taxonomy.
+4. **Zero changes** in Owner / Admin / Climate Funding UIs.
 
-- Building a brand new "partner home" page distinct from /institutional/dashboard or /lodge/dashboard.
-- Changing per-user (org_user_permissions) overrides for partner sidebars — first pass uses org-level allocation only.
+## Technical details
+
+- Sync functions all SECURITY DEFINER, `SET search_path = public`. They bypass INSERT RLS so domain RLS (open insert for agents, authenticated for tourists) is unchanged.
+- `contribution_tracking.currency` already exists; populate `'KES'` for agent flows, `'USD'` for tourist flows. UI formatters (per memory: KES integer/commas, USD two decimals/`$`) branch on `currency`.
+- `auto_populate_receipt_fields` and `calculate_wallet_allocation` triggers continue to fire on the ledger — no change.
+- New back-ref columns are nullable + indexed. No constraint that would block legacy rows.
+- No edits to `src/integrations/supabase/types.ts` (regenerated post-migration).
+
+## Out of scope (call-outs)
+
+- Refunds / cancellations of agent tickets — separate workstream (would need a `voided_at` projection on the ledger).
+- Per-channel fee % overrides — current global `wallet_settings` apply uniformly; revisit when channel-specific economics emerge.
+- Splitting one agent ticket across multiple plantation partners.
