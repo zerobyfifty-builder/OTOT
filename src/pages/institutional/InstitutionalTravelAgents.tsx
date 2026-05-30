@@ -499,7 +499,7 @@ export default function InstitutionalTravelAgents() {
             </div>
             <div>
               <Label>Reference ID</Label>
-              <Input value={formData.reference_id} onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })} placeholder="Internal reference / staff ID" />
+              <Input value={formData.reference_id} onChange={(e) => setFormData({ ...formData, reference_id: e.target.value })} placeholder="agent/procurement ID" />
             </div>
             <div>
               <Label>Contact Phone</Label>
