@@ -50,9 +50,6 @@ export const OrganizationSettings: React.FC = () => {
           <TabsTrigger value="general" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <User className="h-4 w-4" /> General
           </TabsTrigger>
-          <TabsTrigger value="organization" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
-            <Building2 className="h-4 w-4" /> Organization
-          </TabsTrigger>
           {isOrgAdmin && (
             <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
               <Users className="h-4 w-4" /> Users
