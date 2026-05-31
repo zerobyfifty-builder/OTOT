@@ -407,7 +407,8 @@ export function OwnerMdmPlanters() {
             <TableHeader>
               <TableRow>
                 <TableHead>Full Name</TableHead>
-                <TableHead>ID Number</TableHead>
+                <TableHead>ID #</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>County</TableHead>
@@ -418,15 +419,23 @@ export function OwnerMdmPlanters() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No planters found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No planters found</TableCell></TableRow>
               ) : filtered.map((item: any) => {
                 const beatCount = (item.assigned_beats || []).length;
+                const roles: string[] = Array.isArray(item.roles) && item.roles.length ? item.roles : ['Planter'];
                 return (
                   <TableRow key={item.id} className={item.status !== 'active' ? 'opacity-50' : ''}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-muted-foreground">{item.id_number || '—'}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {roles.map(r => (
+                          <Badge key={r} variant="secondary" className="text-xs">{r}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{item.planter_type || '—'}</Badge>
                     </TableCell>
