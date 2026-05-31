@@ -147,11 +147,24 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
     }
   }, [assignedPlanterData, request]);
 
+  // Resolve current user's organization to scope planters dropdown
+  const { user } = useAuth();
+  const { data: currentOrgId } = useQuery({
+    queryKey: ["transitionCurrentOrgId", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("users").select("organization_id").eq("user_id", user!.id).maybeSingle();
+      return data?.organization_id as string | null;
+    },
+    enabled: !!user?.id,
+  });
+
   // Queries for reference data
   const { data: planters } = useQuery({
-    queryKey: ["transitionPlanters"],
+    queryKey: ["transitionPlanters", currentOrgId],
     queryFn: async () => {
-      const { data } = await supabase.from("tree_carers").select("id, name, planter_type").eq("status", "Active").order("name");
+      let q = supabase.from("tree_carers").select("id, name, planter_type, roles").eq("status", "Active");
+      if (currentOrgId) q = q.eq("associated_partner_id", currentOrgId);
+      const { data } = await q.order("name");
       return data || [];
     },
     enabled: open && !!request && ["assigned", "planting_scheduled", "sapling_planted", "verified"].includes(request.toStatus),
