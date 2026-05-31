@@ -1844,6 +1844,34 @@ export const OwnerOrders = () => {
             .insert(records);
           if (insertError) throw insertError;
 
+          // 2b. Back-sync: if planter at sapling_planted differs from assigned, rewrite assigned transition
+          if (req.toStatus === "sapling_planted" && transitionData.planted_by) {
+            const newPlanterId = transitionData.planted_by;
+            const newPlanterName = transitionData.planter_name || null;
+            for (const treeId of req.treeIds) {
+              const { data: assignedRows } = await supabase
+                .from("tree_status_transitions" as any)
+                .select("id, transition_data")
+                .eq("tree_id", treeId)
+                .eq("to_status", "assigned")
+                .order("created_at", { ascending: false })
+                .limit(1);
+              const row: any = assignedRows && assignedRows[0];
+              if (row && row.transition_data?.assigned_to && row.transition_data.assigned_to !== newPlanterId) {
+                const updated = {
+                  ...row.transition_data,
+                  assigned_to: newPlanterId,
+                  assigned_to_name: newPlanterName || row.transition_data.assigned_to_name,
+                  planter_name: newPlanterName || row.transition_data.planter_name,
+                };
+                await supabase
+                  .from("tree_status_transitions" as any)
+                  .update({ transition_data: updated })
+                  .eq("id", row.id);
+              }
+            }
+          }
+
           // 3. Refresh data
           queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
           setBulkSelections({});
@@ -1910,7 +1938,7 @@ export const OwnerOrders = () => {
             } : null;
 
             const friendlyLabels: Record<string, string> = {
-              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planting Team Lead', assigned_date: 'Assigned Date',
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
               soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
               sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source', sapling_age: 'Sapling Age',
@@ -2025,7 +2053,9 @@ export const OwnerOrders = () => {
                                     {entries.length > 0 && (
                                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                         {entries.map(([key, value]) => {
-                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                          let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                          if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
+                                          if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
                                           const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
                                           return (
                                             <React.Fragment key={key}>
@@ -2818,7 +2848,7 @@ export const OwnerOrders = () => {
             const allLifecycleStatuses = PLANTING_STATUSES;
 
             const friendlyLabels: Record<string, string> = {
-              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planting Team Lead', assigned_date: 'Assigned Date',
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
               soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
               sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source', sapling_age: 'Sapling Age',
@@ -2930,7 +2960,9 @@ export const OwnerOrders = () => {
                                     {entries.length > 0 && (
                                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                         {entries.map(([key, value]) => {
-                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                          let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                          if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
+                                          if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
                                           return (
                                             <React.Fragment key={key}>
                                               <span className="text-muted-foreground whitespace-nowrap">{label}:</span>
