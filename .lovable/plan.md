@@ -1,41 +1,64 @@
 ## Goal
 
-Remove the Planting Costs tab from owner settings (both Plantation partner and KTB views) and let the Super Admin create new planting cost submissions directly from the existing Planting Costs Configuration page. The rest of the approval/configure/publish flow stays as-is.
+Add a **Roles** tab next to the Users tab in Organization Settings (all three owner portals: institutional, plantation, tech) that lets the org admin create, edit, deactivate, and delete custom Job Roles for their organization. The role dropdown in the Add User / Edit User sheets is then populated from these custom roles instead of the hard-coded enum list.
 
-## Changes
+## Database changes (one migration)
 
-### 1. Owner Settings — remove Planting Costs tab
-File: `src/pages/owner/OwnerSettings.tsx`
-- Remove the `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` wrapper and drop the `planting-costs` tab entirely. Render the account content directly.
-- Remove imports of `PlantingCostsTab`, `PlantingCostsKTBTab`, and the `Tabs` components.
-- Drop the `ownerType` detection logic that was only used to switch between the two planting-costs variants.
-- Leave the existing tab files (`PlantingCostsTab.tsx`, `PlantingCostsKTBTab.tsx`) in place but unused — they're not referenced elsewhere and can be cleaned up later.
+Create `public.org_custom_roles`:
 
-### 2. Super Admin — add "New Planting Costs" entry point
-File: `src/pages/admin/PlantingCostsConfig.tsx`
-- Add an "Add new planting costs" button in the page header (right side, next to the title).
-- Clicking it opens a new `AddPlantingCostsSheet` component (slider sheet on the right).
+| column          | type                  | notes                                       |
+| --------------- | --------------------- | ------------------------------------------- |
+| id              | uuid PK               |                                             |
+| organization_id | uuid (FK orgs)        | required                                    |
+| name            | text                  | role label, unique per org                  |
+| color           | text                  | preset key: slate, rose, pink, emerald, teal, sky, indigo, violet, amber, orange |
+| description     | text                  | optional                                    |
+| is_active       | boolean default true  |                                             |
+| is_system       | boolean default false | true for the seeded "Admin" row, non-deletable |
+| mapped_job_role | org_job_role default 'user' | hidden — keeps existing admin gating (`is_org_admin`) working; the seeded Admin row maps to `org_admin`, all custom roles map to `user` |
+| created_at / updated_at | timestamptz   |                                             |
 
-### 3. New component: `AddPlantingCostsSheet`
-New file: `src/components/admin/AddPlantingCostsSheet.tsx`
-- Replicates the cost-input slider sheet from `PlantingCostsTab` (the 7 `COST_FIELDS` inputs, KES → USD helper, total, Submit button).
-- On submit, inserts a row into `planting_cost_submissions`:
-  - `submitted_by`: current super admin user id
-  - `owner_org`: `'KTB Admin'` (single value used for all admin-created submissions; this keeps history filtering simple in the review panel)
-  - `status`: `'pending_review'` (the admin can immediately select it in the left review panel and run through the existing approve/configure/publish steps)
-  - cost fields + `total_cost_kes`
-- After insert, invalidate `['all-planting-submissions']` so the review panel shows the new entry, close the sheet, and toast success.
-- No notification rows are created (no plantation/KTB partner is involved anymore).
+- GRANT to authenticated + service_role; enable RLS.
+- Policies: org members can read their org's roles; only org admins (or super_admin) can insert/update/delete; system rows cannot be deleted (enforced via trigger).
+- Seed: for every existing organization, create one `is_system = true` row named "Admin" with color `violet` and `mapped_job_role = 'org_admin'`. New orgs get the same seed via a trigger on `organizations` insert.
+- Add nullable column `org_users.custom_role_id uuid` referencing `org_custom_roles(id)`. Existing `job_role` enum column stays for backward compatibility (admin gating, RLS).
 
-### 4. Review panel — auto-select new submission (small polish)
-File: `src/components/admin/PlantingCostsReviewPanel.tsx`
-- After a new submission is created, the admin should still click it manually; no changes required unless we want to auto-select. Skip for now to keep scope tight.
+## UI changes
 
-## Out of scope
-- No database schema changes — existing `planting_cost_submissions` / `planting_cost_configs` tables are reused.
-- No removal of the `PlantingCostsTab`/`PlantingCostsKTBTab` files (kept dormant in case rollback is needed).
-- No change to the approval, species selection, fee finalization, or publish flow on the admin side.
+### 1. New `RolesTab` component (`src/components/owner/settings/RolesTab.tsx`)
 
-## Technical notes
-- The existing review-panel query filters by status across all `owner_org` values, so admin-created rows will appear naturally.
-- Using a fixed `owner_org = 'KTB Admin'` avoids null-handling and keeps the history list label meaningful in the review panel.
+Matches the attached design:
+
+- Header: "Roles" title + "Define custom roles for users in <Org Name>" subtitle + **Create Role** button (top right).
+- Table columns: Role (colored pill), Description, Active (toggle switch), Created (DD/MM/YYYY), Actions (3-dot menu → Edit / Delete).
+- Tab label badge shows live role count (mirrors the "3" badge on the Users tab).
+- Toggle on a system row is disabled; Delete is hidden for system rows.
+
+### 2. New `RoleFormSheet` component
+
+Right-side slider sheet (`Sheet`) used for both Create and Edit:
+
+- Title: "Create Role" / "Edit Role" with top-right X close (per dialog-closing standard).
+- Fields: Role Name (required), Color (10 swatches selectable grid: slate, rose, pink, emerald, teal, sky, indigo, violet, amber, orange), Description (textarea, optional).
+- Footer: Cancel / Create or Save.
+
+### 3. Wire Roles tab into `OrganizationSettings.tsx`
+
+Insert a `TabsTrigger` + `TabsContent` for `roles` immediately after `users`. Gated by `isOrgAdmin` (same as Users/Logs).
+
+### 4. Update Invite / Edit User dropdowns
+
+- `useOrgOwnerType.ts` keeps the legacy presets but is no longer used by the Invite/Edit dialogs.
+- `InviteUserDialog.tsx` and `EditUserDialog.tsx`: replace the hard-coded `roles` list with a query of active `org_custom_roles` for the current org. Submit sends both `custom_role_id` and a derived `job_role` (the role's `mapped_job_role`) so existing RLS/admin logic keeps working.
+- `org-invite-user` edge function: accept new optional `custom_role_id`; persist it on `org_users` alongside the existing `job_role`.
+
+### 5. Update `UsersTab.tsx` role pill + filter
+
+- Join `org_users` with `org_custom_roles` so the role pill shows the custom role name + color when `custom_role_id` is set; falls back to the existing `ROLE_LABELS[job_role]` otherwise.
+- Role filter dropdown is populated from the org's `org_custom_roles` list (plus "All roles").
+
+## Out of scope (kept unchanged)
+
+- Module/permission assignment (still handled by the existing `UserPermissionsSheet`).
+- Job-role-driven RLS functions — they continue to use the existing `job_role` enum via the `mapped_job_role` bridge.
+- Other portals (admin, lodge, agent) — change is limited to the owner portals.
