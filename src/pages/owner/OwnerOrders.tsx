@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink, User, ImageIcon } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink, User, ImageIcon, Check, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -1993,15 +1993,17 @@ export const OwnerOrders = () => {
                       {(() => {
                         const purchaseDate = statusHistoryTree.created_at;
                         return (
-                          <div className="flex items-center gap-3 py-3">
-                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                            <div className="flex flex-col items-start min-w-0">
-                              <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {purchaseDate ? format(new Date(purchaseDate), "dd/MM/yyyy, hh:mm a") : 'Date not available'}
-                              </span>
-                            </div>
-                          </div>
+                           <div className="flex items-center gap-3 py-3">
+                             <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                               <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                             </div>
+                             <div className="flex flex-col items-start min-w-0">
+                               <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
+                               <span className="text-xs text-muted-foreground">
+                                 {purchaseDate ? format(new Date(purchaseDate), "dd/MM/yyyy, hh:mm a") : 'Date not available'}
+                               </span>
+                             </div>
+                           </div>
                         );
                       })()}
 
@@ -2041,13 +2043,25 @@ export const OwnerOrders = () => {
                                 onClick={isFuture ? (e) => e.preventDefault() : undefined}
                               >
                                 <div className="flex items-center gap-3 w-full">
-                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  {isCompleted ? (
+                                    <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                                      <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                                    </div>
+                                  ) : isCurrent ? (
+                                    <div className="h-6 w-6 rounded-full border-2 border-amber-500 bg-amber-50 flex items-center justify-center shrink-0">
+                                      <Sparkles className="h-3 w-3 text-amber-500" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                                  )}
                                   <div className="flex flex-col items-start text-left min-w-0">
-                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                    <span className={`text-sm ${isCompleted ? 'font-semibold text-foreground' : isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
                                       {STATUS_LABELS[status]}
                                     </span>
                                     {transition?.created_at ? (
                                       <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd/MM/yyyy, hh:mm a")}</span>
+                                    ) : isCurrent ? (
+                                      <span className="text-xs text-amber-600 font-medium">Next — click to log</span>
                                     ) : isFuture ? (
                                       <span className="text-xs text-muted-foreground italic">Pending</span>
                                     ) : null}
@@ -2960,13 +2974,25 @@ export const OwnerOrders = () => {
                                 onClick={isFuture ? (e) => e.preventDefault() : undefined}
                               >
                                 <div className="flex items-center gap-3 w-full">
-                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  {isCompleted ? (
+                                    <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                                      <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                                    </div>
+                                  ) : isCurrent ? (
+                                    <div className="h-6 w-6 rounded-full border-2 border-amber-500 bg-amber-50 flex items-center justify-center shrink-0">
+                                      <Sparkles className="h-3 w-3 text-amber-500" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                                  )}
                                   <div className="flex flex-col items-start text-left min-w-0">
-                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                    <span className={`text-sm ${isCompleted ? 'font-semibold text-foreground' : isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
                                       {STATUS_LABELS[status]}
                                     </span>
                                     {transition?.created_at ? (
                                       <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd/MM/yyyy, hh:mm a")}</span>
+                                    ) : isCurrent ? (
+                                      <span className="text-xs text-amber-600 font-medium">Next — click to log</span>
                                     ) : isFuture ? (
                                       <span className="text-xs text-muted-foreground italic">Pending</span>
                                     ) : null}
