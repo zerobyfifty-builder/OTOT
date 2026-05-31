@@ -91,25 +91,6 @@ export const GeneralTab: React.FC = () => {
     }
   };
 
-  const handleUpdateEmail = async () => {
-    if (!user || !newEmail.trim()) return;
-    setEmailLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
-      if (error) throw error;
-      toast.success("Verification email sent to new address.");
-      logActivity({
-        action_type: "email_change_requested",
-        resource_type: "user",
-        resource_id: user.id,
-        description: `Requested email change to ${newEmail.trim()}`,
-      });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update email");
-    } finally {
-      setEmailLoading(false);
-    }
-  };
 
   const handleChangePassword = async () => {
     if (!newPassword || !confirmPassword) return toast.error("Fill both password fields");
