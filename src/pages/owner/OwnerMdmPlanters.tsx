@@ -743,6 +743,15 @@ export function OwnerMdmPlanters() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Photo lightbox */}
+      <Dialog open={!!photoLightbox} onOpenChange={(open) => { if (!open) setPhotoLightbox(null); }}>
+        <DialogContent className="max-w-2xl p-2 bg-background">
+          {photoLightbox && (
+            <img src={photoLightbox} alt="Planter" className="w-full h-auto max-h-[80vh] object-contain rounded" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
