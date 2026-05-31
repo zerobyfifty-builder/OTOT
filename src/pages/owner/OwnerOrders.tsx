@@ -2053,7 +2053,9 @@ export const OwnerOrders = () => {
                                     {entries.length > 0 && (
                                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
                                         {entries.map(([key, value]) => {
-                                          const label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                          let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                                          if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
+                                          if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
                                           const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
                                           return (
                                             <React.Fragment key={key}>
