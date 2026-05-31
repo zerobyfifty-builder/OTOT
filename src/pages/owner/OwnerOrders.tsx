@@ -4115,11 +4115,11 @@ export const OwnerOrders = () => {
       )}
 
 
-      {lightboxPhoto && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+      {lightboxPhoto && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
           <div className="relative max-w-3xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
             <img src={lightboxPhoto} alt="Full size" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />
-            <div className="absolute top-2 right-2 flex gap-2">
+            <div className="absolute top-2 right-2 flex gap-2 z-10">
               <a
                 href={lightboxPhoto}
                 download
@@ -4131,14 +4131,17 @@ export const OwnerOrders = () => {
                 <Download className="h-5 w-5" />
               </a>
               <button
-                onClick={() => setLightboxPhoto(null)}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setLightboxPhoto(null); }}
                 className="p-2 rounded-full bg-background/80 hover:bg-background text-foreground transition-colors"
+                aria-label="Close"
               >
                 <XIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
