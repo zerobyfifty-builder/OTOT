@@ -13,14 +13,15 @@ import { User, Users, Bell, ScrollText } from "lucide-react";
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
-  const tab = requestedTab === "planting-costs" ? "general" : requestedTab || "general";
+  const redirectTabs = ["planting-costs", "organization"];
+  const tab = requestedTab && redirectTabs.includes(requestedTab) ? "general" : requestedTab || "general";
   const { data: orgCtx } = useOrgOwnerType();
   const { data: isOrgAdmin } = useIsOrgAdmin();
 
   const setTab = (t: string) => setSearchParams({ tab: t }, { replace: true });
 
   React.useEffect(() => {
-    if (requestedTab === "planting-costs") {
+    if (requestedTab && redirectTabs.includes(requestedTab)) {
       setTab("general");
     }
   }, [requestedTab]);
