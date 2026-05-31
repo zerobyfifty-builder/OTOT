@@ -506,13 +506,16 @@ export const OwnerOrders = () => {
     enabled: !!batchContribId,
   });
 
-  // Active planters for inspector dropdown
+  // Active planters for inspector dropdown (scoped to current owner org)
   const { data: activePlanters } = useQuery({
-    queryKey: ["activePlantersForMonitoring"],
+    queryKey: ["activePlantersForMonitoring", orgId],
     queryFn: async () => {
-      const { data } = await supabase.from("tree_carers").select("id, name").eq("status", "Active").order("name");
+      let q = supabase.from("tree_carers").select("id, name").eq("status", "Active");
+      if (orgId) q = q.eq("associated_partner_id", orgId);
+      const { data } = await q.order("name");
       return (data || []) as Array<{ id: string; name: string }>;
     },
+    enabled: !!orgId,
   });
   const planterNameMap = useMemo(() => {
     const m = new Map<string, string>();
