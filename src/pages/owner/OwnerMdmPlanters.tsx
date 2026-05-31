@@ -855,7 +855,7 @@ function BeatAssignmentInline({ planterId, planterBeats, beatNameMap, counties, 
   );
 }
 
-function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+function PlanterPhotoUpload({ value, onChange, onPreview }: { value: string; onChange: (url: string) => void; onPreview?: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -882,7 +882,14 @@ function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url
   if (value) {
     return (
       <div className="flex items-center gap-2 h-9">
-        <img src={value} alt="Planter" className="h-9 w-9 rounded-md object-cover border" />
+        <button
+          type="button"
+          onClick={() => onPreview?.(value)}
+          className="h-9 w-9 rounded-md overflow-hidden border hover:ring-2 hover:ring-emerald-500 transition"
+          title="Click to view"
+        >
+          <img src={value} alt="Planter" className="h-full w-full object-cover" />
+        </button>
         <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => onChange('')}>
           <Trash2 className="h-3.5 w-3.5" /> Remove
         </Button>
