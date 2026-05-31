@@ -1993,9 +1993,9 @@ export const OwnerOrders = () => {
                           return (
                             <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
                               <AccordionTrigger
-                                className={`hover:no-underline py-3 ${!transition ? '[&>svg]:hidden cursor-default' : ''}`}
-                                disabled={!transition}
-                                onClick={!transition ? (e) => e.preventDefault() : undefined}
+                                className={`hover:no-underline py-3 ${isFuture ? '[&>svg]:hidden cursor-default' : ''}`}
+                                disabled={isFuture}
+                                onClick={isFuture ? (e) => e.preventDefault() : undefined}
                               >
                                 <div className="flex items-center gap-3 w-full">
                                   {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
