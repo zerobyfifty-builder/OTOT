@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Upload, X, AlertTriangle, Info, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TransitionRequest {
   treeIds: string[];
