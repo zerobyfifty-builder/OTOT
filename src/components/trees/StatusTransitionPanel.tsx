@@ -457,7 +457,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               })()}
             </div>
 
-            {renderPlanterSelect("assigned_to", "Assigned to")}
+            {renderPlanterSelect("assigned_to", "Planter")}
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Assigned Date <span className="text-destructive">*</span></Label>
