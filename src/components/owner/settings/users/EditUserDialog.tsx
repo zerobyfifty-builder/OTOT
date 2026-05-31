@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useOrgOwnerType, getRolesForOwnerType } from "@/hooks/useOrgOwnerType";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
+import { useOrgCustomRoles } from "@/hooks/useOrgCustomRoles";
 import { OrgUserRow, useUpdateOrgUser } from "@/hooks/useOrgUsers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,13 +16,13 @@ interface Props { user: OrgUserRow | null; onOpenChange: (o: boolean) => void; }
 
 export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
   const { data: orgCtx } = useOrgOwnerType();
-  const roles = getRolesForOwnerType(orgCtx?.ownerType || "other");
+  const { data: roles = [] } = useOrgCustomRoles(orgCtx?.organizationId, { activeOnly: true });
   const update = useUpdateOrgUser();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [position, setPosition] = useState("");
-  const [jobRole, setJobRole] = useState<string>("");
+  const [roleId, setRoleId] = useState<string>("");
   const [sendingReset, setSendingReset] = useState(false);
 
   useEffect(() => {
@@ -29,16 +30,22 @@ export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
       setFirstName(user.first_name || "");
       setLastName(user.last_name || "");
       setPosition(user.position || "");
-      setJobRole(user.job_role);
+      setRoleId(user.custom_role_id || "");
     }
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const selected = roles.find((r) => r.id === roleId);
     await update.mutateAsync({
       id: user.id,
-      patch: { first_name: firstName || null, last_name: lastName || null, position: position || null, job_role: jobRole },
+      patch: {
+        first_name: firstName || null,
+        last_name: lastName || null,
+        position: position || null,
+        ...(selected ? { custom_role_id: selected.id, job_role: selected.mapped_job_role } : {}),
+      },
     });
     onOpenChange(false);
   };
@@ -87,11 +94,11 @@ export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
               <Input value={position} onChange={(e) => setPosition(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Job Role</Label>
-              <Select value={jobRole} onValueChange={setJobRole}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Role</Label>
+              <Select value={roleId} onValueChange={setRoleId}>
+                <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
                 <SelectContent>
-                  {roles.map((r) => (<SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>))}
+                  {roles.map((r) => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
