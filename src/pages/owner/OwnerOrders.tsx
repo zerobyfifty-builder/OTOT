@@ -1163,10 +1163,10 @@ export const OwnerOrders = () => {
                                       setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
                                     }
                                   >
-                                    <SelectTrigger className="w-[150px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium text-left">
+                                    <SelectTrigger className="w-[190px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium text-left">
                                       <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="min-w-[220px]">
                                       {BATCH_STATUSES.map((s, idx) => {
                                         const sOrder = getPlantingStatusOrder(s);
                                         const isPassed = commonStatus && sOrder < commonStatusOrder;
@@ -1176,13 +1176,18 @@ export const OwnerOrders = () => {
                                         const isNextStep = currentBatchIdx >= 0 && idx === currentBatchIdx + 1;
                                         const isFutureSkip = currentBatchIdx >= 0 && idx > currentBatchIdx + 1;
                                         return (
-                                          <SelectItem key={s} value={s} disabled={isFutureSkip || false}>
-                                            <span className={`flex items-center gap-2 ${isFutureSkip ? 'opacity-40' : ''}`}>
+                                          <SelectItem
+                                            key={s}
+                                            value={s}
+                                            disabled={isFutureSkip || false}
+                                            className={isNextStep ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground" : ""}
+                                          >
+                                            <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
                                               {isPassed && <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />}
                                               {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
-                                              {isNextStep && <Circle className="h-3 w-3 text-primary shrink-0" />}
+                                              {isNextStep && <Circle className="h-3 w-3 shrink-0" />}
                                               {!isPassed && !isCurrent && !isNextStep && <span className="w-3 shrink-0" />}
-                                              <span className={isCurrent ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
+                                              <span className={isCurrent || isNextStep ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
                                           </SelectItem>
                                         );
