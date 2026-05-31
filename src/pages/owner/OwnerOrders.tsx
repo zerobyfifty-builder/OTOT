@@ -2062,7 +2062,11 @@ export const OwnerOrders = () => {
                                           let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
                                           if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
                                           if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
-                                          const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
+                                          if (key === 'planter_changed_from_assigned') label = 'Changed From';
+                                          let displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
+                                          if (key === 'planter_changed_from_assigned') {
+                                            displayValue = String((transitionData as Record<string, unknown>)['original_assigned_planter_name'] || 'Previous planter');
+                                          }
                                           return (
                                             <React.Fragment key={key}>
                                               <span className="text-muted-foreground">{label}:</span>
