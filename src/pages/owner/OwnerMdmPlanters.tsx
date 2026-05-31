@@ -72,6 +72,7 @@ export function OwnerMdmPlanters() {
   const [beatBlockId, setBeatBlockId] = useState('');
   const [beatStationId, setBeatStationId] = useState('');
   const [selectedBeatId, setSelectedBeatId] = useState('');
+  const [photoLightbox, setPhotoLightbox] = useState<string | null>(null);
 
   // Org ID
   useQuery({
