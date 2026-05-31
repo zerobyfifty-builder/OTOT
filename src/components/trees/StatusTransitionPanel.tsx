@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Upload, X, AlertTriangle, Info } from "lucide-react";
+import { Calendar, MapPin, Upload, X, AlertTriangle, Info, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
