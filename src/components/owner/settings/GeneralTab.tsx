@@ -157,30 +157,6 @@ export const GeneralTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Email */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Mail className="h-5 w-5 text-primary" /></div>
-            <div>
-              <CardTitle className="text-lg">Email Address</CardTitle>
-              <CardDescription>Update your login email address</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2 max-w-md">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-            <p className="text-xs text-muted-foreground">A verification email will be sent to the new address.</p>
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={handleUpdateEmail} disabled={emailLoading || newEmail === userDetails?.email}>
-              {emailLoading ? "Sending..." : "Update Email"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Password */}
       <Card>
