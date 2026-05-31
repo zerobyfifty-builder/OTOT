@@ -439,12 +439,6 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                 <p className="text-[11px] text-muted-foreground/80 truncate">{organizationName}</p>
               )}
             </div>
-            {isOrgAdmin && partnerCategory !== 'plantation' && (
-              <DropdownMenuItem onClick={() => navigate('/owner/admin')} className="flex items-center gap-2 cursor-pointer">
-                <Settings className="h-4 w-4" />
-                <span>Admin</span>
-              </DropdownMenuItem>
-            )}
             {isOrgAdmin && (
               <DropdownMenuItem onClick={() => navigate('/owner/settings')} className="flex items-center gap-2 cursor-pointer">
                 <SlidersHorizontal className="h-4 w-4" />
