@@ -296,6 +296,9 @@ export default function AllOwners() {
                           <DropdownMenuItem onClick={() => openEdit(s)}>
                             <Pencil className="mr-2 h-4 w-4" />Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPasswordReset(s)}>
+                            <KeyRound className="mr-2 h-4 w-4" />Reset Password
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openStatusToggle(s)}>
                             <Power className="mr-2 h-4 w-4" />{s.is_active ? "Deactivate" : "Activate"}
                           </DropdownMenuItem>
