@@ -8,11 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Bell, Shield, Mail, Phone, Globe } from 'lucide-react';
-import { PlantingCostsTab } from '@/components/settings/PlantingCostsTab';
-import { PlantingCostsKTBTab } from '@/components/settings/PlantingCostsKTBTab';
 
 const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
@@ -38,7 +35,7 @@ export const OwnerSettings = () => {
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ownerType, setOwnerType] = useState<'plantation' | 'government'>('plantation');
+  
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -79,13 +76,6 @@ export const OwnerSettings = () => {
           setPhoneNumber(userData.phone_number || '');
           setNewEmail(userData.email);
 
-          // Determine owner type
-          const roleName = (userData.roles as any)?.name || '';
-          const orgCategory = (userData.organizations as any)?.category || '';
-          const ptName = (userData.organizations as any)?.partner_types?.name || '';
-          if (roleName === 'government_partner' || orgCategory === 'government' || ptName.toLowerCase().includes('government')) {
-            setOwnerType('government');
-          }
 
           // Fetch org details
           if (userData.organization_id) {
@@ -191,13 +181,7 @@ export const OwnerSettings = () => {
         <p className="text-muted-foreground mt-1">Manage your account and organization settings</p>
       </div>
 
-      <Tabs defaultValue="account" className="w-full">
-        <TabsList>
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="planting-costs">Planting Costs</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="account" className="space-y-6 mt-4">
+      <div className="space-y-6">
 
       {/* Organization Info (Read-only) */}
       {orgDetails && (
@@ -429,12 +413,8 @@ export const OwnerSettings = () => {
           </div>
         </CardContent>
       </Card>
-        </TabsContent>
+      </div>
 
-        <TabsContent value="planting-costs" className="mt-4">
-          {ownerType === 'government' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
