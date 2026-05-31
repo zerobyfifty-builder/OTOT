@@ -621,7 +621,53 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               <Label className="text-sm font-medium">Actual Planting Date <span className="text-destructive">*</span></Label>
               <Input type="date" value={formData.actual_planting_date || ""} onChange={(e) => setField("actual_planting_date", e.target.value)} />
             </div>
-            {renderPlanterSelect("planted_by", "Planted By")}
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Planted By <span className="text-destructive">*</span></Label>
+              {editingPlantedBy ? (
+                <Select
+                  value={formData.planted_by || ""}
+                  onValueChange={(v) => {
+                    setField("planted_by", v);
+                    const p = planters?.find(pl => pl.id === v);
+                    if (p) setField("planted_by_name", p.name);
+                    setEditingPlantedBy(false);
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
+                  <SelectContent>
+                    {(planters || []).map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} {p.planter_type ? `(${p.planter_type})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
+                    value={
+                      (planters?.find(p => p.id === formData.planted_by)?.name) ||
+                      formData.planted_by_name ||
+                      assignedPlanterData?.planterName ||
+                      ""
+                    }
+                    placeholder="Loading planter from Assigned status..."
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setEditingPlantedBy(true)}
+                    title="Change planter"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Number of Trees Actually Planted <span className="text-destructive">*</span></Label>
               <Input type="number" min={1} value={formData.trees_actually_planted || ""} onChange={(e) => setField("trees_actually_planted", parseInt(e.target.value) || 0)} />
