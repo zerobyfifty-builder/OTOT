@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Leaf, Info, Heart, MapPin, Download, Share2, Facebook, Twitter, Linkedin, Instagram, Copy, Trees, X, Award, CircleDollarSign } from "lucide-react";
 import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
