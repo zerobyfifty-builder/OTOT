@@ -1969,7 +1969,7 @@ export const OwnerOrders = () => {
                             <div className="flex flex-col items-start min-w-0">
                               <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
                               <span className="text-xs text-muted-foreground">
-                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                                {purchaseDate ? format(new Date(purchaseDate), "dd/MM/yyyy, hh:mm a") : 'Date not available'}
                               </span>
                             </div>
                           </div>
@@ -2012,7 +2012,7 @@ export const OwnerOrders = () => {
                                       {STATUS_LABELS[status]}
                                     </span>
                                     {transition?.created_at ? (
-                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd/MM/yyyy, hh:mm a")}</span>
                                     ) : isFuture ? (
                                       <span className="text-xs text-muted-foreground italic">Pending</span>
                                     ) : null}
@@ -2168,7 +2168,7 @@ export const OwnerOrders = () => {
                                     <span className="text-muted-foreground">Trees in batch:</span>
                                     <span className="font-medium">{treeCount}</span>
                                     <span className="text-muted-foreground">Captured:</span>
-                                    <span className="font-medium">{batchGeotag.created_at ? format(new Date(batchGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                                    <span className="font-medium">{batchGeotag.created_at ? format(new Date(batchGeotag.created_at), "dd/MM/yyyy, hh:mm a") : '-'}</span>
                                   </div>
                                   {batchGeotag.map_snapshot && (
                                     <div className="mt-3">
@@ -2879,7 +2879,7 @@ export const OwnerOrders = () => {
                             <div className="flex flex-col items-start min-w-0">
                               <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
                               <span className="text-xs text-muted-foreground">
-                                {purchaseDate ? format(new Date(purchaseDate), "dd MMM yyyy, hh:mm a") : 'Date not available'}
+                                {purchaseDate ? format(new Date(purchaseDate), "dd/MM/yyyy, hh:mm a") : 'Date not available'}
                               </span>
                             </div>
                           </div>
@@ -2917,7 +2917,7 @@ export const OwnerOrders = () => {
                                       {STATUS_LABELS[status]}
                                     </span>
                                     {transition?.created_at ? (
-                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                      <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd/MM/yyyy, hh:mm a")}</span>
                                     ) : isFuture ? (
                                       <span className="text-xs text-muted-foreground italic">Pending</span>
                                     ) : null}
@@ -3051,7 +3051,7 @@ export const OwnerOrders = () => {
                                   </>
                                 )}
                                 <span className="text-muted-foreground">Uploaded:</span>
-                                <span className="font-medium">{current.uploaded_at ? format(new Date(current.uploaded_at), "dd MMM yyyy, hh:mm a") : '—'}</span>
+                                <span className="font-medium">{current.uploaded_at ? format(new Date(current.uploaded_at), "dd/MM/yyyy, hh:mm a") : '—'}</span>
                                 <span className="text-muted-foreground">Uploaded by:</span>
                                 <span className="font-medium">{current.uploaded_by || '—'}</span>
                               </div>
@@ -3165,7 +3165,7 @@ export const OwnerOrders = () => {
                                   <span className="text-muted-foreground">Accuracy:</span>
                                   <span className="font-medium">{treeGeotag.geo_accuracy || '-'}</span>
                                   <span className="text-muted-foreground">Captured:</span>
-                                  <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd MMM yyyy, hh:mm a") : '-'}</span>
+                                  <span className="font-medium">{treeGeotag.created_at ? format(new Date(treeGeotag.created_at), "dd/MM/yyyy, hh:mm a") : '-'}</span>
                                 </div>
                                 {treeGeotag.map_snapshot && (
                                   <div className="mt-3">
@@ -3248,7 +3248,7 @@ export const OwnerOrders = () => {
                                 <span className="text-muted-foreground">Experience:</span>
                                 <span className="font-medium">{experienceYears != null ? `${experienceYears} ${experienceYears === 1 ? 'year' : 'years'}` : '—'}</span>
                                 <span className="text-muted-foreground">Uploaded:</span>
-                                <span className="font-medium">{dateRegistered ? format(new Date(dateRegistered), "dd MMM yyyy") : (uploadedAt ? format(new Date(uploadedAt), "dd MMM yyyy, hh:mm a") : '—')}</span>
+                                <span className="font-medium">{dateRegistered ? format(new Date(dateRegistered), "dd MMM yyyy") : (uploadedAt ? format(new Date(uploadedAt), "dd/MM/yyyy, hh:mm a") : '—')}</span>
                                 <span className="text-muted-foreground">Uploaded by:</span>
                                 <span className="font-medium">{uploadedBy || 'Field team'}</span>
                               </div>
@@ -3987,7 +3987,7 @@ export const OwnerOrders = () => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Badge variant="outline" className={`text-[10px] ${meta.color}`}>{meta.label}</Badge>
-                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                  <span className="text-[11px] text-muted-foreground">{format(new Date(log.created_at), "dd/MM/yyyy, hh:mm a")}</span>
                                 </div>
                                 <p className="text-sm mt-1">{log.description}</p>
                                 <p className="text-[11px] text-muted-foreground mt-0.5">by {log.actor_email || "System"}</p>
