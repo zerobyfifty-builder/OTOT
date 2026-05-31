@@ -22,16 +22,15 @@ interface UserDetails {
 export const GeneralTab: React.FC = () => {
   const { user } = useAuth();
   const { logActivity } = useActivityLogger();
+  const { data: orgCtx } = useOrgOwnerType();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [org, setOrg] = useState<any>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profileLoading, setProfileLoading] = useState(false);
-
-  const [newEmail, setNewEmail] = useState("");
-  const [emailLoading, setEmailLoading] = useState(false);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
