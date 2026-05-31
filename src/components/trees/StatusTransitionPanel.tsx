@@ -348,6 +348,10 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
         const planter = planters?.find(p => p.id === (formData.planting_team_lead || formData.planted_by || formData.verified_by));
         if (planter) fullData.planter_name = planter.name;
       }
+      if (request.toStatus === "sapling_planted" && assignedPlanterData?.planterId) {
+        fullData.original_assigned_planter_id = assignedPlanterData.planterId;
+        fullData.planter_changed_from_assigned = !!formData.planted_by && formData.planted_by !== assignedPlanterData.planterId;
+      }
 
       await onConfirm(request, fullData, photoUrls);
       onClose();
