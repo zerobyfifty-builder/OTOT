@@ -5,23 +5,26 @@ import { GeneralTab } from "@/components/owner/settings/GeneralTab";
 import { OrganizationTab } from "@/components/owner/settings/OrganizationTab";
 import { UsersTab } from "@/components/owner/settings/UsersTab";
 import { NotificationsTab } from "@/components/owner/settings/NotificationsTab";
-import { PlantingCostsTab } from "@/components/settings/PlantingCostsTab";
-import { PlantingCostsKTBTab } from "@/components/settings/PlantingCostsKTBTab";
 import { LogsTab } from "@/components/owner/settings/LogsTab";
 import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Users, Building2, DollarSign, Bell, ScrollText } from "lucide-react";
+import { User, Users, Building2, Bell, ScrollText } from "lucide-react";
 
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") || "general";
+  const requestedTab = searchParams.get("tab");
+  const tab = requestedTab === "planting-costs" ? "general" : requestedTab || "general";
   const { data: orgCtx } = useOrgOwnerType();
   const { data: isOrgAdmin } = useIsOrgAdmin();
 
-  const isInstitutional = orgCtx?.ownerType === "government";
-
   const setTab = (t: string) => setSearchParams({ tab: t }, { replace: true });
+
+  React.useEffect(() => {
+    if (requestedTab === "planting-costs") {
+      setTab("general");
+    }
+  }, [requestedTab]);
 
   const orgInitials = (orgCtx?.organizationName || "OR")
     .split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -56,9 +59,6 @@ export const OrganizationSettings: React.FC = () => {
               <Users className="h-4 w-4" /> Users
             </TabsTrigger>
           )}
-          <TabsTrigger value="planting-costs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
-            <DollarSign className="h-4 w-4" /> Planting Costs
-          </TabsTrigger>
           <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <Bell className="h-4 w-4" /> Notifications
           </TabsTrigger>
@@ -72,9 +72,6 @@ export const OrganizationSettings: React.FC = () => {
         <TabsContent value="general" className="mt-6"><GeneralTab /></TabsContent>
         {isOrgAdmin && <TabsContent value="users" className="mt-6"><UsersTab /></TabsContent>}
         <TabsContent value="organization" className="mt-6"><OrganizationTab /></TabsContent>
-        <TabsContent value="planting-costs" className="mt-6">
-          {isInstitutional ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
-        </TabsContent>
         <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
         {isOrgAdmin && (
           <TabsContent value="logs" className="mt-6">
