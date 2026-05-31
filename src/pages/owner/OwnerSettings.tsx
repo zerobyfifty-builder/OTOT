@@ -188,13 +188,7 @@ export const OwnerSettings = () => {
         <p className="text-muted-foreground mt-1">Manage your account and organization settings</p>
       </div>
 
-      <Tabs defaultValue="account" className="w-full">
-        <TabsList>
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="planting-costs">Planting Costs</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="account" className="space-y-6 mt-4">
+      <div className="space-y-6">
 
       {/* Organization Info (Read-only) */}
       {orgDetails && (
@@ -426,12 +420,8 @@ export const OwnerSettings = () => {
           </div>
         </CardContent>
       </Card>
-        </TabsContent>
+      </div>
 
-        <TabsContent value="planting-costs" className="mt-4">
-          {ownerType === 'government' ? <PlantingCostsKTBTab /> : <PlantingCostsTab />}
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
