@@ -59,6 +59,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
+  const [editingPlantedBy, setEditingPlantedBy] = useState(false);
 
   // Current user's display name for the "Changed By" accountability field
   const { data: currentUserName } = useQuery({
