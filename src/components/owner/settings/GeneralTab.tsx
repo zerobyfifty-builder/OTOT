@@ -50,7 +50,14 @@ export const GeneralTab: React.FC = () => {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setPhoneNumber(data.phone_number || "");
-        setNewEmail(data.email);
+      }
+      if (orgCtx?.organizationId) {
+        const { data: o } = await supabase
+          .from("organizations")
+          .select("name, contact_email, contact_phone, contact_person, website, category, is_active")
+          .eq("id", orgCtx.organizationId)
+          .maybeSingle();
+        setOrg(o);
       }
       setLoading(false);
     })();
