@@ -35,7 +35,7 @@ export const OwnerSettings = () => {
   const [orgDetails, setOrgDetails] = useState<OrgDetails | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ownerType, setOwnerType] = useState<'plantation' | 'government'>('plantation');
+  
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
