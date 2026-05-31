@@ -93,18 +93,22 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
-  // Update customTreeCount when treesPlanted changes
+  // When treesPlanted is loaded from the DB, set the slider to the remaining
+  // balance — but only if the user hasn't already moved it away from the
+  // initial default. This prevents the slider from resetting to 1 on refetch.
+  const didInitFromFetch = React.useRef(false);
   useEffect(() => {
-    const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
-    if (customTreeCount > maxAvailable) {
-      setCustomTreeCount(maxAvailable);
+    if (didInitFromFetch.current) {
+      // Just clamp if exceeding new max
+      const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
+      setCustomTreeCount((prev) => (prev > maxAvailable ? maxAvailable : prev));
+      return;
     }
-  }, [treesPlanted, treesNeeded]);
-
-  // Initialize customTreeCount to all trees
-  useEffect(() => {
-    setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
-  }, [treesNeeded, treesPlanted]);
+    if (treesPlanted > 0 || routePlantedPrior !== undefined) {
+      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+      didInitFromFetch.current = true;
+    }
+  }, [treesPlanted, treesNeeded, routePlantedPrior]);
 
   const fetchTreesPlanted = async () => {
     if (!tripId || !user) return;
