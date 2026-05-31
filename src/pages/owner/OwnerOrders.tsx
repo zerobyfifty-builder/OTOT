@@ -2840,6 +2840,9 @@ export const OwnerOrders = () => {
             const resolveValue = (key: string, value: unknown, data: Record<string, unknown>): string => {
               if (key === 'verified_by' && data.planter_name) return String(data.planter_name);
               if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+              if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(value)) {
+                try { return format(new Date(value), "dd/MM/yyyy"); } catch { /* noop */ }
+              }
               return String(value);
             };
 
