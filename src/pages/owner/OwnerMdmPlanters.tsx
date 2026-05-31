@@ -625,6 +625,7 @@ export function OwnerMdmPlanters() {
                   <PlanterPhotoUpload
                     value={formData.photo_url}
                     onChange={(url) => setFormData(p => ({ ...p, photo_url: url }))}
+                    onPreview={(url) => setPhotoLightbox(url)}
                   />
                 </div>
               </div>
