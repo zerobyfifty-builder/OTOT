@@ -226,6 +226,7 @@ export function OwnerMdmPlanters() {
       const payload: any = {
         name: formData.name.trim(),
         id_number: formData.id_number.trim() || null,
+        roles: formData.roles.length ? formData.roles : ['Planter'],
         planter_type: formData.planter_type,
         gender: formData.gender,
         marital_status: formData.marital_status || null,
