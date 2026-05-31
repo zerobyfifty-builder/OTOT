@@ -506,9 +506,45 @@ export function OwnerMdmPlanters() {
                 <Label className="text-xs">Full Name *</Label>
                 <Input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="e.g. John Kamau" className="h-9" />
               </div>
-              <div>
-                <Label className="text-xs">ID / Passport Number</Label>
-                <Input value={formData.id_number} onChange={e => setFormData(p => ({ ...p, id_number: e.target.value }))} placeholder="National ID or Passport" className="h-9" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">ID / Passport Number</Label>
+                  <Input value={formData.id_number} onChange={e => setFormData(p => ({ ...p, id_number: e.target.value }))} placeholder="National ID or Passport" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Role</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="h-9 w-full justify-between font-normal">
+                        <span className="truncate text-left">
+                          {formData.roles.length ? formData.roles.join(', ') : 'Select role(s)'}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-popover z-50">
+                      <DropdownMenuLabel className="text-xs">Assign role(s)</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {PLANTER_ROLES.map(r => (
+                        <DropdownMenuCheckboxItem
+                          key={r}
+                          checked={formData.roles.includes(r)}
+                          onCheckedChange={(checked) => {
+                            setFormData(p => ({
+                              ...p,
+                              roles: checked
+                                ? Array.from(new Set([...p.roles, r]))
+                                : p.roles.filter(x => x !== r),
+                            }));
+                          }}
+                          onSelect={e => e.preventDefault()}
+                        >
+                          {r}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
