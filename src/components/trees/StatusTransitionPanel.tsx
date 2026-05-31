@@ -131,6 +131,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       setFormData(defaults);
       setPhotos([]);
       setBeatSearch("");
+      setEditingPlantedBy(false);
     }
   }, [request, currentUserName]);
 
