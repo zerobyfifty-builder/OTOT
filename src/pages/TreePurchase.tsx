@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Leaf, Info, Heart, MapPin, Download, Share2, Facebook, Twitter, Linkedin, Instagram, Copy, Trees, X, Award, CircleDollarSign } from "lucide-react";
 import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
@@ -56,8 +56,8 @@ export const TreePurchase = () => {
   
   const { minMonths, maxMonths } = getMonthlyBounds();
   const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
-  // Default to all trees (treesNeeded)
-  const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
+  // Default to the remaining (balance) trees for this trip
+  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded - (routePlantedPrior || 0)));
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Card");
@@ -93,18 +93,22 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
-  // Update customTreeCount when treesPlanted changes
+  // When treesPlanted is loaded from the DB, set the slider to the remaining
+  // balance — but only if the user hasn't already moved it away from the
+  // initial default. This prevents the slider from resetting to 1 on refetch.
+  const didInitFromFetch = useRef(false);
   useEffect(() => {
-    const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
-    if (customTreeCount > maxAvailable) {
-      setCustomTreeCount(maxAvailable);
+    if (didInitFromFetch.current) {
+      // Just clamp if exceeding new max
+      const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
+      setCustomTreeCount((prev) => (prev > maxAvailable ? maxAvailable : prev));
+      return;
     }
-  }, [treesPlanted, treesNeeded]);
-
-  // Initialize customTreeCount to all trees
-  useEffect(() => {
-    setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
-  }, [treesNeeded, treesPlanted]);
+    if (treesPlanted > 0 || routePlantedPrior !== undefined) {
+      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+      didInitFromFetch.current = true;
+    }
+  }, [treesPlanted, treesNeeded, routePlantedPrior]);
 
   const fetchTreesPlanted = async () => {
     if (!tripId || !user) return;
