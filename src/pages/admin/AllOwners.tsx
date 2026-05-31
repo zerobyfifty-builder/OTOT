@@ -422,6 +422,51 @@ export default function AllOwners() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Reset Dialog */}
+      <AlertDialog open={pwdOpen} onOpenChange={setPwdOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Reset the password for a user under "{pwdOwner?.name}". The user will be able to sign in immediately with the new password.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>User</Label>
+              {pwdUsers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No users found for this owner.</p>
+              ) : (
+                <Select value={pwdSelectedUser} onValueChange={setPwdSelectedUser}>
+                  <SelectTrigger><SelectValue placeholder="Select a user" /></SelectTrigger>
+                  <SelectContent>
+                    {pwdUsers.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email} — {u.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>New Password</Label>
+              <Input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="Min 6 characters" />
+            </div>
+            <div className="space-y-2">
+              <Label>Confirm New Password</Label>
+              <Input type="password" value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handlePasswordReset(); }} disabled={pwdSaving || !pwdSelectedUser}>
+              {pwdSaving ? "Resetting..." : "Reset Password"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
