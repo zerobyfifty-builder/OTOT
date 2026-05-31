@@ -1844,6 +1844,34 @@ export const OwnerOrders = () => {
             .insert(records);
           if (insertError) throw insertError;
 
+          // 2b. Back-sync: if planter at sapling_planted differs from assigned, rewrite assigned transition
+          if (req.toStatus === "sapling_planted" && transitionData.planted_by) {
+            const newPlanterId = transitionData.planted_by;
+            const newPlanterName = transitionData.planter_name || null;
+            for (const treeId of req.treeIds) {
+              const { data: assignedRows } = await supabase
+                .from("tree_status_transitions" as any)
+                .select("id, transition_data")
+                .eq("tree_id", treeId)
+                .eq("to_status", "assigned")
+                .order("created_at", { ascending: false })
+                .limit(1);
+              const row: any = assignedRows && assignedRows[0];
+              if (row && row.transition_data?.assigned_to && row.transition_data.assigned_to !== newPlanterId) {
+                const updated = {
+                  ...row.transition_data,
+                  assigned_to: newPlanterId,
+                  assigned_to_name: newPlanterName || row.transition_data.assigned_to_name,
+                  planter_name: newPlanterName || row.transition_data.planter_name,
+                };
+                await supabase
+                  .from("tree_status_transitions" as any)
+                  .update({ transition_data: updated })
+                  .eq("id", row.id);
+              }
+            }
+          }
+
           // 3. Refresh data
           queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
           setBulkSelections({});
