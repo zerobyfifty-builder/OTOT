@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { useOrgOwnerType, ROLE_LABELS, getRolesForOwnerType } from "@/hooks/useOrgOwnerType";
+import React, { useMemo, useState } from "react";
+import { useOrgOwnerType, ROLE_LABELS } from "@/hooks/useOrgOwnerType";
+import { useOrgCustomRoles, ROLE_COLOR_CLASSES } from "@/hooks/useOrgCustomRoles";
 import { useOrgUsers, useToggleOrgUserStatus, useRemoveOrgUser, OrgUserRow } from "@/hooks/useOrgUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,8 +36,15 @@ const roleColor: Record<string, string> = {
 export const UsersTab: React.FC = () => {
   const { data: orgCtx } = useOrgOwnerType();
   const { data: members = [], isLoading } = useOrgUsers(orgCtx?.organizationId);
+  const { data: customRoles = [] } = useOrgCustomRoles(orgCtx?.organizationId);
   const toggleStatus = useToggleOrgUserStatus();
   const removeUser = useRemoveOrgUser();
+
+  const rolesById = useMemo(() => {
+    const m = new Map<string, typeof customRoles[number]>();
+    customRoles.forEach((r) => m.set(r.id, r));
+    return m;
+  }, [customRoles]);
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -49,7 +57,7 @@ export const UsersTab: React.FC = () => {
   const filtered = members.filter((m) => {
     const matchesSearch = !search ||
       `${m.first_name || ""} ${m.last_name || ""} ${m.email}`.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === "all" || m.job_role === roleFilter;
+    const matchesRole = roleFilter === "all" || m.custom_role_id === roleFilter || m.job_role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
@@ -77,8 +85,8 @@ export const UsersTab: React.FC = () => {
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>
-            {getRolesForOwnerType(orgCtx?.ownerType ?? "other").map((r) => (
-              <SelectItem key={r.key} value={r.key}>{ROLE_LABELS[r.key] || r.label}</SelectItem>
+            {customRoles.map((r) => (
+              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -123,9 +131,18 @@ export const UsersTab: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-sm">{m.email}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={roleColor[m.job_role] || ""}>
-                        {ROLE_LABELS[m.job_role] || m.job_role}
-                      </Badge>
+                      {(() => {
+                        const cr = m.custom_role_id ? rolesById.get(m.custom_role_id) : null;
+                        if (cr) {
+                          const cls = ROLE_COLOR_CLASSES[cr.color] || ROLE_COLOR_CLASSES.slate;
+                          return <Badge variant="secondary" className={cls.pill}>{cr.name}</Badge>;
+                        }
+                        return (
+                          <Badge variant="secondary" className={roleColor[m.job_role] || ""}>
+                            {ROLE_LABELS[m.job_role] || m.job_role}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       {m.status === "active" && (
