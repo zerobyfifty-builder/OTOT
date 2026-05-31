@@ -191,8 +191,49 @@ export default function AllOwners() {
     }
   };
 
+  // --- Password Reset ---
+  const openPasswordReset = async (s: Owner) => {
+    setPwdOwner(s);
+    setPwdSelectedUser("");
+    setPwdNew("");
+    setPwdConfirm("");
+    setPwdUsers([]);
+    setPwdOpen(true);
+    const { data, error } = await supabase
+      .from("users")
+      .select("user_id, email, first_name, last_name")
+      .eq("organization_id", s.id);
+    if (error) {
+      toast.error("Failed to load users");
+      return;
+    }
+    setPwdUsers(data || []);
+    if (data && data.length === 1) setPwdSelectedUser(data[0].user_id);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!pwdSelectedUser) return toast.error("Select a user");
+    if (pwdNew.length < 6) return toast.error("Password must be at least 6 characters");
+    if (pwdNew !== pwdConfirm) return toast.error("Passwords do not match");
+    setPwdSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-set-user-password", {
+        body: { userId: pwdSelectedUser, newPassword: pwdNew },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Password reset successfully");
+      setPwdOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reset password");
+    } finally {
+      setPwdSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+
       <div className="flex items-center justify-end gap-2">
         <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
         <Button onClick={() => setCreateOpen(true)} className="gap-2">
