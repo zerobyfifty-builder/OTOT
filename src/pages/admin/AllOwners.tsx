@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, RefreshCw, Landmark, MoreVertical, Pencil, Power, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { CreateOwnerSheet } from "@/components/admin/owners/CreateOwnerSheet";
 
@@ -55,6 +56,15 @@ export default function AllOwners() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Owner | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Password reset dialog state
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [pwdOwner, setPwdOwner] = useState<Owner | null>(null);
+  const [pwdUsers, setPwdUsers] = useState<{ user_id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
+  const [pwdSelectedUser, setPwdSelectedUser] = useState<string>("");
+  const [pwdNew, setPwdNew] = useState("");
+  const [pwdConfirm, setPwdConfirm] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
 
   const fetchOwners = async () => {
     setLoading(true);
@@ -181,8 +191,49 @@ export default function AllOwners() {
     }
   };
 
+  // --- Password Reset ---
+  const openPasswordReset = async (s: Owner) => {
+    setPwdOwner(s);
+    setPwdSelectedUser("");
+    setPwdNew("");
+    setPwdConfirm("");
+    setPwdUsers([]);
+    setPwdOpen(true);
+    const { data, error } = await supabase
+      .from("users")
+      .select("user_id, email, first_name, last_name")
+      .eq("organization_id", s.id);
+    if (error) {
+      toast.error("Failed to load users");
+      return;
+    }
+    setPwdUsers(data || []);
+    if (data && data.length === 1) setPwdSelectedUser(data[0].user_id);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!pwdSelectedUser) return toast.error("Select a user");
+    if (pwdNew.length < 6) return toast.error("Password must be at least 6 characters");
+    if (pwdNew !== pwdConfirm) return toast.error("Passwords do not match");
+    setPwdSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-set-user-password", {
+        body: { userId: pwdSelectedUser, newPassword: pwdNew },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Password reset successfully");
+      setPwdOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reset password");
+    } finally {
+      setPwdSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+
       <div className="flex items-center justify-end gap-2">
         <Button onClick={fetchOwners} variant="outline" size="icon"><RefreshCw className="h-4 w-4" /></Button>
         <Button onClick={() => setCreateOpen(true)} className="gap-2">
@@ -244,6 +295,9 @@ export default function AllOwners() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEdit(s)}>
                             <Pencil className="mr-2 h-4 w-4" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPasswordReset(s)}>
+                            <KeyRound className="mr-2 h-4 w-4" />Reset Password
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openStatusToggle(s)}>
                             <Power className="mr-2 h-4 w-4" />{s.is_active ? "Deactivate" : "Activate"}
@@ -364,6 +418,51 @@ export default function AllOwners() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Password Reset Dialog */}
+      <AlertDialog open={pwdOpen} onOpenChange={setPwdOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Reset the password for a user under "{pwdOwner?.name}". The user will be able to sign in immediately with the new password.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>User</Label>
+              {pwdUsers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No users found for this owner.</p>
+              ) : (
+                <Select value={pwdSelectedUser} onValueChange={setPwdSelectedUser}>
+                  <SelectTrigger><SelectValue placeholder="Select a user" /></SelectTrigger>
+                  <SelectContent>
+                    {pwdUsers.map((u) => (
+                      <SelectItem key={u.user_id} value={u.user_id}>
+                        {[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email} — {u.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label>New Password</Label>
+              <Input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="Min 6 characters" />
+            </div>
+            <div className="space-y-2">
+              <Label>Confirm New Password</Label>
+              <Input type="password" value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handlePasswordReset(); }} disabled={pwdSaving || !pwdSelectedUser}>
+              {pwdSaving ? "Resetting..." : "Reset Password"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

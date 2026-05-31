@@ -158,33 +158,6 @@ export const GeneralTab: React.FC = () => {
       </Card>
 
 
-      {/* Password */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Lock className="h-5 w-5 text-primary" /></div>
-            <div>
-              <CardTitle className="text-lg">Change Password</CardTitle>
-              <CardDescription>Update your account password</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min 6 characters" />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={handleChangePassword} disabled={passwordLoading}>{passwordLoading ? "Updating..." : "Change Password"}</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Organization */}
       {org && (
