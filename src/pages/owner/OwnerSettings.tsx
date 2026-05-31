@@ -76,13 +76,6 @@ export const OwnerSettings = () => {
           setPhoneNumber(userData.phone_number || '');
           setNewEmail(userData.email);
 
-          // Determine owner type
-          const roleName = (userData.roles as any)?.name || '';
-          const orgCategory = (userData.organizations as any)?.category || '';
-          const ptName = (userData.organizations as any)?.partner_types?.name || '';
-          if (roleName === 'government_partner' || orgCategory === 'government' || ptName.toLowerCase().includes('government')) {
-            setOwnerType('government');
-          }
 
           // Fetch org details
           if (userData.organization_id) {
