@@ -96,7 +96,7 @@ export const TreePurchase = () => {
   // When treesPlanted is loaded from the DB, set the slider to the remaining
   // balance — but only if the user hasn't already moved it away from the
   // initial default. This prevents the slider from resetting to 1 on refetch.
-  const didInitFromFetch = React.useRef(false);
+  const didInitFromFetch = useRef(false);
   useEffect(() => {
     if (didInitFromFetch.current) {
       // Just clamp if exceeding new max
