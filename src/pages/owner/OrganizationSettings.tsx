@@ -2,14 +2,13 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralTab } from "@/components/owner/settings/GeneralTab";
-import { OrganizationTab } from "@/components/owner/settings/OrganizationTab";
 import { UsersTab } from "@/components/owner/settings/UsersTab";
 import { NotificationsTab } from "@/components/owner/settings/NotificationsTab";
 import { LogsTab } from "@/components/owner/settings/LogsTab";
 import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Users, Building2, Bell, ScrollText } from "lucide-react";
+import { User, Users, Bell, ScrollText } from "lucide-react";
 
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
