@@ -196,6 +196,7 @@ export function OwnerMdmPlanters() {
     setFormData({
       name: item.name || '',
       id_number: item.id_number || '',
+      roles: Array.isArray(item.roles) && item.roles.length ? item.roles : ['Planter'],
       planter_type: item.planter_type || 'Community Farmer',
       gender: item.gender || 'Male',
       marital_status: item.marital_status || 'Unmarried',
