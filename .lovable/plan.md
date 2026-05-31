@@ -1,47 +1,41 @@
 ## Goal
 
-In the Planting Overview, distinguish the two planter roles per status and make "Planted By" editable with auto-sync back to the Assigned status so data stays uniform.
+Remove the Planting Costs tab from owner settings (both Plantation partner and KTB views) and let the Super Admin create new planting cost submissions directly from the existing Planting Costs Configuration page. The rest of the approval/configure/publish flow stays as-is.
 
 ## Changes
 
-### 1. `src/pages/owner/OwnerOrders.tsx` — Planting Overview accordion (both occurrences ~L1913 and ~L2821)
+### 1. Owner Settings — remove Planting Costs tab
+File: `src/pages/owner/OwnerSettings.tsx`
+- Remove the `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` wrapper and drop the `planting-costs` tab entirely. Render the account content directly.
+- Remove imports of `PlantingCostsTab`, `PlantingCostsKTBTab`, and the `Tabs` components.
+- Drop the `ownerType` detection logic that was only used to switch between the two planting-costs variants.
+- Leave the existing tab files (`PlantingCostsTab.tsx`, `PlantingCostsKTBTab.tsx`) in place but unused — they're not referenced elsewhere and can be cleaned up later.
 
-- Stop hard-coding `assigned_to_name: 'Planting Team Lead'` in `friendlyLabels`. Resolve the label per status while rendering each entry:
-  - status === `assigned` → "Planter"
-  - status === `planting_scheduled` → "Planting Team Lead"
-  - For `planter_name` shown inside `sapling_planted` → "Planted By"
-- No other label changes.
+### 2. Super Admin — add "New Planting Costs" entry point
+File: `src/pages/admin/PlantingCostsConfig.tsx`
+- Add an "Add new planting costs" button in the page header (right side, next to the title).
+- Clicking it opens a new `AddPlantingCostsSheet` component (slider sheet on the right).
 
-### 2. `src/components/trees/StatusTransitionPanel.tsx` — Status transition form
+### 3. New component: `AddPlantingCostsSheet`
+New file: `src/components/admin/AddPlantingCostsSheet.tsx`
+- Replicates the cost-input slider sheet from `PlantingCostsTab` (the 7 `COST_FIELDS` inputs, KES → USD helper, total, Submit button).
+- On submit, inserts a row into `planting_cost_submissions`:
+  - `submitted_by`: current super admin user id
+  - `owner_org`: `'KTB Admin'` (single value used for all admin-created submissions; this keeps history filtering simple in the review panel)
+  - `status`: `'pending_review'` (the admin can immediately select it in the left review panel and run through the existing approve/configure/publish steps)
+  - cost fields + `total_cost_kes`
+- After insert, invalidate `['all-planting-submissions']` so the review panel shows the new entry, close the sheet, and toast success.
+- No notification rows are created (no plantation/KTB partner is involved anymore).
 
-- `case "assigned"`: rename the planter dropdown label from "Assigned to" to **"Planter"**.
-- `case "planting_scheduled"`: keep **"Planting Team Lead"** (no change).
-- `case "sapling_planted"` — replace the simple `renderPlanterSelect("planted_by", "Planted By")` with a new field:
-  - Default value pre-filled from the existing `assignedPlanterData` query (already fetches `planterId` + `planterName` from the most recent `assigned` transition).
-  - Render a read-only `Input` showing the planter name + a small pencil (`Pencil` from lucide-react) toggle button on the right.
-  - Clicking the pencil flips state `editingPlantedBy` to true, swapping the read-only input for the planter `Select` dropdown (same list as `renderPlanterSelect`). Selecting a value writes to `formData.planted_by` and `formData.planted_by_name` and flips back to the read-only display.
-  - Validation in `validate()` for `sapling_planted` keeps requiring `planted_by`.
-
-### 3. Back-sync to Assigned transition on save
-
-In `StatusTransitionPanel.handleSave` (where `fullData` is built), when `request.toStatus === "sapling_planted"`, add `fullData.planter_changed_from_assigned` boolean + `fullData.original_assigned_planter_id` so the caller can detect a change. (Keep using existing `planter_name` enrichment too.)
-
-In `src/pages/owner/OwnerOrders.tsx` `onConfirm` (~L1818): after inserting the new transition record, when `req.toStatus === "sapling_planted"` and `transitionData.planted_by` differs from the assigned transition's `assigned_to`, update the most recent `assigned` transition row for **each** tree in `req.treeIds`:
-
-```text
-for each treeId:
-  fetch latest tree_status_transitions where tree_id = treeId and to_status = 'assigned'
-  if row.transition_data.assigned_to !== transitionData.planted_by:
-    merge {
-      assigned_to: <new planter id>,
-      assigned_to_name: <new planter name>,
-      planter_name: <new planter name>,
-    } into transition_data and update the row
-```
-
-This keeps the Planter shown under Assigned status identical to the (possibly last-minute changed) Planted By recorded at Sapling Planted, so the data is uniform across the app.
+### 4. Review panel — auto-select new submission (small polish)
+File: `src/components/admin/PlantingCostsReviewPanel.tsx`
+- After a new submission is created, the admin should still click it manually; no changes required unless we want to auto-select. Skip for now to keep scope tight.
 
 ## Out of scope
+- No database schema changes — existing `planting_cost_submissions` / `planting_cost_configs` tables are reused.
+- No removal of the `PlantingCostsTab`/`PlantingCostsKTBTab` files (kept dormant in case rollback is needed).
+- No change to the approval, species selection, fee finalization, or publish flow on the admin side.
 
-- No DB schema changes (transition data lives in existing `tree_status_transitions.transition_data` JSONB).
-- No changes to other status panels, no other label tweaks.
+## Technical notes
+- The existing review-panel query filters by status across all `owner_org` values, so admin-created rows will appear naturally.
+- Using a fixed `owner_org = 'KTB Admin'` avoids null-handling and keeps the history list label meaningful in the review panel.
