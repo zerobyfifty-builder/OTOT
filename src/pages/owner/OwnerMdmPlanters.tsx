@@ -10,16 +10,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Search, Plus, Users, User, CheckCircle2, XCircle, MoreHorizontal,
-  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2
+  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2, ChevronDown
 } from 'lucide-react';
 
 const PLANTER_TYPES = ['KFS Staff', 'Community Farmer', 'CBO Member', 'Youth Group', 'School Group', 'Private'];
+const PLANTER_ROLES = ['Planter', 'Planting Team Lead'];
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const MARITAL_STATUSES = ['Married', 'Unmarried'];
 
