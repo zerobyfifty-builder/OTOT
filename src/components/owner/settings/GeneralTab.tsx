@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Lock, Mail, Phone, Shield } from "lucide-react";
+import { User, Lock, Phone, Shield, Building2 } from "lucide-react";
 import { useActivityLogger } from "@/hooks/useActivityLogger";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 
 interface UserDetails {
   first_name: string | null;
