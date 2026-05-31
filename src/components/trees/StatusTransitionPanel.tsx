@@ -350,6 +350,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       }
       if (request.toStatus === "sapling_planted" && assignedPlanterData?.planterId) {
         fullData.original_assigned_planter_id = assignedPlanterData.planterId;
+        fullData.original_assigned_planter_name = assignedPlanterData.planterName || null;
         fullData.planter_changed_from_assigned = !!formData.planted_by && formData.planted_by !== assignedPlanterData.planterId;
       }
 

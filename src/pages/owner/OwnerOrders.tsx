@@ -2021,6 +2021,12 @@ export const OwnerOrders = () => {
                           if (status === 'verified' && transitionData['planter_name'] !== undefined) {
                             skipKeys.add('planter_name');
                           }
+                          if (status === 'assigned') skipKeys.add('planter_name');
+                          if (status === 'sapling_planted') {
+                            skipKeys.add('planted_by_name');
+                            skipKeys.add('original_assigned_planter_id');
+                            if (!transitionData['planter_changed_from_assigned']) skipKeys.add('planter_changed_from_assigned');
+                          }
                           const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1, changed_by: 999 };
                           const entries = Object.entries(transitionData)
                             .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
@@ -2056,7 +2062,11 @@ export const OwnerOrders = () => {
                                           let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
                                           if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
                                           if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
-                                          const displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
+                                          if (key === 'planter_changed_from_assigned') label = 'Changed From';
+                                          let displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
+                                          if (key === 'planter_changed_from_assigned') {
+                                            displayValue = String((transitionData as Record<string, unknown>)['original_assigned_planter_name'] || 'Previous planter');
+                                          }
                                           return (
                                             <React.Fragment key={key}>
                                               <span className="text-muted-foreground">{label}:</span>
@@ -2929,6 +2939,12 @@ export const OwnerOrders = () => {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
                           if (status === 'verified' && transitionData['planter_name'] !== undefined) skipKeys.add('planter_name');
+                          if (status === 'assigned') skipKeys.add('planter_name');
+                          if (status === 'sapling_planted') {
+                            skipKeys.add('planted_by_name');
+                            skipKeys.add('original_assigned_planter_id');
+                            if (!transitionData['planter_changed_from_assigned']) skipKeys.add('planter_changed_from_assigned');
+                          }
                           const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1, changed_by: 999 };
                           const entries = Object.entries(transitionData)
                             .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
@@ -2963,10 +2979,15 @@ export const OwnerOrders = () => {
                                           let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                                           if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
                                           if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
+                                          if (key === 'planter_changed_from_assigned') label = 'Changed From';
+                                          let displayValue: string = resolveValue(key, value, transitionData);
+                                          if (key === 'planter_changed_from_assigned') {
+                                            displayValue = String((transitionData as Record<string, unknown>)['original_assigned_planter_name'] || 'Previous planter');
+                                          }
                                           return (
                                             <React.Fragment key={key}>
                                               <span className="text-muted-foreground whitespace-nowrap">{label}:</span>
-                                              <span className="font-medium">{resolveValue(key, value, transitionData)}</span>
+                                              <span className="font-medium">{displayValue}</span>
                                             </React.Fragment>
                                           );
                                         })}
