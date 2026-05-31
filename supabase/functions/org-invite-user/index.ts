@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       organization_id, email, password, first_name, last_name, position,
-      job_role, personal_message, owner_type,
+      job_role, custom_role_id, personal_message, owner_type,
     } = body || {};
 
     if (!organization_id || !email || !job_role) {
@@ -37,10 +37,13 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const allowed = owner_type === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
-    if (!allowed.has(job_role)) {
-      return new Response(JSON.stringify({ error: `Role '${job_role}' is not allowed for ${owner_type} organizations` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // When a custom_role_id is provided, the org has approved it via the Roles tab — trust it.
+    if (!custom_role_id) {
+      const allowed = owner_type === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
+      if (!allowed.has(job_role)) {
+        return new Response(JSON.stringify({ error: `Role '${job_role}' is not allowed for ${owner_type} organizations` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // Caller (inviter)
@@ -93,6 +96,7 @@ Deno.serve(async (req) => {
         last_name,
         position,
         job_role,
+        custom_role_id: custom_role_id ?? null,
         personal_message,
         status: "active",
         invited_by: inviter?.id ?? null,

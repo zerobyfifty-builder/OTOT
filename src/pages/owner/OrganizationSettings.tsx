@@ -3,12 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralTab } from "@/components/owner/settings/GeneralTab";
 import { UsersTab } from "@/components/owner/settings/UsersTab";
+import { RolesTab } from "@/components/owner/settings/RolesTab";
 import { NotificationsTab } from "@/components/owner/settings/NotificationsTab";
 import { LogsTab } from "@/components/owner/settings/LogsTab";
 import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Users, Bell, ScrollText } from "lucide-react";
+import { User, Users, Shield, Bell, ScrollText } from "lucide-react";
 
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,6 +57,11 @@ export const OrganizationSettings: React.FC = () => {
               <Users className="h-4 w-4" /> Users
             </TabsTrigger>
           )}
+          {isOrgAdmin && (
+            <TabsTrigger value="roles" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
+              <Shield className="h-4 w-4" /> Roles
+            </TabsTrigger>
+          )}
           <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <Bell className="h-4 w-4" /> Notifications
           </TabsTrigger>
@@ -68,7 +74,8 @@ export const OrganizationSettings: React.FC = () => {
 
         <TabsContent value="general" className="mt-6"><GeneralTab /></TabsContent>
         {isOrgAdmin && <TabsContent value="users" className="mt-6"><UsersTab /></TabsContent>}
-        
+        {isOrgAdmin && <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>}
+
         <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
         {isOrgAdmin && (
           <TabsContent value="logs" className="mt-6">

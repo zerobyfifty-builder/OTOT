@@ -1623,6 +1623,53 @@ export type Database = {
           },
         ]
       }
+      org_custom_roles: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          mapped_job_role: Database["public"]["Enums"]["org_job_role"]
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          mapped_job_role?: Database["public"]["Enums"]["org_job_role"]
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          mapped_job_role?: Database["public"]["Enums"]["org_job_role"]
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_custom_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_job_role_defaults: {
         Row: {
           job_role: Database["public"]["Enums"]["org_job_role"]
@@ -1691,6 +1738,7 @@ export type Database = {
       org_users: {
         Row: {
           created_at: string
+          custom_role_id: string | null
           email: string
           first_name: string | null
           id: string
@@ -1708,6 +1756,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_role_id?: string | null
           email: string
           first_name?: string | null
           id?: string
@@ -1725,6 +1774,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_role_id?: string | null
           email?: string
           first_name?: string | null
           id?: string
@@ -1741,6 +1791,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "org_users_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "org_custom_roles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "org_users_organization_id_fkey"
             columns: ["organization_id"]

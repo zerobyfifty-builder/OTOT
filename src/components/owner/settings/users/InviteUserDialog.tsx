@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useOrgOwnerType, getRolesForOwnerType } from "@/hooks/useOrgOwnerType";
+import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
+import { useOrgCustomRoles } from "@/hooks/useOrgCustomRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,7 +17,7 @@ interface Props { open: boolean; onOpenChange: (o: boolean) => void; }
 export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const { data: orgCtx } = useOrgOwnerType();
   const qc = useQueryClient();
-  const roles = getRolesForOwnerType(orgCtx?.ownerType || "other");
+  const { data: roles = [] } = useOrgCustomRoles(orgCtx?.organizationId, { activeOnly: true });
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -36,11 +37,16 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !jobRole || !orgCtx?.organizationId) {
-      toast.error("Email and Job Role are required");
+      toast.error("Email and Role are required");
       return;
     }
     if (!password || password.length < 8) {
       toast.error("Password must be at least 8 characters");
+      return;
+    }
+    const selected = roles.find((r) => r.id === jobRole);
+    if (!selected) {
+      toast.error("Please select a valid role");
       return;
     }
     setSubmitting(true);
@@ -53,7 +59,8 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
           position: position.trim() || null,
-          job_role: jobRole,
+          job_role: selected.mapped_job_role,
+          custom_role_id: selected.id,
           personal_message: message.trim() || null,
           owner_type: orgCtx.ownerType,
         },
@@ -121,11 +128,11 @@ export const InviteUserDialog: React.FC<Props> = ({ open, onOpenChange }) => {
             <Input id="position" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="e.g. Forestry Lead" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="role">Job Role *</Label>
+            <Label htmlFor="role">Role *</Label>
             <Select value={jobRole} onValueChange={setJobRole}>
               <SelectTrigger id="role"><SelectValue placeholder="Select a role" /></SelectTrigger>
               <SelectContent>
-                {roles.map((r) => (<SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>))}
+                {roles.map((r) => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>

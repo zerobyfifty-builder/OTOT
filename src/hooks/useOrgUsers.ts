@@ -11,6 +11,7 @@ export interface OrgUserRow {
   last_name: string | null;
   position: string | null;
   job_role: string;
+  custom_role_id: string | null;
   status: "pending" | "active" | "deactivated";
   invited_at: string | null;
   joined_at: string | null;
@@ -72,7 +73,7 @@ export function useUpdateOrgUser() {
       patch,
     }: {
       id: string;
-      patch: Partial<Pick<OrgUserRow, "first_name" | "last_name" | "position" | "job_role">>;
+      patch: Partial<Pick<OrgUserRow, "first_name" | "last_name" | "position" | "job_role" | "custom_role_id">>;
     }) => {
       const { error } = await supabase.from("org_users").update(patch as any).eq("id", id);
       if (error) throw error;
