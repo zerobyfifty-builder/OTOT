@@ -2939,6 +2939,12 @@ export const OwnerOrders = () => {
                             if (transitionData[labelKey] !== undefined) skipKeys.add(idKey);
                           }
                           if (status === 'verified' && transitionData['planter_name'] !== undefined) skipKeys.add('planter_name');
+                          if (status === 'assigned') skipKeys.add('planter_name');
+                          if (status === 'sapling_planted') {
+                            skipKeys.add('planted_by_name');
+                            skipKeys.add('original_assigned_planter_id');
+                            if (!transitionData['planter_changed_from_assigned']) skipKeys.add('planter_changed_from_assigned');
+                          }
                           const entrySortOrder: Record<string, number> = { target_beat_label: 0, assigned_to_name: 1, changed_by: 999 };
                           const entries = Object.entries(transitionData)
                             .filter(([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== '')
