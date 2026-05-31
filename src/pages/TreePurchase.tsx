@@ -56,8 +56,8 @@ export const TreePurchase = () => {
   
   const { minMonths, maxMonths } = getMonthlyBounds();
   const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
-  // Default to all trees (treesNeeded)
-  const [customTreeCount, setCustomTreeCount] = useState(treesNeeded);
+  // Default to the remaining (balance) trees for this trip
+  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded - (routePlantedPrior || 0)));
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Card");
