@@ -57,6 +57,15 @@ export default function AllOwners() {
   const [deleteTarget, setDeleteTarget] = useState<Owner | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Password reset dialog state
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [pwdOwner, setPwdOwner] = useState<Owner | null>(null);
+  const [pwdUsers, setPwdUsers] = useState<{ user_id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
+  const [pwdSelectedUser, setPwdSelectedUser] = useState<string>("");
+  const [pwdNew, setPwdNew] = useState("");
+  const [pwdConfirm, setPwdConfirm] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
+
   const fetchOwners = async () => {
     setLoading(true);
     try {
