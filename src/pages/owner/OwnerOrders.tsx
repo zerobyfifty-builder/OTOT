@@ -1968,7 +1968,7 @@ export const OwnerOrders = () => {
                         );
                       })()}
 
-                      <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                      <Accordion type="multiple" className="w-full divide-y [&>*]:border-0">
                         {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
                           const statusOrder = getPlantingStatusOrder(status);
                           const isCompleted = statusOrder < currentOrder;
@@ -2874,7 +2874,7 @@ export const OwnerOrders = () => {
                           </div>
                         );
                       })()}
-                      <Accordion type="single" collapsible className="w-full divide-y [&>*]:border-0">
+                      <Accordion type="multiple" className="w-full divide-y [&>*]:border-0">
                         {allLifecycleStatuses.filter(s => s !== 'waiting_to_be_assigned').map((status) => {
                           const statusOrder = getPlantingStatusOrder(status);
                           const isCompleted = statusOrder < currentOrder;
