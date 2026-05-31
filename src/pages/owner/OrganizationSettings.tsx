@@ -67,7 +67,7 @@ export const OrganizationSettings: React.FC = () => {
 
         <TabsContent value="general" className="mt-6"><GeneralTab /></TabsContent>
         {isOrgAdmin && <TabsContent value="users" className="mt-6"><UsersTab /></TabsContent>}
-        <TabsContent value="organization" className="mt-6"><OrganizationTab /></TabsContent>
+        
         <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
         {isOrgAdmin && (
           <TabsContent value="logs" className="mt-6">
