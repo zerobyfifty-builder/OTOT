@@ -10,22 +10,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Search, Plus, Users, User, CheckCircle2, XCircle, MoreHorizontal,
-  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2
+  Pencil, MapPin, Download, AlertTriangle, X, ChevronRight, Upload, Trash2, ChevronDown
 } from 'lucide-react';
 
 const PLANTER_TYPES = ['KFS Staff', 'Community Farmer', 'CBO Member', 'Youth Group', 'School Group', 'Private'];
+const PLANTER_ROLES = ['Planter', 'Planting Team Lead'];
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const MARITAL_STATUSES = ['Married', 'Unmarried'];
 
 interface PlanterForm {
   name: string;
   id_number: string;
+  roles: string[];
   planter_type: string;
   gender: string;
   marital_status: string;
@@ -42,7 +45,7 @@ interface PlanterForm {
 }
 
 const emptyForm: PlanterForm = {
-  name: '', id_number: '', planter_type: 'Community Farmer', gender: 'Male',
+  name: '', id_number: '', roles: ['Planter'], planter_type: 'Community Farmer', gender: 'Male',
   marital_status: 'Unmarried', number_of_kids: '', experience_years: '',
   phone: '', email: '', cbo_nursery_id: '', county: '', sub_county: '',
   date_registered: new Date().toISOString().split('T')[0], photo_url: '', notes: '',
@@ -69,6 +72,7 @@ export function OwnerMdmPlanters() {
   const [beatBlockId, setBeatBlockId] = useState('');
   const [beatStationId, setBeatStationId] = useState('');
   const [selectedBeatId, setSelectedBeatId] = useState('');
+  const [photoLightbox, setPhotoLightbox] = useState<string | null>(null);
 
   // Org ID
   useQuery({
@@ -193,6 +197,7 @@ export function OwnerMdmPlanters() {
     setFormData({
       name: item.name || '',
       id_number: item.id_number || '',
+      roles: Array.isArray(item.roles) && item.roles.length ? item.roles : ['Planter'],
       planter_type: item.planter_type || 'Community Farmer',
       gender: item.gender || 'Male',
       marital_status: item.marital_status || 'Unmarried',
@@ -222,6 +227,7 @@ export function OwnerMdmPlanters() {
       const payload: any = {
         name: formData.name.trim(),
         id_number: formData.id_number.trim() || null,
+        roles: formData.roles.length ? formData.roles : ['Planter'],
         planter_type: formData.planter_type,
         gender: formData.gender,
         marital_status: formData.marital_status || null,
@@ -401,7 +407,8 @@ export function OwnerMdmPlanters() {
             <TableHeader>
               <TableRow>
                 <TableHead>Full Name</TableHead>
-                <TableHead>ID Number</TableHead>
+                <TableHead>ID #</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>County</TableHead>
@@ -412,15 +419,23 @@ export function OwnerMdmPlanters() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No planters found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No planters found</TableCell></TableRow>
               ) : filtered.map((item: any) => {
                 const beatCount = (item.assigned_beats || []).length;
+                const roles: string[] = Array.isArray(item.roles) && item.roles.length ? item.roles : ['Planter'];
                 return (
                   <TableRow key={item.id} className={item.status !== 'active' ? 'opacity-50' : ''}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-muted-foreground">{item.id_number || '—'}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {roles.map(r => (
+                          <Badge key={r} variant="secondary" className="text-xs">{r}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{item.planter_type || '—'}</Badge>
                     </TableCell>
@@ -491,9 +506,45 @@ export function OwnerMdmPlanters() {
                 <Label className="text-xs">Full Name *</Label>
                 <Input value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="e.g. John Kamau" className="h-9" />
               </div>
-              <div>
-                <Label className="text-xs">ID / Passport Number</Label>
-                <Input value={formData.id_number} onChange={e => setFormData(p => ({ ...p, id_number: e.target.value }))} placeholder="National ID or Passport" className="h-9" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">ID / Passport Number</Label>
+                  <Input value={formData.id_number} onChange={e => setFormData(p => ({ ...p, id_number: e.target.value }))} placeholder="National ID or Passport" className="h-9" />
+                </div>
+                <div>
+                  <Label className="text-xs">Role</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="h-9 w-full justify-between font-normal">
+                        <span className="truncate text-left">
+                          {formData.roles.length ? formData.roles.join(', ') : 'Select role(s)'}
+                        </span>
+                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-popover z-50">
+                      <DropdownMenuLabel className="text-xs">Assign role(s)</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {PLANTER_ROLES.map(r => (
+                        <DropdownMenuCheckboxItem
+                          key={r}
+                          checked={formData.roles.includes(r)}
+                          onCheckedChange={(checked) => {
+                            setFormData(p => ({
+                              ...p,
+                              roles: checked
+                                ? Array.from(new Set([...p.roles, r]))
+                                : p.roles.filter(x => x !== r),
+                            }));
+                          }}
+                          onSelect={e => e.preventDefault()}
+                        >
+                          {r}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -574,6 +625,7 @@ export function OwnerMdmPlanters() {
                   <PlanterPhotoUpload
                     value={formData.photo_url}
                     onChange={(url) => setFormData(p => ({ ...p, photo_url: url }))}
+                    onPreview={(url) => setPhotoLightbox(url)}
                   />
                 </div>
               </div>
@@ -691,6 +743,15 @@ export function OwnerMdmPlanters() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Photo lightbox */}
+      <Dialog open={!!photoLightbox} onOpenChange={(open) => { if (!open) setPhotoLightbox(null); }}>
+        <DialogContent className="max-w-2xl p-2 bg-background">
+          {photoLightbox && (
+            <img src={photoLightbox} alt="Planter" className="w-full h-auto max-h-[80vh] object-contain rounded" />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -804,7 +865,7 @@ function BeatAssignmentInline({ planterId, planterBeats, beatNameMap, counties, 
   );
 }
 
-function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+function PlanterPhotoUpload({ value, onChange, onPreview }: { value: string; onChange: (url: string) => void; onPreview?: (url: string) => void }) {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -831,7 +892,14 @@ function PlanterPhotoUpload({ value, onChange }: { value: string; onChange: (url
   if (value) {
     return (
       <div className="flex items-center gap-2 h-9">
-        <img src={value} alt="Planter" className="h-9 w-9 rounded-md object-cover border" />
+        <button
+          type="button"
+          onClick={() => onPreview?.(value)}
+          className="h-9 w-9 rounded-md overflow-hidden border hover:ring-2 hover:ring-emerald-500 transition"
+          title="Click to view"
+        >
+          <img src={value} alt="Planter" className="h-full w-full object-cover" />
+        </button>
         <Button type="button" variant="outline" size="sm" className="h-9 gap-1" onClick={() => onChange('')}>
           <Trash2 className="h-3.5 w-3.5" /> Remove
         </Button>

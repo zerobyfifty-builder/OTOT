@@ -2714,6 +2714,7 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           planter_type: string | null
+          roles: string[]
           status: string
           sub_county: string | null
           updated_at: string | null
@@ -2739,6 +2740,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           planter_type?: string | null
+          roles?: string[]
           status?: string
           sub_county?: string | null
           updated_at?: string | null
@@ -2764,6 +2766,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           planter_type?: string | null
+          roles?: string[]
           status?: string
           sub_county?: string | null
           updated_at?: string | null
