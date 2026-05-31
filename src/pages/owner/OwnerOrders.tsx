@@ -1921,7 +1921,7 @@ export const OwnerOrders = () => {
               planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
               replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
               re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
-              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planting Team Lead',
               changed_by: 'Entered By',
             };
 
@@ -2818,7 +2818,7 @@ export const OwnerOrders = () => {
             const allLifecycleStatuses = PLANTING_STATUSES;
 
             const friendlyLabels: Record<string, string> = {
-              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planter', assigned_date: 'Assigned Date',
+              target_beat_label: 'Location (Target Beat)', assigned_to_name: 'Planting Team Lead', assigned_date: 'Assigned Date',
               nursery_name: 'Nursery / CBO', species_name: 'Species', tree_carer_name: 'Tree Carer',
               soil_type: 'Soil Type', rainfall_mm: 'Rainfall (mm)', site_prep_date: 'Site Preparation Date', site_notes: 'Site Notes',
               sapling_ready_date: 'Sapling Ready Date', sapling_source: 'Sapling Source', sapling_age: 'Sapling Age',
@@ -2829,7 +2829,7 @@ export const OwnerOrders = () => {
               planted_confirmed_date: 'Confirmed Date', date_confirmed_dead: 'Date Confirmed Dead', cause_of_death: 'Cause of Death',
               replacement_planned: 'Replacement Planned', replacement_target_date: 'Replacement Target Date',
               re_planted_date: 'Re-planted Date', re_planting_method: 'Re-planting Method',
-              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planter',
+              notes: 'Notes', reason: 'Reason', batch_notice: 'Notice', planter_name: 'Planting Team Lead',
               changed_by: 'Entered By',
             };
             const idToLabelMap: Record<string, string> = {
