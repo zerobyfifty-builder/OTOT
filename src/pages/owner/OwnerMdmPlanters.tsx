@@ -28,6 +28,7 @@ const MARITAL_STATUSES = ['Married', 'Unmarried'];
 interface PlanterForm {
   name: string;
   id_number: string;
+  roles: string[];
   planter_type: string;
   gender: string;
   marital_status: string;
@@ -44,7 +45,7 @@ interface PlanterForm {
 }
 
 const emptyForm: PlanterForm = {
-  name: '', id_number: '', planter_type: 'Community Farmer', gender: 'Male',
+  name: '', id_number: '', roles: ['Planter'], planter_type: 'Community Farmer', gender: 'Male',
   marital_status: 'Unmarried', number_of_kids: '', experience_years: '',
   phone: '', email: '', cbo_nursery_id: '', county: '', sub_county: '',
   date_registered: new Date().toISOString().split('T')[0], photo_url: '', notes: '',
