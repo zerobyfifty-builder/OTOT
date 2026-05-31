@@ -2062,10 +2062,12 @@ export const OwnerOrders = () => {
                                           let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
                                           if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
                                           if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
-                                          if (key === 'planter_changed_from_assigned') label = 'Changed From';
+                                          if (key === 'planter_changed_from_assigned') label = 'Assigned Planter';
                                           let displayValue = resolveValue(key, value, transitionData as Record<string, unknown>);
                                           if (key === 'planter_changed_from_assigned') {
-                                            displayValue = String((transitionData as Record<string, unknown>)['original_assigned_planter_name'] || 'Previous planter');
+                                            const td = transitionData as Record<string, unknown>;
+                                            const origId = td['original_assigned_planter_id'] as string | undefined;
+                                            displayValue = String(td['original_assigned_planter_name'] || (origId && planterNameMap.get(origId)) || 'Unknown');
                                           }
                                           return (
                                             <React.Fragment key={key}>
@@ -2979,10 +2981,12 @@ export const OwnerOrders = () => {
                                           let label = friendlyLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
                                           if (key === 'assigned_to_name') label = status === 'planting_scheduled' ? 'Planting Team Lead' : 'Planter';
                                           if (key === 'planter_name') label = status === 'sapling_planted' ? 'Planted By' : status === 'assigned' ? 'Planter' : 'Planting Team Lead';
-                                          if (key === 'planter_changed_from_assigned') label = 'Changed From';
+                                          if (key === 'planter_changed_from_assigned') label = 'Assigned Planter';
                                           let displayValue: string = resolveValue(key, value, transitionData);
                                           if (key === 'planter_changed_from_assigned') {
-                                            displayValue = String((transitionData as Record<string, unknown>)['original_assigned_planter_name'] || 'Previous planter');
+                                            const td = transitionData as Record<string, unknown>;
+                                            const origId = td['original_assigned_planter_id'] as string | undefined;
+                                            displayValue = String(td['original_assigned_planter_name'] || (origId && planterNameMap.get(origId)) || 'Unknown');
                                           }
                                           return (
                                             <React.Fragment key={key}>
