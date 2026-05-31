@@ -839,7 +839,9 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
             <Input
               placeholder="Your name"
               value={formData.changed_by || ""}
-              onChange={(e) => setField("changed_by", e.target.value)}
+              readOnly
+              disabled
+              className="bg-muted cursor-not-allowed"
             />
             <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
           </div>
