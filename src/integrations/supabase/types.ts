@@ -1694,6 +1694,50 @@ export type Database = {
         }
         Relationships: []
       }
+      org_role_permissions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          module_name: string
+          organization_id: string
+          permissions: Json
+          role_id: string
+          sub_features: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_name: string
+          organization_id: string
+          permissions?: Json
+          role_id: string
+          sub_features?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module_name?: string
+          organization_id?: string
+          permissions?: Json
+          role_id?: string
+          sub_features?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "org_custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_user_permissions: {
         Row: {
           created_at: string
