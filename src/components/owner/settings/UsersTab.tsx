@@ -15,10 +15,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, MoreVertical, Search, Pencil, Shield, Power, Trash2, Mail } from "lucide-react";
+import { Plus, MoreVertical, Search, Pencil, Power, Trash2, Mail } from "lucide-react";
 import { InviteUserDialog } from "./users/InviteUserDialog";
 import { EditUserDialog } from "./users/EditUserDialog";
-import { UserPermissionsSheet } from "./users/UserPermissionsSheet";
+import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { formatDistanceToNow } from "date-fns";
 
 const roleColor: Record<string, string> = {

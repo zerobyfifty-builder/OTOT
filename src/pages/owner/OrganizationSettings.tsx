@@ -4,12 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralTab } from "@/components/owner/settings/GeneralTab";
 import { UsersTab } from "@/components/owner/settings/UsersTab";
 import { RolesTab } from "@/components/owner/settings/RolesTab";
+import WorkflowAssignmentTab from "@/components/owner/settings/WorkflowAssignmentTab";
 import { NotificationsTab } from "@/components/owner/settings/NotificationsTab";
 import { LogsTab } from "@/components/owner/settings/LogsTab";
 import { useOrgOwnerType } from "@/hooks/useOrgOwnerType";
 import { useIsOrgAdmin } from "@/hooks/useIsOrgAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Users, Shield, Bell, ScrollText } from "lucide-react";
+import { User, Users, Shield, Bell, ScrollText, SlidersHorizontal } from "lucide-react";
 
 export const OrganizationSettings: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +63,11 @@ export const OrganizationSettings: React.FC = () => {
               <Shield className="h-4 w-4" /> Roles
             </TabsTrigger>
           )}
+          {isOrgAdmin && (
+            <TabsTrigger value="workflow" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
+              <SlidersHorizontal className="h-4 w-4" /> Workflow Assignment
+            </TabsTrigger>
+          )}
           <TabsTrigger value="notifications" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5">
             <Bell className="h-4 w-4" /> Notifications
           </TabsTrigger>
@@ -75,6 +81,7 @@ export const OrganizationSettings: React.FC = () => {
         <TabsContent value="general" className="mt-6"><GeneralTab /></TabsContent>
         {isOrgAdmin && <TabsContent value="users" className="mt-6"><UsersTab /></TabsContent>}
         {isOrgAdmin && <TabsContent value="roles" className="mt-6"><RolesTab /></TabsContent>}
+        {isOrgAdmin && <TabsContent value="workflow" className="mt-6"><WorkflowAssignmentTab /></TabsContent>}
 
         <TabsContent value="notifications" className="mt-6"><NotificationsTab /></TabsContent>
         {isOrgAdmin && (
