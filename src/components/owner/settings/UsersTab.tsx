@@ -37,6 +37,7 @@ export const UsersTab: React.FC = () => {
   const { data: orgCtx } = useOrgOwnerType();
   const { data: members = [], isLoading } = useOrgUsers(orgCtx?.organizationId);
   const { data: customRoles = [] } = useOrgCustomRoles(orgCtx?.organizationId);
+  const { data: isAdmin } = useIsOrgAdmin();
   const toggleStatus = useToggleOrgUserStatus();
   const removeUser = useRemoveOrgUser();
 
@@ -50,7 +51,6 @@ export const UsersTab: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editUser, setEditUser] = useState<OrgUserRow | null>(null);
-  const [permsUser, setPermsUser] = useState<OrgUserRow | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<OrgUserRow | null>(null);
   const [confirmToggle, setConfirmToggle] = useState<{ user: OrgUserRow; next: "active" | "deactivated" } | null>(null);
 
