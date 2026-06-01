@@ -661,7 +661,9 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
                         const purchaseDate = infoSheet.created_at;
                         return (
                           <div className="flex items-center gap-3 py-3">
-                            <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                            <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                              <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                            </div>
                             <div className="flex flex-col items-start min-w-0">
                               <span className="text-sm font-semibold text-foreground">{STATUS_LABELS['waiting_to_be_assigned']}</span>
                               <span className="text-xs text-muted-foreground">
