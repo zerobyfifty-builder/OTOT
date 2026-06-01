@@ -101,14 +101,14 @@ export const UsersTab: React.FC = () => {
               <TableHead>Job Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
-              <TableHead className="w-12" />
+              {isAdmin && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+              <TableRow><TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-12 text-muted-foreground">
                 No members yet. Click "Add User" to add your first team member.
               </TableCell></TableRow>
             ) : (
@@ -164,33 +164,34 @@ export const UsersTab: React.FC = () => {
                     <TableCell className="text-sm text-muted-foreground" title={new Date(joinedAt).toLocaleString()}>
                       {formatDistanceToNow(new Date(joinedAt), { addSuffix: true })}
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditUser(m)}><Pencil className="h-3.5 w-3.5 mr-2" />Edit user</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setPermsUser(m)}><Shield className="h-3.5 w-3.5 mr-2" />Manage permissions</DropdownMenuItem>
-                          {m.status === "pending" && (
-                            <DropdownMenuItem><Mail className="h-3.5 w-3.5 mr-2" />Resend invite</DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          {m.status !== "deactivated" ? (
-                            <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "deactivated" })}>
-                              <Power className="h-3.5 w-3.5 mr-2" />Deactivate
+                    {isAdmin && (
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditUser(m)}><Pencil className="h-3.5 w-3.5 mr-2" />Edit user</DropdownMenuItem>
+                            {m.status === "pending" && (
+                              <DropdownMenuItem><Mail className="h-3.5 w-3.5 mr-2" />Resend invite</DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            {m.status !== "deactivated" ? (
+                              <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "deactivated" })}>
+                                <Power className="h-3.5 w-3.5 mr-2" />Deactivate
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "active" })}>
+                                <Power className="h-3.5 w-3.5 mr-2" />Activate
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => setConfirmDelete(m)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5 mr-2" />Remove
                             </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => setConfirmToggle({ user: m, next: "active" })}>
-                              <Power className="h-3.5 w-3.5 mr-2" />Activate
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => setConfirmDelete(m)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="h-3.5 w-3.5 mr-2" />Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })
@@ -201,7 +202,7 @@ export const UsersTab: React.FC = () => {
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
       <EditUserDialog user={editUser} onOpenChange={(o) => !o && setEditUser(null)} />
-      <UserPermissionsSheet user={permsUser} onOpenChange={(o) => !o && setPermsUser(null)} />
+
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
