@@ -3,14 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  TreePine, TrendingUp, TrendingDown, Leaf, Users, Heart, 
-  RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle, 
+import {
+  TreePine, TrendingUp, TrendingDown, Leaf, Users, Heart,
+  RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle,
   AlertCircle, Info, ChevronRight, MapPin, ExternalLink
 } from "lucide-react";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, ReferenceLine, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine, Cell,
+  AreaChart, Area, Line, LineChart, PieChart, Pie
 } from "recharts";
 import { useCountUp } from "@/components/owner/dashboard/useCountUp";
 import { ExportButton } from "@/components/owner/dashboard/ExportButton";
@@ -24,6 +25,14 @@ const C = {
   muted: '#6B7280', border: '#E5E7EB', barFill: '#639922',
   greenBg: '#EAF3DE', tealBg: '#E1F5EE', amberBg: '#FAEEDA',
 };
+
+// ByeWind-inspired pastel KPI tints (light + dark)
+const KPI_TINTS = [
+  { bg: 'bg-[#E3E7FB] dark:bg-[#2A2E47]', fg: 'text-[#3B4A8C] dark:text-[#C7CEF5]' }, // lilac
+  { bg: 'bg-[#E5F0FF] dark:bg-[#1F2A3D]', fg: 'text-[#1E5BB8] dark:text-[#9EC5FF]' }, // sky
+  { bg: 'bg-[#EFE6FF] dark:bg-[#2D2342]', fg: 'text-[#6B3FB8] dark:text-[#D4BFFF]' }, // lavender
+  { bg: 'bg-[#D7F0E5] dark:bg-[#1E332A]', fg: 'text-[#1D7A52] dark:text-[#9EE3C0]' }, // mint
+];
 
 const STATUS_COLORS: Record<string, string> = {
   waiting_to_be_assigned: '#888780',
@@ -77,8 +86,24 @@ const AnimBar = ({ pct, color, track }: { pct: number; color: string; track: str
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(Math.min(pct, 100)), 100); return () => clearTimeout(t); }, [pct]);
   return (
-    <div className="h-2 w-full rounded-full" style={{ background: track }}>
+    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: track }}>
       <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${w}%`, background: color }} />
+    </div>
+  );
+};
+
+// ─── ByeWind-style thin breakdown bar (label · bar · count) ──
+const ThinBar = ({ label, value, max, color }: { label: string; value: number; max: number; color: string }) => {
+  const [w, setW] = useState(0);
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  useEffect(() => { const t = setTimeout(() => setW(pct), 120); return () => clearTimeout(t); }, [pct]);
+  return (
+    <div className="flex items-center gap-3 text-[12px]">
+      <span className="w-24 truncate text-muted-foreground">{label}</span>
+      <div className="flex-1 h-1 rounded-full bg-muted/40 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${w}%`, background: color }} />
+      </div>
+      <span className="tabular-nums text-foreground font-medium w-12 text-right">{fmtNum(value)}</span>
     </div>
   );
 };
@@ -97,20 +122,69 @@ const DonutRing = ({ pct }: { pct: number }) => {
       <text x={60} y={56} textAnchor="middle" className="fill-current text-foreground" fontSize={18} fontWeight={500}>
         {pct.toFixed(1)}%
       </text>
-      <text x={60} y={72} textAnchor="middle" fill={C.muted} fontSize={10}>of annual target</text>
+      <text x={60} y={72} textAnchor="middle" className="fill-muted-foreground" fontSize={10}>of annual target</text>
     </svg>
   );
 };
 
-// ─── Card wrapper ──────────────────────────────────────────
-const DCard = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
+// ─── Card wrapper (ByeWind soft surface) ───────────────────
+const DCard = ({ children, className = '', delay = 0, tint }: { children: React.ReactNode; className?: string; delay?: number; tint?: string }) => (
   <div
-    className={`bg-card dark:bg-gray-900 border border-[#E5E7EB] dark:border-gray-700 rounded-xl hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-200 ${className}`}
-    style={{ animationDelay: `${delay}ms` }}
+    className={`${tint ?? 'bg-card dark:bg-[#1C1F26]'} rounded-2xl border border-border/40 dark:border-white/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] transition-all duration-300 animate-fade-in ${className}`}
+    style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
   >
     {children}
   </div>
 );
+
+// ─── ByeWind-style pastel KPI tile ─────────────────────────
+const KpiTile = ({
+  label, value, delta, deltaPositive, suffix, tint, delay = 0, decimals = 0,
+}: {
+  label: string;
+  value: number;
+  delta?: string;
+  deltaPositive?: boolean;
+  suffix?: string;
+  tint: { bg: string; fg: string };
+  delay?: number;
+  decimals?: number;
+}) => {
+  const animated = useCountUp(value, 1200, decimals);
+  const display = decimals > 0 ? animated.toFixed(decimals) : fmtNum(Math.round(animated));
+  return (
+    <div
+      className={`${tint.bg} rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(16,24,40,0.08)] animate-fade-in cursor-default`}
+      style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
+    >
+      <p className={`text-[13px] font-medium ${tint.fg} opacity-80`}>{label}</p>
+      <div className="mt-3 flex items-end justify-between gap-2">
+        <p className={`text-[28px] leading-none font-semibold tabular-nums ${tint.fg}`}>
+          {display}
+          {suffix && <span className="text-[14px] font-medium opacity-70 ml-1">{suffix}</span>}
+        </p>
+        {delta && (
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${tint.fg} opacity-80`}>
+            {delta}
+            {deltaPositive === true && <ArrowUpRight className="h-3 w-3" />}
+            {deltaPositive === false && <ArrowDownRight className="h-3 w-3" />}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Crosshair tooltip for area chart (ByeWind bubble) ─────
+const CrosshairTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg bg-foreground text-background px-2.5 py-1.5 text-[11px] font-semibold shadow-lg tabular-nums">
+      {fmtNum(payload[0].value)}
+      <div className="text-[10px] font-normal opacity-70 mt-0.5">{label}</div>
+    </div>
+  );
+};
 
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
