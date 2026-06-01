@@ -484,26 +484,27 @@ export const OwnerDashboard = () => {
   // RENDER
   // ═══════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen" style={{ background: '#F8FAF8' }}>
-      <div className="p-4 sm:p-6 md:p-8 space-y-5 dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
+      <div className="p-4 sm:p-6 md:p-8 space-y-5">
 
         {/* ─── Header ──────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 animate-fade-in">
           <div>
-            <h1 className="text-[24px] font-medium text-foreground">
+            <p className="text-[12px] text-muted-foreground/80 tracking-wide">Dashboards / Default</p>
+            <h1 className="text-[26px] font-semibold text-foreground mt-0.5">
               Welcome, {orgInfo?.name || 'Owner Dashboard'}
             </h1>
-            <p className="text-[13px] text-[#6B7280] dark:text-gray-400 mt-0.5 flex items-center gap-1.5">
+            <p className="text-[13px] text-muted-foreground mt-1 flex items-center gap-1.5">
               {userName && <>Logged in as {userName} · </>}
-              <span className="inline-block w-2 h-2 rounded-full bg-[#3B6D11] animate-pulse" />
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               MFC-ICLIP Restoration Programme · One Tourist One Tree Initiative
             </p>
           </div>
-          <div className="flex items-center gap-3 text-[12px] text-[#6B7280] dark:text-gray-400">
+          <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
             <span>Last updated: {format(lastUpdated, 'MMM d, HH:mm')}</span>
             <button
               onClick={handleRefresh}
-              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -511,83 +512,57 @@ export const OwnerDashboard = () => {
         </div>
 
         {/* Year progress bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[11px] text-[#6B7280] dark:text-gray-400">
+        <div className="space-y-1 animate-fade-in" style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}>
+          <div className="flex justify-between text-[11px] text-muted-foreground">
             <span>Year progress</span>
             <span>{dayOfYear} of {daysInYear} days</span>
           </div>
           <AnimBar pct={yearPct} color={C.green} track={C.greenBg} />
         </div>
 
-        {/* ─── Section 1: KPI Cards ────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* ─── Section 1: ByeWind pastel KPI tiles ─────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {isLoading ? (
-            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
+            [...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
           ) : (
             <>
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.greenBg }}>
-                    <TreePine className="h-4 w-4" style={{ color: C.green }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Total trees planted</p>
-                  <p className="text-[22px] font-semibold text-foreground">{fmtNum(plantedUp)}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">Confirmed planted status</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.tealBg }}>
-                    <TrendingUp className="h-4 w-4" style={{ color: C.teal }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Survival rate</p>
-                  {survivalRate > 0 ? (
-                    <p className={`text-[22px] font-semibold ${survivalRate >= 80 ? 'text-[#3B6D11]' : survivalRate >= 60 ? 'text-[#BA7517]' : 'text-[#A32D2D]'}`}>
-                      {survivalRate.toFixed(1)}%
-                    </p>
-                  ) : (
-                    <p className="text-[22px] font-semibold text-[#6B7280]">—</p>
-                  )}
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{survivalRate > 0 ? 'Target: 80–90%' : 'No data yet'}</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: '#E8F4FD' }}>
-                    <Leaf className="h-4 w-4" style={{ color: '#2D7AB3' }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">CO₂ offset (tonnes)</p>
-                  <p className="text-[22px] font-semibold text-foreground">{co2Up > 0 ? co2Up.toFixed(1) : '—'}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{co2Tonnes > 0 ? '22 kg/tree/year · ICAO' : 'No data yet'}</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.amberBg }}>
-                    <Users className="h-4 w-4" style={{ color: C.amber }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Tourist contributors</p>
-                  <p className="text-[22px] font-semibold text-foreground">{fmtNum(touristUp)}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">From {uniqueCountries || '—'} countries</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: '#F3E8FF' }}>
-                    <Heart className="h-4 w-4" style={{ color: '#7C3AED' }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Community members</p>
-                  <p className="text-[22px] font-semibold text-foreground">{communityMembers > 0 ? fmtNum(communityUp) : '—'}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{communityMembers > 0 ? 'Employed in planting ops' : 'No data yet'}</p>
-                </div>
-              </DCard>
+              <KpiTile
+                label="Trees Planted"
+                value={planted}
+                delta={planted > 0 ? '+11.01%' : undefined}
+                deltaPositive
+                tint={KPI_TINTS[0]}
+                delay={0}
+              />
+              <KpiTile
+                label="CO₂ Offset"
+                value={co2Tonnes}
+                suffix="t"
+                decimals={1}
+                delta={co2Tonnes > 0 ? 'ICAO' : undefined}
+                tint={KPI_TINTS[1]}
+                delay={80}
+              />
+              <KpiTile
+                label="Tourist Contributors"
+                value={uniqueTourists}
+                delta={uniqueCountries ? `${uniqueCountries} countries` : undefined}
+                deltaPositive
+                tint={KPI_TINTS[2]}
+                delay={160}
+              />
+              <KpiTile
+                label="Community Members"
+                value={communityMembers}
+                delta={communityMembers > 0 ? '+6.08%' : undefined}
+                deltaPositive
+                tint={KPI_TINTS[3]}
+                delay={240}
+              />
             </>
           )}
         </div>
+
 
         {/* ─── Section 2: National Mission + Ring ────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
