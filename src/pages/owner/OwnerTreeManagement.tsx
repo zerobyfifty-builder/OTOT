@@ -693,15 +693,31 @@ export function OwnerTreeManagement({ skipPermissionCheck = false }: { skipPermi
                             .sort((a, b) => (entrySortOrder[a[0]] ?? 99) - (entrySortOrder[b[0]] ?? 99));
                           return (
                             <AccordionItem key={status} value={status} className={`border-0 ${isFuture ? 'opacity-50' : ''}`}>
-                              <AccordionTrigger className="hover:no-underline py-3">
+                              <AccordionTrigger
+                                className={`hover:no-underline py-3 ${isFuture ? '[&>svg]:hidden cursor-default' : ''}`}
+                                disabled={isFuture}
+                                onClick={isFuture ? (e) => e.preventDefault() : undefined}
+                              >
                                 <div className="flex items-center gap-3 w-full">
-                                  {isCompleted ? <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> : isCurrent ? <Circle className="h-5 w-5 text-primary fill-primary/20 shrink-0" /> : <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />}
+                                  {isCompleted ? (
+                                    <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                                      <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                                    </div>
+                                  ) : isCurrent ? (
+                                    <div className="h-6 w-6 rounded-full border-2 border-amber-500 bg-amber-50 flex items-center justify-center shrink-0">
+                                      <Sparkles className="h-3 w-3 text-amber-500" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-6 w-6 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                                  )}
                                   <div className="flex flex-col items-start text-left min-w-0">
-                                    <span className={`text-sm ${isCompleted || isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
+                                    <span className={`text-sm ${isCompleted ? 'font-semibold text-foreground' : isCurrent ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground'}`}>
                                       {STATUS_LABELS[status]}
                                     </span>
                                     {transition?.created_at ? (
                                       <span className="text-xs text-muted-foreground">{format(new Date(transition.created_at), "dd MMM yyyy, hh:mm a")}</span>
+                                    ) : isCurrent ? (
+                                      <span className="text-xs text-amber-600 font-medium">Next — click to log</span>
                                     ) : isFuture ? (
                                       <span className="text-xs text-muted-foreground italic">Pending</span>
                                     ) : null}
