@@ -1253,12 +1253,6 @@ export const OwnerOrders = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {canTreeOperations && (
-                                <DropdownMenuItem onClick={() => navigate(`/owner/orders/${group.contribution_id}/operations`)}>
-                                  <Eye className="h-3.5 w-3.5 mr-2" />
-                                  Tree Operations
-                                </DropdownMenuItem>
-                                )}
                                 {canPlantingOverview && (
                                 <DropdownMenuItem onClick={() => {
                                   const firstTree = group.trees[0];
