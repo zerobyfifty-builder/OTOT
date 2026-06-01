@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, TreePine, MapPin, Eye, CheckCircle2, Circle, ZoomIn, Activity, TrendingUp } from "lucide-react";
+import { Search, TreePine, MapPin, Eye, CheckCircle2, Circle, ZoomIn, Activity, TrendingUp, Check, Sparkles } from "lucide-react";
 import { useModulePermissions } from "@/hooks/useModulePermissions";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
