@@ -1,64 +1,99 @@
-## Goal
+# Workflow Assignment Tab — Role-Based Module Permissions
 
-Add a **Roles** tab next to the Users tab in Organization Settings (all three owner portals: institutional, plantation, tech) that lets the org admin create, edit, deactivate, and delete custom Job Roles for their organization. The role dropdown in the Add User / Edit User sheets is then populated from these custom roles instead of the hard-coded enum list.
+Move module/sub-feature permission allocation from **per-user** to **per-role**, scoped to each owner org. Reuse the exact UI/UX of the Super Admin → Owners → Modules screen (the attached design).
 
-## Database changes (one migration)
+## Scope
 
-Create `public.org_custom_roles`:
+- Owner portals only (Institutional, Plantation, Tech).
+- Adds a new **Workflow Assignment** tab in Organization Settings (next to Roles).
+- Removes the **Manage Permissions** action from the Users tab.
+- Permissions now resolve from the user's assigned custom role.
+- Gates Roles tab, Workflow Assignment tab, and the per-user action menu in the Users tab to **org owner + users whose custom role is the system Admin role** (mapped_job_role = `org_admin`).
 
-| column          | type                  | notes                                       |
-| --------------- | --------------------- | ------------------------------------------- |
-| id              | uuid PK               |                                             |
-| organization_id | uuid (FK orgs)        | required                                    |
-| name            | text                  | role label, unique per org                  |
-| color           | text                  | preset key: slate, rose, pink, emerald, teal, sky, indigo, violet, amber, orange |
-| description     | text                  | optional                                    |
-| is_active       | boolean default true  |                                             |
-| is_system       | boolean default false | true for the seeded "Admin" row, non-deletable |
-| mapped_job_role | org_job_role default 'user' | hidden — keeps existing admin gating (`is_org_admin`) working; the seeded Admin row maps to `org_admin`, all custom roles map to `user` |
-| created_at / updated_at | timestamptz   |                                             |
+## Access gating
 
-- GRANT to authenticated + service_role; enable RLS.
-- Policies: org members can read their org's roles; only org admins (or super_admin) can insert/update/delete; system rows cannot be deleted (enforced via trigger).
-- Seed: for every existing organization, create one `is_system = true` row named "Admin" with color `violet` and `mapped_job_role = 'org_admin'`. New orgs get the same seed via a trigger on `organizations` insert.
-- Add nullable column `org_users.custom_role_id uuid` referencing `org_custom_roles(id)`. Existing `job_role` enum column stays for backward compatibility (admin gating, RLS).
+A single helper `useIsOrgAdminUser()` returns true when **either**:
+1. The signed-in user is the org owner (`users.organization_id = current org` — the existing `is_org_admin` fallback), or
+2. The user's `org_users.custom_role_id` points to an `org_custom_roles` row with `is_system = true` AND `mapped_job_role = 'org_admin'`.
 
-## UI changes
+Applied to:
+- `OrganizationSettings.tsx` — Roles tab + Workflow Assignment tab are hidden (and their routes return null) for non-admins.
+- `UsersTab.tsx` — the 3-dot action menu column is hidden for non-admins (they still see the user list, read-only).
+- RLS on `org_role_permissions` and existing `org_custom_roles` policies enforce the same rule server-side.
 
-### 1. New `RolesTab` component (`src/components/owner/settings/RolesTab.tsx`)
+## Database (migration)
 
-Matches the attached design:
+### New table `public.org_role_permissions`
+- `id uuid pk`, `organization_id uuid`, `role_id uuid → org_custom_roles(id) ON DELETE CASCADE`
+- `module_name text` (matches `modules.name`)
+- `enabled boolean default false`
+- `permissions jsonb` — `{ read, write, edit, delete }`
+- `sub_features jsonb` — same keys as today (e.g. `tree_orders.action.*`)
+- `created_at`, `updated_at`
+- UNIQUE `(role_id, module_name)`
+- GRANT: `authenticated` (CRUD), `service_role` (all). No anon.
+- RLS:
+  - SELECT: any authenticated user in the same org (so `useModulePermissions` resolves their own role).
+  - INSERT/UPDATE/DELETE: `is_org_admin(auth.uid(), organization_id)` OR `is_super_admin(auth.uid())`.
+- `updated_at` trigger via existing `update_updated_at_column()`.
 
-- Header: "Roles" title + "Define custom roles for users in <Org Name>" subtitle + **Create Role** button (top right).
-- Table columns: Role (colored pill), Description, Active (toggle switch), Created (DD/MM/YYYY), Actions (3-dot menu → Edit / Delete).
-- Tab label badge shows live role count (mirrors the "3" badge on the Users tab).
-- Toggle on a system row is disabled; Delete is hidden for system rows.
+No backfill — existing `org_user_permissions` rows are left in place but no longer read. Kept for rollback; can be dropped later.
 
-### 2. New `RoleFormSheet` component
+## Frontend
 
-Right-side slider sheet (`Sheet`) used for both Create and Edit:
+### New: `src/hooks/useIsOrgAdminUser.ts`
+Returns `{ isAdmin, isLoading }` based on the rule above. Reused by Organization Settings tabs and UsersTab.
 
-- Title: "Create Role" / "Edit Role" with top-right X close (per dialog-closing standard).
-- Fields: Role Name (required), Color (10 swatches selectable grid: slate, rose, pink, emerald, teal, sky, indigo, violet, amber, orange), Description (textarea, optional).
-- Footer: Cancel / Create or Save.
+### New: `src/components/owner/settings/WorkflowAssignmentTab.tsx`
+Mirrors `src/pages/admin/OwnerModules.tsx`:
+- Columns = active roles from `org_custom_roles` for the current org (system Admin first, then by name).
+- Rows = modules currently assigned to the org via `organization_modules`, using the same display names, OM codes, `Shared` / `Own data` badges, Forest Registry collapsible group, and same ordering.
+- Each cell: `Switch` (enabled) + RWED short label + popover with RWED checkboxes (Read auto-kept when any other is on).
+- Tree Orders row expandable to show the 9 sub-feature action items (same keys as `UserPermissionsSheet`'s `TREE_ORDERS_SUBFEATURES`), each with its own toggle per role.
+- Forest Registry group toggle with `n/5` count badge and bulk enable/disable.
+- Writes go to `org_role_permissions`.
+- The system Admin role column is rendered read-only with all toggles on (full access).
 
-### 3. Wire Roles tab into `OrganizationSettings.tsx`
+### New: `src/hooks/useOrgRolePermissions.ts`
+- `useOrgRoles(orgId)` → `org_custom_roles` list.
+- `useOrgRolePermissions(orgId)` → all permission rows for the org.
+- `setRolePermission(roleId, moduleName, patch)` mutation.
 
-Insert a `TabsTrigger` + `TabsContent` for `roles` immediately after `users`. Gated by `isOrgAdmin` (same as Users/Logs).
+### Edit: `src/pages/owner/OrganizationSettings.tsx`
+- Add `Workflow Assignment` tab (icon `SlidersHorizontal`) immediately after **Roles**.
+- Use `useIsOrgAdminUser()` to conditionally render the **Roles** and **Workflow Assignment** triggers + content. Non-admins never see these tabs.
 
-### 4. Update Invite / Edit User dropdowns
+### Edit: `src/components/owner/settings/UsersTab.tsx`
+- Remove "Manage Permissions" from the action menu.
+- Hide the entire 3-dot action menu column when `useIsOrgAdminUser()` returns false (non-admins get a read-only user list).
+- Remove `UserPermissionsSheet` import + render.
+- Keep Edit / Resend invite / Deactivate / Delete actions for admins.
 
-- `useOrgOwnerType.ts` keeps the legacy presets but is no longer used by the Invite/Edit dialogs.
-- `InviteUserDialog.tsx` and `EditUserDialog.tsx`: replace the hard-coded `roles` list with a query of active `org_custom_roles` for the current org. Submit sends both `custom_role_id` and a derived `job_role` (the role's `mapped_job_role`) so existing RLS/admin logic keeps working.
-- `org-invite-user` edge function: accept new optional `custom_role_id`; persist it on `org_users` alongside the existing `job_role`.
+### Delete: `src/components/owner/settings/users/UserPermissionsSheet.tsx`
+No longer used.
 
-### 5. Update `UsersTab.tsx` role pill + filter
+### Edit: `src/hooks/useModulePermissions.ts`
+Resolve permissions via the user's role instead of per-user override:
+1. Look up the caller's `org_users` row → `custom_role_id`, `organization_id`.
+2. If user has no `org_users` row OR `custom_role_id` is null → fall back to existing org-level `organization_modules` permissions (preserves current behavior, prevents lockout).
+3. If the role is the system Admin row (`is_system = true` AND `mapped_job_role = 'org_admin'`) → grant full RWED + all sub-features.
+4. Otherwise read `org_role_permissions` for `(role_id, module_name)`:
+   - Row exists → use its `enabled`, `permissions`, `sub_features` (strict opt-in for sub-features, same semantics as today's user override).
+   - No row → module disabled for that role.
+5. Org-level `organization_modules` still gates whether a module is available to the org at all (unchanged).
 
-- Join `org_users` with `org_custom_roles` so the role pill shows the custom role name + color when `custom_role_id` is set; falls back to the existing `ROLE_LABELS[job_role]` otherwise.
-- Role filter dropdown is populated from the org's `org_custom_roles` list (plus "All roles").
+Return shape is unchanged, so every downstream consumer (sidebar visibility, route guards, action-menu gating) keeps working without edits.
 
-## Out of scope (kept unchanged)
+## Out of scope / unchanged
 
-- Module/permission assignment (still handled by the existing `UserPermissionsSheet`).
-- Job-role-driven RLS functions — they continue to use the existing `job_role` enum via the `mapped_job_role` bridge.
-- Other portals (admin, lodge, agent) — change is limited to the owner portals.
+- `organization_modules` (super-admin allocation per owner type) — unchanged.
+- `org_user_permissions` table — left in place, no reads, no writes from new code.
+- Roles tab content, Invite/Edit user dialogs, role dropdown — unchanged.
+- Sub-feature keys and action-menu gating — unchanged.
+- Other portals (admin, lodge, agent, tourist) — untouched.
+
+## Risks / mitigations
+
+- **Users with no assigned role** → `useModulePermissions` falls back to org-level permissions so they keep working until an admin assigns roles.
+- **Admin lockout** → org owner (`is_org_admin` fallback) + system Admin role both always resolve to full access.
+- **Stale React Query cache** → invalidate `["modulePermissions"]`, `["orgRolePermissions"]`, `["orgCustomRoles"]` on any write.
