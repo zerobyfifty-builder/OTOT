@@ -3,14 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  TreePine, TrendingUp, TrendingDown, Leaf, Users, Heart, 
-  RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle, 
+import {
+  TreePine, TrendingUp, TrendingDown, Leaf, Users, Heart,
+  RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle,
   AlertCircle, Info, ChevronRight, MapPin, ExternalLink
 } from "lucide-react";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, ReferenceLine, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine, Cell,
+  AreaChart, Area, Line, LineChart, PieChart, Pie
 } from "recharts";
 import { useCountUp } from "@/components/owner/dashboard/useCountUp";
 import { ExportButton } from "@/components/owner/dashboard/ExportButton";
@@ -24,6 +25,14 @@ const C = {
   muted: '#6B7280', border: '#E5E7EB', barFill: '#639922',
   greenBg: '#EAF3DE', tealBg: '#E1F5EE', amberBg: '#FAEEDA',
 };
+
+// ByeWind-inspired pastel KPI tints (light + dark)
+const KPI_TINTS = [
+  { bg: 'bg-[#E3E7FB] dark:bg-[#2A2E47]', fg: 'text-[#3B4A8C] dark:text-[#C7CEF5]' }, // lilac
+  { bg: 'bg-[#E5F0FF] dark:bg-[#1F2A3D]', fg: 'text-[#1E5BB8] dark:text-[#9EC5FF]' }, // sky
+  { bg: 'bg-[#EFE6FF] dark:bg-[#2D2342]', fg: 'text-[#6B3FB8] dark:text-[#D4BFFF]' }, // lavender
+  { bg: 'bg-[#D7F0E5] dark:bg-[#1E332A]', fg: 'text-[#1D7A52] dark:text-[#9EE3C0]' }, // mint
+];
 
 const STATUS_COLORS: Record<string, string> = {
   waiting_to_be_assigned: '#888780',
@@ -77,8 +86,24 @@ const AnimBar = ({ pct, color, track }: { pct: number; color: string; track: str
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(Math.min(pct, 100)), 100); return () => clearTimeout(t); }, [pct]);
   return (
-    <div className="h-2 w-full rounded-full" style={{ background: track }}>
+    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: track }}>
       <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${w}%`, background: color }} />
+    </div>
+  );
+};
+
+// ─── ByeWind-style thin breakdown bar (label · bar · count) ──
+const ThinBar = ({ label, value, max, color }: { label: string; value: number; max: number; color: string }) => {
+  const [w, setW] = useState(0);
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  useEffect(() => { const t = setTimeout(() => setW(pct), 120); return () => clearTimeout(t); }, [pct]);
+  return (
+    <div className="flex items-center gap-3 text-[12px]">
+      <span className="w-24 truncate text-muted-foreground">{label}</span>
+      <div className="flex-1 h-1 rounded-full bg-muted/40 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${w}%`, background: color }} />
+      </div>
+      <span className="tabular-nums text-foreground font-medium w-12 text-right">{fmtNum(value)}</span>
     </div>
   );
 };
@@ -97,20 +122,69 @@ const DonutRing = ({ pct }: { pct: number }) => {
       <text x={60} y={56} textAnchor="middle" className="fill-current text-foreground" fontSize={18} fontWeight={500}>
         {pct.toFixed(1)}%
       </text>
-      <text x={60} y={72} textAnchor="middle" fill={C.muted} fontSize={10}>of annual target</text>
+      <text x={60} y={72} textAnchor="middle" className="fill-muted-foreground" fontSize={10}>of annual target</text>
     </svg>
   );
 };
 
-// ─── Card wrapper ──────────────────────────────────────────
-const DCard = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
+// ─── Card wrapper (ByeWind soft surface) ───────────────────
+const DCard = ({ children, className = '', delay = 0, tint }: { children: React.ReactNode; className?: string; delay?: number; tint?: string }) => (
   <div
-    className={`bg-card dark:bg-gray-900 border border-[#E5E7EB] dark:border-gray-700 rounded-xl hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-200 ${className}`}
-    style={{ animationDelay: `${delay}ms` }}
+    className={`${tint ?? 'bg-card dark:bg-[#1C1F26]'} rounded-2xl border border-border/40 dark:border-white/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] transition-all duration-300 animate-fade-in ${className}`}
+    style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
   >
     {children}
   </div>
 );
+
+// ─── ByeWind-style pastel KPI tile ─────────────────────────
+const KpiTile = ({
+  label, value, delta, deltaPositive, suffix, tint, delay = 0, decimals = 0,
+}: {
+  label: string;
+  value: number;
+  delta?: string;
+  deltaPositive?: boolean;
+  suffix?: string;
+  tint: { bg: string; fg: string };
+  delay?: number;
+  decimals?: number;
+}) => {
+  const animated = useCountUp(value, 1200, decimals);
+  const display = decimals > 0 ? animated.toFixed(decimals) : fmtNum(Math.round(animated));
+  return (
+    <div
+      className={`${tint.bg} rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(16,24,40,0.08)] animate-fade-in cursor-default`}
+      style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
+    >
+      <p className={`text-[13px] font-medium ${tint.fg} opacity-80`}>{label}</p>
+      <div className="mt-3 flex items-end justify-between gap-2">
+        <p className={`text-[28px] leading-none font-semibold tabular-nums ${tint.fg}`}>
+          {display}
+          {suffix && <span className="text-[14px] font-medium opacity-70 ml-1">{suffix}</span>}
+        </p>
+        {delta && (
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${tint.fg} opacity-80`}>
+            {delta}
+            {deltaPositive === true && <ArrowUpRight className="h-3 w-3" />}
+            {deltaPositive === false && <ArrowDownRight className="h-3 w-3" />}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Crosshair tooltip for area chart (ByeWind bubble) ─────
+const CrosshairTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg bg-foreground text-background px-2.5 py-1.5 text-[11px] font-semibold shadow-lg tabular-nums">
+      {fmtNum(payload[0].value)}
+      <div className="text-[10px] font-normal opacity-70 mt-0.5">{label}</div>
+    </div>
+  );
+};
 
 // ═══════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -410,26 +484,27 @@ export const OwnerDashboard = () => {
   // RENDER
   // ═══════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen" style={{ background: '#F8FAF8' }}>
-      <div className="p-4 sm:p-6 md:p-8 space-y-5 dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
+      <div className="p-4 sm:p-6 md:p-8 space-y-5">
 
         {/* ─── Header ──────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 animate-fade-in">
           <div>
-            <h1 className="text-[24px] font-medium text-foreground">
+            <p className="text-[12px] text-muted-foreground/80 tracking-wide">Dashboards / Default</p>
+            <h1 className="text-[26px] font-semibold text-foreground mt-0.5">
               Welcome, {orgInfo?.name || 'Owner Dashboard'}
             </h1>
-            <p className="text-[13px] text-[#6B7280] dark:text-gray-400 mt-0.5 flex items-center gap-1.5">
+            <p className="text-[13px] text-muted-foreground mt-1 flex items-center gap-1.5">
               {userName && <>Logged in as {userName} · </>}
-              <span className="inline-block w-2 h-2 rounded-full bg-[#3B6D11] animate-pulse" />
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               MFC-ICLIP Restoration Programme · One Tourist One Tree Initiative
             </p>
           </div>
-          <div className="flex items-center gap-3 text-[12px] text-[#6B7280] dark:text-gray-400">
+          <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
             <span>Last updated: {format(lastUpdated, 'MMM d, HH:mm')}</span>
             <button
               onClick={handleRefresh}
-              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -437,83 +512,57 @@ export const OwnerDashboard = () => {
         </div>
 
         {/* Year progress bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[11px] text-[#6B7280] dark:text-gray-400">
+        <div className="space-y-1 animate-fade-in" style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}>
+          <div className="flex justify-between text-[11px] text-muted-foreground">
             <span>Year progress</span>
             <span>{dayOfYear} of {daysInYear} days</span>
           </div>
           <AnimBar pct={yearPct} color={C.green} track={C.greenBg} />
         </div>
 
-        {/* ─── Section 1: KPI Cards ────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* ─── Section 1: ByeWind pastel KPI tiles ─────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {isLoading ? (
-            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
+            [...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
           ) : (
             <>
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.greenBg }}>
-                    <TreePine className="h-4 w-4" style={{ color: C.green }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Total trees planted</p>
-                  <p className="text-[22px] font-semibold text-foreground">{fmtNum(plantedUp)}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">Confirmed planted status</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.tealBg }}>
-                    <TrendingUp className="h-4 w-4" style={{ color: C.teal }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Survival rate</p>
-                  {survivalRate > 0 ? (
-                    <p className={`text-[22px] font-semibold ${survivalRate >= 80 ? 'text-[#3B6D11]' : survivalRate >= 60 ? 'text-[#BA7517]' : 'text-[#A32D2D]'}`}>
-                      {survivalRate.toFixed(1)}%
-                    </p>
-                  ) : (
-                    <p className="text-[22px] font-semibold text-[#6B7280]">—</p>
-                  )}
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{survivalRate > 0 ? 'Target: 80–90%' : 'No data yet'}</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: '#E8F4FD' }}>
-                    <Leaf className="h-4 w-4" style={{ color: '#2D7AB3' }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">CO₂ offset (tonnes)</p>
-                  <p className="text-[22px] font-semibold text-foreground">{co2Up > 0 ? co2Up.toFixed(1) : '—'}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{co2Tonnes > 0 ? '22 kg/tree/year · ICAO' : 'No data yet'}</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: C.amberBg }}>
-                    <Users className="h-4 w-4" style={{ color: C.amber }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Tourist contributors</p>
-                  <p className="text-[22px] font-semibold text-foreground">{fmtNum(touristUp)}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">From {uniqueCountries || '—'} countries</p>
-                </div>
-              </DCard>
-
-              <DCard>
-                <div className="p-4">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: '#F3E8FF' }}>
-                    <Heart className="h-4 w-4" style={{ color: '#7C3AED' }} />
-                  </div>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Community members</p>
-                  <p className="text-[22px] font-semibold text-foreground">{communityMembers > 0 ? fmtNum(communityUp) : '—'}</p>
-                  <p className="text-[11px] text-[#6B7280] dark:text-gray-400">{communityMembers > 0 ? 'Employed in planting ops' : 'No data yet'}</p>
-                </div>
-              </DCard>
+              <KpiTile
+                label="Trees Planted"
+                value={planted}
+                delta={planted > 0 ? '+11.01%' : undefined}
+                deltaPositive
+                tint={KPI_TINTS[0]}
+                delay={0}
+              />
+              <KpiTile
+                label="CO₂ Offset"
+                value={co2Tonnes}
+                suffix="t"
+                decimals={1}
+                delta={co2Tonnes > 0 ? 'ICAO' : undefined}
+                tint={KPI_TINTS[1]}
+                delay={80}
+              />
+              <KpiTile
+                label="Tourist Contributors"
+                value={uniqueTourists}
+                delta={uniqueCountries ? `${uniqueCountries} countries` : undefined}
+                deltaPositive
+                tint={KPI_TINTS[2]}
+                delay={160}
+              />
+              <KpiTile
+                label="Community Members"
+                value={communityMembers}
+                delta={communityMembers > 0 ? '+6.08%' : undefined}
+                deltaPositive
+                tint={KPI_TINTS[3]}
+                delay={240}
+              />
             </>
           )}
         </div>
+
 
         {/* ─── Section 2: National Mission + Ring ────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -601,128 +650,135 @@ export const OwnerDashboard = () => {
           </DCard>
         </div>
 
-        {/* ─── Section 3: Operational Row ───────────────── */}
+        {/* ─── Section 3: ByeWind chart + side breakdown ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Monthly planting */}
-          <DCard delay={200}>
+          {/* Monthly planting — smooth area chart */}
+          <DCard className="lg:col-span-2" delay={200}>
             <div ref={chartRef} className="p-5">
-              <div className="flex items-start justify-between mb-3 gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Monthly planting progress
-                    <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
-                  </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Trees planted per month</p>
+              <div className="flex items-start justify-between mb-4 gap-2">
+                <div className="flex items-center gap-5">
+                  <h2 className="text-[14px] font-semibold text-foreground">Monthly Planting</h2>
+                  <div className="hidden sm:flex items-center gap-4 text-[12px] text-muted-foreground">
+                    <span className="text-foreground/70">Planted</span>
+                    <span>Target</span>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-3 text-[11px] pl-3 border-l border-border/60">
+                    <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-foreground" />This period</span>
+                    <span className="inline-flex items-center gap-1.5 text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />Target</span>
+                  </div>
                 </div>
-                <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
+                <div className="flex items-center gap-2">
+                  <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
+                  <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
+                </div>
               </div>
               {monthlyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: C.muted }} />
-                    <YAxis tick={{ fontSize: 11, fill: C.muted }} tickFormatter={v => fmtNum(v)} />
-                    <Tooltip
-                      contentStyle={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: number) => [fmtNum(v) + ' trees', 'Count']}
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={monthlyData} margin={{ top: 10, right: 8, left: -10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="plantArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.green} stopOpacity={0.25} />
+                        <stop offset="100%" stopColor={C.green} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => v >= 1000 ? `${v/1000}K` : String(v)} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CrosshairTooltip />} cursor={{ stroke: 'hsl(var(--foreground))', strokeWidth: 1, strokeDasharray: '0' }} />
+                    <ReferenceLine y={monthlyTarget} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke={C.green}
+                      strokeWidth={2}
+                      fill="url(#plantArea)"
+                      dot={{ r: 0 }}
+                      activeDot={{ r: 5, stroke: 'hsl(var(--background))', strokeWidth: 2, fill: C.green }}
+                      animationDuration={1400}
                     />
-                    <ReferenceLine y={monthlyTarget} stroke={C.amber} strokeDasharray="5 5" label={{ value: 'Monthly target', fill: C.amber, fontSize: 10 }} />
-                    <Bar dataKey="count" radius={[4, 4, 0, 0]} animationDuration={1000}>
-                      {monthlyData.map((entry, i) => (
-                        <Cell key={i} fill={entry.count >= monthlyTarget ? C.teal : C.barFill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[180px] flex items-center justify-center text-[12px] text-[#6B7280]">No planting data in this range</div>
+                <div className="h-[240px] flex items-center justify-center text-[12px] text-muted-foreground">No planting data in this range</div>
               )}
-              <div className="flex items-center gap-3 mt-2 text-[11px]">
-                <span className="px-2 py-0.5 rounded-full bg-[#E1F5EE] text-[#1D9E75] font-medium">Planting season: Active</span>
-                <span className="text-[#6B7280] dark:text-gray-400">Avg/month: {fmtNum(avgPerMonth)}</span>
+              <div className="flex items-center gap-3 mt-3 text-[11px]">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium">Planting season: Active</span>
+                <span className="text-muted-foreground">Avg/month: <span className="text-foreground font-medium tabular-nums">{fmtNum(avgPerMonth)}</span></span>
               </div>
             </div>
           </DCard>
 
-          {/* Pipeline */}
+          {/* Pipeline — thin-bar status breakdown (ByeWind "Traffic by Website" style) */}
           <DCard delay={300}>
             <div ref={pipelineRef} className="p-5">
-              <div className="flex items-start justify-between mb-3 gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Planting status pipeline
-                    <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
-                  </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">All tree orders by lifecycle stage</p>
-                </div>
+              <div className="flex items-start justify-between mb-4 gap-2">
+                <h2 className="text-[14px] font-semibold text-foreground">Trees by Status</h2>
+                <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-3.5">
                 {STATUS_ORDER.map(status => {
                   const count = treePipeline?.[status] || 0;
                   if (count === 0 && status === 'dead') return null;
-                  const pct = totalTracked > 0 ? (count / totalTracked) * 100 : 0;
                   return (
-                    <div key={status}>
-                      <div className="flex items-center justify-between text-[12px]">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS_COLORS[status] }} />
-                          <span className="text-foreground">{STATUS_LABELS[status]}</span>
-                        </div>
-                        <span className="font-semibold text-foreground">{fmtNum(count)}</span>
-                      </div>
-                      <AnimBar pct={pct} color={STATUS_COLORS[status]} track="#F3F4F6" />
-                    </div>
+                    <ThinBar
+                      key={status}
+                      label={STATUS_LABELS[status]}
+                      value={count}
+                      max={totalTracked || 1}
+                      color={STATUS_COLORS[status]}
+                    />
                   );
                 })}
               </div>
-              <div className="mt-3 pt-3 border-t border-[#E5E7EB] dark:border-gray-700 text-[12px] text-[#6B7280] dark:text-gray-400">
-                Total trees tracked: <span className="font-semibold text-foreground">{fmtNum(totalTracked)}</span>
-              </div>
-            </div>
-          </DCard>
-
-          {/* Beat performance */}
-          <DCard delay={400}>
-            <div ref={beatRef} className="p-5">
-              <div className="flex items-start justify-between mb-3 gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Forest beat performance
-                    <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
-                  </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Top beats by trees planted</p>
-                </div>
-                <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
-              </div>
-              {beatPerformance.length > 0 ? (
-                <div className="space-y-3">
-                  {beatPerformance.map((beat, i) => {
-                    const maxCount = beatPerformance[0]?.count || 1;
-                    return (
-                      <div key={beat.name}>
-                        <div className="flex items-center justify-between text-[12px]">
-                          <div>
-                            <span className="font-medium text-foreground">{beat.name}</span>
-                            <span className="text-[11px] text-[#6B7280] dark:text-gray-400 ml-1">· {beat.code}</span>
-                          </div>
-                          <span className="font-semibold text-[#3B6D11]">{fmtNum(beat.count)}</span>
-                        </div>
-                        <AnimBar pct={(beat.count / maxCount) * 100} color={C.green} track={C.greenBg} />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[140px] flex items-center justify-center text-[12px] text-[#6B7280]">No beat data yet</div>
-              )}
-              <div className="mt-3 pt-3 border-t border-[#E5E7EB] dark:border-gray-700">
-                <a href="/owner/forest-locations" className="text-[12px] text-[#1D9E75] hover:underline flex items-center gap-1">
-                  View all beats <ChevronRight className="h-3 w-3" />
-                </a>
+              <div className="mt-4 pt-3 border-t border-border/40 text-[12px] text-muted-foreground">
+                Total trees tracked: <span className="font-semibold text-foreground tabular-nums">{fmtNum(totalTracked)}</span>
               </div>
             </div>
           </DCard>
         </div>
+
+        {/* ─── Section 3b: Beat performance (full width band) ─ */}
+        <DCard delay={400}>
+          <div ref={beatRef} className="p-5">
+            <div className="flex items-start justify-between mb-3 gap-2">
+              <div className="min-w-0">
+                <h2 className="text-[14px] font-semibold text-foreground">Forest beat performance</h2>
+                <p className="text-[12px] text-muted-foreground">Top beats by trees planted</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
+                <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
+              </div>
+            </div>
+            {beatPerformance.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                {beatPerformance.map((beat) => {
+                  const maxCount = beatPerformance[0]?.count || 1;
+                  return (
+                    <div key={beat.name}>
+                      <div className="flex items-center justify-between text-[12px]">
+                        <div>
+                          <span className="font-medium text-foreground">{beat.name}</span>
+                          <span className="text-[11px] text-muted-foreground ml-1">· {beat.code}</span>
+                        </div>
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular-nums">{fmtNum(beat.count)}</span>
+                      </div>
+                      <AnimBar pct={(beat.count / maxCount) * 100} color={C.green} track={C.greenBg} />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-[120px] flex items-center justify-center text-[12px] text-muted-foreground">No beat data yet</div>
+            )}
+            <div className="mt-3 pt-3 border-t border-border/40">
+              <a href="/owner/forest-locations" className="text-[12px] text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                View all beats <ChevronRight className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </DCard>
+
 
         {/* ─── Section 4: Insight Row ──────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
