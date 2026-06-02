@@ -324,11 +324,39 @@ export const OwnerDashboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("nurseries")
-        .select("id, cbo_name, is_active, nursery_type, county")
+        .select("id, cbo_name, is_active, nursery_type, county, capacity")
         .eq("owner_org_id", orgInfo.id);
       return data || [];
     },
     enabled: !!orgInfo?.id,
+  });
+
+  // ─── Trees grouped by location (beat performance fallback) ──
+  const { data: treesByLocation } = useQuery({
+    queryKey: ["dashTreesByLocation", orgInfo?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trees")
+        .select("location_name")
+        .eq("owner_org_id", orgInfo.id)
+        .not("location_name", "is", null);
+      const map: Record<string, number> = {};
+      (data || []).forEach((t: any) => {
+        const k = (t.location_name as string) || 'Unknown';
+        map[k] = (map[k] || 0) + 1;
+      });
+      return map;
+    },
+    enabled: !!orgInfo?.id,
+  });
+
+  // ─── Seed species master (species breakdown fallback) ──
+  const { data: seedSpeciesAll } = useQuery({
+    queryKey: ["dashSeedSpecies"],
+    queryFn: async () => {
+      const { data } = await supabase.from("seed_species").select("category");
+      return data || [];
+    },
   });
 
   // ═══ Computed values ═══════════════════════════════════
@@ -378,19 +406,32 @@ export const OwnerDashboard = () => {
   const monthlyTarget = Math.round(annualTarget / 12);
   const avgPerMonth = monthlyData.length > 0 ? Math.round(monthlyData.reduce((s, m) => s + m.count, 0) / monthlyData.length) : 0;
 
-  // Species breakdown
+  // Species breakdown — prefer assignments; fall back to seed_species master
   const speciesBreakdown = useMemo(() => {
     const cats: Record<string, number> = { Indigenous: 0, Agroforestry: 0, Exotic: 0, 'Fruit trees': 0 };
+    const normalize = (raw: string) => {
+      const r = (raw || '').toLowerCase();
+      if (r.includes('indigenous')) return 'Indigenous';
+      if (r.includes('agro')) return 'Agroforestry';
+      if (r.includes('fruit')) return 'Fruit trees';
+      return 'Exotic';
+    };
     (assignments || []).forEach(a => {
-      const cat = (a.seed_species as any)?.category || 'Indigenous';
-      if (cats[cat] !== undefined) cats[cat]++;
-      else cats['Indigenous']++;
+      const cat = normalize((a.seed_species as any)?.category || 'Indigenous');
+      cats[cat]++;
     });
-    const total = Object.values(cats).reduce((s, v) => s + v, 0);
+    let total = Object.values(cats).reduce((s, v) => s + v, 0);
+    if (total === 0 && seedSpeciesAll && seedSpeciesAll.length > 0) {
+      seedSpeciesAll.forEach((s: any) => {
+        const cat = normalize(s.category || 'indigenous');
+        cats[cat]++;
+      });
+      total = Object.values(cats).reduce((s, v) => s + v, 0);
+    }
     return Object.entries(cats).map(([name, count]) => ({ name, count, pct: total > 0 ? (count / total) * 100 : 0 }));
-  }, [assignments]);
+  }, [assignments, seedSpeciesAll]);
 
-  // Beat performance
+  // Beat performance — prefer assignments; fall back to trees grouped by location_name
   const beatPerformance = useMemo(() => {
     const beats: Record<string, { name: string; code: string; count: number }> = {};
     (assignments || []).forEach(a => {
@@ -400,10 +441,14 @@ export const OwnerDashboard = () => {
       if (!beats[key]) beats[key] = { name: key, code: b.beat_code || '', count: 0 };
       beats[key].count++;
     });
-    return Object.values(beats).sort((a, b) => b.count - a.count).slice(0, 5);
-  }, [assignments]);
+    let list = Object.values(beats);
+    if (list.length === 0 && treesByLocation) {
+      list = Object.entries(treesByLocation).map(([name, count]) => ({ name, code: '', count }));
+    }
+    return list.sort((a, b) => b.count - a.count).slice(0, 5);
+  }, [assignments, treesByLocation]);
 
-  // Nursery activity
+  // Nursery activity — prefer assignments; fall back to nurseries master (capacity)
   const nurseryActivity = useMemo(() => {
     const nurs: Record<string, { name: string; type: string; county: string; count: number }> = {};
     (assignments || []).forEach(a => {
@@ -413,8 +458,17 @@ export const OwnerDashboard = () => {
       if (!nurs[key]) nurs[key] = { name: key, type: n.nursery_type || 'CBO', county: n.county || '', count: 0 };
       nurs[key].count += a.sapling_count_allocated || 0;
     });
-    return Object.values(nurs).sort((a, b) => b.count - a.count).slice(0, 5);
-  }, [assignments]);
+    let list = Object.values(nurs);
+    if (list.length === 0 && nurseriesData && nurseriesData.length > 0) {
+      list = nurseriesData.map((n: any) => ({
+        name: n.cbo_name || 'Unknown',
+        type: n.nursery_type || 'CBO',
+        county: n.county || '',
+        count: n.capacity || 0,
+      }));
+    }
+    return list.sort((a, b) => b.count - a.count).slice(0, 5);
+  }, [assignments, nurseriesData]);
 
   // Alerts
   const alerts = useMemo(() => {
