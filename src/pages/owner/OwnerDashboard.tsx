@@ -740,7 +740,7 @@ export const OwnerDashboard = () => {
                     <span className="inline-flex items-center gap-1.5 text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />Target</span>
                   </div>
                 </div>
-                <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
+                <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {monthlyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
@@ -820,7 +820,7 @@ export const OwnerDashboard = () => {
                 </h2>
                 <p className="text-[12px] text-muted-foreground">Top beats by trees planted</p>
               </div>
-              <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
+              <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
             </div>
             {beatPerformance.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
@@ -865,7 +865,7 @@ export const OwnerDashboard = () => {
                   </h2>
                   
                 </div>
-                <ChartDateRangePicker dateRange={speciesRange} onDateRangeChange={setSpeciesRange} />
+                <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {speciesBreakdown.some(s => s.count > 0) ? (
                 <div className="space-y-3">
@@ -899,7 +899,7 @@ export const OwnerDashboard = () => {
                   </h2>
                   
                 </div>
-                <ChartDateRangePicker dateRange={nurseryRange} onDateRangeChange={setNurseryRange} />
+                <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {nurseryActivity.length > 0 ? (
                 <div className="space-y-3">
