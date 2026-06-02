@@ -379,6 +379,24 @@ export const OwnerDashboard = () => {
   const daysLeft = daysInYear - dayOfYear;
   const treesPerDay = daysLeft > 0 ? Math.ceil(remaining / daysLeft) : 0;
 
+  // ─── Filtered KPIs based on global date range ─────────
+  const inRange = (iso?: string | null) => {
+    if (!iso) return false;
+    const d = new Date(iso);
+    return d >= globalRange.from && d <= globalRange.to;
+  };
+  const filteredKpis = useMemo(() => {
+    const contribs = (contributions || []).filter(c => inRange(c.created_at as any));
+    const assigns = (assignments || []).filter((a: any) => inRange(a.created_at));
+    const treesPlantedRange = contribs.reduce((s, c) => s + (c.num_trees || 0), 0);
+    const co2Range = (treesPlantedRange * 22) / 1000;
+    const touristsRange = new Set(contribs.filter(c => c.tourist_name).map(c => c.tourist_name)).size;
+    const communityRange = assigns.reduce((s: number, a: any) => s + (a.community_participants || 0), 0);
+    return { treesPlantedRange, co2Range, touristsRange, communityRange };
+  }, [contributions, assignments, globalRange]);
+
+  const rangeLabel = `${PRESET_LABELS[globalRange.preset]} · ${format(globalRange.from, 'MMM d')} – ${format(globalRange.to, 'MMM d, yyyy')}`;
+
   // Weekly stats for trend
   const oneWeekAgo = subMonths(now, 0); // Simplified: we just use total
   
