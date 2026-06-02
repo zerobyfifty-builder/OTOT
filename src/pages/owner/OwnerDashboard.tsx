@@ -395,7 +395,7 @@ export const OwnerDashboard = () => {
     return { treesPlantedRange, co2Range, touristsRange, communityRange };
   }, [contributions, assignments, globalRange]);
 
-  const rangeLabel = `${PRESET_LABELS[globalRange.preset]} · ${format(globalRange.from, 'MMM d')} – ${format(globalRange.to, 'MMM d, yyyy')}`;
+  const rangeLabel = `${format(globalRange.from, 'MMM d')} – ${format(globalRange.to, 'MMM d, yyyy')}`;
 
   // Weekly stats for trend
   const oneWeekAgo = subMonths(now, 0); // Simplified: we just use total
