@@ -903,6 +903,7 @@ export const OwnerDashboard = () => {
                     </div>
                   ))}
                 </div>
+                </>
               ) : (
                 <div className="h-[120px] flex items-center justify-center text-[12px] text-[#6B7280]">No nursery data yet</div>
               )}
