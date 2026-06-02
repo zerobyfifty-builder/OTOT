@@ -979,7 +979,7 @@ export const OwnerDashboard = () => {
               {contributions && contributions.length > 0 ? (
                 <>
                   <div className="space-y-2.5">
-                    {contributions.slice(0, 6).map(c => (
+                    {contributions.slice(0, 5).map(c => (
                       <div key={c.contribution_id} className="flex items-center justify-between">
                         <div>
                           <p className="text-[13px] font-medium text-foreground">{c.contribution_id}</p>
