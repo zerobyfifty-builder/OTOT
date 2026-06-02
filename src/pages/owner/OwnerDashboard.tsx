@@ -16,6 +16,7 @@ import {
 import { useCountUp } from "@/components/owner/dashboard/useCountUp";
 import { ExportButton } from "@/components/owner/dashboard/ExportButton";
 import { GlobalDateRangeFilter } from "@/components/owner/dashboard/GlobalDateRangeFilter";
+import { SpeciesDonut } from "@/components/owner/dashboard/SpeciesDonut";
 import { useDashboardDateRange, PRESET_LABELS } from "@/components/owner/dashboard/useDashboardDateRange";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
