@@ -121,19 +121,6 @@ const menuItems = [
     icon: FileText,
   },
   {
-    title: "Configuration",
-    icon: Settings,
-    items: [
-      { title: "System Settings", url: "/admin/config/system" },
-      { title: "Wallet Settings", url: "/admin/config/wallet" },
-      { title: "Planting Costs", url: "/admin/config/planting-costs" },
-      { title: "Contribution Tiers", url: "/admin/config/contribution-tiers" },
-      { title: "Payment Settings", url: "/admin/config/payment" },
-      { title: "Email Templates", url: "/admin/config/email" },
-      { title: "Feature Flags", url: "/admin/config/flags" },
-    ],
-  },
-  {
     title: "API Management",
     icon: Plug,
     items: [
