@@ -286,7 +286,7 @@ export const OwnerDashboard = () => {
         .from("tree_status_transitions")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(5);
       return data || [];
     },
     enabled: !!orgInfo?.id,
