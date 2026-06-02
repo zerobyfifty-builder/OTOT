@@ -590,6 +590,20 @@ export const OwnerDashboard = () => {
           <GlobalDateRangeFilter range={globalRange} onPreset={setPreset} onCustom={setCustom} />
         </div>
 
+        {/* ─── Top KPI summary (date-range driven) ─────── */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in" style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}>
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in" style={{ animationDelay: '60ms', animationFillMode: 'backwards' }}>
+            <KpiTile label="Trees Planted" value={filteredKpis.treesPlantedRange} tint={KPI_TINTS[0]} delay={0} />
+            <KpiTile label="CO₂ Offset" value={filteredKpis.co2Range} suffix="t" decimals={1} delta="ICAO" tint={KPI_TINTS[1]} delay={80} />
+            <KpiTile label="Tourist Contributors" value={filteredKpis.touristsRange} tint={KPI_TINTS[2]} delay={160} />
+            <KpiTile label="Community Members" value={filteredKpis.communityRange} tint={KPI_TINTS[3]} delay={240} />
+          </div>
+        )}
+
         {/* ─── Consolidated National Mission Hero ───────── */}
         <DCard delay={80}>
           <div ref={nationalRef} className="p-5 sm:p-6">
@@ -606,20 +620,9 @@ export const OwnerDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left: filtered KPIs + 15B progress bars */}
+              {/* Left: 15B progress bars */}
               <div className="lg:col-span-2 space-y-5">
-                {isLoading ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <KpiTile label="Trees Planted" value={filteredKpis.treesPlantedRange} tint={KPI_TINTS[0]} delay={0} />
-                    <KpiTile label="CO₂ Offset" value={filteredKpis.co2Range} suffix="t" decimals={1} delta="ICAO" tint={KPI_TINTS[1]} delay={80} />
-                    <KpiTile label="Tourist Contributors" value={filteredKpis.touristsRange} tint={KPI_TINTS[2]} delay={160} />
-                    <KpiTile label="Community Members" value={filteredKpis.communityRange} tint={KPI_TINTS[3]} delay={240} />
-                  </div>
-                )}
+
 
                 <div className="space-y-3.5 pt-1">
                   <div>
