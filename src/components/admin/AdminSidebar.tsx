@@ -14,6 +14,7 @@ import {
   LogOut,
   Landmark,
   Layers,
+  Rocket,
 } from "lucide-react";
 import {
   Sidebar,
