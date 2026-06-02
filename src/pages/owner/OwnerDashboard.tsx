@@ -879,6 +879,11 @@ export const OwnerDashboard = () => {
                 <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {nurseryActivity.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between px-1 pb-1.5 mb-2 border-b border-[#E5E7EB] dark:border-gray-700">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[#6B7280]">Nursery</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[#6B7280]">Seedlings</span>
+                  </div>
                 <div className="space-y-3">
                   {nurseryActivity.map(n => (
                     <div key={n.name} className="flex items-center justify-between">
