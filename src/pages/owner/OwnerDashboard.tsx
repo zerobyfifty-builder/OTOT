@@ -324,11 +324,39 @@ export const OwnerDashboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("nurseries")
-        .select("id, cbo_name, is_active, nursery_type, county")
+        .select("id, cbo_name, is_active, nursery_type, county, capacity")
         .eq("owner_org_id", orgInfo.id);
       return data || [];
     },
     enabled: !!orgInfo?.id,
+  });
+
+  // ─── Trees grouped by location (beat performance fallback) ──
+  const { data: treesByLocation } = useQuery({
+    queryKey: ["dashTreesByLocation", orgInfo?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("trees")
+        .select("location_name")
+        .eq("owner_org_id", orgInfo.id)
+        .not("location_name", "is", null);
+      const map: Record<string, number> = {};
+      (data || []).forEach((t: any) => {
+        const k = (t.location_name as string) || 'Unknown';
+        map[k] = (map[k] || 0) + 1;
+      });
+      return map;
+    },
+    enabled: !!orgInfo?.id,
+  });
+
+  // ─── Seed species master (species breakdown fallback) ──
+  const { data: seedSpeciesAll } = useQuery({
+    queryKey: ["dashSeedSpecies"],
+    queryFn: async () => {
+      const { data } = await supabase.from("seed_species").select("category");
+      return data || [];
+    },
   });
 
   // ═══ Computed values ═══════════════════════════════════
