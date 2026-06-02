@@ -846,7 +846,7 @@ export const OwnerDashboard = () => {
                 <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {speciesBreakdown.some(s => s.count > 0) ? (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center gap-6 min-h-[180px]">
                   <SpeciesDonut
                     data={speciesBreakdown.map(sp => {
                       const colors: Record<string, string> = { Indigenous: C.green, Agroforestry: C.teal, Exotic: C.amber, 'Fruit trees': '#D4537E' };
@@ -855,11 +855,11 @@ export const OwnerDashboard = () => {
                     size={150}
                     thickness={24}
                   />
-                  <div className="flex-1 space-y-2.5">
+                  <div className="space-y-2.5 min-w-[160px]">
                     {speciesBreakdown.map(sp => {
                       const colors: Record<string, string> = { Indigenous: C.green, Agroforestry: C.teal, Exotic: C.amber, 'Fruit trees': '#D4537E' };
                       return (
-                        <div key={sp.name} className="flex items-center justify-between text-[12px] gap-2">
+                        <div key={sp.name} className="flex items-center justify-between text-[12px] gap-4">
                           <span className="flex items-center gap-1.5 text-foreground min-w-0">
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: colors[sp.name] || C.green }} />
                             <span className="truncate">{sp.name}</span>
