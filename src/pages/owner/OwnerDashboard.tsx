@@ -846,19 +846,29 @@ export const OwnerDashboard = () => {
                 <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {speciesBreakdown.some(s => s.count > 0) ? (
-                <div className="space-y-3">
-                  {speciesBreakdown.map(sp => {
-                    const colors: Record<string, string> = { Indigenous: C.green, Agroforestry: C.teal, Exotic: C.amber, 'Fruit trees': '#D4537E' };
-                    return (
-                      <div key={sp.name}>
-                        <div className="flex items-center justify-between text-[12px]">
-                          <span className="text-foreground">{sp.name}</span>
-                          <span className="font-semibold text-[#3B6D11]">{fmtNum(sp.count)}</span>
+                <div className="flex items-center gap-4">
+                  <SpeciesDonut
+                    data={speciesBreakdown.map(sp => {
+                      const colors: Record<string, string> = { Indigenous: C.green, Agroforestry: C.teal, Exotic: C.amber, 'Fruit trees': '#D4537E' };
+                      return { ...sp, color: colors[sp.name] || C.green };
+                    })}
+                    size={150}
+                    thickness={24}
+                  />
+                  <div className="flex-1 space-y-2.5">
+                    {speciesBreakdown.map(sp => {
+                      const colors: Record<string, string> = { Indigenous: C.green, Agroforestry: C.teal, Exotic: C.amber, 'Fruit trees': '#D4537E' };
+                      return (
+                        <div key={sp.name} className="flex items-center justify-between text-[12px] gap-2">
+                          <span className="flex items-center gap-1.5 text-foreground min-w-0">
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: colors[sp.name] || C.green }} />
+                            <span className="truncate">{sp.name}</span>
+                          </span>
+                          <span className="font-semibold text-foreground tabular-nums">{sp.pct.toFixed(1)}%</span>
                         </div>
-                        <AnimBar pct={sp.pct} color={colors[sp.name] || C.green} track="#F3F4F6" />
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="h-[120px] flex items-center justify-center text-[12px] text-[#6B7280]">No species data yet</div>
