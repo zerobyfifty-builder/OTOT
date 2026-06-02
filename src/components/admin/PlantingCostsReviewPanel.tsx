@@ -117,52 +117,65 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
           return (
             <div
               key={sub.id}
-              className={`border rounded-lg p-4 cursor-pointer transition-colors hover:bg-muted/30 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary' : ''} ${isLive ? 'bg-emerald-500/5 border-emerald-300' : ''}`}
+              className={`group relative border rounded-xl p-5 cursor-pointer transition-all hover:shadow-sm hover:border-foreground/20 ${selectedId === sub.id ? 'ring-2 ring-primary border-primary shadow-sm' : 'border-border'} ${isLive ? 'bg-emerald-500/[0.03] border-emerald-300/60' : 'bg-card'}`}
               onClick={() => onSelectSubmission(sub)}
             >
-              <div className="flex items-start justify-between gap-2">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm truncate">{sub.owner_org}</p>
+                  <p className="font-semibold text-sm leading-tight truncate text-foreground">{sub.owner_org}</p>
+                  <div className="mt-1.5">{statusBadge(sub.status)}</div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {statusBadge(sub.status)}
-                  <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
+                <div className="text-right shrink-0">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total</p>
+                  <p className="text-base font-semibold tabular-nums text-foreground">{formatKES(Number(sub.total_cost_kes))}</p>
                 </div>
               </div>
-              <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-                <div>
-                  <p className="text-muted-foreground">Submitted</p>
-                  <p className="font-medium">{fmtDate(sub.submitted_at || sub.created_at)}</p>
+
+              {/* Divider */}
+              <div className="my-4 h-px bg-border/60" />
+
+              {/* Metrics */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Submitted</p>
+                  <p className="text-xs font-medium tabular-nums text-foreground">{fmtDate(sub.submitted_at || sub.created_at)}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Approved</p>
-                  <p className="font-medium">{showApprovalDetails ? fmtDate(sub.reviewed_at) : '—'}</p>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Approved</p>
+                  <p className="text-xs font-medium tabular-nums text-foreground">{showApprovalDetails ? fmtDate(sub.reviewed_at) : '—'}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Duration</p>
-                  <p className="font-medium">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Duration</p>
+                  <p className="text-xs font-medium tabular-nums text-foreground">
                     {showApprovalDetails
-                      ? `${fmtDuration(sub.reviewed_at, endDate)}${isLive && !endDate ? ' (live)' : ''}`
+                      ? (
+                        <>
+                          {fmtDuration(sub.reviewed_at, endDate)}
+                          {isLive && !endDate && <span className="ml-1 text-emerald-600 font-semibold">· Live</span>}
+                        </>
+                      )
                       : '—'}
                   </p>
                 </div>
               </div>
-              <div className="mt-2 flex justify-end">
-                {!isLive && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => { e.stopPropagation(); setToDelete(sub); }}
-                    aria-label="Delete submission"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
+
+              {/* Delete action */}
+              {!isLive && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute bottom-2 right-2 h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 transition-opacity"
+                  onClick={(e) => { e.stopPropagation(); setToDelete(sub); }}
+                  aria-label="Delete submission"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
           );
         }) : (
+
           <p className="text-sm text-muted-foreground py-4">No submissions yet.</p>
         )}
       </div>
