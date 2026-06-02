@@ -880,7 +880,7 @@ export const OwnerDashboard = () => {
                     Nursery/CBO seedlings supply
                     <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" iconOnly />
                   </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Seedlings supplied this quarter</p>
+                  
                 </div>
                 <ChartDateRangePicker dateRange={nurseryRange} onDateRangeChange={setNurseryRange} />
               </div>
