@@ -581,144 +581,121 @@ export const OwnerDashboard = () => {
           </div>
         </div>
 
-        {/* Year progress bar */}
-        <div className="space-y-1 animate-fade-in" style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}>
-          <div className="flex justify-between text-[11px] text-muted-foreground">
-            <span>Year progress</span>
-            <span>{dayOfYear} of {daysInYear} days</span>
+        {/* ─── Global date range filter bar ────────────── */}
+        <div className="flex items-center justify-between gap-3 animate-fade-in" style={{ animationDelay: '40ms', animationFillMode: 'backwards' }}>
+          <div className="text-[12px] text-muted-foreground">
+            Showing dashboard metrics for <span className="font-medium text-foreground">{PRESET_LABELS[globalRange.preset]}</span>
           </div>
-          <AnimBar pct={yearPct} color={C.green} track={C.greenBg} />
+          <GlobalDateRangeFilter range={globalRange} onPreset={setPreset} onCustom={setCustom} />
         </div>
 
-        {/* ─── Section 1: ByeWind pastel KPI tiles ─────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {isLoading ? (
-            [...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
-          ) : (
-            <>
-              <KpiTile
-                label="Trees Planted"
-                value={planted}
-                delta={planted > 0 ? '+11.01%' : undefined}
-                deltaPositive
-                tint={KPI_TINTS[0]}
-                delay={0}
-              />
-              <KpiTile
-                label="CO₂ Offset"
-                value={co2Tonnes}
-                suffix="t"
-                decimals={1}
-                delta={co2Tonnes > 0 ? 'ICAO' : undefined}
-                tint={KPI_TINTS[1]}
-                delay={80}
-              />
-              <KpiTile
-                label="Tourist Contributors"
-                value={uniqueTourists}
-                delta={uniqueCountries ? `${uniqueCountries} countries` : undefined}
-                deltaPositive
-                tint={KPI_TINTS[2]}
-                delay={160}
-              />
-              <KpiTile
-                label="Community Members"
-                value={communityMembers}
-                delta={communityMembers > 0 ? '+6.08%' : undefined}
-                deltaPositive
-                tint={KPI_TINTS[3]}
-                delay={240}
-              />
-            </>
-          )}
-        </div>
-
-
-        {/* ─── Section 2: National Mission + Ring ────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <DCard className="lg:col-span-2" delay={100}>
-            <div ref={nationalRef} className="p-5">
-              <div className="flex items-start justify-between mb-4 gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Kenya 15 billion trees — OTOT contribution
-                    <ExportButton cardRef={nationalRef} filename="National-Contribution" iconOnly />
-                  </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400 mt-0.5">Tracking MFC-ICLIP impact toward Kenya's national reforestation mission</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-[12px] mb-1">
-                    <span className="text-[#6B7280] dark:text-gray-400">OTOT contribution to national 15B target</span>
-                    <span className="font-medium text-foreground">{fmtNum(planted)} of 15,000,000,000</span>
-                  </div>
-                  <AnimBar pct={(planted / 15000000000) * 100} color={C.green} track={C.greenBg} />
-                </div>
-                <div>
-                  <div className="flex justify-between text-[12px] mb-1">
-                    <span className="text-[#6B7280] dark:text-gray-400">Year 1 annual target (50,000 trees)</span>
-                    <span className="font-medium text-foreground">{fmtNum(planted)} of 50,000 · {annualPct.toFixed(1)}%</span>
-                  </div>
-                  <AnimBar pct={annualPct} color={C.teal} track={C.tealBg} />
-                </div>
-                <div>
-                  <div className="flex justify-between text-[12px] mb-1">
-                    <span className="text-[#6B7280] dark:text-gray-400">MFC-ICLIP zone — 317,000 ha restoration</span>
-                    <span className="font-medium text-foreground">{fmtNum(planted)} trees planted</span>
-                  </div>
-                  <AnimBar pct={planted > 0 ? Math.min((planted / 500000) * 100, 100) : 0} color={C.amber} track={C.amberBg} />
-                </div>
-              </div>
-
-              <hr className="my-4 border-[#E5E7EB] dark:border-gray-700" />
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: 'SDG 13 — Climate action', bg: '#EAF3DE', color: '#3B6D11' },
-                  { label: 'SDG 15 — Life on land', bg: '#E1F5EE', color: '#1D9E75' },
-                  { label: 'Baku Declaration 2024', bg: '#E8F4FD', color: '#2D7AB3' },
-                  { label: '15B Trees initiative', bg: '#FAEEDA', color: '#BA7517' },
-                  { label: 'Glasgow Tourism Declaration', bg: '#F3F4F6', color: '#6B7280' },
-                ].map((b) => (
-                  <span key={b.label} className="px-2.5 py-1 text-[11px] font-medium rounded-full" style={{ background: b.bg, color: b.color }}>
-                    {b.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </DCard>
-
-          <DCard delay={200}>
-            <div ref={missionRef} className="p-5 flex flex-col items-center">
-              <div className="w-full flex items-start justify-between mb-4">
-                <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                  Year 1 target
-                  <ExportButton cardRef={missionRef} filename="Year1-Target" iconOnly />
+        {/* ─── Consolidated National Mission Hero ───────── */}
+        <DCard delay={80}>
+          <div ref={nationalRef} className="p-5 sm:p-6">
+            <div className="flex items-start justify-between mb-5 gap-2">
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-semibold text-foreground flex items-center gap-1.5">
+                  Kenya 15 billion trees — OTOT contribution
+                  <ExportButton cardRef={nationalRef} filename="National-Contribution" iconOnly />
                 </h2>
-              </div>
-              <DonutRing pct={annualPct} />
-              <div className="w-full mt-4 space-y-1.5 text-[12px]">
-                {[
-                  ['Planted', fmtNum(planted)],
-                  ['Target', fmtNum(annualTarget)],
-                  ['Remaining', fmtNum(remaining)],
-                  ['Days left in year', String(daysLeft)],
-                  ['Trees needed/day', fmtNum(treesPerDay)],
-                ].map(([label, val], i) => (
-                  <div key={label} className="flex justify-between py-1 border-b border-[#E5E7EB] dark:border-gray-700 last:border-b-0">
-                    <span className="text-[#6B7280] dark:text-gray-400">{label}</span>
-                    <span className={`font-medium ${
-                      label === 'Trees needed/day'
-                        ? treesPerDay > 300 ? 'text-[#A32D2D]' : treesPerDay > 150 ? 'text-[#BA7517]' : 'text-[#3B6D11]'
-                        : 'text-foreground'
-                    }`}>{val}</span>
-                  </div>
-                ))}
+                <p className="text-[12px] text-muted-foreground mt-0.5">
+                  Tracking MFC-ICLIP impact toward Kenya's national reforestation mission by 2032
+                </p>
               </div>
             </div>
-          </DCard>
-        </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left: filtered KPIs + 15B progress bars */}
+              <div className="lg:col-span-2 space-y-5">
+                {isLoading ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <KpiTile label="Trees Planted" value={filteredKpis.treesPlantedRange} tint={KPI_TINTS[0]} delay={0} />
+                    <KpiTile label="CO₂ Offset" value={filteredKpis.co2Range} suffix="t" decimals={1} delta="ICAO" tint={KPI_TINTS[1]} delay={80} />
+                    <KpiTile label="Tourist Contributors" value={filteredKpis.touristsRange} tint={KPI_TINTS[2]} delay={160} />
+                    <KpiTile label="Community Members" value={filteredKpis.communityRange} tint={KPI_TINTS[3]} delay={240} />
+                  </div>
+                )}
+
+                <div className="space-y-3.5 pt-1">
+                  <div>
+                    <div className="flex justify-between text-[11px] mb-1">
+                      <span className="text-muted-foreground">Year progress</span>
+                      <span className="font-medium text-foreground tabular-nums">{dayOfYear} of {daysInYear} days</span>
+                    </div>
+                    <AnimBar pct={yearPct} color={C.muted} track={C.greenBg} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[12px] mb-1">
+                      <span className="text-muted-foreground">OTOT contribution to national 15B target</span>
+                      <span className="font-medium text-foreground tabular-nums">{fmtNum(planted)} of 15,000,000,000</span>
+                    </div>
+                    <AnimBar pct={(planted / 15000000000) * 100} color={C.green} track={C.greenBg} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[12px] mb-1">
+                      <span className="text-muted-foreground">Year 1 annual target (50,000 trees)</span>
+                      <span className="font-medium text-foreground tabular-nums">{fmtNum(planted)} of 50,000 · {annualPct.toFixed(1)}%</span>
+                    </div>
+                    <AnimBar pct={annualPct} color={C.teal} track={C.tealBg} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[12px] mb-1">
+                      <span className="text-muted-foreground">MFC-ICLIP zone — 317,000 ha restoration</span>
+                      <span className="font-medium text-foreground tabular-nums">{fmtNum(planted)} trees planted</span>
+                    </div>
+                    <AnimBar pct={planted > 0 ? Math.min((planted / 500000) * 100, 100) : 0} color={C.amber} track={C.amberBg} />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    { label: 'SDG 13 — Climate action', bg: '#EAF3DE', color: '#3B6D11' },
+                    { label: 'SDG 15 — Life on land', bg: '#E1F5EE', color: '#1D9E75' },
+                    { label: 'Baku Declaration 2024', bg: '#E8F4FD', color: '#2D7AB3' },
+                    { label: '15B Trees initiative', bg: '#FAEEDA', color: '#BA7517' },
+                    { label: 'Glasgow Tourism Declaration', bg: '#F3F4F6', color: '#6B7280' },
+                  ].map((b) => (
+                    <span key={b.label} className="px-2.5 py-1 text-[11px] font-medium rounded-full" style={{ background: b.bg, color: b.color }}>
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Year 1 donut + compact stats */}
+              <div ref={missionRef} className="lg:border-l lg:border-border/40 lg:pl-6 flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[13px] font-medium text-foreground">Year 1 target</h3>
+                  <ExportButton cardRef={missionRef} filename="Year1-Target" iconOnly />
+                </div>
+                <DonutRing pct={annualPct} />
+                <div className="w-full mt-4 space-y-1.5 text-[12px]">
+                  {[
+                    ['Planted', fmtNum(planted)],
+                    ['Target', fmtNum(annualTarget)],
+                    ['Remaining', fmtNum(remaining)],
+                    ['Days left in year', String(daysLeft)],
+                    ['Trees needed/day', fmtNum(treesPerDay)],
+                  ].map(([label, val]) => (
+                    <div key={label} className="flex justify-between py-1 border-b border-border/40 last:border-b-0">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className={`font-medium tabular-nums ${
+                        label === 'Trees needed/day'
+                          ? treesPerDay > 300 ? 'text-[#A32D2D]' : treesPerDay > 150 ? 'text-[#BA7517]' : 'text-[#3B6D11]'
+                          : 'text-foreground'
+                      }`}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DCard>
+
 
         {/* ─── Section 3: ByeWind chart + side breakdown ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
