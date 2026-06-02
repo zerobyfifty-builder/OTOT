@@ -87,24 +87,32 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
   const handleDelete = async () => {
     if (!toDelete) return;
     setDeleting(true);
+    const id = toDelete.id;
+    // Optimistic update — remove from cache instantly
+    queryClient.setQueryData(['all-planting-submissions'], (old: any) =>
+      Array.isArray(old) ? old.filter((s: any) => s.id !== id) : old
+    );
     try {
-      // Delete associated notifications first (no FK cascade assumed)
-      await supabase.from('planting_cost_notifications').delete().eq('submission_id', toDelete.id);
-      const { error } = await supabase
+      await supabase.from('planting_cost_notifications').delete().eq('submission_id', id);
+      const { error, count } = await supabase
         .from('planting_cost_submissions')
-        .delete()
-        .eq('id', toDelete.id);
+        .delete({ count: 'exact' })
+        .eq('id', id);
       if (error) throw error;
+      if (!count) throw new Error('Delete blocked by permissions');
       toast.success('Submission deleted');
-      if (selectedId === toDelete.id) onSelectSubmission(null as any);
-      queryClient.invalidateQueries({ queryKey: ['all-planting-submissions'] });
+      if (selectedId === id) onSelectSubmission(null as any);
       setToDelete(null);
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete');
+      // Roll back by refetching
+      queryClient.invalidateQueries({ queryKey: ['all-planting-submissions'] });
     } finally {
+      queryClient.invalidateQueries({ queryKey: ['all-planting-submissions'] });
       setDeleting(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
