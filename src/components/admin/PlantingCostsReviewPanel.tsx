@@ -127,17 +127,6 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
                 <div className="flex items-center gap-2 shrink-0">
                   {statusBadge(sub.status)}
                   <span className="text-sm font-medium">{formatKES(Number(sub.total_cost_kes))}</span>
-                  {!isLive && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={(e) => { e.stopPropagation(); setToDelete(sub); }}
-                      aria-label="Delete submission"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
@@ -157,6 +146,19 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
                       : '—'}
                   </p>
                 </div>
+              </div>
+              <div className="mt-2 flex justify-end">
+                {!isLive && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); setToDelete(sub); }}
+                    aria-label="Delete submission"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           );
