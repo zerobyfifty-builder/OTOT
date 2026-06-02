@@ -195,10 +195,11 @@ export const OwnerDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   type DR = { from: Date | undefined; to: Date | undefined };
   const defaultRange = (): DR => ({ from: subMonths(new Date(), 3), to: new Date() });
+  const yearRange = (): DR => ({ from: subMonths(new Date(), 12), to: new Date() });
   const [chartRange, setChartRange] = useState<DR>(defaultRange());
-  const [speciesRange, setSpeciesRange] = useState<DR>(defaultRange());
-  const [beatRange, setBeatRange] = useState<DR>(defaultRange());
-  const [nurseryRange, setNurseryRange] = useState<DR>(defaultRange());
+  const [speciesRange, setSpeciesRange] = useState<DR>(yearRange());
+  const [beatRange, setBeatRange] = useState<DR>(yearRange());
+  const [nurseryRange, setNurseryRange] = useState<DR>(yearRange());
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Refs for export
@@ -285,7 +286,7 @@ export const OwnerDashboard = () => {
         .from("tree_status_transitions")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(5);
       return data || [];
     },
     enabled: !!orgInfo?.id,
@@ -978,7 +979,7 @@ export const OwnerDashboard = () => {
               {contributions && contributions.length > 0 ? (
                 <>
                   <div className="space-y-2.5">
-                    {contributions.slice(0, 6).map(c => (
+                    {contributions.slice(0, 5).map(c => (
                       <div key={c.contribution_id} className="flex items-center justify-between">
                         <div>
                           <p className="text-[13px] font-medium text-foreground">{c.contribution_id}</p>
