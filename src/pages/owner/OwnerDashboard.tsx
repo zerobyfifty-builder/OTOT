@@ -846,7 +846,7 @@ export const OwnerDashboard = () => {
                     Species breakdown
                     <ExportButton cardRef={speciesRef} filename="Species-Breakdown" iconOnly />
                   </h2>
-                  <p className="text-[12px] text-[#6B7280] dark:text-gray-400">Confirmed planted by category</p>
+                  
                 </div>
                 <ChartDateRangePicker dateRange={speciesRange} onDateRangeChange={setSpeciesRange} />
               </div>
