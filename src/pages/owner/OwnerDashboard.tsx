@@ -395,7 +395,7 @@ export const OwnerDashboard = () => {
     return { treesPlantedRange, co2Range, touristsRange, communityRange };
   }, [contributions, assignments, globalRange]);
 
-  const rangeLabel = `${PRESET_LABELS[globalRange.preset]} · ${format(globalRange.from, 'MMM d')} – ${format(globalRange.to, 'MMM d, yyyy')}`;
+  const rangeLabel = `${format(globalRange.from, 'MMM d')} – ${format(globalRange.to, 'MMM d, yyyy')}`;
 
   // Weekly stats for trend
   const oneWeekAgo = subMonths(now, 0); // Simplified: we just use total
@@ -871,7 +871,7 @@ export const OwnerDashboard = () => {
               <div className="flex items-start justify-between mb-3 gap-2">
                 <div className="min-w-0">
                   <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Nursery/CBO seedlings supply
+                    Top Nurseries
                     <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" iconOnly />
                   </h2>
                   
@@ -879,6 +879,11 @@ export const OwnerDashboard = () => {
                 <span className="text-[11px] text-muted-foreground">{rangeLabel}</span>
               </div>
               {nurseryActivity.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-between px-1 pb-1.5 mb-2 border-b border-[#E5E7EB] dark:border-gray-700">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[#6B7280]">Nursery</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-[#6B7280]">Seedlings</span>
+                  </div>
                 <div className="space-y-3">
                   {nurseryActivity.map(n => (
                     <div key={n.name} className="flex items-center justify-between">
@@ -898,6 +903,7 @@ export const OwnerDashboard = () => {
                     </div>
                   ))}
                 </div>
+                </>
               ) : (
                 <div className="h-[120px] flex items-center justify-center text-[12px] text-[#6B7280]">No nursery data yet</div>
               )}
