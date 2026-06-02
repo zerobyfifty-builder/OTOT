@@ -560,7 +560,7 @@ export const OwnerDashboard = () => {
         {/* ─── Header ──────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 animate-fade-in">
           <div>
-            <p className="text-[12px] text-muted-foreground/80 tracking-wide">Dashboards / Default</p>
+            
             <h1 className="text-[26px] font-semibold text-foreground mt-0.5">
               Welcome, {orgInfo?.name || 'Owner Dashboard'}
             </h1>
