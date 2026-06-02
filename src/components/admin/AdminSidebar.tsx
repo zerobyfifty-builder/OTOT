@@ -93,13 +93,9 @@ const menuItems = [
     title: "Configuration",
     icon: Settings,
     items: [
-      { title: "System Settings", url: "/admin/config/system" },
       { title: "Wallet Settings", url: "/admin/config/wallet" },
       { title: "Planting Costs", url: "/admin/config/planting-costs" },
       { title: "Contribution Tiers", url: "/admin/config/contribution-tiers" },
-      { title: "Payment Settings", url: "/admin/config/payment" },
-      { title: "Email Templates", url: "/admin/config/email" },
-      { title: "Feature Flags", url: "/admin/config/flags" },
     ],
   },
   {
@@ -112,16 +108,6 @@ const menuItems = [
     ],
   },
   {
-    title: "Activity Monitor",
-    url: "/admin/activity",
-    icon: Activity,
-  },
-  {
-    title: "Audit Logs",
-    url: "/admin/audit",
-    icon: FileText,
-  },
-  {
     title: "API Management",
     icon: Plug,
     items: [
@@ -131,9 +117,17 @@ const menuItems = [
     ],
   },
   {
-    title: "Security",
-    url: "/admin/security",
-    icon: ShieldAlert,
+    title: "Future Modules",
+    icon: Rocket,
+    items: [
+      { title: "System Settings", url: "/admin/config/system" },
+      { title: "Payment Settings", url: "/admin/config/payment" },
+      { title: "Email Templates", url: "/admin/config/email" },
+      { title: "Feature Flags", url: "/admin/config/flags" },
+      { title: "Activity Monitor", url: "/admin/activity" },
+      { title: "Audit Logs", url: "/admin/audit" },
+      { title: "Security", url: "/admin/security" },
+    ],
   },
 ];
 
