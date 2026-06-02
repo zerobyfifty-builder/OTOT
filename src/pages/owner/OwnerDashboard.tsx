@@ -871,7 +871,7 @@ export const OwnerDashboard = () => {
               <div className="flex items-start justify-between mb-3 gap-2">
                 <div className="min-w-0">
                   <h2 className="text-[14px] font-medium text-foreground flex items-center gap-1.5">
-                    Nursery/CBO seedlings supply
+                    Top Nurseries
                     <ExportButton cardRef={nurseryRef} filename="Nursery-Supply" iconOnly />
                   </h2>
                   
