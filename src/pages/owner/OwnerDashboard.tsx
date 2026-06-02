@@ -194,13 +194,9 @@ export const OwnerDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
-  type DR = { from: Date | undefined; to: Date | undefined };
-  const defaultRange = (): DR => ({ from: subMonths(new Date(), 3), to: new Date() });
-  const yearRange = (): DR => ({ from: subMonths(new Date(), 12), to: new Date() });
-  const [chartRange, setChartRange] = useState<DR>(defaultRange());
-  const [speciesRange, setSpeciesRange] = useState<DR>(yearRange());
-  const [beatRange, setBeatRange] = useState<DR>(yearRange());
-  const [nurseryRange, setNurseryRange] = useState<DR>(yearRange());
+  const { range: globalRange, setPreset, setCustom } = useDashboardDateRange();
+  const chartRange = { from: globalRange.from, to: globalRange.to };
+
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Refs for export
