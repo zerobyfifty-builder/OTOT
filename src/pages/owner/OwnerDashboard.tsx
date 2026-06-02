@@ -705,7 +705,7 @@ export const OwnerDashboard = () => {
               <div className="flex items-start justify-between mb-4 gap-2">
                 <div className="flex items-center gap-5">
                   <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-1.5">
-                    Monthly Planting
+                    Trees Planted
                     <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
                   </h2>
                   <div className="hidden sm:flex items-center gap-4 text-[12px] text-muted-foreground">
