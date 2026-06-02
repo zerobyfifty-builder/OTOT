@@ -712,7 +712,10 @@ export const OwnerDashboard = () => {
             <div ref={chartRef} className="p-5">
               <div className="flex items-start justify-between mb-4 gap-2">
                 <div className="flex items-center gap-5">
-                  <h2 className="text-[14px] font-semibold text-foreground">Monthly Planting</h2>
+                  <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-1.5">
+                    Monthly Planting
+                    <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
+                  </h2>
                   <div className="hidden sm:flex items-center gap-4 text-[12px] text-muted-foreground">
                     <span className="text-foreground/70">Planted</span>
                     <span>Target</span>
@@ -722,10 +725,7 @@ export const OwnerDashboard = () => {
                     <span className="inline-flex items-center gap-1.5 text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />Target</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
-                  <ExportButton cardRef={chartRef} filename="Monthly-Planting" iconOnly />
-                </div>
+                <ChartDateRangePicker dateRange={chartRange} onDateRangeChange={setChartRange} />
               </div>
               {monthlyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
@@ -767,8 +767,10 @@ export const OwnerDashboard = () => {
           <DCard delay={300}>
             <div ref={pipelineRef} className="p-5">
               <div className="flex items-start justify-between mb-4 gap-2">
-                <h2 className="text-[14px] font-semibold text-foreground">Trees by Status</h2>
-                <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
+                <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-1.5">
+                  Trees by Status
+                  <ExportButton cardRef={pipelineRef} filename="Status-Pipeline" iconOnly />
+                </h2>
               </div>
               <div className="space-y-3.5">
                 {STATUS_ORDER.map(status => {
@@ -797,13 +799,13 @@ export const OwnerDashboard = () => {
           <div ref={beatRef} className="p-5">
             <div className="flex items-start justify-between mb-3 gap-2">
               <div className="min-w-0">
-                <h2 className="text-[14px] font-semibold text-foreground">Forest beat performance</h2>
+                <h2 className="text-[14px] font-semibold text-foreground flex items-center gap-1.5">
+                  Forest beat performance
+                  <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
+                </h2>
                 <p className="text-[12px] text-muted-foreground">Top beats by trees planted</p>
               </div>
-              <div className="flex items-center gap-2">
-                <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
-                <ExportButton cardRef={beatRef} filename="Beat-Performance" iconOnly />
-              </div>
+              <ChartDateRangePicker dateRange={beatRange} onDateRangeChange={setBeatRange} />
             </div>
             {beatPerformance.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
