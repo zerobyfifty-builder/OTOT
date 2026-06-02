@@ -60,7 +60,6 @@ const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_
 const TREE_ORDERS_SUBFEATURES: Array<{ key: string; label: string }> = [
   { key: "tree_orders.action.planting_status", label: "Planting Status" },
   { key: "tree_orders.action.per_tree_status", label: "Per-Tree Status" },
-  { key: "tree_orders.action.tree_operations", label: "Tree Operations" },
   { key: "tree_orders.action.planting_overview", label: "Planting Overview" },
   { key: "tree_orders.action.monitoring_logs", label: "Monitoring Logs" },
   { key: "tree_orders.action.ecosystem_impact", label: "Ecosystem Impact" },
