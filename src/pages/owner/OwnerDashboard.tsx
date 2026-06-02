@@ -15,7 +15,8 @@ import {
 } from "recharts";
 import { useCountUp } from "@/components/owner/dashboard/useCountUp";
 import { ExportButton } from "@/components/owner/dashboard/ExportButton";
-import { ChartDateRangePicker } from "@/components/institutional/ChartDateRangePicker";
+import { GlobalDateRangeFilter } from "@/components/owner/dashboard/GlobalDateRangeFilter";
+import { useDashboardDateRange, PRESET_LABELS } from "@/components/owner/dashboard/useDashboardDateRange";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
