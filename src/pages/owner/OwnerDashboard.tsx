@@ -195,10 +195,11 @@ export const OwnerDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   type DR = { from: Date | undefined; to: Date | undefined };
   const defaultRange = (): DR => ({ from: subMonths(new Date(), 3), to: new Date() });
+  const yearRange = (): DR => ({ from: subMonths(new Date(), 12), to: new Date() });
   const [chartRange, setChartRange] = useState<DR>(defaultRange());
-  const [speciesRange, setSpeciesRange] = useState<DR>(defaultRange());
-  const [beatRange, setBeatRange] = useState<DR>(defaultRange());
-  const [nurseryRange, setNurseryRange] = useState<DR>(defaultRange());
+  const [speciesRange, setSpeciesRange] = useState<DR>(yearRange());
+  const [beatRange, setBeatRange] = useState<DR>(yearRange());
+  const [nurseryRange, setNurseryRange] = useState<DR>(yearRange());
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Refs for export
