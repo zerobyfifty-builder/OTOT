@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 
 const formatKES = (v: number) => `KES ${Math.round(v).toLocaleString('en-US')}`;
+const formatUSD = (v: number) => `$${v.toFixed(2)}`;
 
 const fmtDate = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
