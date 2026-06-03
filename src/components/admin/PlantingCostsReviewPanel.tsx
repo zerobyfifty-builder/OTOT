@@ -65,6 +65,26 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
     },
   });
 
+  const { data: configs } = useQuery({
+    queryKey: ['all-planting-configs-fx'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('planting_cost_configs')
+        .select('submission_id, fx_rate_kes_usd, is_active');
+      return data || [];
+    },
+  });
+
+  const fxBySubmission = useMemo(() => {
+    const map: Record<string, number> = {};
+    let active = 130;
+    (configs || []).forEach((c: any) => {
+      if (c.submission_id) map[c.submission_id] = Number(c.fx_rate_kes_usd);
+      if (c.is_active) active = Number(c.fx_rate_kes_usd);
+    });
+    return { map, active };
+  }, [configs]);
+
   // Build approval timeline: for each approved/superseded entry,
   // compute end = next approved's reviewed_at (chronologically after it).
   const endDates = useMemo(() => {
