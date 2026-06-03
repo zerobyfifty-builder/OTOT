@@ -158,7 +158,9 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
                 <div className="text-right shrink-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total / tree</p>
                   <p className="text-base font-semibold tabular-nums text-foreground">{formatKES(Number(sub.total_cost_kes))}</p>
-                  <p className="text-xs font-medium tabular-nums text-muted-foreground">{formatUSD(fxBySubmission.donationMap[sub.id] ?? fxBySubmission.activeDonation)}</p>
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary tabular-nums mt-1">
+                    {formatUSD(fxBySubmission.donationMap[sub.id] ?? fxBySubmission.activeDonation)}
+                  </span>
                 </div>
               </div>
 
