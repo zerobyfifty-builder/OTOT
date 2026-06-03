@@ -70,19 +70,19 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
     queryFn: async () => {
       const { data } = await supabase
         .from('planting_cost_configs')
-        .select('submission_id, fx_rate_kes_usd, is_active');
+        .select('submission_id, fx_rate_kes_usd, donation_usd, is_active');
       return data || [];
     },
   });
 
   const fxBySubmission = useMemo(() => {
-    const map: Record<string, number> = {};
-    let active = 130;
+    const donationMap: Record<string, number> = {};
+    let activeDonation = 0;
     (configs || []).forEach((c: any) => {
-      if (c.submission_id) map[c.submission_id] = Number(c.fx_rate_kes_usd);
-      if (c.is_active) active = Number(c.fx_rate_kes_usd);
+      if (c.submission_id) donationMap[c.submission_id] = Number(c.donation_usd);
+      if (c.is_active) activeDonation = Number(c.donation_usd);
     });
-    return { map, active };
+    return { donationMap, activeDonation };
   }, [configs]);
 
   // Build approval timeline: for each approved/superseded entry,
@@ -158,7 +158,7 @@ export const PlantingCostsReviewPanel: React.FC<Props> = ({ onSelectSubmission, 
                 <div className="text-right shrink-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total / tree</p>
                   <p className="text-base font-semibold tabular-nums text-foreground">{formatKES(Number(sub.total_cost_kes))}</p>
-                  <p className="text-xs font-medium tabular-nums text-muted-foreground">{formatUSD(Number(sub.total_cost_kes) / (fxBySubmission.map[sub.id] || fxBySubmission.active))}</p>
+                  <p className="text-xs font-medium tabular-nums text-muted-foreground">{formatUSD(fxBySubmission.donationMap[sub.id] ?? fxBySubmission.activeDonation)}</p>
                 </div>
               </div>
 
