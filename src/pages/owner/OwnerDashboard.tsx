@@ -19,6 +19,7 @@ import { GlobalDateRangeFilter } from "@/components/owner/dashboard/GlobalDateRa
 import { SpeciesDonut } from "@/components/owner/dashboard/SpeciesDonut";
 import { useDashboardDateRange, PRESET_LABELS } from "@/components/owner/dashboard/useDashboardDateRange";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
+import { TechDashboard } from "@/pages/owner/TechDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
 // ─── Color constants ───────────────────────────────────────
@@ -234,14 +235,15 @@ export const OwnerDashboard = () => {
     ? [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name
     : null;
 
-  // Check if institutional
+  // Determine owner type: government / tech / plantation
   const ownerType = (() => {
     const roleName = (userProfile?.roles as any)?.name || '';
     if (roleName === 'government_partner') return 'government';
-    const category = orgInfo?.category || '';
+    const category = (orgInfo?.category || '').toLowerCase();
     if (category === 'government') return 'government';
-    const partnerTypeName = orgInfo?.partner_types?.name || '';
-    if (partnerTypeName.toLowerCase().includes('government')) return 'government';
+    const partnerTypeName = (orgInfo?.partner_types?.name || '').toLowerCase();
+    if (partnerTypeName.includes('government')) return 'government';
+    if (partnerTypeName.includes('tech') || category === 'tech' || category === 'technology') return 'tech';
     return 'plantation';
   })();
 
@@ -544,9 +546,12 @@ export const OwnerDashboard = () => {
   const touristUp = useCountUp(uniqueTourists);
   const communityUp = useCountUp(communityMembers);
 
-  // ─── Institutional redirect ───────────────────────────
+  // ─── Owner-type dashboard routing ──────────────────────
   if (ownerType === 'government' && userProfile) {
     return <InstitutionalDashboard />;
+  }
+  if (ownerType === 'tech' && userProfile) {
+    return <TechDashboard />;
   }
 
   const isLoading = pipelineLoading;
