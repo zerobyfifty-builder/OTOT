@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto rounded-xl border border-border bg-card">
+    <div className="relative w-full overflow-x-auto">
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm border-separate border-spacing-0", className)}
@@ -17,7 +17,7 @@ Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn("bg-muted/40", className)} {...props} />
+    <thead ref={ref} className={cn("bg-transparent", className)} {...props} />
   ),
 );
 TableHeader.displayName = "TableHeader";
@@ -33,7 +33,7 @@ const TableFooter = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <tfoot
       ref={ref}
-      className={cn("border-t bg-muted/30 font-medium [&>tr]:last:border-b-0", className)}
+      className={cn("border-t bg-muted/20 font-medium [&>tr]:last:border-b-0", className)}
       {...props}
     />
   ),
@@ -45,7 +45,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
     <tr
       ref={ref}
       className={cn(
-        "transition-colors data-[state=selected]:bg-muted/60 hover:bg-muted/30",
+        "transition-colors data-[state=selected]:bg-muted/50 hover:bg-muted/30",
         className,
       )}
       {...props}
@@ -59,7 +59,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={cn(
-        "h-12 px-5 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border [&:has([role=checkbox])]:pr-0",
+        "h-11 px-6 text-left align-middle text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border [&:has([role=checkbox])]:pr-0 whitespace-nowrap",
         className,
       )}
       {...props}
@@ -73,7 +73,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
     <td
       ref={ref}
       className={cn(
-        "px-5 py-4 align-middle text-sm text-foreground border-b border-border/60 [&:has([role=checkbox])]:pr-0",
+        "px-6 py-5 align-middle text-sm text-foreground border-b border-border/50 [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
