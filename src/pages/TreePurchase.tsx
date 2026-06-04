@@ -85,7 +85,11 @@ export const TreePurchase = () => {
     setSelectedOption(option);
   };
 
-  const PRICE_PER_TREE = routeDonation || 4.5;
+  // Live per-tree price from active Planting Costs config (Super Admin → Configuration).
+  // Falls back to the value passed via router state, then to a safe default.
+  const { pricePerTree: PRICE_PER_TREE, configId: activeConfigId } = useActivePlantingConfig({
+    fallbackPricePerTree: routeDonation,
+  });
 
   useEffect(() => {
     fetchLodges();
