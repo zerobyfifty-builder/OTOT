@@ -467,7 +467,9 @@ export const OwnerFinancial = () => {
         c.transaction_reference?.toLowerCase().includes(search.toLowerCase()) ||
         tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = c.contribution_type;
+      const matchType = typeFilter === "all" || (typeFilter === "agent" && ct === "travel_agent") || (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     }) || [];
 
     result.sort((a, b) => {
