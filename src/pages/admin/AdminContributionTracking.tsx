@@ -107,6 +107,7 @@ const PIE_COLORS = ["#3b82f6", "#f59e0b", "#8b5cf6", "#10b981"];
 export default function AdminContributionTracking() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("payment_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -252,7 +253,11 @@ export default function AdminContributionTracking() {
         c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
         c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = c.contribution_type;
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && ct === "travel_agent") ||
+        (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     }) || [];
     result.sort((a, b) => {
       let cmp = 0;
@@ -268,7 +273,7 @@ export default function AdminContributionTracking() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir]);
+  }, [contributions, search, statusFilter, typeFilter, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -488,6 +493,14 @@ export default function AdminContributionTracking() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search by ID, name, or reference..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-10" />
           </div>
+          <Select value={typeFilter} onValueChange={v => { setTypeFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Contri type" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="tourist">Tourist</SelectItem>
+              <SelectItem value="agent">Agent</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={v => { setStatusFilter(v); setCurrentPage(1); }}>
             <SelectTrigger className="w-full sm:w-[220px]"><SelectValue placeholder="Filter by status" /></SelectTrigger>
             <SelectContent>
