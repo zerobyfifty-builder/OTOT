@@ -136,7 +136,12 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
             .select('name, category')
             .eq('id', org.partner_type_id)
             .maybeSingle();
-          if (pt?.name) setPartnerTypeName(pt.name);
+          if (pt?.name) {
+            setPartnerTypeName(pt.name);
+            if (cacheKey) {
+              try { localStorage.setItem(cacheKey, pt.name); } catch {}
+            }
+          }
           if (pt?.category) setPartnerCategory(pt.category.toLowerCase());
         }
       }
