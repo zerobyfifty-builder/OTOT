@@ -107,6 +107,7 @@ export const OwnerFinancial = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedRow, setSelectedRow] = useState<ContributionRow | null>(null);
   const [sheetMode, setSheetMode] = useState<SheetMode>("view");
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -466,7 +467,9 @@ export const OwnerFinancial = () => {
         c.transaction_reference?.toLowerCase().includes(search.toLowerCase()) ||
         tripFriendlyId.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = c.contribution_type;
+      const matchType = typeFilter === "all" || (typeFilter === "agent" && ct === "travel_agent") || (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     }) || [];
 
     result.sort((a, b) => {
@@ -501,7 +504,7 @@ export const OwnerFinancial = () => {
     });
 
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir, tripsMap]);
+  }, [contributions, search, statusFilter, typeFilter, sortField, sortDir, tripsMap]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -745,6 +748,14 @@ export const OwnerFinancial = () => {
             <SelectItem value="funds_received">Received by KTB</SelectItem>
             <SelectItem value="transferred_for_planting">Transferred for Plantation</SelectItem>
             <SelectItem value="received_for_planting">Received for Plantation</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
           </SelectContent>
         </Select>
       </div>
