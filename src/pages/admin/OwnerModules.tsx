@@ -44,6 +44,9 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
+// Modules grouped under "Configuration" accordion (mirrors super-admin sidebar)
+const CONFIGURATION_MODULES = ["wallet_settings", "planting_costs", "contribution_tiers"];
+
 // Custom sort priority for module assignment table (OM01 Dashboard, then OM01..OM06)
 const MODULE_PRIORITY: Record<string, number> = {
   "Dashboard": 0,
@@ -59,9 +62,10 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Overview": 5,
   "Impact Insights": 5,
   "Forest Registry": 6,
+  "Configuration": 7,
 };
 
-// Owners-module short codes for identification (OM01..OM07)
+// Owners-module short codes for identification (OM01..OM08)
 const MODULE_CODES: Record<string, string> = {
   "Dashboard": "OM01",
   "Climate Funding": "OM02",
@@ -76,7 +80,7 @@ const MODULE_CODES: Record<string, string> = {
   "Impact Overview": "OM06",
   "Impact Insights": "OM06",
   "Forest Registry": "OM07",
-
+  "Configuration": "OM08",
 };
 
 // Forest Registry sub-module codes keyed by module.name
@@ -89,8 +93,17 @@ const FOREST_SUB_CODES: Record<string, string> = {
 };
 const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
+// Configuration sub-module codes keyed by module.name
+const CONFIG_SUB_CODES: Record<string, string> = {
+  wallet_settings: "OM08A",
+  planting_costs: "OM08B",
+  contribution_tiers: "OM08C",
+};
+const CONFIG_SUB_ORDER = ["wallet_settings", "planting_costs", "contribution_tiers"];
+
+
 const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
-const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
+const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || CONFIG_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
 
 const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
 
@@ -104,6 +117,7 @@ export default function OwnerModules() {
   const queryClient = useQueryClient();
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
   const [forestExpanded, setForestExpanded] = useState(true);
+  const [configExpanded, setConfigExpanded] = useState(true);
 
   const { data: owners, isLoading: loadingOrgs } = useQuery({
     queryKey: ["ownerOrgs"],
@@ -208,10 +222,10 @@ export default function OwnerModules() {
           .eq("organization_id", orgId)
           .in("module_id", groupModules.map((m) => m.id));
       }
-      toast.success("Forest Registry access updated");
+      toast.success("Group access updated");
       queryClient.invalidateQueries({ queryKey: ["orgModules"] });
     } catch {
-      toast.error("Failed to update Forest Registry access");
+      toast.error("Failed to update group access");
     }
   };
 
@@ -285,18 +299,28 @@ export default function OwnerModules() {
                     .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
                     .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
 
-                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+                  const configModules = visibleModules
+                    .filter((m: any) => CONFIGURATION_MODULES.includes(m.name))
+                    .sort((a: any, b: any) => CONFIG_SUB_ORDER.indexOf(a.name) - CONFIG_SUB_ORDER.indexOf(b.name));
+
+                  const otherModules = visibleModules.filter(
+                    (m: any) => !FOREST_REGISTRY_MODULES.includes(m.name) && !CONFIGURATION_MODULES.includes(m.name)
+                  );
 
                   const assignmentRows = [
                     ...otherModules.map((module: any) => ({ type: "module" as const, module })),
                     ...(forestModules.length > 0 ? [{ type: "forest" as const }] : []),
+                    ...(configModules.length > 0 ? [{ type: "config" as const }] : []),
                   ].sort((a, b) => {
-                    const priorityA = a.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(a.module));
-                    const priorityB = b.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(b.module));
+                    const labelOf = (r: any) =>
+                      r.type === "forest" ? "Forest Registry" : r.type === "config" ? "Configuration" : getModuleDisplayName(r.module);
+                    const priorityA = getModulePriority(labelOf(a));
+                    const priorityB = getModulePriority(labelOf(b));
                     if (priorityA !== priorityB) return priorityA - priorityB;
-                    if (a.type === "forest" || b.type === "forest") return a.type === "forest" ? -1 : 1;
+                    if (a.type !== "module" || b.type !== "module") return a.type !== "module" ? -1 : 1;
                     return (a.module.sort_order || 0) - (b.module.sort_order || 0);
                   });
+
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
@@ -416,11 +440,61 @@ export default function OwnerModules() {
                         </Fragment>
                   );
 
+                  const renderConfigurationRows = () => (
+                    <Fragment key="configuration-group">
+                          <TableRow className="bg-muted/40 hover:bg-muted/50">
+                          <TableCell className="sticky left-0 z-10 bg-muted/40 border-r">
+                              <button
+                                type="button"
+                                onClick={() => setConfigExpanded((v) => !v)}
+                                className="flex items-center gap-2 font-medium w-full text-left"
+                              >
+                                <ChevronRight
+                                  className={cn("h-4 w-4 transition-transform", configExpanded && "rotate-90")}
+                                />
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM08</Badge>
+                                <span>Configuration</span>
+                                <Badge variant="outline" className="text-[10px] ml-2">
+                                  Group · {configModules.length}
+                                </Badge>
+                              </button>
+                            </TableCell>
+                            {owners.map((s) => {
+                              const enabledCount = configModules.filter((m: any) => !!getOrgModule(s.id, m.id)).length;
+                              const allOn = enabledCount === configModules.length;
+                              const someOn = enabledCount > 0 && !allOn;
+                              return (
+                                <TableCell key={s.id} className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Switch
+                                      checked={allOn}
+                                      onCheckedChange={() => toggleGroup(s.id, configModules, !allOn)}
+                                      className={cn(someOn && "data-[state=unchecked]:bg-primary/40")}
+                                    />
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {enabledCount}/{configModules.length}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                          {configExpanded && configModules.map((m: any) => renderModuleRow(m, true))}
+                        </Fragment>
+                  );
+
                   return (
                     <>
-                      {assignmentRows.map((row) => row.type === "forest" ? renderForestRegistryRows() : renderModuleRow(row.module))}
+                      {assignmentRows.map((row) =>
+                        row.type === "forest"
+                          ? renderForestRegistryRows()
+                          : row.type === "config"
+                          ? renderConfigurationRows()
+                          : renderModuleRow(row.module)
+                      )}
                     </>
                   );
+
                 })()}
               </TableBody>
             </Table>
