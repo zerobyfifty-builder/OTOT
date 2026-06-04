@@ -151,6 +151,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
   const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [agentNames, setAgentNames] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
