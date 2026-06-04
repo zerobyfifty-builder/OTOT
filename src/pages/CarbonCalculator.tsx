@@ -831,72 +831,142 @@ export const CarbonCalculator = () => {
         </Form>
 
         {/* Calculation Results */}
-        {calculation && (
-          <div className="mt-8 p-6 border-2 border-primary rounded-lg bg-card">
-            <h2 className="text-2xl font-bold mb-2">Your Carbon Footprint</h2>
-            <p className="text-muted-foreground mb-6">Based on your travel details</p>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-secondary rounded-lg">
-                <span className="text-sm font-medium">Flight Carbon Footprint:</span>
-                <span className="text-sm">
-                  {calculation.distance.toLocaleString()} km by Plane: 
-                  <strong className="ml-2">{calculation.flightCO2.toFixed(1)} kg CO2</strong>
-                </span>
+        {calculation && (() => {
+          const treesNeeded = calcResult?.treesNeeded ?? calculation.treesNeeded;
+          const visibleTrees = Math.min(treesNeeded, 12);
+          return (
+          <div className="mt-8 animate-fade-in">
+            <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl">
+              {/* Decorative background */}
+              <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
+                <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-accent blur-3xl" />
               </div>
 
-              {calculation.accommodationCO2 > 0 && (
-                <div className="flex justify-between items-center p-4 bg-secondary rounded-lg">
-                  <span className="text-sm font-medium">Stay Carbon Footprint:</span>
-                  <span className="text-sm">
-                    {ACCOMMODATION_LABELS[form.getValues("accommodationType")]} - {calculation.nights} nights: 
-                    <strong className="ml-2">{calculation.accommodationCO2.toFixed(1)} kg CO2</strong>
-                  </span>
+              <div className="relative p-6 sm:p-8">
+                {/* Header */}
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Your Impact Report
+                    </div>
+                    <h2 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
+                    <p className="text-sm text-muted-foreground">Turn your travel into a forest</p>
+                  </div>
+                  <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 animate-scale-in">
+                    <Cloud className="h-7 w-7 text-primary" />
+                  </div>
                 </div>
-              )}
 
-              <div className="p-6 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-center">
-                <p className="text-sm font-medium mb-2 text-primary-foreground">TOTAL TRIP CO2</p>
-                <p className="text-4xl font-bold text-primary-foreground">{calculation.totalCO2.toFixed(1)} kg CO2</p>
-              </div>
+                {/* Breakdown chips */}
+                <div className="grid gap-3 sm:grid-cols-2 mb-6">
+                  <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
+                      <Plane className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground">Flight · {calculation.distance.toLocaleString()} km</p>
+                      <p className="text-base font-semibold tabular-nums">{calculation.flightCO2.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">kg CO₂</span></p>
+                    </div>
+                  </div>
 
-              <div className="p-6 bg-accent text-accent-foreground rounded-lg text-center">
-                <p className="text-lg font-semibold">
-                  You'll need <span className="text-3xl font-bold">{calcResult?.treesNeeded ?? calculation.treesNeeded}</span> trees
-                </p>
-                <p className="text-sm mt-1">to remove this trip's CO2 emissions</p>
-                {calcResult && (
-                  <p className="text-xs mt-2 text-foreground">
-                    Effective Rate: {calcResult.speciesLabel} · {calcResult.effectiveRate.toFixed(1)} kg CO₂ /tree/yr · {calcResult.horizonYears}-year offset
-                  </p>
+                  {calculation.accommodationCO2 > 0 && (
+                    <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                        <Hotel className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{ACCOMMODATION_LABELS[form.getValues("accommodationType")]} · {calculation.nights} nights</p>
+                        <p className="text-base font-semibold tabular-nums">{calculation.accommodationCO2.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">kg CO₂</span></p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hero impact panel */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 sm:p-8 text-primary-foreground shadow-xl">
+                  {/* Floating clouds */}
+                  <Wind className="absolute top-4 right-6 h-5 w-5 opacity-30 animate-fade-in" />
+                  <Cloud className="absolute top-10 right-16 h-4 w-4 opacity-20" style={{ animation: 'fade-in 1s ease-out 0.3s both' }} />
+
+                  <div className="grid gap-6 sm:grid-cols-2 items-center">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.18em] font-medium opacity-80">Total trip emissions</p>
+                      <div className="mt-1 flex items-baseline gap-2">
+                        <span className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight">{calculation.totalCO2.toFixed(1)}</span>
+                        <span className="text-sm opacity-90">kg CO₂</span>
+                      </div>
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs">
+                        <Leaf className="h-3.5 w-3.5" />
+                        Offset with native trees
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-5 border border-white/20">
+                        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">Trees to plant</p>
+                        <div className="mt-1 flex items-baseline gap-2">
+                          <span className="text-5xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
+                          <TreePine className="h-7 w-7 opacity-90" />
+                        </div>
+                        {/* Animated mini-forest */}
+                        <div className="mt-4 flex flex-wrap gap-1.5">
+                          {Array.from({ length: visibleTrees }).map((_, i) => (
+                            <TreePine
+                              key={i}
+                              className="h-5 w-5 text-white/90"
+                              style={{
+                                animation: `scale-in 0.45s cubic-bezier(.34,1.56,.64,1) ${i * 80}ms both`,
+                                transformOrigin: 'bottom center',
+                              }}
+                            />
+                          ))}
+                          {treesNeeded > visibleTrees && (
+                            <span className="ml-1 self-center text-xs font-medium opacity-90">+{treesNeeded - visibleTrees} more</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {calcResult && (
+                    <p className="mt-5 text-[11px] sm:text-xs opacity-85 border-t border-white/15 pt-3">
+                      Effective Rate: {calcResult.speciesLabel} · {calcResult.effectiveRate.toFixed(1)} kg CO₂ /tree/yr · {calcResult.horizonYears}-year offset
+                    </p>
+                  )}
+                </div>
+
+                {calcResult?.configWarning && (
+                  <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                    ⚠️ {calcResult.configWarning}
+                  </div>
                 )}
-              </div>
 
-              {calcResult?.configWarning && (
-                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-                  ⚠️ {calcResult.configWarning}
+                {/* Actions */}
+                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 rounded-xl border-2"
+                    onClick={onSaveTrip}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Saving..." : "Save Trip"}
+                  </Button>
+                  <Button
+                    className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
+                    onClick={onPlantTrees}
+                  >
+                    <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
+                    Plant {treesNeeded} {treesNeeded === 1 ? 'Tree' : 'Trees'}
+                    <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                  </Button>
                 </div>
-              )}
-            </div>
-
-            <div className="flex gap-4 mt-6">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={onSaveTrip}
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save Trip"}
-              </Button>
-              <Button
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={onPlantTrees}
-              >
-                Plant Trees
-              </Button>
+              </div>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Email Capture Modal for Magic Link Flow */}
