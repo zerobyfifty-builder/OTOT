@@ -413,6 +413,16 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
             <SelectItem value="airline">Airline</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="All Statuses" />
