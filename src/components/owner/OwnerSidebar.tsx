@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Sprout, TreePine, Trees, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map, Sparkles } from 'lucide-react';
+import { Home, Sprout, TreePine, Trees, DollarSign, BarChart3, Target, Settings, LogOut, ChevronLeft, ChevronRight, ChevronDown, SlidersHorizontal, Plane, CreditCard, MapPin, Leaf, Users, Pickaxe, Map, Sparkles, Wallet, Coins, Layers } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,6 +67,13 @@ const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideI
   mdm_species: { title: 'Species & Seedlings', url: '/owner/mdm-species', icon: Leaf },
   mdm_planters: { title: 'Planters Registry', url: '/owner/mdm-planters', icon: Users },
   mdm_sequestration: { title: 'Sequestration Rates', url: '/owner/mdm-sequestration', icon: BarChart3 },
+};
+
+// Configuration modules that appear under "Configuration" collapsible
+const configModuleItems: Record<string, { title: string; url: string; icon: LucideIcon }> = {
+  wallet_settings: { title: 'Wallet Settings', url: '/owner/config/wallet', icon: Wallet },
+  planting_costs: { title: 'Planting Costs', url: '/owner/config/planting-costs', icon: Coins },
+  contribution_tiers: { title: 'Contribution Tiers', url: '/owner/config/contribution-tiers', icon: Layers },
 };
 
 interface OwnerSidebarProps {
@@ -202,6 +209,14 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
   const forestRegistryItems = React.useMemo(() => {
     if (!assignedModules) return [];
     return Object.entries(mdmModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .map(([, val]) => val);
+  }, [assignedModules]);
+
+  // Build Configuration sub-items from assigned modules
+  const configurationItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(configModuleItems)
       .filter(([key]) => assignedModules.includes(key))
       .map(([, val]) => val);
   }, [assignedModules]);
@@ -380,6 +395,40 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         {forestRegistryItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
+                              <NavLink
+                                to={subItem.url}
+                                className={({ isActive }) =>
+                                  isActive ? 'bg-white/20 text-white font-medium' : ''
+                                }
+                              >
+                                <subItem.icon className="h-4 w-4" />
+                                <span>{subItem.title}</span>
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
+
+              {/* 6. Configuration (collapsible) */}
+              {configurationItems.length > 0 && (
+                <Collapsible asChild defaultOpen={configurationItems.some(i => location.pathname === i.url)}>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-white/10 text-white/80 font-medium w-full">
+                        <Settings className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span>Configuration</span>}
+                        {!collapsed && <ChevronDown className="ml-auto h-4 w-4" />}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {configurationItems.map((subItem) => (
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
                               <NavLink

@@ -669,6 +669,15 @@ const App = () => (
             <Route path="/owner/orders/:contributionId/operations" element={
               <OwnerRoute><OwnerLayout><TreeOperations /></OwnerLayout></OwnerRoute>
             } />
+            <Route path="/owner/config/wallet" element={
+              <OwnerRoute><OwnerLayout><WalletSettings /></OwnerLayout></OwnerRoute>
+            } />
+            <Route path="/owner/config/planting-costs" element={
+              <OwnerRoute><OwnerLayout><PlantingCostsConfig /></OwnerLayout></OwnerRoute>
+            } />
+            <Route path="/owner/config/contribution-tiers" element={
+              <OwnerRoute><OwnerLayout><ContributionTierSettings /></OwnerLayout></OwnerRoute>
+            } />
 
             {/* Legacy Admin routes */}
             <Route path="/admin/dashboard" element={
