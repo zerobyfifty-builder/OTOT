@@ -86,9 +86,11 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+  const cacheKey = user ? `ownerSidebarPartnerType:${user.id}` : '';
+  const cachedPartnerType = (typeof window !== 'undefined' && cacheKey) ? localStorage.getItem(cacheKey) || '' : '';
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [partnerTypeName, setPartnerTypeName] = useState<string>('Owner');
+  const [partnerTypeName, setPartnerTypeName] = useState<string>(cachedPartnerType);
   const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
   const [userJobRole, setUserJobRole] = useState<string>('');
