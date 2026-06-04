@@ -107,6 +107,7 @@ const PIE_COLORS = ["#3b82f6", "#f59e0b", "#8b5cf6", "#10b981"];
 export default function AdminContributionTracking() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField>("payment_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
