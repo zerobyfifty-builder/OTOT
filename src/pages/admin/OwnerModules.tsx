@@ -103,7 +103,7 @@ const CONFIG_SUB_ORDER = ["wallet_settings", "planting_costs", "contribution_tie
 
 
 const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
-const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
+const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || CONFIG_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
 
 const getModulePriority = (displayName: string) => MODULE_PRIORITY[displayName] ?? 999;
 
