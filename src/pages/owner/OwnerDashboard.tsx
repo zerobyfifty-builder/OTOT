@@ -19,6 +19,7 @@ import { GlobalDateRangeFilter } from "@/components/owner/dashboard/GlobalDateRa
 import { SpeciesDonut } from "@/components/owner/dashboard/SpeciesDonut";
 import { useDashboardDateRange, PRESET_LABELS } from "@/components/owner/dashboard/useDashboardDateRange";
 import { InstitutionalDashboard } from "@/pages/institutional/InstitutionalDashboard";
+import { TechDashboard } from "@/pages/owner/TechDashboard";
 import { format, subMonths, differenceInDays, startOfYear, endOfYear, getDaysInYear, isWithinInterval } from "date-fns";
 
 // ─── Color constants ───────────────────────────────────────
