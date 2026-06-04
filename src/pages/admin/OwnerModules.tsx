@@ -222,10 +222,10 @@ export default function OwnerModules() {
           .eq("organization_id", orgId)
           .in("module_id", groupModules.map((m) => m.id));
       }
-      toast.success("Forest Registry access updated");
+      toast.success("Group access updated");
       queryClient.invalidateQueries({ queryKey: ["orgModules"] });
     } catch {
-      toast.error("Failed to update Forest Registry access");
+      toast.error("Failed to update group access");
     }
   };
 
