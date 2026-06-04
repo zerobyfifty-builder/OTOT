@@ -151,6 +151,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
   const [userCountries, setUserCountries] = useState<UserCountryMap>({});
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [agentNames, setAgentNames] = useState<Record<string, string>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewTrip, setViewTrip] = useState<Trip | null>(null);
@@ -259,7 +260,10 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const matchStatus = statusFilter === "all" || getOffsetStatus(t) === statusFilter;
       const src = t.source_type || "tourist";
       const matchSource = sourceFilter === "all" || src === sourceFilter;
-      return matchSearch && matchStatus && matchSource;
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && src === "travel_agent") ||
+        (typeFilter === "tourist" && src !== "travel_agent");
+      return matchSearch && matchStatus && matchSource && matchType;
     });
 
     result.sort((a, b) => {
@@ -286,7 +290,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
     });
 
     return result;
-  }, [trips, search, statusFilter, sourceFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
+  }, [trips, search, statusFilter, sourceFilter, typeFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -407,6 +411,16 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
             <SelectItem value="travel_agent">Travel Agent</SelectItem>
             <SelectItem value="b2b">B2B</SelectItem>
             <SelectItem value="airline">Airline</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
