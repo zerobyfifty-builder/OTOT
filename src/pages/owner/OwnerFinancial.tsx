@@ -107,6 +107,7 @@ export const OwnerFinancial = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedRow, setSelectedRow] = useState<ContributionRow | null>(null);
   const [sheetMode, setSheetMode] = useState<SheetMode>("view");
   const [sheetOpen, setSheetOpen] = useState(false);
