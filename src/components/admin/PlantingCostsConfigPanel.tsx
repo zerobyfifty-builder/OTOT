@@ -155,6 +155,7 @@ export const PlantingCostsConfigPanel: React.FC<Props> = ({ submission, onClearS
       toast.success('Configuration approved and live.');
       queryClient.invalidateQueries({ queryKey: ['all-planting-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['active-planting-config'] });
+      queryClient.invalidateQueries({ queryKey: ['active-planting-config-for-calc'] });
       onClearSubmission();
     },
     onError: (err: any) => toast.error(err.message),
