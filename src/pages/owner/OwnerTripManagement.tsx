@@ -260,7 +260,10 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
       const matchStatus = statusFilter === "all" || getOffsetStatus(t) === statusFilter;
       const src = t.source_type || "tourist";
       const matchSource = sourceFilter === "all" || src === sourceFilter;
-      return matchSearch && matchStatus && matchSource;
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && src === "travel_agent") ||
+        (typeFilter === "tourist" && src !== "travel_agent");
+      return matchSearch && matchStatus && matchSource && matchType;
     });
 
     result.sort((a, b) => {
