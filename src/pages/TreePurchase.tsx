@@ -736,7 +736,7 @@ export const TreePurchase = () => {
               <div className="flex-1">
                 <p className="font-semibold text-sm">Why ${PRICE_PER_TREE.toFixed(2)} per tree?</p>
                 <p className="text-sm text-muted-foreground">
-                  Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead. The per-tree rate is set by KTB administrators and updates automatically whenever planting costs are re-approved.
+                  Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead as per the plantation partners and program administrator charges.
                 </p>
               </div>
             </div>
