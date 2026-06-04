@@ -117,6 +117,7 @@ export default function OwnerModules() {
   const queryClient = useQueryClient();
   const [previewOrgId, setPreviewOrgId] = useState<string | null>(null);
   const [forestExpanded, setForestExpanded] = useState(true);
+  const [configExpanded, setConfigExpanded] = useState(true);
 
   const { data: owners, isLoading: loadingOrgs } = useQuery({
     queryKey: ["ownerOrgs"],
