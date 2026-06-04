@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import mauForestImage from "@/assets/mau-forest-complex.jpg";
+import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 
 interface Lodge {
   id: string;
@@ -84,7 +85,11 @@ export const TreePurchase = () => {
     setSelectedOption(option);
   };
 
-  const PRICE_PER_TREE = routeDonation || 4.5;
+  // Live per-tree price from active Planting Costs config (Super Admin → Configuration).
+  // Falls back to the value passed via router state, then to a safe default.
+  const { pricePerTree: PRICE_PER_TREE, configId: activeConfigId } = useActivePlantingConfig({
+    fallbackPricePerTree: routeDonation,
+  });
 
   useEffect(() => {
     fetchLodges();
@@ -731,7 +736,7 @@ export const TreePurchase = () => {
               <div className="flex-1">
                 <p className="font-semibold text-sm">Why ${PRICE_PER_TREE.toFixed(2)} per tree?</p>
                 <p className="text-sm text-muted-foreground">
-                  Your contribution covers seedling, planting, maintenance, monitoring, reporting, geo tagging and GPS tracking for 3 years.
+                  Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead. The per-tree rate is set by KTB administrators and updates automatically whenever planting costs are re-approved.
                 </p>
               </div>
             </div>
