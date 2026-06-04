@@ -740,6 +740,14 @@ export const OwnerFinancial = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search by ID, name, or reference..." value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-9" />
         </div>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="tourist">Tourist</SelectItem>
+            <SelectItem value="agent">Agent</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
@@ -748,14 +756,6 @@ export const OwnerFinancial = () => {
             <SelectItem value="funds_received">Received by KTB</SelectItem>
             <SelectItem value="transferred_for_planting">Transferred for Plantation</SelectItem>
             <SelectItem value="received_for_planting">Received for Plantation</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Types" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="tourist">Tourist</SelectItem>
-            <SelectItem value="agent">Agent</SelectItem>
           </SelectContent>
         </Select>
       </div>
