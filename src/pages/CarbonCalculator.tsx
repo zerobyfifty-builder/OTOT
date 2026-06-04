@@ -866,9 +866,14 @@ export const CarbonCalculator = () => {
                 </p>
                 <p className="text-sm mt-1">to remove this trip's CO2 emissions</p>
                 {calcResult && (
-                  <p className="text-xs mt-2 text-foreground">
-                    Rate: {calcResult.speciesLabel} · {calcResult.rateUsed} kg CO₂/tree/yr · {calcResult.horizonYears}-year offset
-                  </p>
+                  <>
+                    <p className="text-xs mt-2 text-foreground">
+                      Rate: {calcResult.speciesLabel} · {calcResult.rateUsed} kg CO₂/tree/yr · {calcResult.horizonYears}-year offset
+                    </p>
+                    <p className="text-xs mt-1 text-foreground">
+                      Effective Rate: {calcResult.speciesLabel} · {calcResult.effectiveRate.toFixed(1)} kg CO₂ /tree/yr · {calcResult.horizonYears}-year offset
+                    </p>
+                  </>
                 )}
               </div>
 
