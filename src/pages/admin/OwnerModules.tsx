@@ -299,18 +299,28 @@ export default function OwnerModules() {
                     .filter((m: any) => FOREST_REGISTRY_MODULES.includes(m.name))
                     .sort((a: any, b: any) => FOREST_SUB_ORDER.indexOf(a.name) - FOREST_SUB_ORDER.indexOf(b.name));
 
-                  const otherModules = visibleModules.filter((m: any) => !FOREST_REGISTRY_MODULES.includes(m.name));
+                  const configModules = visibleModules
+                    .filter((m: any) => CONFIGURATION_MODULES.includes(m.name))
+                    .sort((a: any, b: any) => CONFIG_SUB_ORDER.indexOf(a.name) - CONFIG_SUB_ORDER.indexOf(b.name));
+
+                  const otherModules = visibleModules.filter(
+                    (m: any) => !FOREST_REGISTRY_MODULES.includes(m.name) && !CONFIGURATION_MODULES.includes(m.name)
+                  );
 
                   const assignmentRows = [
                     ...otherModules.map((module: any) => ({ type: "module" as const, module })),
                     ...(forestModules.length > 0 ? [{ type: "forest" as const }] : []),
+                    ...(configModules.length > 0 ? [{ type: "config" as const }] : []),
                   ].sort((a, b) => {
-                    const priorityA = a.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(a.module));
-                    const priorityB = b.type === "forest" ? getModulePriority("Forest Registry") : getModulePriority(getModuleDisplayName(b.module));
+                    const labelOf = (r: any) =>
+                      r.type === "forest" ? "Forest Registry" : r.type === "config" ? "Configuration" : getModuleDisplayName(r.module);
+                    const priorityA = getModulePriority(labelOf(a));
+                    const priorityB = getModulePriority(labelOf(b));
                     if (priorityA !== priorityB) return priorityA - priorityB;
-                    if (a.type === "forest" || b.type === "forest") return a.type === "forest" ? -1 : 1;
+                    if (a.type !== "module" || b.type !== "module") return a.type !== "module" ? -1 : 1;
                     return (a.module.sort_order || 0) - (b.module.sort_order || 0);
                   });
+
 
                   const renderModuleRow = (m: any, indent = false) => {
                     const accessType = (m as any).access_type || "shared";
