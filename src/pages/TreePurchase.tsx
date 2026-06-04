@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import mauForestImage from "@/assets/mau-forest-complex.jpg";
+import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 
 interface Lodge {
   id: string;
