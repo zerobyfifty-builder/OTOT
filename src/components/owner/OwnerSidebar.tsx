@@ -213,6 +213,14 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
       .map(([, val]) => val);
   }, [assignedModules]);
 
+  // Build Configuration sub-items from assigned modules
+  const configurationItems = React.useMemo(() => {
+    if (!assignedModules) return [];
+    return Object.entries(configModuleItems)
+      .filter(([key]) => assignedModules.includes(key))
+      .map(([, val]) => val);
+  }, [assignedModules]);
+
   const organizationName = orgName || undefined;
 
   // Dynamic sidebar color based on owner type name
