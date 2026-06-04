@@ -546,9 +546,12 @@ export const OwnerDashboard = () => {
   const touristUp = useCountUp(uniqueTourists);
   const communityUp = useCountUp(communityMembers);
 
-  // ─── Institutional redirect ───────────────────────────
+  // ─── Owner-type dashboard routing ──────────────────────
   if (ownerType === 'government' && userProfile) {
     return <InstitutionalDashboard />;
+  }
+  if (ownerType === 'tech' && userProfile) {
+    return <TechDashboard />;
   }
 
   const isLoading = pipelineLoading;
