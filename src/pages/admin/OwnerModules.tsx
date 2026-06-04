@@ -44,6 +44,9 @@ const HIDDEN_MODULE_NAMES = ["planting", "monitoring", "nurseries", "payment_man
 // Modules grouped under "Forest Registry" accordion
 const FOREST_REGISTRY_MODULES = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
 
+// Modules grouped under "Configuration" accordion (mirrors super-admin sidebar)
+const CONFIGURATION_MODULES = ["wallet_settings", "planting_costs", "contribution_tiers"];
+
 // Custom sort priority for module assignment table (OM01 Dashboard, then OM01..OM06)
 const MODULE_PRIORITY: Record<string, number> = {
   "Dashboard": 0,
@@ -59,9 +62,10 @@ const MODULE_PRIORITY: Record<string, number> = {
   "Impact Overview": 5,
   "Impact Insights": 5,
   "Forest Registry": 6,
+  "Configuration": 7,
 };
 
-// Owners-module short codes for identification (OM01..OM07)
+// Owners-module short codes for identification (OM01..OM08)
 const MODULE_CODES: Record<string, string> = {
   "Dashboard": "OM01",
   "Climate Funding": "OM02",
@@ -76,7 +80,7 @@ const MODULE_CODES: Record<string, string> = {
   "Impact Overview": "OM06",
   "Impact Insights": "OM06",
   "Forest Registry": "OM07",
-
+  "Configuration": "OM08",
 };
 
 // Forest Registry sub-module codes keyed by module.name
@@ -88,6 +92,15 @@ const FOREST_SUB_CODES: Record<string, string> = {
   mdm_sequestration: "OM07E",
 };
 const FOREST_SUB_ORDER = ["mdm_locations", "mdm_nurseries", "mdm_species", "mdm_planters", "mdm_sequestration"];
+
+// Configuration sub-module codes keyed by module.name
+const CONFIG_SUB_CODES: Record<string, string> = {
+  wallet_settings: "OM08A",
+  planting_costs: "OM08B",
+  contribution_tiers: "OM08C",
+};
+const CONFIG_SUB_ORDER = ["wallet_settings", "planting_costs", "contribution_tiers"];
+
 
 const getModuleDisplayName = (module: any) => MODULE_DISPLAY_OVERRIDES[module.display_name] || module.display_name;
 const getModuleCode = (m: any) => FOREST_SUB_CODES[m.name] || MODULE_CODES[getModuleDisplayName(m)];
