@@ -235,14 +235,15 @@ export const OwnerDashboard = () => {
     ? [userProfile.first_name, userProfile.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name
     : null;
 
-  // Check if institutional
+  // Determine owner type: government / tech / plantation
   const ownerType = (() => {
     const roleName = (userProfile?.roles as any)?.name || '';
     if (roleName === 'government_partner') return 'government';
-    const category = orgInfo?.category || '';
+    const category = (orgInfo?.category || '').toLowerCase();
     if (category === 'government') return 'government';
-    const partnerTypeName = orgInfo?.partner_types?.name || '';
-    if (partnerTypeName.toLowerCase().includes('government')) return 'government';
+    const partnerTypeName = (orgInfo?.partner_types?.name || '').toLowerCase();
+    if (partnerTypeName.includes('government')) return 'government';
+    if (partnerTypeName.includes('tech') || category === 'tech' || category === 'technology') return 'tech';
     return 'plantation';
   })();
 
