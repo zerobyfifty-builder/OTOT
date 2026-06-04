@@ -504,7 +504,7 @@ export const OwnerFinancial = () => {
     });
 
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir, tripsMap]);
+  }, [contributions, search, statusFilter, typeFilter, sortField, sortDir, tripsMap]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
