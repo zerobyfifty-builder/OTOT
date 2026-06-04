@@ -69,6 +69,13 @@ const mdmModuleItems: Record<string, { title: string; url: string; icon: LucideI
   mdm_sequestration: { title: 'Sequestration Rates', url: '/owner/mdm-sequestration', icon: BarChart3 },
 };
 
+// Configuration modules that appear under "Configuration" collapsible
+const configModuleItems: Record<string, { title: string; url: string; icon: LucideIcon }> = {
+  wallet_settings: { title: 'Wallet Settings', url: '/owner/config/wallet', icon: Wallet },
+  planting_costs: { title: 'Planting Costs', url: '/owner/config/planting-costs', icon: Coins },
+  contribution_tiers: { title: 'Contribution Tiers', url: '/owner/config/contribution-tiers', icon: Layers },
+};
+
 interface OwnerSidebarProps {
   organizationName?: string;
 }
