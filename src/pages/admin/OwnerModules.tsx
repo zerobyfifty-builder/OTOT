@@ -440,11 +440,61 @@ export default function OwnerModules() {
                         </Fragment>
                   );
 
+                  const renderConfigurationRows = () => (
+                    <Fragment key="configuration-group">
+                          <TableRow className="bg-muted/40 hover:bg-muted/50">
+                          <TableCell className="sticky left-0 z-10 bg-muted/40 border-r">
+                              <button
+                                type="button"
+                                onClick={() => setConfigExpanded((v) => !v)}
+                                className="flex items-center gap-2 font-medium w-full text-left"
+                              >
+                                <ChevronRight
+                                  className={cn("h-4 w-4 transition-transform", configExpanded && "rotate-90")}
+                                />
+                                <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0">OM08</Badge>
+                                <span>Configuration</span>
+                                <Badge variant="outline" className="text-[10px] ml-2">
+                                  Group · {configModules.length}
+                                </Badge>
+                              </button>
+                            </TableCell>
+                            {owners.map((s) => {
+                              const enabledCount = configModules.filter((m: any) => !!getOrgModule(s.id, m.id)).length;
+                              const allOn = enabledCount === configModules.length;
+                              const someOn = enabledCount > 0 && !allOn;
+                              return (
+                                <TableCell key={s.id} className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Switch
+                                      checked={allOn}
+                                      onCheckedChange={() => toggleGroup(s.id, configModules, !allOn)}
+                                      className={cn(someOn && "data-[state=unchecked]:bg-primary/40")}
+                                    />
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {enabledCount}/{configModules.length}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                          {configExpanded && configModules.map((m: any) => renderModuleRow(m, true))}
+                        </Fragment>
+                  );
+
                   return (
                     <>
-                      {assignmentRows.map((row) => row.type === "forest" ? renderForestRegistryRows() : renderModuleRow(row.module))}
+                      {assignmentRows.map((row) =>
+                        row.type === "forest"
+                          ? renderForestRegistryRows()
+                          : row.type === "config"
+                          ? renderConfigurationRows()
+                          : renderModuleRow(row.module)
+                      )}
                     </>
                   );
+
                 })()}
               </TableBody>
             </Table>
