@@ -1,74 +1,51 @@
-## Goal
+# Live per-tree pricing on Tree Purchase page
 
-Replace the five per-card date pickers and the page-top year progress bar with one global filter, and consolidate the "Kenya 15B trees — OTOT contribution", the four KPI tiles, the page-top Year progress bar, and the "Year 1 target" donut card into a single hero card.
+Source the tourist-facing per-tree price (and the two plan calculations) from the latest **approved** Planting Costs submission in Super Admin → Configuration → Planting Costs, so admin changes flow through to `/tree-purchase` automatically.
 
-## 1. Global Date Range Filter
+## Source of truth
 
-Sticky bar directly under the header, above the new hero card.
+Table: `planting_cost_configs` where `is_active = true` (single row, set by `PlantingCostsConfigPanel.approveMutation`).
 
-- Pill-shaped trigger showing active range, e.g. `Last 30 days · May 3 – Jun 2`
-- Popover with preset rail (Today, Last 7d, **Last 30d (default)**, Last 90d, This quarter, YTD, All time, Custom) + dual-month `Calendar` for custom range
-- Default: **Last 30 days**, persisted to `localStorage` key `owner-dashboard-range`
-- Chart bodies fade/skeleton briefly on range change for visual feedback
+Fields used:
+- `donation_usd` — canonical per-tree contribution amount (USD)
+- (already exposed) `tier_plant_usd`, `tier_monthly_usd` — available for the two current plans, future plans can map to additional `tier_*` columns
 
-Applies to:
-- 4 KPI summary tiles (Trees Planted, CO₂ Offset, Tourist Contributors, Community Members)
-- Trees Planted (renamed from "Monthly Planting")
-- Trees by Status
-- Forest Beat Performance
-- Species Planted
-- Nursery/CBO seedlings supply
+## Changes
 
-Does **not** apply to (always full-period / yearly):
-- Kenya 15B contribution progress
-- Year 1 annual target & donut
-- Year-to-date progress bar
+### 1. New hook: `src/hooks/useActivePlantingConfig.ts`
+- React Query (`queryKey: ['active-planting-config']`) selects `id, donation_usd, tier_plant_usd, tier_monthly_usd, tier_adopt_usd, tier_yearly_usd, tier_recommit_usd, tier_grove_usd, tier_forest_usd` from `planting_cost_configs` where `is_active = true`.
+- Returns `{ pricePerTree, tiers, configId, isLoading }`.
+- `pricePerTree` falls back to `routeDonation` prop, then `4.5`.
+- Reusable across Tourist portal and any future surface.
 
-Each affected card title gets a muted subtitle showing the active range so context is preserved.
+### 2. `src/pages/TreePurchase.tsx`
+- Replace `const PRICE_PER_TREE = routeDonation || 4.5;` with `useActivePlantingConfig({ fallback: routeDonation })`.
+- Refactor plan options to render from a `plans` array driven by config, not hard-coded:
+  ```
+  plans = [
+    { id: 'custom',       label: 'Flexible Tree Planting', pricePerTree, ... },
+    { id: 'subscription', label: 'Monthly Tree Planting',  pricePerTree, ... },
+    // future: { id: 'adopt', label: 'Adopt a tree (3 yr)', pricePerTree: tier_adopt_usd, ... }
+  ]
+  ```
+  Render with `plans.map(...)` so adding a tier later is a one-line addition.
+- All price math (`calculatePrice`, `calculateMonthlyPrice`, `customTreeCount * PRICE_PER_TREE`, etc.) reads from the live `pricePerTree`.
+- Insert `price_per_tree_usd: pricePerTree` and the resolved `configId` (new optional column not required — the contribution row already snapshots price) so each purchase records the rate it was sold at.
 
-## 2. Consolidated "National Mission" Hero Card
+### 3. "Why $X per tree?" panel (lines 727–737)
+- Already binds to `PRICE_PER_TREE.toFixed(2)` — once the variable is sourced from the active config it updates automatically.
+- Update the supporting copy to: "Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead — the per-tree rate is set by KTB administrators and updated whenever planting costs are re-approved." (no number hard-coded).
 
-Replace Section 1 (KPI grid) + Section 2 (15B card + Year 1 donut card) + the top-of-page Year progress bar with **one** card laid out as:
+### 4. Realtime/live refresh
+- React Query `staleTime: 30_000` and invalidate `['active-planting-config']` in `PlantingCostsConfigPanel.approveMutation.onSuccess` (already invalidates a similar key — extend to the shared key).
+- Optional follow-up: subscribe to `planting_cost_configs` via Supabase realtime for instant updates without refresh. Will include this in the hook (lightweight channel that invalidates on `UPDATE`/`INSERT`).
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│ Kenya 15 billion trees — OTOT contribution        [export]          │
-│ Tracking MFC-ICLIP impact toward Kenya's national mission · 2032    │
-│                                                                      │
-│  ┌─ KPI tiles (filtered) ───────────────────────────┐  ┌─ Donut ─┐ │
-│  │ Trees Planted │ CO₂ │ Tourists │ Community       │  │  42.1%  │ │
-│  └──────────────────────────────────────────────────┘  │ of Y1   │ │
-│                                                         └─────────┘ │
-│  Year progress  ████████░░░░░  155 / 365 days                       │
-│  OTOT → 15B     ░░░░░░░░░░░░  12,340 of 15,000,000,000              │
-│  Year 1 target  ████░░░░░░░░  12,340 of 50,000 · 24.7%              │
-│  MFC-ICLIP zone ██░░░░░░░░░░  12,340 of 500,000                     │
-│                                                                      │
-│  Y1 stats row: Planted · Target · Remaining · Days left · Need/day  │
-│  [SDG 13] [SDG 15] [Baku] [15B] [Glasgow]                           │
-└──────────────────────────────────────────────────────────────────────┘
-```
+## Out of scope
+- No DB schema changes.
+- No new admin UI; admins continue to publish prices from the existing Planting Costs panel.
+- No change to contribution split logic (tech/KTB/MoE) — already handled server-side by `calculate_wallet_allocation`.
 
-- Year-1 donut moves into the right column of this card
-- Year progress bar moves inside this card (drops from page header)
-- Year-1 stats row collapses into a compact horizontal strip under the donut
-- KPI tiles keep their pastel ByeWind tints
-
-## 3. Technical Outline
-
-- `src/components/owner/dashboard/GlobalDateRangeFilter.tsx` — new pill trigger + popover with presets and custom calendar
-- `src/components/owner/dashboard/useDashboardDateRange.ts` — new hook backed by `localStorage`, exposes `{ from, to, preset, setRange }`
-- `src/pages/owner/OwnerDashboard.tsx`:
-  - Remove `chartRange`, `speciesRange`, `beatRange`, `nurseryRange` local state; all five cards consume the global hook
-  - Remove the four `ChartDateRangePicker` instances in those cards (keep `ExportButton` next to titles)
-  - Rename card title "Monthly Planting" → "Trees Planted"
-  - KPI tile values (`planted`, `co2Tonnes`, `uniqueTourists`, `communityMembers`) become memos filtered by global range
-  - Build new `NationalMissionHero` block that fuses current Sections 1 + 2 and absorbs the top Year progress bar
-  - Delete the standalone Year progress bar block (lines ~569-576) and the two-card grid (lines ~622-706)
-- Comparison mode: not implemented now
-
-## 4. Out of scope
-
-- Comparison ("vs previous period")
-- Changes to InstitutionalDashboard or non-listed cards
-- Backend / query shape changes — filtering stays client-side using existing data
+## Files touched
+- `src/hooks/useActivePlantingConfig.ts` (new)
+- `src/pages/TreePurchase.tsx`
+- `src/components/admin/PlantingCostsConfigPanel.tsx` (invalidate shared query key)
