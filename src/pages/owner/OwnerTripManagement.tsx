@@ -290,7 +290,7 @@ export function OwnerTripManagement({ skipPermissionCheck = false }: { skipPermi
     });
 
     return result;
-  }, [trips, search, statusFilter, sourceFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
+  }, [trips, search, statusFilter, sourceFilter, typeFilter, sortField, sortDir, treesCommittedByTrip, agentNames]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
