@@ -253,7 +253,11 @@ export default function AdminContributionTracking() {
         c.tourist_name?.toLowerCase().includes(search.toLowerCase()) ||
         c.transaction_reference?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchSearch && matchStatus;
+      const ct = c.contribution_type;
+      const matchType = typeFilter === "all" ||
+        (typeFilter === "agent" && ct === "travel_agent") ||
+        (typeFilter === "tourist" && ct !== "travel_agent");
+      return matchSearch && matchStatus && matchType;
     }) || [];
     result.sort((a, b) => {
       let cmp = 0;
@@ -269,7 +273,7 @@ export default function AdminContributionTracking() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return result;
-  }, [contributions, search, statusFilter, sortField, sortDir]);
+  }, [contributions, search, statusFilter, typeFilter, sortField, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
