@@ -86,9 +86,11 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
   const location = useLocation();
   const navigate = useNavigate();
   const collapsed = state === 'collapsed';
+  const cacheKey = user ? `ownerSidebarPartnerType:${user.id}` : '';
+  const cachedPartnerType = (typeof window !== 'undefined' && cacheKey) ? localStorage.getItem(cacheKey) || '' : '';
   const [orgName, setOrgName] = useState(propOrgName || '');
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [partnerTypeName, setPartnerTypeName] = useState<string>('Owner');
+  const [partnerTypeName, setPartnerTypeName] = useState<string>(cachedPartnerType);
   const [partnerCategory, setPartnerCategory] = useState<string>('plantation');
   const [userName, setUserName] = useState<string>('');
   const [userJobRole, setUserJobRole] = useState<string>('');
@@ -134,7 +136,12 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
             .select('name, category')
             .eq('id', org.partner_type_id)
             .maybeSingle();
-          if (pt?.name) setPartnerTypeName(pt.name);
+          if (pt?.name) {
+            setPartnerTypeName(pt.name);
+            if (cacheKey) {
+              try { localStorage.setItem(cacheKey, pt.name); } catch {}
+            }
+          }
           if (pt?.category) setPartnerCategory(pt.category.toLowerCase());
         }
       }
@@ -224,8 +231,12 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
   const organizationName = orgName || undefined;
 
   // Dynamic sidebar color based on owner type name
+  // Dynamic sidebar color based on owner type name.
+  // While partner type is loading (empty), use a neutral dark color so we don't
+  // flash the plantation green before switching to the real theme.
   const sidebarColor = (() => {
     const name = partnerTypeName.toLowerCase();
+    if (!name) return 'hsl(220 15% 20%)'; // neutral while loading
     if (name.includes('government') || name.includes('ktb')) return 'hsl(348 70% 30%)';
     if (name.includes('technology') || name.includes('tech')) return 'hsl(212 100% 50%)';
     return 'hsl(138 70% 22%)'; // Plantation / default
