@@ -1,51 +1,44 @@
-# Live per-tree pricing on Tree Purchase page
+# Add NGO as a Third Partner Category
 
-Source the tourist-facing per-tree price (and the two plan calculations) from the latest **approved** Planting Costs submission in Super Admin → Configuration → Planting Costs, so admin changes flow through to `/tree-purchase` automatically.
+## 1. Database migration
+Extend the `category` allow-list on `organizations` and `partner_types` to include `'ngo'`.
 
-## Source of truth
+```sql
+ALTER TABLE public.organizations DROP CONSTRAINT organizations_category_check;
+ALTER TABLE public.organizations
+  ADD CONSTRAINT organizations_category_check
+  CHECK (category = ANY (ARRAY['government','business','ngo','owner']));
 
-Table: `planting_cost_configs` where `is_active = true` (single row, set by `PlantingCostsConfigPanel.approveMutation`).
+-- same for partner_types (its check constraint will be updated identically,
+-- minus 'owner' which isn't a partner_types value)
+```
+No data migration needed — existing rows remain valid.
 
-Fields used:
-- `donation_usd` — canonical per-tree contribution amount (USD)
-- (already exposed) `tier_plant_usd`, `tier_monthly_usd` — available for the two current plans, future plans can map to additional `tier_*` columns
+## 2. Type updates
+- `src/types/partner.ts`: `PartnerCategory = 'government' | 'business' | 'ngo'`.
 
-## Changes
+## 3. Create Partner wizard
+- `CreatePartnerSheet.tsx`: add `<SelectItem value="ngo">NGO</SelectItem>` to the category dropdown. NGO follows the same form path as government (no bank/business-reg fields). Update the `form.category` union type and the ministry-gated branches so NGO doesn't require ministry.
+- `create-partner-user` edge function: map `category === 'ngo'` to a role. Reuse `government_partner` role for now (least-disruption); flag this as a follow-up if a dedicated `ngo_partner` role is needed.
 
-### 1. New hook: `src/hooks/useActivePlantingConfig.ts`
-- React Query (`queryKey: ['active-planting-config']`) selects `id, donation_usd, tier_plant_usd, tier_monthly_usd, tier_adopt_usd, tier_yearly_usd, tier_recommit_usd, tier_grove_usd, tier_forest_usd` from `planting_cost_configs` where `is_active = true`.
-- Returns `{ pricePerTree, tiers, configId, isLoading }`.
-- `pricePerTree` falls back to `routeDonation` prop, then `4.5`.
-- Reusable across Tourist portal and any future surface.
+## 4. All Partners — tabbed view
+Refactor `src/pages/admin/AllPartners.tsx`:
+- Replace the "Filter by category" dropdown with three shadcn `Tabs`: **Government**, **Business**, **NGO**.
+- Each tab renders the same table/search/pagination, scoped by `.eq('category', activeTab)`.
+- Remove the "All Categories" option (tabs supersede it).
+- Per-tab empty state copy ("No NGO partners yet", etc.).
+- Counts shown on each tab trigger (badge with row count for that category).
 
-### 2. `src/pages/TreePurchase.tsx`
-- Replace `const PRICE_PER_TREE = routeDonation || 4.5;` with `useActivePlantingConfig({ fallback: routeDonation })`.
-- Refactor plan options to render from a `plans` array driven by config, not hard-coded:
-  ```
-  plans = [
-    { id: 'custom',       label: 'Flexible Tree Planting', pricePerTree, ... },
-    { id: 'subscription', label: 'Monthly Tree Planting',  pricePerTree, ... },
-    // future: { id: 'adopt', label: 'Adopt a tree (3 yr)', pricePerTree: tier_adopt_usd, ... }
-  ]
-  ```
-  Render with `plans.map(...)` so adding a tier later is a one-line addition.
-- All price math (`calculatePrice`, `calculateMonthlyPrice`, `customTreeCount * PRICE_PER_TREE`, etc.) reads from the live `pricePerTree`.
-- Insert `price_per_tree_usd: pricePerTree` and the resolved `configId` (new optional column not required — the contribution row already snapshots price) so each purchase records the rate it was sold at.
-
-### 3. "Why $X per tree?" panel (lines 727–737)
-- Already binds to `PRICE_PER_TREE.toFixed(2)` — once the variable is sourced from the active config it updates automatically.
-- Update the supporting copy to: "Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead — the per-tree rate is set by KTB administrators and updated whenever planting costs are re-approved." (no number hard-coded).
-
-### 4. Realtime/live refresh
-- React Query `staleTime: 30_000` and invalidate `['active-planting-config']` in `PlantingCostsConfigPanel.approveMutation.onSuccess` (already invalidates a similar key — extend to the shared key).
-- Optional follow-up: subscribe to `planting_cost_configs` via Supabase realtime for instant updates without refresh. Will include this in the hook (lightweight channel that invalidates on `UPDATE`/`INSERT`).
-
-## Out of scope
-- No DB schema changes.
-- No new admin UI; admins continue to publish prices from the existing Planting Costs panel.
-- No change to contribution split logic (tech/KTB/MoE) — already handled server-side by `calculate_wallet_allocation`.
+## 5. Filter cleanup
+- `PartnersInstitutional.tsx` / `PartnersBusiness.tsx` remain unchanged (still filter by their fixed category). No new dedicated NGO page is added — the All Partners tab is the entry point per the request.
+- Admin sidebar: no new link required.
 
 ## Files touched
-- `src/hooks/useActivePlantingConfig.ts` (new)
-- `src/pages/TreePurchase.tsx`
-- `src/components/admin/PlantingCostsConfigPanel.tsx` (invalidate shared query key)
+- `supabase/migrations/<new>.sql` (constraint update)
+- `src/types/partner.ts`
+- `src/components/admin/partners/CreatePartnerSheet.tsx`
+- `src/pages/admin/AllPartners.tsx`
+- `supabase/functions/create-partner-user/index.ts`
+
+## Open question
+The role mapping for NGO: reuse `government_partner` (default), or should I add a new `ngo_partner` role + RLS in the same migration? I'll default to **reusing `government_partner`** unless you say otherwise.
