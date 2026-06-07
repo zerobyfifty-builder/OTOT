@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Search, RefreshCw, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { PartnerActionsMenu } from "@/components/admin/PartnerActionsMenu";
@@ -49,6 +50,14 @@ interface Partner {
   };
 }
 
+type CategoryTab = "government" | "business" | "ngo";
+
+const TAB_LABELS: Record<CategoryTab, string> = {
+  government: "Government",
+  business: "Business",
+  ngo: "NGO",
+};
+
 export default function AllPartners() {
   const navigate = useNavigate();
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -57,11 +66,38 @@ export default function AllPartners() {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<CategoryTab>("government");
+  const [tabCounts, setTabCounts] = useState<Record<CategoryTab, number>>({
+    government: 0,
+    business: 0,
+    ngo: 0,
+  });
 
   useEffect(() => {
     fetchPartners();
-  }, [currentPage, pageSize, searchTerm, categoryFilter]);
+  }, [currentPage, pageSize, searchTerm, activeTab]);
+
+  useEffect(() => {
+    fetchTabCounts();
+  }, []);
+
+  const fetchTabCounts = async () => {
+    const cats: CategoryTab[] = ["government", "business", "ngo"];
+    const results = await Promise.all(
+      cats.map((c) =>
+        supabase
+          .from("organizations")
+          .select("id", { count: "exact", head: true })
+          .eq("archived", false)
+          .eq("category", c)
+      )
+    );
+    const next: Record<CategoryTab, number> = { government: 0, business: 0, ngo: 0 };
+    cats.forEach((c, i) => {
+      next[c] = results[i].count || 0;
+    });
+    setTabCounts(next);
+  };
 
   const fetchPartners = async () => {
     setLoading(true);
@@ -85,16 +121,12 @@ export default function AllPartners() {
           { count: "exact" }
         )
         .eq("archived", false)
-        .in("category", ["government", "business"]); // Partners only (exclude owners)
+        .eq("category", activeTab);
 
       if (searchTerm) {
         query = query.or(
           `name.ilike.%${searchTerm}%,legal_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`
         );
-      }
-
-      if (categoryFilter && categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
       }
 
       const { data, error, count } = await query
@@ -113,15 +145,9 @@ export default function AllPartners() {
     }
   };
 
-  const getCategoryBadgeVariant = (category: string) => {
-    switch (category) {
-      case "government":
-        return "default";
-      case "business":
-        return "secondary";
-      default:
-        return "outline";
-    }
+  const handleRefresh = () => {
+    fetchPartners();
+    fetchTabCounts();
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -129,7 +155,7 @@ export default function AllPartners() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end gap-2">
-        <Button onClick={fetchPartners} variant="outline" size="icon">
+        <Button onClick={handleRefresh} variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
         </Button>
         <Button
@@ -140,6 +166,30 @@ export default function AllPartners() {
           Create New Partner
         </Button>
       </div>
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          setActiveTab(v as CategoryTab);
+          setCurrentPage(1);
+        }}
+        className="w-full"
+      >
+        <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-1">
+          {(Object.keys(TAB_LABELS) as CategoryTab[]).map((c) => (
+            <TabsTrigger
+              key={c}
+              value={c}
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-primary border-b-2 border-transparent rounded-none gap-2 px-4 py-2.5"
+            >
+              {TAB_LABELS[c]}
+              <Badge variant="secondary" className="ml-1 tabular-nums">
+                {tabCounts[c]}
+              </Badge>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <Card>
         <CardHeader>
@@ -156,22 +206,6 @@ export default function AllPartners() {
                 className="pl-10"
               />
             </div>
-            <Select
-              value={categoryFilter}
-              onValueChange={(value) => {
-                setCategoryFilter(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="government">Government</SelectItem>
-                <SelectItem value="business">Business</SelectItem>
-              </SelectContent>
-            </Select>
             <Select
               value={pageSize.toString()}
               onValueChange={(value) => {
@@ -198,7 +232,9 @@ export default function AllPartners() {
           ) : partners.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No partners found.</p>
+              <p className="text-muted-foreground">
+                No {TAB_LABELS[activeTab]} partners found.
+              </p>
               <Button
                 onClick={() => navigate("/admin/partners/create")}
                 className="mt-4"
@@ -215,7 +251,6 @@ export default function AllPartners() {
                       <TableHead>Name</TableHead>
                       <TableHead>Legal Name</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Category</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>API Access</TableHead>
@@ -230,16 +265,6 @@ export default function AllPartners() {
                           {partner.name}
                         </TableCell>
                         <TableCell>{partner.legal_name || "-"}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={getCategoryBadgeVariant(partner.category)}
-                          >
-                            {partner.category
-                              ? partner.category.charAt(0).toUpperCase() +
-                                partner.category.slice(1)
-                              : "-"}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
                           {partner.partner_types?.name || "-"}
                         </TableCell>
@@ -278,9 +303,9 @@ export default function AllPartners() {
                           {new Date(partner.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <PartnerActionsMenu 
-                            partner={partner} 
-                            onUpdate={fetchPartners}
+                          <PartnerActionsMenu
+                            partner={partner}
+                            onUpdate={handleRefresh}
                           />
                         </TableCell>
                       </TableRow>
