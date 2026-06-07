@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, RefreshCw, Building2 } from "lucide-react";
+import { Plus, Search, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { PartnerActionsMenu } from "@/components/admin/PartnerActionsMenu";
 
@@ -184,19 +184,6 @@ export default function AllPartners() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end gap-2">
-        <Button onClick={handleRefresh} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-        <Button
-          onClick={() => navigate("/admin/partners/create")}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Create New Partner
-        </Button>
-      </div>
-
       <Tabs
         value={activeTab}
         onValueChange={(v) => {
