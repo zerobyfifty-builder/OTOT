@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const roleName = category === 'government' ? 'government_partner' : 'business_partner'
+    const roleName = (category === 'government' || category === 'ngo') ? 'government_partner' : 'business_partner'
 
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('roles').select('id').eq('name', roleName).single()

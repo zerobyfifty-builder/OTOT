@@ -1,4 +1,4 @@
-export type PartnerCategory = 'government' | 'business';
+export type PartnerCategory = 'government' | 'business' | 'ngo';
 
 export interface PartnerFormData {
   // Step 1
