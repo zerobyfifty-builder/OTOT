@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -38,6 +38,7 @@ interface Partner {
   name: string;
   legal_name: string;
   category: string;
+  partner_type_id: string | null;
   contact_email: string;
   contact_phone: string;
   is_active: boolean;
@@ -50,6 +51,12 @@ interface Partner {
   };
 }
 
+interface PartnerType {
+  id: string;
+  name: string;
+  category: string;
+}
+
 type CategoryTab = "government" | "business" | "ngo";
 
 const TAB_LABELS: Record<CategoryTab, string> = {
@@ -58,28 +65,46 @@ const TAB_LABELS: Record<CategoryTab, string> = {
   ngo: "NGO",
 };
 
+const PAGE_SIZE = 10;
+
 export default function AllPartners() {
   const navigate = useNavigate();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<CategoryTab>("government");
   const [tabCounts, setTabCounts] = useState<Record<CategoryTab, number>>({
     government: 0,
     business: 0,
     ngo: 0,
   });
+  const [partnerTypes, setPartnerTypes] = useState<PartnerType[]>([]);
 
   useEffect(() => {
     fetchPartners();
-  }, [currentPage, pageSize, searchTerm, activeTab]);
+  }, [currentPage, searchTerm, activeTab, typeFilter]);
 
   useEffect(() => {
     fetchTabCounts();
   }, []);
+
+  useEffect(() => {
+    // reset type filter and fetch types when switching tab
+    setTypeFilter("all");
+    fetchPartnerTypes(activeTab);
+  }, [activeTab]);
+
+  const fetchPartnerTypes = async (cat: CategoryTab) => {
+    const { data, error } = await supabase
+      .from("partner_types")
+      .select("id, name, category")
+      .eq("category", cat)
+      .order("name");
+    if (!error) setPartnerTypes(data || []);
+  };
 
   const fetchTabCounts = async () => {
     const cats: CategoryTab[] = ["government", "business", "ngo"];
@@ -110,6 +135,7 @@ export default function AllPartners() {
           name,
           legal_name,
           category,
+          partner_type_id,
           contact_email,
           contact_phone,
           is_active,
@@ -123,6 +149,10 @@ export default function AllPartners() {
         .eq("archived", false)
         .eq("category", activeTab);
 
+      if (typeFilter !== "all") {
+        query = query.eq("partner_type_id", typeFilter);
+      }
+
       if (searchTerm) {
         query = query.or(
           `name.ilike.%${searchTerm}%,legal_name.ilike.%${searchTerm}%,contact_email.ilike.%${searchTerm}%`
@@ -131,11 +161,11 @@ export default function AllPartners() {
 
       const { data, error, count } = await query
         .order("created_at", { ascending: false })
-        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
 
       if (error) throw error;
 
-      setPartners(data || []);
+      setPartners((data as Partner[]) || []);
       setTotalCount(count || 0);
     } catch (error) {
       console.error("Error fetching partners:", error);
@@ -150,7 +180,7 @@ export default function AllPartners() {
     fetchTabCounts();
   };
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -191,43 +221,47 @@ export default function AllPartners() {
         </TabsList>
       </Tabs>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, legal name, or email..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={pageSize.toString()}
-              onValueChange={(value) => {
-                setPageSize(Number(value));
+      <Card className="border shadow-sm">
+        {/* Filters */}
+        <div className="p-4 flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, legal name, or email..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-            >
-              <SelectTrigger className="w-full sm:w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
-                <SelectItem value="25">25 / page</SelectItem>
-                <SelectItem value="50">50 / page</SelectItem>
-              </SelectContent>
-            </Select>
+              className="pl-10"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
+          <Select
+            value={typeFilter}
+            onValueChange={(v) => {
+              setTypeFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {partnerTypes.map((pt) => (
+                <SelectItem key={pt.id} value={pt.id}>
+                  {pt.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Table */}
+        <div className="px-4 pb-4">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary" />
             </div>
           ) : partners.length === 0 ? (
             <div className="text-center py-12">
@@ -244,30 +278,26 @@ export default function AllPartners() {
             </div>
           ) : (
             <>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Legal Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>API Access</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Name</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Legal Name</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Type</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Contact</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Status</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">API Access</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground">Joined</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase text-muted-foreground w-10">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {partners.map((partner) => (
-                      <TableRow key={partner.id}>
-                        <TableCell className="font-medium">
-                          {partner.name}
-                        </TableCell>
+                      <TableRow key={partner.id} className="hover:bg-muted/20">
+                        <TableCell className="font-medium">{partner.name}</TableCell>
                         <TableCell>{partner.legal_name || "-"}</TableCell>
-                        <TableCell>
-                          {partner.partner_types?.name || "-"}
-                        </TableCell>
+                        <TableCell>{partner.partner_types?.name || "-"}</TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <div>{partner.contact_email || "-"}</div>
@@ -278,35 +308,22 @@ export default function AllPartners() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Badge
-                              variant={
-                                partner.is_active ? "default" : "secondary"
-                              }
-                            >
+                            <Badge variant={partner.is_active ? "default" : "secondary"}>
                               {partner.is_active ? "Active" : "Inactive"}
                             </Badge>
-                            {partner.verified && (
-                              <Badge variant="outline">Verified</Badge>
-                            )}
+                            {partner.verified && <Badge variant="outline">Verified</Badge>}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={
-                              partner.has_api_access ? "default" : "secondary"
-                            }
-                          >
+                          <Badge variant={partner.has_api_access ? "default" : "secondary"}>
                             {partner.has_api_access ? "Enabled" : "Disabled"}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="tabular-nums text-xs">
                           {new Date(partner.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <PartnerActionsMenu
-                            partner={partner}
-                            onUpdate={handleRefresh}
-                          />
+                          <PartnerActionsMenu partner={partner} onUpdate={handleRefresh} />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -315,19 +332,16 @@ export default function AllPartners() {
               </div>
 
               <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                  {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
-                  partners
+                <p className="text-xs text-muted-foreground">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}
                 </p>
                 {totalPages > 1 && (
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage((prev) => Math.max(1, prev - 1))
-                          }
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                           className={
                             currentPage === 1
                               ? "pointer-events-none opacity-50"
@@ -352,9 +366,7 @@ export default function AllPartners() {
                       <PaginationItem>
                         <PaginationNext
                           onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(totalPages, prev + 1)
-                            )
+                            setCurrentPage((p) => Math.min(totalPages, p + 1))
                           }
                           className={
                             currentPage === totalPages
@@ -369,7 +381,7 @@ export default function AllPartners() {
               </div>
             </>
           )}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
