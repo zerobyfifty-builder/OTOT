@@ -43,7 +43,7 @@ const KENYAN_MINISTRIES = [
 ];
 
 const emptyForm = {
-  category: '' as '' | 'government' | 'business',
+  category: '' as '' | 'government' | 'business' | 'ngo',
   partnerTypeId: '',
   ministry: '',
   name: '', legalName: '', description: '',
@@ -175,6 +175,7 @@ export function CreatePartnerSheet({ open, onOpenChange, onCreated }: CreatePart
                   <SelectContent>
                     <SelectItem value="government">Government</SelectItem>
                     <SelectItem value="business">Business</SelectItem>
+                    <SelectItem value="ngo">NGO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
