@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, RefreshCw, Building2 } from "lucide-react";
+import { Plus, Search, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { PartnerActionsMenu } from "@/components/admin/PartnerActionsMenu";
 
