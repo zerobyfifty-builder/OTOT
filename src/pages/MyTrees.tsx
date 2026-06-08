@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTouristModulePermissions } from "@/hooks/useTouristModulePermissions";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -132,6 +133,9 @@ const getAirportCity = (code: string) => {
 export const MyTrees = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subFeatures: touristMyTreesFeatures } = useTouristModulePermissions("tourist_my_trees");
+  const showIndividualTreesAccordion =
+    touristMyTreesFeatures["view_individual_trees_accordion"] !== false;
   const [trees, setTrees] = useState<Tree[]>([]);
   const [trips, setTrips] = useState<Record<string, Trip>>({});
   const [transitionDates, setTransitionDates] = useState<Record<string, string>>({});
@@ -613,6 +617,7 @@ export const MyTrees = () => {
                         </div>
 
                         {/* View individual trees - inset panel */}
+                        {showIndividualTreesAccordion && (
                         <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/30 shadow-inner overflow-hidden">
                           <Accordion type="multiple" className="w-full">
                             <AccordionItem value={`trees-${group.key}`} className="border-b-0">
@@ -690,6 +695,7 @@ export const MyTrees = () => {
                             </AccordionItem>
                           </Accordion>
                         </div>
+                        )}
                       </AccordionItem>
                     );
                   })}

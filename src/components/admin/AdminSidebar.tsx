@@ -56,6 +56,11 @@ const menuItems = [
     icon: Landmark,
   },
   {
+    title: "Tourists",
+    url: "/admin/tourists",
+    icon: Users,
+  },
+  {
     title: "Owners Modules",
     icon: Layers,
     items: [

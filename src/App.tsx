@@ -55,6 +55,9 @@ import AllPartners from "@/pages/admin/AllPartners";
 import PartnerModules from "@/pages/admin/PartnerModules";
 import PartnerLogs from "@/pages/admin/PartnerLogs";
 import PartnersLayout from "@/pages/admin/partners/PartnersLayout";
+import TouristsLayout from "@/pages/admin/tourists/TouristsLayout";
+import AllTourists from "@/pages/admin/AllTourists";
+import TouristModules from "@/pages/admin/TouristModules";
 import AccessControlRoles from "@/pages/admin/AccessControlRoles";
 import AccessControlModules from "@/pages/admin/AccessControlModules";
 import FinancialTransactions from "@/pages/admin/FinancialTransactions";
@@ -387,6 +390,18 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
+            {/* Tourists routes (Tourist User Accounts + Module Assignment) */}
+            <Route element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <TouristsLayout />
+                </AdminLayout>
+              </SuperAdminRoute>
+            }>
+              <Route path="/admin/tourists" element={<AllTourists />} />
+              <Route path="/admin/tourists/modules" element={<TouristModules />} />
+            </Route>
+
             {/* Partners routes (with shared layout for list/modules/logs) */}
             <Route element={
               <SuperAdminRoute>
