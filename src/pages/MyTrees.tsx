@@ -695,6 +695,7 @@ export const MyTrees = () => {
                             </AccordionItem>
                           </Accordion>
                         </div>
+                        )}
                       </AccordionItem>
                     );
                   })}
