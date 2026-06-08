@@ -40,7 +40,7 @@ export function useTouristModulePermissions(moduleName: string): TouristModulePe
 
       if (!m?.id) return null;
 
-      const [{ data: pr }, { data: subRows }] = await Promise.all([
+      const [prRes, subRes] = await Promise.all([
         supabase
           .from("tourist_module_permissions" as any)
           .select("is_enabled, permissions")
@@ -53,6 +53,8 @@ export function useTouristModulePermissions(moduleName: string): TouristModulePe
           .eq("is_active", true),
       ]);
 
+      const pr = (prRes.data || null) as { is_enabled: boolean; permissions: any } | null;
+      const subRows = (subRes.data || []) as any[];
       return { pr, subRows };
     },
   });
@@ -67,6 +69,7 @@ export function useTouristModulePermissions(moduleName: string): TouristModulePe
     delete: true,
   };
   const isEnabled = data.pr ? data.pr.is_enabled : true;
+
 
   const subFeatures: Record<string, boolean> = {};
   for (const row of (data.subRows as any[]) || []) {
