@@ -390,6 +390,18 @@ const App = () => (
               </SuperAdminRoute>
             } />
             
+            {/* Tourists routes (Tourist User Accounts + Module Assignment) */}
+            <Route element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <TouristsLayout />
+                </AdminLayout>
+              </SuperAdminRoute>
+            }>
+              <Route path="/admin/tourists" element={<AllTourists />} />
+              <Route path="/admin/tourists/modules" element={<TouristModules />} />
+            </Route>
+
             {/* Partners routes (with shared layout for list/modules/logs) */}
             <Route element={
               <SuperAdminRoute>
