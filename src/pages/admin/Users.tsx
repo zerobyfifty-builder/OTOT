@@ -162,17 +162,19 @@ export default function Users() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 md:p-8 space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold text-admin-primary">All Users</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-admin-primary">All Users</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage all users across the platform
           </p>
         </div>
-        <Button onClick={fetchUsers} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={fetchUsers} variant="outline" size="icon" title="Refresh">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <Card>

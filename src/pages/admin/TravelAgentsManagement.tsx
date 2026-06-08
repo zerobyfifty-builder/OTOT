@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Pencil, Ban } from 'lucide-react';
+import { Plus, Pencil, Ban, RefreshCw } from 'lucide-react';
 
 interface TravelAgent {
   id: string;
@@ -142,16 +142,21 @@ export default function TravelAgentsManagement() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">Travel Agents</h1>
-          <p className="text-muted-foreground">Manage travel agents for government carbon offset program</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Travel Agents</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage travel agents for government carbon offset program</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Travel Agent
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={fetchAgents} variant="outline" size="icon" title="Refresh">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button onClick={handleCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Travel Agent
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-md border">
