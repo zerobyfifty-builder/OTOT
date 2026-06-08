@@ -1289,6 +1289,44 @@ export type Database = {
           },
         ]
       }
+      module_sub_actions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          module_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          module_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          module_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_sub_actions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           access_type: string
@@ -2642,6 +2680,38 @@ export type Database = {
           },
         ]
       }
+      tourist_module_permissions: {
+        Row: {
+          is_enabled: boolean
+          module_id: string
+          permissions: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          is_enabled?: boolean
+          module_id: string
+          permissions?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          is_enabled?: boolean
+          module_id?: string
+          permissions?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tourist_module_permissions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: true
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tourist_purchases: {
         Row: {
           contribution_id: string | null
@@ -2701,6 +2771,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tourist_sub_action_permissions: {
+        Row: {
+          is_enabled: boolean
+          sub_action_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          is_enabled?: boolean
+          sub_action_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          is_enabled?: boolean
+          sub_action_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tourist_sub_action_permissions_sub_action_id_fkey"
+            columns: ["sub_action_id"]
+            isOneToOne: true
+            referencedRelation: "module_sub_actions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       travel_agent_sessions: {
         Row: {
