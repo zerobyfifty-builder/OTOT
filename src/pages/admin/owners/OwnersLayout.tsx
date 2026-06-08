@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Layers, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Layers, Activity, Plus, RefreshCw } from "lucide-react";
 
 const TABS = [
   {
