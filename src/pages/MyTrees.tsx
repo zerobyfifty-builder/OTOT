@@ -133,6 +133,9 @@ const getAirportCity = (code: string) => {
 export const MyTrees = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subFeatures: touristMyTreesFeatures } = useTouristModulePermissions("tourist_my_trees");
+  const showIndividualTreesAccordion =
+    touristMyTreesFeatures["view_individual_trees_accordion"] !== false;
   const [trees, setTrees] = useState<Tree[]>([]);
   const [trips, setTrips] = useState<Record<string, Trip>>({});
   const [transitionDates, setTransitionDates] = useState<Record<string, string>>({});
