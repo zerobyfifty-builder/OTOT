@@ -22,6 +22,7 @@ interface TouristRow {
   created_at: string;
   pledge_status: boolean;
   total_donation: number | null;
+  roles?: { name: string } | null;
 }
 
 export default function AllTourists() {
@@ -34,18 +35,31 @@ export default function AllTourists() {
     const fetchRows = async () => {
       setLoading(true);
       try {
+        // Tourists are users with role 'tourist' OR no role assigned (default).
+        // Exclude non-tourist roles via a left join + filter.
+        const nonTouristRoles = [
+          "super_admin",
+          "owner",
+          "business_partner",
+          "government_partner",
+          "travel_agent",
+        ];
+
         let q = supabase
           .from("users")
           .select(
-            `id, user_id, email, created_at, pledge_status, total_donation, roles!inner(name)`
+            `id, user_id, email, created_at, pledge_status, total_donation, roles(name)`
           )
-          .eq("roles.name", "tourist")
           .order("created_at", { ascending: false })
-          .limit(500);
+          .limit(1000);
         if (search) q = q.ilike("email", `%${search}%`);
         const { data, error } = await q;
         if (error) throw error;
-        if (!cancelled) setRows((data || []) as any);
+        const filtered = (data || []).filter((u: any) => {
+          const roleName = u.roles?.name;
+          return !roleName || !nonTouristRoles.includes(roleName);
+        });
+        if (!cancelled) setRows(filtered as any);
       } catch (e: any) {
         toast.error(e.message || "Failed to load tourists");
       } finally {
