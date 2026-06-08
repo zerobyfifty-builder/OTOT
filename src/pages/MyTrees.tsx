@@ -617,6 +617,7 @@ export const MyTrees = () => {
                         </div>
 
                         {/* View individual trees - inset panel */}
+                        {showIndividualTreesAccordion && (
                         <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/30 shadow-inner overflow-hidden">
                           <Accordion type="multiple" className="w-full">
                             <AccordionItem value={`trees-${group.key}`} className="border-b-0">
