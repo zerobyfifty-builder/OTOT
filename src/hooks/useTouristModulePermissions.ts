@@ -53,8 +53,8 @@ export function useTouristModulePermissions(moduleName: string): TouristModulePe
           .eq("is_active", true),
       ]);
 
-      const pr = (prRes.data || null) as { is_enabled: boolean; permissions: any } | null;
-      const subRows = (subRes.data || []) as any[];
+      const pr = (prRes.data as unknown) as { is_enabled: boolean; permissions: any } | null;
+      const subRows = ((subRes.data as unknown) as any[]) || [];
       return { pr, subRows };
     },
   });
