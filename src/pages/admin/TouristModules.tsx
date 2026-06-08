@@ -243,10 +243,10 @@ export default function TouristModules() {
                       <TableRow key={s.id} className="bg-muted/30">
                         <TableCell className="pl-14">
                           <div className="flex items-center gap-2">
+                            <span className="text-sm">{s.label}</span>
                             <Badge variant="outline" className="text-[10px] font-mono">
                               {s.key}
                             </Badge>
-                            <span className="text-sm">{s.label}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center" colSpan={5}>
