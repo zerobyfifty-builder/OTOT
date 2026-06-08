@@ -6,9 +6,9 @@ import { Users, Layers, RefreshCw } from "lucide-react";
 const TABS = [
   {
     value: "/admin/tourists",
-    label: "Tourist User Accounts",
+    label: "All Tourists",
     icon: Users,
-    title: "Tourists",
+    title: "All Tourists",
     subtitle: "Manage tourist user accounts and the modules they can access.",
   },
   {
