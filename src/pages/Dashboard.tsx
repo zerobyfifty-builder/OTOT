@@ -336,34 +336,34 @@ export const Dashboard: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Welcome {getUserName()}!
-          </h1>
+          <div>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.18em] text-muted-foreground mb-1">
+              Environmental Intelligence
+            </p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-tight">
+              Welcome <span className="text-lime">{getUserName()}</span>
+            </h1>
+          </div>
           <img src={ktbLogo} alt="Kenya Tourism Board" className="h-12 sm:h-20 object-contain self-start sm:self-auto" />
         </div>
 
-        {/* Section 1: Stats Cards with Featured Background */}
-        <section className="relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
-          {/* Decorative pattern background */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
-            <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
-            <div className="absolute bottom-10 left-20 w-48 h-48 rounded-full border-2 border-foreground"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-foreground"></div>
-          </div>
-          
+        {/* Section 1: Stats Cards on Glass Panel */}
+        <section className="glass-card-strong relative overflow-hidden py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8">
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10 gap-6">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-                Take Action Today
-              </h2>
-              <div className="flex flex-wrap gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mb-2">Live overview</p>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground tracking-tight">
+                  Take Action Today
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
                 <Button
                   size="lg"
-                  variant="secondary"
-                  className="flex items-center gap-2 text-base px-6 py-6"
+                  className="glass-pill-active gap-2 text-sm px-5 py-5 rounded-full border-0"
                   onClick={() => navigate('/tree-purchase')}
                 >
-                  <Sprout className="h-5 w-5" />
+                  <Sprout className="h-4 w-4" />
                   Plant Trees
                 </Button>
               </div>
