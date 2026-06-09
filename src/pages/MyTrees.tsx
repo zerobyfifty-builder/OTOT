@@ -664,7 +664,7 @@ export const MyTrees = () => {
 
                           const isCollapsed = collapsedContribLists.has(group.key);
                           return (
-                            <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+                            <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/50 overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -674,7 +674,7 @@ export const MyTrees = () => {
                                     return next;
                                   });
                                 }}
-                                className={`w-full px-4 py-2.5 flex items-center gap-2 ${isCollapsed ? '' : 'border-b border-border/40'} hover:bg-muted/30 transition-colors text-left`}
+                                className={`w-full px-4 py-2.5 flex items-center gap-2 bg-muted/60 ${isCollapsed ? '' : 'border-b border-border/40'} hover:bg-muted/70 transition-colors text-left`}
                                 aria-expanded={!isCollapsed}
                               >
                                 <TreePine className="h-3.5 w-3.5 text-primary" />
@@ -684,7 +684,7 @@ export const MyTrees = () => {
                                 <ChevronDown className={`h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
                               {!isCollapsed && (
-                                <div className="divide-y divide-border/40">
+                                <div className="divide-y divide-border/40 bg-background/60">
                                   {contribGroups.map((cg) => (
                                   <div
                                     key={`${group.key}-${cg.cid}`}
@@ -692,8 +692,9 @@ export const MyTrees = () => {
                                   >
                                     <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                                       <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
-                                        <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
+                                        <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
                                       </span>
+
                                       <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
                                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                                         <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
