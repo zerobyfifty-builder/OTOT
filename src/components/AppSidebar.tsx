@@ -177,6 +177,7 @@ export function AppSidebar() {
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <i aria-hidden="true" className="glass-nav-leaf" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -205,6 +206,7 @@ export function AppSidebar() {
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <i aria-hidden="true" className="glass-nav-leaf" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
