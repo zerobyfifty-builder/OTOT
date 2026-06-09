@@ -680,6 +680,8 @@ export const MyTrees = () => {
 
                                         {/* Inline stats */}
                                         <div className="flex items-center gap-4 flex-1">
+                                          <span className="hidden md:inline text-xs text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
                                           <div className="flex items-baseline gap-1">
                                             <span className="text-sm font-semibold tabular-nums text-foreground">{cg.trees_planted}</span>
                                             <span className="text-xs text-muted-foreground">{cg.trees_planted === 1 ? 'tree' : 'trees'}</span>
@@ -693,8 +695,6 @@ export const MyTrees = () => {
                                             <MapPin className="h-3 w-3" />
                                             <span>Mau Forest</span>
                                           </div>
-                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
-                                          <span className="hidden md:inline text-xs text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
                                         </div>
 
                                         <div className="flex items-center gap-3 shrink-0">
