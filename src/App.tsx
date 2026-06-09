@@ -136,11 +136,19 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const MobileTopBar = () => (
+  <div className="md:hidden sticky top-0 z-30 flex items-center gap-2 h-12 px-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <SidebarTrigger className="h-9 w-9" />
+    <span className="text-sm font-semibold text-foreground">OTOT</span>
+  </div>
+);
+
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
       <AppSidebar />
       <main className="flex-1 overflow-auto bg-background">
+        <MobileTopBar />
         {children}
       </main>
     </div>
@@ -152,6 +160,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <AdminSidebar />
       <main className="flex-1 overflow-auto bg-admin-cream">
+        <MobileTopBar />
         {children}
       </main>
     </div>
@@ -163,6 +172,7 @@ const LodgeLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <LodgeSidebar />
       <main className="flex-1 overflow-auto bg-background">
+        <MobileTopBar />
         {children}
       </main>
     </div>
@@ -174,6 +184,7 @@ const AgentLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <AgentSidebar />
       <main className="flex-1 overflow-auto bg-background">
+        <MobileTopBar />
         {children}
       </main>
     </div>
@@ -192,7 +203,8 @@ const InstitutionalLayout = ({ children, organizationName, organizationCategory 
         organizationCategory={organizationCategory}
       />
       <main className="flex-1 overflow-auto bg-background relative">
-        <div className="sticky top-0 right-0 z-10 flex justify-end p-4 pointer-events-none">
+        <MobileTopBar />
+        <div className="sticky top-0 right-0 z-10 hidden md:flex justify-end p-4 pointer-events-none">
           <img src={ktbLogo} alt="KTB" className="h-14 object-contain pointer-events-auto" />
         </div>
         {children}
@@ -206,6 +218,7 @@ const OwnerLayout = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen flex w-full">
       <OwnerSidebar />
       <main className="flex-1 overflow-auto bg-background">
+        <MobileTopBar />
         {children}
       </main>
     </div>
