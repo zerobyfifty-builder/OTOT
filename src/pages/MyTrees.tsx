@@ -661,82 +661,77 @@ export const MyTrees = () => {
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
                               </div>
-                              <div className="p-2 space-y-2">
-                                {contribGroups.map((cg) => {
+                              <Accordion type="multiple" className="divide-y divide-border/40">
+                                {contribGroups.map((cg, cgIdx) => {
                                   const rowKey = `${group.key}-${cg.cid}`;
                                   return (
-                                    <div
-                                      key={rowKey}
-                                      className="group relative flex items-center gap-4 rounded-lg border border-border/50 bg-background px-4 py-3 hover:border-primary/40 hover:shadow-sm transition-all"
-                                    >
-                                      {/* Leading tree count chip */}
-                                      <div className="shrink-0 flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
-                                        <span className="text-base font-bold tabular-nums text-primary leading-none">{cg.trees_planted}</span>
-                                        <Leaf className="h-3 w-3 text-primary/70 mt-0.5" />
-                                      </div>
-
-                                      {/* Identity */}
-                                      <div className="min-w-0 shrink-0">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-sm font-semibold tabular-nums text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                    <AccordionItem key={rowKey} value={rowKey} className="border-0">
+                                      <AccordionTrigger className="px-3 sm:px-4 py-3 hover:bg-muted/30 hover:no-underline [&[data-state=open]]:bg-muted/30 transition-colors">
+                                        <div className="flex-1 min-w-0 grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto_auto_auto] items-center gap-x-3 gap-y-1 text-left">
+                                          <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
+                                          <span className="font-mono text-[11px] sm:text-xs text-foreground truncate" title={cg.cid}>{cg.cid}</span>
+                                          <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                          <span className="hidden sm:flex items-center gap-1 text-xs tabular-nums text-foreground justify-end">
+                                            <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted}
+                                          </span>
+                                          <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground text-right">${cg.amount.toFixed(2)}</span>
+                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] justify-self-end whitespace-nowrap`}>{cg.status}</Badge>
+                                          <div className="col-span-3 sm:hidden flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
+                                            <span>{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                            <span className="inline-flex items-center gap-1"><Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} trees</span>
+                                            <span className="font-semibold text-foreground">${cg.amount.toFixed(2)}</span>
+                                          </div>
                                         </div>
-                                        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                          <span>Mau Forest</span>
-                                          <button
-                                            type="button"
-                                            onClick={() => { if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
-                                            className="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-md bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors"
-                                            title="Track these trees"
-                                          >
-                                            <MapPin className="h-3.5 w-3.5" />
-                                          </button>
+                                      </AccordionTrigger>
+                                      <AccordionContent className="px-2 sm:px-3 pb-3 pt-1">
+                                        <div className="rounded-lg border border-border/60 bg-background overflow-x-auto">
+                                          <Table>
+                                            <TableHeader>
+                                              <TableRow className="bg-muted/40">
+                                                <TableHead className="w-10 text-[11px]">#</TableHead>
+                                                <TableHead className="text-[11px]">Tree ID</TableHead>
+                                                <TableHead className="text-[11px]">Planting Status</TableHead>
+                                                <TableHead className="text-[11px]">Status Dt</TableHead>
+                                                <TableHead className="text-[11px] text-right">Track</TableHead>
+                                              </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                              {cg.trees.map((tree, idx) => {
+                                                const statusDt = transitionDates[tree.id] || tree.updated_at || tree.created_at;
+                                                const stage = toTouristStage(tree.planting_status as string);
+                                                const stageLabel = TOURIST_STAGE_LABELS[stage];
+                                                return (
+                                                  <TableRow key={tree.id}>
+                                                    <TableCell className="text-[11px] text-muted-foreground tabular-nums">{idx + 1}</TableCell>
+                                                    <TableCell className="font-mono text-[11px]">{tree.otot_id}</TableCell>
+                                                    <TableCell>
+                                                      <Badge className={`${getGroupStatusColor(stageLabel)} text-[10px]`}>{stageLabel}</Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-[11px] tabular-nums whitespace-nowrap">
+                                                      {format(new Date(statusDt), "d MMM yyyy")}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                      <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-7 w-7 p-0"
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedTree(tree); }}
+                                                        title="Track this tree"
+                                                      >
+                                                        <MapPin className="h-3.5 w-3.5" />
+                                                      </Button>
+                                                    </TableCell>
+                                                  </TableRow>
+                                                );
+                                              })}
+                                            </TableBody>
+                                          </Table>
                                         </div>
-                                      </div>
-
-                                      {/* Spacer */}
-                                      <div className="flex-1" />
-
-                                      {/* Amount */}
-                                      <div className="hidden sm:flex flex-col items-end shrink-0">
-                                        <span className="text-sm font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</span>
-                                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{cg.paymentMethod}</span>
-                                      </div>
-
-                                      <div className="hidden sm:block h-8 w-px bg-border/60" />
-
-                                      {/* Status */}
-                                      <div className="flex flex-col items-end gap-1 shrink-0">
-                                        <Badge className={`${getGroupStatusColor(cg.status)} text-[11px]`}>
-                                          {cg.status}
-                                        </Badge>
-                                        <span className="text-[10px] text-muted-foreground tabular-nums">
-                                          {format(new Date(cg.statusDate), "d MMM yyyy")}
-                                        </span>
-                                      </div>
-
-                                      {/* Actions */}
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
-                                            <MoreVertical className="h-4 w-4" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem
-                                            onSelect={(e) => {
-                                              e.preventDefault();
-                                              setContribSheet({ cid: cg.cid, trees: cg.trees });
-                                            }}
-                                          >
-                                            <TreePine className="h-4 w-4 mr-2" />
-                                            Tree details
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </div>
+                                      </AccordionContent>
+                                    </AccordionItem>
                                   );
                                 })}
-                              </div>
+                              </Accordion>
                             </div>
                           );
                         })()}
