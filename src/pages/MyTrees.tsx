@@ -146,6 +146,7 @@ export const MyTrees = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
+  const [expandedContribs, setExpandedContribs] = useState<Set<string>>(new Set());
   const itemsPerPage = 10;
 
   useEffect(() => {
