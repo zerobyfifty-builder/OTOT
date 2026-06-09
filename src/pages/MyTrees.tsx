@@ -387,19 +387,19 @@ export const MyTrees = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl py-8">
+      <div className="container max-w-7xl px-4 sm:px-6 py-4 sm:py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">My Trees</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">My Trees</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Track your reforestation journey and environmental impact
               </p>
             </div>
             <div className="flex gap-2">
               {plantedTrees > 0 && (
-                <Button variant="outline" onClick={handleViewCertificate} disabled={isGeneratingCert}>
+                <Button variant="outline" size="sm" className="sm:size-default" onClick={handleViewCertificate} disabled={isGeneratingCert}>
                   <Award className="h-4 w-4 mr-2" />
                   {isGeneratingCert ? 'Generating...' : 'View Certificate'}
                 </Button>
