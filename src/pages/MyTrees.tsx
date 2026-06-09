@@ -741,6 +741,7 @@ export const MyTrees = () => {
                                                   setContribSheet({ cid: cg.cid, trees: cg.trees });
                                                 }}
                                               >
+                                                <Eye className="h-4 w-4 mr-2" />
                                                 Tree details
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
