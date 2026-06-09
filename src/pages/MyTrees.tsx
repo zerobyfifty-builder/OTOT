@@ -648,6 +648,7 @@ export const MyTrees = () => {
                                 trees_planted: trs.reduce((s, t) => s + t.num_trees, 0),
                                 amount: trs.reduce((s, t) => s + Number(t.amount_paid), 0),
                                 status: getGroupStatus(trs),
+                                paymentMethod: trs[0]?.payment_method || 'Card',
                               };
                             })
                             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -698,7 +699,7 @@ export const MyTrees = () => {
                                       {/* Amount */}
                                       <div className="hidden sm:flex flex-col items-end shrink-0">
                                         <span className="text-sm font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</span>
-                                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Amount</span>
+                                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{cg.paymentMethod}</span>
                                       </div>
 
                                       <div className="hidden sm:block h-8 w-px bg-border/60" />
