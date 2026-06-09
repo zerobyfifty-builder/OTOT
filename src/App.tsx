@@ -144,15 +144,17 @@ const MobileTopBar = () => (
 );
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
-  <SidebarProvider>
-    <div className="min-h-screen flex w-full">
-      <AppSidebar />
-      <main className="flex-1 overflow-auto bg-background">
-        <MobileTopBar />
-        {children}
-      </main>
-    </div>
-  </SidebarProvider>
+  <TouristShell>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <main className="flex-1 overflow-auto bg-background">
+          <MobileTopBar />
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  </TouristShell>
 );
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => (
