@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
