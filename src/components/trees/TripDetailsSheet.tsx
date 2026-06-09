@@ -224,8 +224,8 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
         
         <Tabs defaultValue="trip" className="mt-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="trip">Trip Details</TabsTrigger>
-            <TabsTrigger value="contributions">Contribution Details</TabsTrigger>
+            <TabsTrigger value="trip" className="text-xs sm:text-sm px-2">Trip Details</TabsTrigger>
+            <TabsTrigger value="contributions" className="text-xs sm:text-sm px-2"><span className="sm:hidden">Contributions</span><span className="hidden sm:inline">Contribution Details</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="trip" className="space-y-5 mt-5">
