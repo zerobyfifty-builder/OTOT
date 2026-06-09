@@ -160,6 +160,55 @@
   color: hsl(142 70% 70%);
 }
 
+/* ---------- Leaf / vine hover micro-animation ----------
+   Teal leaf slides in from the right edge on hover, then sways. */
+.tourist-glass .glass-nav-item::before {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(14px, -50%) rotate(-25deg) scale(0.6);
+  transform-origin: bottom left;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M21 3c-7 0-13 4-15 11-1 3 0 6 2 7 4-1 8-3 10-7 2-3 3-7 3-11z' fill='%2334D399'/><path d='M21 3c-5 4-9 9-12 15' stroke='%23065F46' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  filter: drop-shadow(0 2px 4px hsl(142 70% 35% / 0.45));
+  transition:
+    opacity 260ms ease,
+    transform 320ms cubic-bezier(.34,1.56,.64,1);
+}
+
+.tourist-glass .glass-nav-item:hover::before {
+  opacity: 1;
+  transform: translate(0, -50%) rotate(0deg) scale(1);
+  animation: glass-leaf-sway 1800ms ease-in-out 320ms infinite;
+}
+
+@keyframes glass-leaf-sway {
+  0%, 100% { transform: translate(0, -50%) rotate(0deg) scale(1); }
+  50%      { transform: translate(0, -50%) rotate(-8deg) scale(1.04); }
+}
+
+.tourist-glass .glass-nav-item.is-active::before {
+  opacity: 0.9;
+  transform: translate(0, -50%) rotate(0deg) scale(1);
+  filter: drop-shadow(0 1px 2px hsl(0 0% 0% / 0.35));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tourist-glass .glass-nav-item::before,
+  .tourist-glass .glass-nav-item:hover::before {
+    animation: none !important;
+    transition: opacity 200ms ease !important;
+    transform: translate(0, -50%) rotate(0deg) scale(1);
+  }
+}
+
 .tourist-glass .glass-nav-item.is-active {
   background: linear-gradient(
     135deg,
