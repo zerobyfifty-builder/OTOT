@@ -683,51 +683,57 @@ export const MyTrees = () => {
                                 </span>
                                 <ChevronDown className={`h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
-                              {!isCollapsed && (
-                                <div className="divide-y divide-border/40 bg-background/60">
-                                  {contribGroups.map((cg) => (
-                                  <div
-                                    key={`${group.key}-${cg.cid}`}
-                                    className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
-                                  >
-                                    <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
-                                      <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
-                                        <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
-                                      </span>
+                              <div
+                                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}
+                                aria-hidden={isCollapsed}
+                              >
+                                <div className="overflow-hidden">
+                                  <div className="divide-y divide-border/40 bg-background/60">
+                                    {contribGroups.map((cg) => (
+                                    <div
+                                      key={`${group.key}-${cg.cid}`}
+                                      className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
+                                    >
+                                      <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+                                        <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
+                                          <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
+                                        </span>
 
-                                      <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                                        <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
-                                      </span>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 w-7 p-0"
-                                        title="Track trees"
-                                        onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}
-                                      >
-                                        <MapPin className="h-3.5 w-3.5" />
-                                      </Button>
-                                      <div className="ml-auto flex items-center gap-3">
-                                        <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
-                                              <MoreVertical className="h-3.5 w-3.5" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
-                                              <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
-                                            </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                                          <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
+                                        </span>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 w-7 p-0"
+                                          title="Track trees"
+                                          tabIndex={isCollapsed ? -1 : 0}
+                                          onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}
+                                        >
+                                          <MapPin className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <div className="ml-auto flex items-center gap-3">
+                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" tabIndex={isCollapsed ? -1 : 0} onClick={(e) => e.stopPropagation()}>
+                                                <MoreVertical className="h-3.5 w-3.5" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
+                                                <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
                                       </div>
                                     </div>
+                                  ))}
                                   </div>
-                                ))}
                                 </div>
-                              )}
+                              </div>
 
                             </div>
                           );
