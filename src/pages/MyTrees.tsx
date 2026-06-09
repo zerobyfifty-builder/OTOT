@@ -677,19 +677,17 @@ export const MyTrees = () => {
                                       {/* Identity */}
                                       <div className="min-w-0 shrink-0">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-sm font-mono font-semibold text-foreground truncate">{cg.cid}</span>
-                                          <span className="text-xs text-muted-foreground tabular-nums">· {format(new Date(cg.date), "d MMM yyyy")}</span>
+                                          <span className="text-sm font-semibold tabular-nums text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
                                         </div>
                                         <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                          <MapPin className="h-3 w-3" />
                                           <span>Mau Forest</span>
                                           <button
                                             type="button"
                                             onClick={() => { if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
-                                            className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                                            className="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-md bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors"
                                             title="Track these trees"
                                           >
-                                            <MapPin className="h-3 w-3" />
+                                            <MapPin className="h-3.5 w-3.5" />
                                           </button>
                                         </div>
                                       </div>
