@@ -702,6 +702,17 @@ export const MyTrees = () => {
                                           <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <MapPin className="h-3 w-3" />
                                             <span>Mau Forest</span>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (cg.trees[0]) setSelectedTree(cg.trees[0]);
+                                              }}
+                                              className="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                                              title="Track these trees"
+                                            >
+                                              <MapPin className="h-3.5 w-3.5" />
+                                            </button>
                                           </div>
                                         </div>
 
