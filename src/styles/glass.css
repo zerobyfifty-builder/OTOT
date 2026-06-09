@@ -245,3 +245,43 @@
     background-color: hsl(0 0% 9% / 0.96) !important;
   }
 }
+
+/* ------------ Mobile: reduce blur + boost card opacity (perf + a11y) ------------ */
+@media (max-width: 768px) {
+  .tourist-glass {
+    --glass-blur: 8px;
+    --glass-bg-light: hsl(0 0% 100% / 0.92);
+    --glass-bg-light-strong: hsl(0 0% 100% / 0.96);
+  }
+  .tourist-glass .tourist-glass-main {
+    /* Flatter tint on small screens for max text contrast */
+    background-image:
+      radial-gradient(800px 400px at 0% -10%, hsl(142 55% 92% / 0.25), transparent 60%),
+      radial-gradient(600px 400px at 100% 0%, hsl(180 50% 94% / 0.22), transparent 60%);
+  }
+  .tourist-glass::before { opacity: 0.04; }
+}
+
+/* High-contrast / forced-colors users: drop frosted styles entirely */
+@media (prefers-contrast: more), (forced-colors: active) {
+  .tourist-glass .glass-surface,
+  .tourist-glass .glass-surface-strong,
+  .tourist-glass .glass-auto,
+  .tourist-glass [class*="bg-card"]:not(.no-glass),
+  .tourist-glass [class*="bg-white"]:not(.no-glass),
+  .tourist-glass [class*="bg-background"]:not(.no-glass),
+  .tourist-glass [role="dialog"],
+  .tourist-glass [role="menu"],
+  .tourist-glass [role="listbox"] {
+    background-color: hsl(var(--card)) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  .tourist-glass .tourist-glass-main {
+    background-image: none !important;
+    background-color: hsl(var(--background)) !important;
+  }
+  .tourist-glass::before { display: none; }
+}
+
