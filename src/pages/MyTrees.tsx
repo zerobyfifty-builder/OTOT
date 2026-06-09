@@ -666,99 +666,101 @@ export const MyTrees = () => {
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    <Accordion type="multiple" asChild>
-                                      <>
-                                      {contribGroups.map((cg) => (
-                                        <AccordionItem
-                                          key={cg.cid}
-                                          value={`${group.key}-${cg.cid}`}
-                                          asChild
-                                        >
-                                          <>
-                                            <AccordionTrigger asChild>
-                                              <TableRow className="cursor-pointer hover:bg-muted/30 border-b border-border/20 [&[data-state=open]>td>svg]:rotate-180">
-                                                <TableCell className="w-8">
-                                                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform" />
-                                                </TableCell>
-                                                <TableCell className="text-xs font-mono text-muted-foreground">{cg.cid}</TableCell>
-                                                <TableCell className="text-xs">{format(new Date(cg.date), "d MMM yyyy")}</TableCell>
-                                                <TableCell className="text-center text-xs tabular-nums font-medium">{cg.trees_planted}</TableCell>
-                                                <TableCell className="text-right text-xs tabular-nums font-medium">${cg.amount.toFixed(2)}</TableCell>
-                                                <TableCell className="text-xs">Mau Forest Complex</TableCell>
-                                                <TableCell>
-                                                  <Badge className={getGroupStatusColor(cg.status)}>{cg.status}</Badge>
-                                                </TableCell>
-                                                <TableCell className="text-xs">{format(new Date(cg.statusDate), "d/M/yyyy")}</TableCell>
-                                              </TableRow>
-                                            </AccordionTrigger>
-                                            <AccordionContent asChild>
-                                              <TableRow className="bg-muted/20 hover:bg-muted/20">
-                                                <TableCell colSpan={8} className="p-0">
-                                                  <div className="overflow-x-auto p-3">
-                                                    <Table>
-                                                      <TableHeader>
-                                                        <TableRow className="bg-primary/5 border-b-2 border-primary/20">
-                                                          <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
-                                                          <TableHead className="text-left text-xs font-semibold text-primary/80">Contribution ID</TableHead>
-                                                          <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
-                                                          <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
-                                                          <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
-                                                          <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
-                                                          <TableHead className="text-xs font-semibold text-primary/80">Planting Status</TableHead>
-                                                          <TableHead className="text-xs font-semibold text-primary/80">Status Date</TableHead>
-                                                          <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
+                                    {contribGroups.map((cg) => {
+                                      const rowKey = `${group.key}-${cg.cid}`;
+                                      const isOpen = expandedContribs.has(rowKey);
+                                      return (
+                                        <React.Fragment key={rowKey}>
+                                          <TableRow
+                                            className="cursor-pointer hover:bg-muted/30 border-b border-border/20"
+                                            onClick={() => {
+                                              setExpandedContribs(prev => {
+                                                const next = new Set(prev);
+                                                if (next.has(rowKey)) next.delete(rowKey);
+                                                else next.add(rowKey);
+                                                return next;
+                                              });
+                                            }}
+                                          >
+                                            <TableCell className="w-8">
+                                              <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                            </TableCell>
+                                            <TableCell className="text-xs font-mono text-muted-foreground">{cg.cid}</TableCell>
+                                            <TableCell className="text-xs">{format(new Date(cg.date), "d MMM yyyy")}</TableCell>
+                                            <TableCell className="text-center text-xs tabular-nums font-medium">{cg.trees_planted}</TableCell>
+                                            <TableCell className="text-right text-xs tabular-nums font-medium">${cg.amount.toFixed(2)}</TableCell>
+                                            <TableCell className="text-xs">Mau Forest Complex</TableCell>
+                                            <TableCell>
+                                              <Badge className={getGroupStatusColor(cg.status)}>{cg.status}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-xs">{format(new Date(cg.statusDate), "d/M/yyyy")}</TableCell>
+                                          </TableRow>
+                                          {isOpen && (
+                                            <TableRow className="bg-muted/20 hover:bg-muted/20">
+                                              <TableCell colSpan={8} className="p-0">
+                                                <div className="overflow-x-auto p-3">
+                                                  <Table>
+                                                    <TableHeader>
+                                                      <TableRow className="bg-primary/5 border-b-2 border-primary/20">
+                                                        <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
+                                                        <TableHead className="text-left text-xs font-semibold text-primary/80">Contribution ID</TableHead>
+                                                        <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
+                                                        <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
+                                                        <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
+                                                        <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
+                                                        <TableHead className="text-xs font-semibold text-primary/80">Planting Status</TableHead>
+                                                        <TableHead className="text-xs font-semibold text-primary/80">Status Date</TableHead>
+                                                        <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
+                                                      </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                      {cg.trees.map((tree, index) => (
+                                                        <TableRow key={tree.id} className="border-b border-border/20 last:border-b-0 hover:bg-muted/20">
+                                                          <TableCell className="font-medium text-muted-foreground text-xs">{index + 1}</TableCell>
+                                                          <TableCell className="text-left text-xs font-mono text-muted-foreground">{tree.contribution_id || '—'}</TableCell>
+                                                          <TableCell className="text-left">
+                                                            <button
+                                                              onClick={(e) => { e.stopPropagation(); setSelectedTree(tree); }}
+                                                              className="text-primary hover:text-primary/80 flex items-center justify-center"
+                                                              title={`View ${tree.otot_id}`}
+                                                            >
+                                                              <MapPin className="h-4 w-4" />
+                                                            </button>
+                                                          </TableCell>
+                                                          <TableCell className="text-left text-xs">Mau Forest Complex</TableCell>
+                                                          <TableCell className="text-left text-xs">Nakuru</TableCell>
+                                                          <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
+                                                          <TableCell>
+                                                            {(() => {
+                                                              const stage = toTouristStage(tree.planting_status);
+                                                              return (
+                                                                <Badge className={PLANTING_STATUS_COLORS[stage]}>
+                                                                  {PLANTING_STATUS_LABELS[stage]}
+                                                                </Badge>
+                                                              );
+                                                            })()}
+                                                          </TableCell>
+                                                          <TableCell className="text-xs">
+                                                            {transitionDates[tree.id]
+                                                              ? format(new Date(transitionDates[tree.id]), "d/M/yyyy")
+                                                              : format(new Date(tree.created_at), "d/M/yyyy")}
+                                                          </TableCell>
+                                                          <TableCell>
+                                                            <Badge className={`${SOURCE_COLORS[tree.purchase_type]} whitespace-nowrap`}>
+                                                              {tree.purchase_type}
+                                                            </Badge>
+                                                          </TableCell>
                                                         </TableRow>
-                                                      </TableHeader>
-                                                      <TableBody>
-                                                        {cg.trees.map((tree, index) => (
-                                                          <TableRow key={tree.id} className="border-b border-border/20 last:border-b-0 hover:bg-muted/20">
-                                                            <TableCell className="font-medium text-muted-foreground text-xs">{index + 1}</TableCell>
-                                                            <TableCell className="text-left text-xs font-mono text-muted-foreground">{tree.contribution_id || '—'}</TableCell>
-                                                            <TableCell className="text-left">
-                                                              <button
-                                                                onClick={() => setSelectedTree(tree)}
-                                                                className="text-primary hover:text-primary/80 flex items-center justify-center"
-                                                                title={`View ${tree.otot_id}`}
-                                                              >
-                                                                <MapPin className="h-4 w-4" />
-                                                              </button>
-                                                            </TableCell>
-                                                            <TableCell className="text-left text-xs">Mau Forest Complex</TableCell>
-                                                            <TableCell className="text-left text-xs">Nakuru</TableCell>
-                                                            <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
-                                                            <TableCell>
-                                                              {(() => {
-                                                                const stage = toTouristStage(tree.planting_status);
-                                                                return (
-                                                                  <Badge className={PLANTING_STATUS_COLORS[stage]}>
-                                                                    {PLANTING_STATUS_LABELS[stage]}
-                                                                  </Badge>
-                                                                );
-                                                              })()}
-                                                            </TableCell>
-                                                            <TableCell className="text-xs">
-                                                              {transitionDates[tree.id]
-                                                                ? format(new Date(transitionDates[tree.id]), "d/M/yyyy")
-                                                                : format(new Date(tree.created_at), "d/M/yyyy")}
-                                                            </TableCell>
-                                                            <TableCell>
-                                                              <Badge className={`${SOURCE_COLORS[tree.purchase_type]} whitespace-nowrap`}>
-                                                                {tree.purchase_type}
-                                                              </Badge>
-                                                            </TableCell>
-                                                          </TableRow>
-                                                        ))}
-                                                      </TableBody>
-                                                    </Table>
-                                                  </div>
-                                                </TableCell>
-                                              </TableRow>
-                                            </AccordionContent>
-                                          </>
-                                        </AccordionItem>
-                                      ))}
-                                      </>
-                                    </Accordion>
+                                                      ))}
+                                                    </TableBody>
+                                                  </Table>
+                                                </div>
+                                              </TableCell>
+                                            </TableRow>
+                                          )}
+                                        </React.Fragment>
+                                      );
+                                    })}
                                   </TableBody>
                                 </Table>
                               </div>
