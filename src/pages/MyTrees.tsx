@@ -661,80 +661,55 @@ export const MyTrees = () => {
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
                               </div>
-                              <Accordion type="multiple" className="divide-y divide-border/40">
-                                {contribGroups.map((cg, cgIdx) => {
-                                  const rowKey = `${group.key}-${cg.cid}`;
-                                  return (
-                                    <AccordionItem key={rowKey} value={rowKey} className="border-0">
-                                      <AccordionTrigger className="px-3 sm:px-4 py-3 hover:bg-muted/30 hover:no-underline [&[data-state=open]]:bg-muted/30 transition-colors">
-                                        <div className="flex-1 min-w-0 grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto_auto_auto] items-center gap-x-3 gap-y-1 text-left">
-                                          <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
-                                          <span className="font-mono text-[11px] sm:text-xs text-foreground truncate" title={cg.cid}>{cg.cid}</span>
-                                          <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                          <span className="hidden sm:flex items-center gap-1 text-xs tabular-nums text-foreground justify-end">
-                                            <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted}
-                                          </span>
-                                          <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground text-right">${cg.amount.toFixed(2)}</span>
-                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] justify-self-end whitespace-nowrap`}>{cg.status}</Badge>
-                                          <div className="col-span-3 sm:hidden flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
-                                            <span>{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                            <span className="inline-flex items-center gap-1"><Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} trees</span>
-                                            <span className="font-semibold text-foreground">${cg.amount.toFixed(2)}</span>
-                                          </div>
-                                        </div>
-                                      </AccordionTrigger>
-                                      <AccordionContent className="px-2 sm:px-3 pb-3 pt-1">
-                                        <div className="rounded-lg border border-border/60 bg-background overflow-x-auto">
-                                          <Table>
-                                            <TableHeader>
-                                              <TableRow className="bg-muted/40">
-                                                <TableHead className="w-10 text-[11px]">#</TableHead>
-                                                <TableHead className="text-[11px]">Tree ID</TableHead>
-                                                <TableHead className="text-[11px]">Planting Status</TableHead>
-                                                <TableHead className="text-[11px]">Status Dt</TableHead>
-                                                <TableHead className="text-[11px] text-right">Track</TableHead>
-                                              </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                              {cg.trees.map((tree, idx) => {
-                                                const statusDt = transitionDates[tree.id] || tree.updated_at || tree.created_at;
-                                                const stage = toTouristStage(tree.planting_status as string);
-                                                const stageLabel = TOURIST_STAGE_LABELS[stage];
-                                                return (
-                                                  <TableRow key={tree.id}>
-                                                    <TableCell className="text-[11px] text-muted-foreground tabular-nums">{idx + 1}</TableCell>
-                                                    <TableCell className="font-mono text-[11px]">{tree.otot_id}</TableCell>
-                                                    <TableCell>
-                                                      <Badge className={`${getGroupStatusColor(stageLabel)} text-[10px]`}>{stageLabel}</Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-[11px] tabular-nums whitespace-nowrap">
-                                                      {format(new Date(statusDt), "d MMM yyyy")}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                      <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="h-7 w-7 p-0"
-                                                        onClick={(e) => { e.stopPropagation(); setSelectedTree(tree); }}
-                                                        title="Track this tree"
-                                                      >
-                                                        <MapPin className="h-3.5 w-3.5" />
-                                                      </Button>
-                                                    </TableCell>
-                                                  </TableRow>
-                                                );
-                                              })}
-                                            </TableBody>
-                                          </Table>
-                                        </div>
-                                      </AccordionContent>
-                                    </AccordionItem>
-                                  );
-                                })}
-                              </Accordion>
+                              <div className="overflow-x-auto">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="bg-muted/30">
+                                      <TableHead className="w-10 text-[11px]">#</TableHead>
+                                      <TableHead className="text-[11px]">Contribution ID</TableHead>
+                                      <TableHead className="text-[11px] whitespace-nowrap">Date</TableHead>
+                                      <TableHead className="text-[11px] text-right">Trees</TableHead>
+                                      <TableHead className="text-[11px] text-right">Amount</TableHead>
+                                      <TableHead className="text-[11px]">Planting Status</TableHead>
+                                      <TableHead className="text-[11px] whitespace-nowrap">Status Dt</TableHead>
+                                      <TableHead className="w-10 text-[11px]"></TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {contribGroups.map((cg, cgIdx) => (
+                                      <TableRow key={`${group.key}-${cg.cid}`}>
+                                        <TableCell className="text-[11px] text-muted-foreground tabular-nums">{cgIdx + 1}</TableCell>
+                                        <TableCell className="font-mono text-[11px] sm:text-xs">{cg.cid}</TableCell>
+                                        <TableCell className="text-[11px] tabular-nums whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</TableCell>
+                                        <TableCell className="text-[11px] tabular-nums text-right">{cg.trees_planted}</TableCell>
+                                        <TableCell className="text-[11px] tabular-nums font-semibold text-right whitespace-nowrap">${cg.amount.toFixed(2)}</TableCell>
+                                        <TableCell>
+                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] whitespace-nowrap`}>{cg.status}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-[11px] tabular-nums whitespace-nowrap">{format(new Date(cg.statusDate), "d MMM yyyy")}</TableCell>
+                                        <TableCell className="text-right">
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
+                                                <MoreVertical className="h-3.5 w-3.5" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
+                                                <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
                             </div>
                           );
                         })()}
+
                       </AccordionItem>
                     );
                   })}
