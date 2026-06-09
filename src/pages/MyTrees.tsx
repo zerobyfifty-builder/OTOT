@@ -871,6 +871,15 @@ export const MyTrees = () => {
           }}
         />
 
+        <ContributionTreesSheet
+          isOpen={!!contribSheet}
+          onClose={() => setContribSheet(null)}
+          contributionId={contribSheet?.cid || null}
+          trees={contribSheet?.trees || []}
+          transitionDates={transitionDates}
+          onTrack={(tree) => setSelectedTree(tree)}
+        />
+
         {/* Certificate Preview Dialog */}
         <CertificatePreviewDialog
           previewCert={previewCert}
