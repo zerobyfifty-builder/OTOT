@@ -661,51 +661,43 @@ export const MyTrees = () => {
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
                               </div>
-                              <div className="overflow-x-auto">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow className="bg-muted/30">
-                                      <TableHead className="w-10 text-[11px]">#</TableHead>
-                                      <TableHead className="text-[11px]">Contribution ID</TableHead>
-                                      <TableHead className="text-[11px] whitespace-nowrap">Date</TableHead>
-                                      <TableHead className="text-[11px] text-right">Trees</TableHead>
-                                      <TableHead className="text-[11px] text-right">Amount</TableHead>
-                                      <TableHead className="text-[11px]">Planting Status</TableHead>
-                                      <TableHead className="text-[11px] whitespace-nowrap">Status Dt</TableHead>
-                                      <TableHead className="w-10 text-[11px]"></TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {contribGroups.map((cg, cgIdx) => (
-                                      <TableRow key={`${group.key}-${cg.cid}`}>
-                                        <TableCell className="text-[11px] text-muted-foreground tabular-nums">{cgIdx + 1}</TableCell>
-                                        <TableCell className="font-mono text-[11px] sm:text-xs">{cg.cid}</TableCell>
-                                        <TableCell className="text-[11px] tabular-nums whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</TableCell>
-                                        <TableCell className="text-[11px] tabular-nums text-right">{cg.trees_planted}</TableCell>
-                                        <TableCell className="text-[11px] tabular-nums font-semibold text-right whitespace-nowrap">${cg.amount.toFixed(2)}</TableCell>
-                                        <TableCell>
-                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] whitespace-nowrap`}>{cg.status}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-[11px] tabular-nums whitespace-nowrap">{format(new Date(cg.statusDate), "d MMM yyyy")}</TableCell>
-                                        <TableCell className="text-right">
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
-                                                <MoreVertical className="h-3.5 w-3.5" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
-                                                <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
-                                              </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        </TableCell>
-                                      </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
+                              <div className="divide-y divide-border/40">
+                                {contribGroups.map((cg, cgIdx) => (
+                                  <div
+                                    key={`${group.key}-${cg.cid}`}
+                                    className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
+                                  >
+                                    <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto_auto_auto_auto] items-center gap-x-3 gap-y-1">
+                                      <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
+                                      <span className="font-mono text-[11px] sm:text-xs text-foreground truncate" title={cg.cid}>{cg.cid}</span>
+                                      <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                      <span className="hidden sm:flex items-center gap-1 text-xs tabular-nums text-foreground justify-end">
+                                        <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted}
+                                      </span>
+                                      <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground text-right whitespace-nowrap">${cg.amount.toFixed(2)}</span>
+                                      <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] justify-self-end whitespace-nowrap`}>{cg.status}</Badge>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 justify-self-end" onClick={(e) => e.stopPropagation()}>
+                                            <MoreVertical className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
+                                            <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                      <div className="col-span-3 sm:hidden flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
+                                        <span>{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                        <span className="inline-flex items-center gap-1"><Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} trees</span>
+                                        <span className="font-semibold text-foreground">${cg.amount.toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
+
                             </div>
                           );
                         })()}
