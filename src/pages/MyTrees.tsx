@@ -675,30 +675,29 @@ export const MyTrees = () => {
                                         {/* Identity */}
                                         <div className="flex items-center gap-2 min-w-0 shrink-0">
                                           <Sprout className="h-4 w-4 text-primary" />
-                                          <div className="flex flex-col leading-tight">
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Contribution</span>
-                                            <span className="text-sm font-mono font-medium text-foreground truncate">{cg.cid}</span>
-                                          </div>
+                                          <span className="text-sm font-mono font-medium text-foreground truncate">{cg.cid}</span>
                                         </div>
 
                                         {/* Inline stats */}
-                                        <div className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-1 justify-end">
-                                          <div className="flex items-baseline gap-1.5">
+                                        <div className="flex items-center gap-4 flex-1">
+                                          <div className="flex items-baseline gap-1">
                                             <span className="text-sm font-semibold tabular-nums text-foreground">{cg.trees_planted}</span>
                                             <span className="text-xs text-muted-foreground">{cg.trees_planted === 1 ? 'tree' : 'trees'}</span>
                                           </div>
-                                          <div className="flex items-baseline gap-1.5">
+                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
+                                          <div className="flex items-baseline gap-1">
                                             <span className="text-sm font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</span>
-                                            <span className="text-xs text-muted-foreground">contributed</span>
                                           </div>
+                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
                                           <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <MapPin className="h-3 w-3" />
                                             <span>Mau Forest</span>
                                           </div>
-                                          <div className="hidden md:flex flex-col items-end leading-tight">
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Planted</span>
-                                            <span className="text-xs text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                          </div>
+                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
+                                          <span className="hidden md:inline text-xs text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 shrink-0">
                                           <Badge className={`${getGroupStatusColor(cg.status)} text-[11px]`}>
                                             {cg.status}
                                           </Badge>
