@@ -154,131 +154,169 @@ All colors MUST be HSL.
      Only applied inside <TouristShell>; other portals unaffected
      ========================================================= */
   [data-theme="tourist-glass"] {
-    /* Brand palette */
-    --forest-deep: 150 50% 7%;
-    --evergreen: 150 42% 14%;
-    --moss: 122 39% 49%;
-    --sage: 122 36% 74%;
-    --lime: 75 100% 65%;
+    /* Atmospheric teal palette (AgrixAI reference) */
+    --bg-teal-deep: 165 35% 18%;
+    --bg-teal-mid: 160 28% 32%;
+    --bg-teal-soft: 155 25% 52%;
 
-    /* Glass surfaces (with alpha — consumed via hsl(var(--token))) */
-    --glass-bg: 150 30% 12% / 0.55;
-    --glass-bg-strong: 150 35% 10% / 0.78;
-    --glass-bg-nested: 150 25% 16% / 0.42;
-    --glass-border: 140 30% 85% / 0.18;
-    --glass-highlight: 140 40% 95% / 0.08;
-    --glass-shadow: 150 60% 4% / 0.5;
+    /* Accents */
+    --accent-lime: 78 95% 62%;
+    --accent-amber: 38 92% 62%;
+
+    /* Glass surfaces */
+    --glass-card: 160 25% 38% / 0.28;
+    --glass-card-strong: 160 22% 42% / 0.45;
+    --glass-card-nested: 160 22% 45% / 0.22;
+    --glass-border: 0 0% 100% / 0.24;
+    --glass-border-strong: 0 0% 100% / 0.4;
+    --glass-inner-highlight: 0 0% 100% / 0.14;
+
+    /* Legacy aliases (kept so existing utilities keep working) */
+    --glass-bg: var(--glass-card);
+    --glass-bg-strong: var(--glass-card-strong);
+    --glass-bg-nested: var(--glass-card-nested);
+    --glass-highlight: var(--glass-inner-highlight);
+    --glass-shadow: 0 0% 0% / 0.4;
+    --lime: var(--accent-lime);
 
     /* Re-map shadcn semantic tokens */
-    --background: 150 50% 7%;
-    --foreground: 0 0% 98%;
-    --card: 150 30% 12% / 0.55;
-    --card-foreground: 0 0% 98%;
-    --popover: 150 35% 10% / 0.92;
-    --popover-foreground: 0 0% 98%;
-    --primary: 75 100% 65%;
-    --primary-foreground: 150 60% 8%;
-    --secondary: 150 25% 18% / 0.5;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 150 20% 20% / 0.4;
-    --muted-foreground: 140 15% 78%;
-    --accent: 122 45% 45%;
-    --accent-foreground: 0 0% 100%;
+    --background: 165 35% 18%;
+    --foreground: 0 0% 100%;
+    --card: 160 25% 38% / 0.28;
+    --card-foreground: 0 0% 100%;
+    --popover: 160 30% 22% / 0.94;
+    --popover-foreground: 0 0% 100%;
+    --primary: 78 95% 62%;
+    --primary-foreground: 165 60% 10%;
+    --secondary: 160 22% 45% / 0.3;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 160 18% 45% / 0.25;
+    --muted-foreground: 150 12% 82%;
+    --accent: 78 95% 62%;
+    --accent-foreground: 165 60% 10%;
     --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 140 30% 85% / 0.18;
-    --input: 150 25% 18% / 0.6;
-    --ring: 75 100% 65%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.22;
+    --input: 160 22% 45% / 0.3;
+    --ring: 78 95% 62%;
 
-    /* Sidebar — glassified */
-    --sidebar-background: 150 38% 9% / 0.72;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 75 100% 65%;
-    --sidebar-primary-foreground: 150 60% 8%;
-    --sidebar-accent: 150 25% 18% / 0.5;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 140 30% 85% / 0.14;
-    --sidebar-ring: 75 100% 65%;
+    /* Sidebar — translucent over backdrop */
+    --sidebar-background: 160 32% 22% / 0.55;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 78 95% 62%;
+    --sidebar-primary-foreground: 165 60% 10%;
+    --sidebar-accent: 160 22% 45% / 0.3;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.14;
+    --sidebar-ring: 78 95% 62%;
   }
 
-  /* Make main + sidebar surfaces translucent so the backdrop image shows through */
+  /* Translucent surfaces so backdrop shows through */
   [data-theme="tourist-glass"] .bg-background {
     background-color: transparent;
   }
   [data-theme="tourist-glass"] .bg-card {
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
     border-color: hsl(var(--glass-border));
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--glass-inner-highlight)),
+      0 20px 60px -20px hsl(0 0% 0% / 0.4);
   }
   [data-theme="tourist-glass"] [data-sidebar="sidebar"],
   [data-theme="tourist-glass"] .bg-sidebar {
-    backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
-  }
-  /* Subtle inner highlight on glass cards */
-  [data-theme="tourist-glass"] .bg-card {
-    box-shadow:
-      inset 0 1px 0 0 hsl(var(--glass-highlight)),
-      0 8px 32px -8px hsl(var(--glass-shadow));
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
   }
 }
 
 @layer components {
-  /* Primary floating glass panel */
+  /* Primary floating glass card (AgrixAI reference) */
+  .glass-card,
   .glass-panel {
-    @apply relative rounded-3xl border;
-    background-color: hsl(var(--glass-bg));
+    @apply relative border;
+    border-radius: 28px;
+    background-color: hsl(var(--glass-card));
     border-color: hsl(var(--glass-border));
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
     box-shadow:
-      inset 0 1px 0 0 hsl(var(--glass-highlight)),
-      0 10px 40px -12px hsl(var(--glass-shadow));
+      inset 0 1px 0 0 hsl(var(--glass-inner-highlight)),
+      0 20px 60px -20px hsl(0 0% 0% / 0.4);
   }
 
+  .glass-card-strong,
   .glass-panel-strong {
-    @apply relative rounded-3xl border;
-    background-color: hsl(var(--glass-bg-strong));
-    border-color: hsl(var(--glass-border));
+    @apply relative border;
+    border-radius: 28px;
+    background-color: hsl(var(--glass-card-strong));
+    border-color: hsl(var(--glass-border-strong));
     backdrop-filter: blur(28px) saturate(150%);
     -webkit-backdrop-filter: blur(28px) saturate(150%);
     box-shadow:
-      inset 0 1px 0 0 hsl(var(--glass-highlight)),
-      0 16px 48px -12px hsl(var(--glass-shadow));
+      inset 0 1px 0 0 hsl(var(--glass-inner-highlight)),
+      0 24px 70px -20px hsl(0 0% 0% / 0.45);
   }
 
+  .glass-card-nested,
   .glass-panel-nested {
     @apply relative rounded-2xl border;
-    background-color: hsl(var(--glass-bg-nested));
+    background-color: hsl(var(--glass-card-nested));
     border-color: hsl(var(--glass-border));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .glass-pill {
-    @apply relative rounded-full border px-4 py-2;
-    background-color: hsl(var(--glass-bg));
+    @apply relative inline-flex items-center rounded-full border px-4 py-2;
+    background-color: hsl(var(--glass-card));
     border-color: hsl(var(--glass-border));
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
   }
 
+  .glass-pill-active {
+    @apply relative inline-flex items-center rounded-full px-4 py-2 font-medium;
+    background-color: hsl(var(--accent-lime));
+    color: hsl(165 60% 10%);
+    box-shadow:
+      0 0 0 1px hsl(var(--accent-lime) / 0.6),
+      0 0 24px -4px hsl(var(--accent-lime) / 0.55);
+  }
+
   .glass-chip {
     @apply relative inline-flex items-center justify-center rounded-full border;
-    background-color: hsl(var(--glass-bg-nested));
+    background-color: hsl(var(--glass-card-nested));
     border-color: hsl(var(--glass-border));
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
 
-  .accent-glow {
+  .glass-chip-amber {
+    @apply relative inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium;
+    background-color: hsl(var(--accent-amber) / 0.85);
+    color: hsl(30 60% 12%);
+  }
+
+  .glass-chip-lime {
+    @apply relative inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium;
+    background-color: hsl(var(--accent-lime) / 0.9);
+    color: hsl(165 60% 10%);
+  }
+
+  .accent-glow,
+  .accent-glow-lime {
     box-shadow:
-      0 0 0 1px hsl(var(--lime) / 0.5),
-      0 0 24px -4px hsl(var(--lime) / 0.45),
-      inset 0 1px 0 0 hsl(var(--glass-highlight));
+      0 0 0 1px hsl(var(--accent-lime) / 0.55),
+      0 0 28px -4px hsl(var(--accent-lime) / 0.55),
+      inset 0 1px 0 0 hsl(var(--glass-inner-highlight));
   }
 
   .text-lime {
-    color: hsl(var(--lime));
+    color: hsl(var(--accent-lime));
+  }
+
+  .text-amber-accent {
+    color: hsl(var(--accent-amber));
   }
 }
