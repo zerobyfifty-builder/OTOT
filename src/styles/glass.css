@@ -5,24 +5,28 @@
    ===================================================================== */
 
 .tourist-glass {
-  /* Tokens — reuse existing palette */
-  --glass-bg-light: hsl(0 0% 100% / 0.55);
-  --glass-bg-light-strong: hsl(0 0% 100% / 0.78);
-  --glass-bg-dark: hsl(0 0% 9% / 0.55);
-  --glass-bg-dark-strong: hsl(0 0% 9% / 0.78);
-  --glass-border: hsl(0 0% 100% / 0.35);
+  /* Tokens — tuned for AA text contrast on frosted surfaces.
+     Card backgrounds sit at ≥0.82 opacity so body text on tinted
+     pages keeps ≥4.5:1 contrast with --foreground. */
+  --glass-bg-light: hsl(0 0% 100% / 0.82);
+  --glass-bg-light-strong: hsl(0 0% 100% / 0.92);
+  --glass-bg-dark: hsl(0 0% 9% / 0.65);
+  --glass-bg-dark-strong: hsl(0 0% 9% / 0.85);
+  --glass-border: hsl(0 0% 100% / 0.55);
   --glass-border-dark: hsl(0 0% 100% / 0.08);
   --glass-highlight: hsl(142 70% 55% / 0.35);
-  --glass-glow: 0 0 0 1px hsl(142 70% 55% / 0.25),
-                0 8px 24px -8px hsl(142 70% 45% / 0.35);
-  --glass-shadow: 0 8px 32px hsl(0 0% 0% / 0.10),
-                  inset 0 1px 0 hsl(0 0% 100% / 0.5);
+  --glass-glow: 0 0 0 1px hsl(142 70% 55% / 0.20),
+                0 8px 24px -10px hsl(142 70% 35% / 0.35);
+  --glass-shadow: 0 1px 2px hsl(160 30% 20% / 0.06),
+                  0 10px 24px -12px hsl(160 40% 25% / 0.18),
+                  inset 0 1px 0 hsl(0 0% 100% / 0.6);
   --glass-shadow-dark: 0 8px 32px hsl(0 0% 0% / 0.45),
                        inset 0 1px 0 hsl(0 0% 100% / 0.06);
-  --glass-blur: 16px;
+  --glass-blur: 12px;
 
   position: relative;
 }
+
 
 /* Faint leaf-silhouette backdrop layer */
 .tourist-glass::before {
