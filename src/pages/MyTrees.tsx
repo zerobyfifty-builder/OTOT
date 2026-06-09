@@ -154,6 +154,7 @@ export const MyTrees = () => {
   const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [expandedContribs, setExpandedContribs] = useState<Set<string>>(new Set());
+  const [collapsedContribLists, setCollapsedContribLists] = useState<Set<string>>(new Set());
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
 
@@ -653,16 +654,30 @@ export const MyTrees = () => {
                             })
                             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+                          const isCollapsed = collapsedContribLists.has(group.key);
                           return (
                             <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
-                              <div className="px-4 py-2.5 flex items-center gap-2 border-b border-border/40">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCollapsedContribLists(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(group.key)) next.delete(group.key); else next.add(group.key);
+                                    return next;
+                                  });
+                                }}
+                                className={`w-full px-4 py-2.5 flex items-center gap-2 ${isCollapsed ? '' : 'border-b border-border/40'} hover:bg-muted/30 transition-colors text-left`}
+                                aria-expanded={!isCollapsed}
+                              >
                                 <TreePine className="h-3.5 w-3.5 text-primary" />
                                 <span className="text-xs font-medium text-muted-foreground">
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
-                              </div>
-                              <div className="divide-y divide-border/40">
-                                 {contribGroups.map((cg) => (
+                                <ChevronDown className={`h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
+                              </button>
+                              {!isCollapsed && (
+                                <div className="divide-y divide-border/40">
+                                  {contribGroups.map((cg) => (
                                   <div
                                     key={`${group.key}-${cg.cid}`}
                                     className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
@@ -702,7 +717,8 @@ export const MyTrees = () => {
                                     </div>
                                   </div>
                                 ))}
-                              </div>
+                                </div>
+                              )}
 
                             </div>
                           );
