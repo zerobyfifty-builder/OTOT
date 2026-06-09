@@ -163,6 +163,13 @@ export const MyTrees = () => {
     fetchTrees();
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && treeGroups.length > 0 && !hasInitCollapsed.current) {
+      setCollapsedContribLists(new Set(treeGroups.map(g => g.key)));
+      hasInitCollapsed.current = true;
+    }
+  }, [isLoading, treeGroups]);
+
   const fetchTrees = async () => {
     setIsLoading(true);
     try {
