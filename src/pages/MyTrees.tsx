@@ -664,7 +664,7 @@ export const MyTrees = () => {
 
                           const isCollapsed = collapsedContribLists.has(group.key);
                           return (
-                            <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 bg-muted/50 overflow-hidden">
+                            <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 border-l-2 border-l-primary/70 bg-muted/50 overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => {
