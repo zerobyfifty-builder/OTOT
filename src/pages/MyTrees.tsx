@@ -660,157 +660,80 @@ export const MyTrees = () => {
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
                               </div>
-                              <div className="divide-y divide-border/40">
+                              <div className="p-2 space-y-2">
                                 {contribGroups.map((cg) => {
                                   const rowKey = `${group.key}-${cg.cid}`;
-                                  const isOpen = expandedContribs.has(rowKey);
-                                  const toggle = () => setExpandedContribs(prev => {
-                                    const next = new Set(prev);
-                                    if (next.has(rowKey)) next.delete(rowKey);
-                                    else next.add(rowKey);
-                                    return next;
-                                  });
                                   return (
-                                    <div key={rowKey} className="bg-background/60">
-                                      {/* Self-explanatory contribution row */}
-                                      <button
-                                        type="button"
-                                        onClick={toggle}
-                                        className="w-full text-left px-4 py-3 hover:bg-muted/40 transition-colors flex items-center gap-3"
-                                      >
-                                        <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                    <div
+                                      key={rowKey}
+                                      className="group relative flex items-center gap-4 rounded-lg border border-border/50 bg-background px-4 py-3 hover:border-primary/40 hover:shadow-sm transition-all"
+                                    >
+                                      {/* Leading tree count chip */}
+                                      <div className="shrink-0 flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
+                                        <span className="text-base font-bold tabular-nums text-primary leading-none">{cg.trees_planted}</span>
+                                        <Leaf className="h-3 w-3 text-primary/70 mt-0.5" />
+                                      </div>
 
-                                        {/* Identity */}
-                                        <div className="flex items-center gap-2 min-w-0 shrink-0">
-                                          <Sprout className="h-4 w-4 text-primary" />
-                                          <span className="text-sm font-mono font-medium text-foreground truncate">{cg.cid}</span>
+                                      {/* Identity */}
+                                      <div className="min-w-0 shrink-0">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-mono font-semibold text-foreground truncate">{cg.cid}</span>
+                                          <span className="text-xs text-muted-foreground tabular-nums">· {format(new Date(cg.date), "d MMM yyyy")}</span>
                                         </div>
-
-                                        {/* Inline stats */}
-                                        <div className="flex items-center gap-4 flex-1">
-                                          <span className="hidden md:inline text-xs text-foreground">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
-                                          <div className="flex items-baseline gap-1">
-                                            <span className="text-sm font-semibold tabular-nums text-foreground">{cg.trees_planted}</span>
-                                            <span className="text-xs text-muted-foreground">{cg.trees_planted === 1 ? 'tree' : 'trees'}</span>
-                                          </div>
-                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
-                                          <div className="flex items-baseline gap-1">
-                                            <span className="text-sm font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</span>
-                                          </div>
-                                          <span className="text-xs text-muted-foreground hidden sm:inline">/</span>
-                                          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                          <MapPin className="h-3 w-3" />
+                                          <span>Mau Forest</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => { if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
+                                            className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                                            title="Track these trees"
+                                          >
                                             <MapPin className="h-3 w-3" />
-                                            <span>Mau Forest</span>
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (cg.trees[0]) setSelectedTree(cg.trees[0]);
-                                              }}
-                                              className="ml-1 inline-flex items-center justify-center h-6 w-6 rounded-md text-primary hover:bg-primary/10 transition-colors"
-                                              title="Track these trees"
-                                            >
-                                              <MapPin className="h-3.5 w-3.5" />
-                                            </button>
-                                          </div>
+                                          </button>
                                         </div>
+                                      </div>
 
-                                        <div className="flex items-center gap-3 shrink-0">
-                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[11px]`}>
-                                            {cg.status}
-                                          </Badge>
-                                          <span className="text-[11px] text-muted-foreground tabular-nums">
-                                            {format(new Date(cg.statusDate), "d MMM yyyy")}
-                                          </span>
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0"
-                                                onClick={(e) => e.stopPropagation()}
-                                              >
-                                                <MoreVertical className="h-4 w-4" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                              <DropdownMenuItem
-                                                onSelect={(e) => {
-                                                  e.preventDefault();
-                                                  setContribSheet({ cid: cg.cid, trees: cg.trees });
-                                                }}
-                                              >
-                                                <TreePine className="h-4 w-4 mr-2" />
-                                                Tree details
-                                              </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        </div>
-                                      </button>
+                                      {/* Spacer */}
+                                      <div className="flex-1" />
 
-                                      {/* Expanded individual trees */}
-                                      {isOpen && (
-                                        <div className="border-t border-border/40 bg-muted/20 p-3">
-                                          <div className="overflow-x-auto rounded-lg border border-border/40 bg-background">
-                                            <Table>
-                                              <TableHeader>
-                                                <TableRow className="bg-primary/5 border-b-2 border-primary/20">
-                                                  <TableHead className="w-12 text-xs font-semibold text-primary/80">No.</TableHead>
-                                                  <TableHead className="text-left text-xs font-semibold text-primary/80">Contribution ID</TableHead>
-                                                  <TableHead className="text-left text-xs font-semibold text-primary/80">TreeTracker</TableHead>
-                                                  <TableHead className="text-left text-xs font-semibold text-primary/80">Location</TableHead>
-                                                  <TableHead className="text-left text-xs font-semibold text-primary/80">County</TableHead>
-                                                  <TableHead className="text-left text-xs font-semibold text-primary/80">Planted By</TableHead>
-                                                  <TableHead className="text-xs font-semibold text-primary/80">Planting Status</TableHead>
-                                                  <TableHead className="text-xs font-semibold text-primary/80">Status Date</TableHead>
-                                                  <TableHead className="text-xs font-semibold text-primary/80">Source</TableHead>
-                                                </TableRow>
-                                              </TableHeader>
-                                              <TableBody>
-                                                {cg.trees.map((tree, index) => (
-                                                  <TableRow key={tree.id} className="border-b border-border/20 last:border-b-0 hover:bg-muted/20">
-                                                    <TableCell className="font-medium text-muted-foreground text-xs">{index + 1}</TableCell>
-                                                    <TableCell className="text-left text-xs font-mono text-muted-foreground">{tree.contribution_id || '—'}</TableCell>
-                                                    <TableCell className="text-left">
-                                                      <button
-                                                        onClick={(e) => { e.stopPropagation(); setSelectedTree(tree); }}
-                                                        className="text-primary hover:text-primary/80 flex items-center justify-center"
-                                                        title={`View ${tree.otot_id}`}
-                                                      >
-                                                        <MapPin className="h-4 w-4" />
-                                                      </button>
-                                                    </TableCell>
-                                                    <TableCell className="text-left text-xs">Mau Forest Complex</TableCell>
-                                                    <TableCell className="text-left text-xs">Nakuru</TableCell>
-                                                    <TableCell className="text-left text-xs">{(tree as any).organizations?.name || 'Kenya Forest Service'}</TableCell>
-                                                    <TableCell>
-                                                      {(() => {
-                                                        const stage = toTouristStage(tree.planting_status);
-                                                        return (
-                                                          <Badge className={PLANTING_STATUS_COLORS[stage]}>
-                                                            {PLANTING_STATUS_LABELS[stage]}
-                                                          </Badge>
-                                                        );
-                                                      })()}
-                                                    </TableCell>
-                                                    <TableCell className="text-xs">
-                                                      {transitionDates[tree.id]
-                                                        ? format(new Date(transitionDates[tree.id]), "d/M/yyyy")
-                                                        : format(new Date(tree.created_at), "d/M/yyyy")}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                      <Badge className={`${SOURCE_COLORS[tree.purchase_type]} whitespace-nowrap`}>
-                                                        {tree.purchase_type}
-                                                      </Badge>
-                                                    </TableCell>
-                                                  </TableRow>
-                                                ))}
-                                              </TableBody>
-                                            </Table>
-                                          </div>
-                                        </div>
-                                      )}
+                                      {/* Amount */}
+                                      <div className="hidden sm:flex flex-col items-end shrink-0">
+                                        <span className="text-sm font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</span>
+                                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Amount</span>
+                                      </div>
+
+                                      <div className="hidden sm:block h-8 w-px bg-border/60" />
+
+                                      {/* Status */}
+                                      <div className="flex flex-col items-end gap-1 shrink-0">
+                                        <Badge className={`${getGroupStatusColor(cg.status)} text-[11px]`}>
+                                          {cg.status}
+                                        </Badge>
+                                        <span className="text-[10px] text-muted-foreground tabular-nums">
+                                          {format(new Date(cg.statusDate), "d MMM yyyy")}
+                                        </span>
+                                      </div>
+
+                                      {/* Actions */}
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                                            <MoreVertical className="h-4 w-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem
+                                            onSelect={(e) => {
+                                              e.preventDefault();
+                                              setContribSheet({ cid: cg.cid, trees: cg.trees });
+                                            }}
+                                          >
+                                            <TreePine className="h-4 w-4 mr-2" />
+                                            Tree details
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
                                     </div>
                                   );
                                 })}
