@@ -5,24 +5,28 @@
    ===================================================================== */
 
 .tourist-glass {
-  /* Tokens — reuse existing palette */
-  --glass-bg-light: hsl(0 0% 100% / 0.55);
-  --glass-bg-light-strong: hsl(0 0% 100% / 0.78);
-  --glass-bg-dark: hsl(0 0% 9% / 0.55);
-  --glass-bg-dark-strong: hsl(0 0% 9% / 0.78);
-  --glass-border: hsl(0 0% 100% / 0.35);
+  /* Tokens — tuned for AA text contrast on frosted surfaces.
+     Card backgrounds sit at ≥0.82 opacity so body text on tinted
+     pages keeps ≥4.5:1 contrast with --foreground. */
+  --glass-bg-light: hsl(0 0% 100% / 0.82);
+  --glass-bg-light-strong: hsl(0 0% 100% / 0.92);
+  --glass-bg-dark: hsl(0 0% 9% / 0.65);
+  --glass-bg-dark-strong: hsl(0 0% 9% / 0.85);
+  --glass-border: hsl(0 0% 100% / 0.55);
   --glass-border-dark: hsl(0 0% 100% / 0.08);
   --glass-highlight: hsl(142 70% 55% / 0.35);
-  --glass-glow: 0 0 0 1px hsl(142 70% 55% / 0.25),
-                0 8px 24px -8px hsl(142 70% 45% / 0.35);
-  --glass-shadow: 0 8px 32px hsl(0 0% 0% / 0.10),
-                  inset 0 1px 0 hsl(0 0% 100% / 0.5);
+  --glass-glow: 0 0 0 1px hsl(142 70% 55% / 0.20),
+                0 8px 24px -10px hsl(142 70% 35% / 0.35);
+  --glass-shadow: 0 1px 2px hsl(160 30% 20% / 0.06),
+                  0 10px 24px -12px hsl(160 40% 25% / 0.18),
+                  inset 0 1px 0 hsl(0 0% 100% / 0.6);
   --glass-shadow-dark: 0 8px 32px hsl(0 0% 0% / 0.45),
                        inset 0 1px 0 hsl(0 0% 100% / 0.06);
-  --glass-blur: 16px;
+  --glass-blur: 12px;
 
   position: relative;
 }
+
 
 /* Faint leaf-silhouette backdrop layer */
 .tourist-glass::before {
@@ -39,15 +43,17 @@
 
 .tourist-glass > * { position: relative; z-index: 1; }
 
-/* ------------ Tinted page background (so frosted cards visibly float) ------------ */
+/* ------------ Tinted page background (softer, AA-safe) ------------
+   Tints kept very light (≤0.35 alpha) so any text rendered directly
+   on the page (not on a card) still meets WCAG AA against --foreground. */
 .tourist-glass .tourist-glass-main {
-  background-color: transparent;
+  background-color: hsl(165 30% 98%);
   background-image:
-    radial-gradient(1200px 600px at 0% -10%, hsl(142 60% 88% / 0.55), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, hsl(180 55% 90% / 0.55), transparent 60%),
-    radial-gradient(900px 700px at 50% 110%, hsl(142 50% 92% / 0.45), transparent 60%),
-    linear-gradient(180deg, hsl(160 40% 97%) 0%, hsl(180 35% 96%) 100%);
+    radial-gradient(1200px 600px at 0% -10%, hsl(142 55% 90% / 0.35), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, hsl(180 50% 92% / 0.30), transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, hsl(142 45% 94% / 0.25), transparent 60%);
 }
+
 
 /* ------------ Auto-frost top/sticky headers inside tourist pages ------------ */
 .tourist-glass .tourist-glass-main > header,
@@ -239,3 +245,43 @@
     background-color: hsl(0 0% 9% / 0.96) !important;
   }
 }
+
+/* ------------ Mobile: reduce blur + boost card opacity (perf + a11y) ------------ */
+@media (max-width: 768px) {
+  .tourist-glass {
+    --glass-blur: 8px;
+    --glass-bg-light: hsl(0 0% 100% / 0.92);
+    --glass-bg-light-strong: hsl(0 0% 100% / 0.96);
+  }
+  .tourist-glass .tourist-glass-main {
+    /* Flatter tint on small screens for max text contrast */
+    background-image:
+      radial-gradient(800px 400px at 0% -10%, hsl(142 55% 92% / 0.25), transparent 60%),
+      radial-gradient(600px 400px at 100% 0%, hsl(180 50% 94% / 0.22), transparent 60%);
+  }
+  .tourist-glass::before { opacity: 0.04; }
+}
+
+/* High-contrast / forced-colors users: drop frosted styles entirely */
+@media (prefers-contrast: more), (forced-colors: active) {
+  .tourist-glass .glass-surface,
+  .tourist-glass .glass-surface-strong,
+  .tourist-glass .glass-auto,
+  .tourist-glass [class*="bg-card"]:not(.no-glass),
+  .tourist-glass [class*="bg-white"]:not(.no-glass),
+  .tourist-glass [class*="bg-background"]:not(.no-glass),
+  .tourist-glass [role="dialog"],
+  .tourist-glass [role="menu"],
+  .tourist-glass [role="listbox"] {
+    background-color: hsl(var(--card)) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  .tourist-glass .tourist-glass-main {
+    background-image: none !important;
+    background-color: hsl(var(--background)) !important;
+  }
+  .tourist-glass::before { display: none; }
+}
+
