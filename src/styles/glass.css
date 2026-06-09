@@ -167,7 +167,6 @@
    AppSidebar, so leaking is not a concern. */
 .glass-nav-item {
   position: relative;
-  overflow: visible;
 }
 
 .glass-nav-leaf {
