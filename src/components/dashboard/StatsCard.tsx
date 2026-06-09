@@ -113,7 +113,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
               <div key={i} className="space-y-0.5">
                 <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground truncate mr-2">{stat.label}</span>
-                  <span className="font-semibold text-foreground whitespace-nowrap">
+                  <span className="font-semibold text-foreground whitespace-nowrap tabular-nums">
                     {stat.value}{stat.total !== undefined ? `/${stat.total}` : ''}
                   </span>
                 </div>
