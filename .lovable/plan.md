@@ -1,57 +1,29 @@
+## Leaf / vine hover micro-animation — tourist sidebar
 
-# Re-tint tourist liquid-glass to warm soft-grey
+Add a clearly visible teal leaf that slides in on hover for every `.glass-nav-item` in the tourist portal sidebar. Scoped under `.tourist-glass` only — no other portal affected.
 
-Goal: keep the existing tourist palette (teal/green accents, dark sidebar, white text on dark) but swap the page tint and card frost from the current teal-aqua wash to the soft neutral grey used in the EMITRA reference. That grey is what makes the frosted cards "float" in the screenshot — currently our teal wash competes with the green accents instead of letting them sit on top.
+### Change scope
+Single file: `src/styles/glass.css` — append rules around the existing `.glass-nav-item:hover` block. No component edits, no new assets (leaf is an inline SVG data-URI).
 
-## Reference colors picked from the screenshot
+### Behavior
+- **Rest state**: leaf hidden (opacity 0, translated 14px to the right, rotated -25°, scaled 0.6).
+- **Hover**: leaf fades in and springs to its anchored position at the right edge of the pill (opacity 1, rotate 0°, scale 1) using `cubic-bezier(.34,1.56,.64,1)` for a subtle pop.
+- **After settle**: a gentle 1.8s `sway` keyframe (±8° rotation, 1.04 scale) loops while the cursor stays.
+- **Active item**: leaf stays visible at 0.9 opacity as a permanent affordance, no sway.
+- **Reduced motion**: animation disabled; only opacity fade kept.
 
-- Page background base: ~`hsl(220 14% 96%)` — a very light cool-warm grey, near `#F4F5F7`
-- Card frost (resting): white at ~92% over that grey, with a faint inner highlight
-- Card border: `hsl(220 13% 88%)` at ~55% alpha
-- Soft drop shadow: `0 1px 2px hsl(220 15% 25% / 0.04), 0 12px 28px -14px hsl(220 15% 25% / 0.12)`
-- Sidebar card (light surface inside dark? — N/A, our sidebar stays dark)
-- Subtle radial light from top-left (very faint white bloom) and bottom-right (faint cool grey)
+### Visual details
+- Leaf SVG: filled `#34D399` (teal-green) with a darker `#065F46` vine stroke arcing through it.
+- 18×18 px, anchored 8px from the right edge, vertically centered.
+- Drop-shadow `0 2px 4px hsl(142 70% 35% / 0.45)` so it reads against both dark sidebar glass and the active teal pill.
 
-Greens and teals stay exactly as they are (charts, accent buttons, active nav pill).
+### Technical notes
+- Uses the nav item's existing `::before` (currently unused; `::after` is reserved for the ripple).
+- `.glass-nav-item` already has `position: relative; overflow: hidden;` — leaf will clip cleanly at the pill edge during slide-in.
+- Works identically for collapsed sidebar (icon-only) and expanded states since it's positioned relative to the pill, not the label.
 
-## Changes — `src/styles/glass.css` only
-
-1. **Page tint** (`.tourist-glass .tourist-glass-main`)
-   - Base color: `hsl(220 14% 96%)` (was `hsl(165 30% 98%)`)
-   - Radial gradients: replace the teal/aqua radial washes with two neutral ones:
-     - top-left: `radial-gradient(1200px 600px at 0% -10%, hsl(0 0% 100% / 0.6), transparent 60%)` (soft white bloom)
-     - bottom-right: `radial-gradient(900px 600px at 100% 110%, hsl(220 12% 90% / 0.5), transparent 60%)` (cool grey drift)
-   - Drop the third teal radial entirely.
-
-2. **Glass tokens** (light surfaces)
-   - `--glass-bg-light`: `hsl(0 0% 100% / 0.82)` → `hsl(0 0% 100% / 0.86)` (slightly more opaque so it reads as white-on-grey, not white-on-teal)
-   - `--glass-bg-light-strong`: keep `0.92`
-   - `--glass-border`: switch hue from pure white to neutral — `hsl(220 13% 88% / 0.7)`
-   - `--glass-shadow`: re-tint from teal-grey to neutral cool grey
-     ```
-     0 1px 2px hsl(220 15% 25% / 0.05),
-     0 12px 28px -14px hsl(220 15% 25% / 0.14),
-     inset 0 1px 0 hsl(0 0% 100% / 0.7)
-     ```
-   - `--glass-glow`: keep teal (this is the accent — green focus/hover ring is intentional)
-
-3. **Mobile override** (`@media (max-width: 768px)`)
-   - Replace teal-tinted flatter radials with neutral ones matching the new palette:
-     - `radial-gradient(800px 400px at 0% -10%, hsl(0 0% 100% / 0.5), transparent 60%)`
-     - `radial-gradient(600px 400px at 100% 110%, hsl(220 12% 92% / 0.35), transparent 60%)`
-
-4. **Leaf backdrop** (`.tourist-glass::before`)
-   - Drop opacity from `0.06` → `0.04` and shift SVG fill from forest green `#2E7D32` to neutral `#94A3B8` so the silhouettes read as texture, not green confetti against a neutral page. (Mobile already at 0.04 → 0.03.)
-
-## Out of scope
-
-- Sidebar (stays dark glass, unchanged).
-- Active nav pill, buttons, charts, badges — all green/teal accents preserved.
-- Other portals (admin/owner/institutional/lodge/agent/plantation) — untouched, scope still gated by `.tourist-glass`.
-- No component-level edits; pure token/CSS change in `src/styles/glass.css`.
-
-## Verification
-
-- Build passes.
-- Browse `/dashboard`, `/my-trees`, `/my-trips` in the preview — page is now neutral soft grey, cards visibly lift, green accent elements pop more (not less).
-- WCAG: `--foreground` (`hsl(0 0% 9%)`) on `hsl(220 14% 96%)` ≈ 19:1 contrast — well above AA.
+### Verification
+- Hover each sidebar item on `/dashboard`, `/my-trips`, `/my-trees`, `/my-impact`, `/carbon-calculator` and confirm the leaf slides in + sways.
+- Confirm active route shows the static leaf.
+- Toggle OS "Reduce motion" → confirm sway stops, only fade remains.
+- Check admin/owner/lodge/agent portals are unchanged (no `.tourist-glass` wrapper).
