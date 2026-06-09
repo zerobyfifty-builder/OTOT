@@ -418,7 +418,7 @@ export const Dashboard: React.FC = () => {
         {/* Section 2: Pledge and Contributions */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="relative overflow-hidden">
+            <Card className="glass-card relative overflow-hidden">
               <CardContent className="p-4 sm:p-6 md:p-8">
                 {!stats?.hasPledged ? (
                   <>
