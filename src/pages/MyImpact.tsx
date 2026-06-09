@@ -273,11 +273,11 @@ export const MyImpact = () => {
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full bg-[#8BC34A]" />
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(var(--accent-lime, 78 95% 62%))' }} />
                   <span className="text-sm">carbon sequestered to date</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full bg-[#C5E1A5]" />
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(var(--accent-amber, 38 92% 62%))' }} />
                   <span className="text-sm">carbon to be sequestered over trees' lifetime</span>
                 </div>
               </div>
