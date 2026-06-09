@@ -148,4 +148,137 @@ All colors MUST be HSL.
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /* =========================================================
+     Tourist Portal — Liquid Glass theme (scoped via data-theme)
+     Only applied inside <TouristShell>; other portals unaffected
+     ========================================================= */
+  [data-theme="tourist-glass"] {
+    /* Brand palette */
+    --forest-deep: 150 50% 7%;
+    --evergreen: 150 42% 14%;
+    --moss: 122 39% 49%;
+    --sage: 122 36% 74%;
+    --lime: 75 100% 65%;
+
+    /* Glass surfaces (with alpha — consumed via hsl(var(--token))) */
+    --glass-bg: 150 30% 12% / 0.55;
+    --glass-bg-strong: 150 35% 10% / 0.78;
+    --glass-bg-nested: 150 25% 16% / 0.42;
+    --glass-border: 140 30% 85% / 0.18;
+    --glass-highlight: 140 40% 95% / 0.08;
+    --glass-shadow: 150 60% 4% / 0.5;
+
+    /* Re-map shadcn semantic tokens */
+    --background: 150 50% 7%;
+    --foreground: 0 0% 98%;
+    --card: 150 30% 12% / 0.55;
+    --card-foreground: 0 0% 98%;
+    --popover: 150 35% 10% / 0.92;
+    --popover-foreground: 0 0% 98%;
+    --primary: 75 100% 65%;
+    --primary-foreground: 150 60% 8%;
+    --secondary: 150 25% 18% / 0.5;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 150 20% 20% / 0.4;
+    --muted-foreground: 140 15% 78%;
+    --accent: 122 45% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 140 30% 85% / 0.18;
+    --input: 150 25% 18% / 0.6;
+    --ring: 75 100% 65%;
+
+    /* Sidebar — glassified */
+    --sidebar-background: 150 38% 9% / 0.72;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 75 100% 65%;
+    --sidebar-primary-foreground: 150 60% 8%;
+    --sidebar-accent: 150 25% 18% / 0.5;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 140 30% 85% / 0.14;
+    --sidebar-ring: 75 100% 65%;
+  }
+
+  /* Make main + sidebar surfaces translucent so the backdrop image shows through */
+  [data-theme="tourist-glass"] .bg-background {
+    background-color: transparent;
+  }
+  [data-theme="tourist-glass"] .bg-card {
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-color: hsl(var(--glass-border));
+  }
+  [data-theme="tourist-glass"] [data-sidebar="sidebar"],
+  [data-theme="tourist-glass"] .bg-sidebar {
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+  }
+  /* Subtle inner highlight on glass cards */
+  [data-theme="tourist-glass"] .bg-card {
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--glass-highlight)),
+      0 8px 32px -8px hsl(var(--glass-shadow));
+  }
+}
+
+@layer components {
+  /* Primary floating glass panel */
+  .glass-panel {
+    @apply relative rounded-3xl border;
+    background-color: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--glass-highlight)),
+      0 10px 40px -12px hsl(var(--glass-shadow));
+  }
+
+  .glass-panel-strong {
+    @apply relative rounded-3xl border;
+    background-color: hsl(var(--glass-bg-strong));
+    border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--glass-highlight)),
+      0 16px 48px -12px hsl(var(--glass-shadow));
+  }
+
+  .glass-panel-nested {
+    @apply relative rounded-2xl border;
+    background-color: hsl(var(--glass-bg-nested));
+    border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-pill {
+    @apply relative rounded-full border px-4 py-2;
+    background-color: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  .glass-chip {
+    @apply relative inline-flex items-center justify-center rounded-full border;
+    background-color: hsl(var(--glass-bg-nested));
+    border-color: hsl(var(--glass-border));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .accent-glow {
+    box-shadow:
+      0 0 0 1px hsl(var(--lime) / 0.5),
+      0 0 24px -4px hsl(var(--lime) / 0.45),
+      inset 0 1px 0 0 hsl(var(--glass-highlight));
+  }
+
+  .text-lime {
+    color: hsl(var(--lime));
+  }
 }
