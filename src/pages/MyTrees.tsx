@@ -1,7 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ContributionTreesSheet } from "@/components/trees/ContributionTreesSheet";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import { airports } from "@/data/airports";
 import { CertificatePreviewDialog, CertificatePreviewFile } from "@/components/certificates/CertificatePreviewDialog";
@@ -147,6 +154,7 @@ export const MyTrees = () => {
   const [previewCert, setPreviewCert] = useState<CertificatePreviewFile | null>(null);
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [expandedContribs, setExpandedContribs] = useState<Set<string>>(new Set());
+  const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -704,6 +712,28 @@ export const MyTrees = () => {
                                           <span className="text-[11px] text-muted-foreground tabular-nums">
                                             {format(new Date(cg.statusDate), "d MMM yyyy")}
                                           </span>
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-7 w-7 p-0"
+                                                onClick={(e) => e.stopPropagation()}
+                                              >
+                                                <MoreVertical className="h-4 w-4" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                              <DropdownMenuItem
+                                                onSelect={(e) => {
+                                                  e.preventDefault();
+                                                  setContribSheet({ cid: cg.cid, trees: cg.trees });
+                                                }}
+                                              >
+                                                Tree details
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
                                         </div>
                                       </button>
 
@@ -839,6 +869,15 @@ export const MyTrees = () => {
             setIsTripSheetOpen(false);
             setSelectedTrip(null);
           }}
+        />
+
+        <ContributionTreesSheet
+          isOpen={!!contribSheet}
+          onClose={() => setContribSheet(null)}
+          contributionId={contribSheet?.cid || null}
+          trees={contribSheet?.trees || []}
+          transitionDates={transitionDates}
+          onTrack={(tree) => setSelectedTree(tree)}
         />
 
         {/* Certificate Preview Dialog */}
