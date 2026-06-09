@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
@@ -221,7 +222,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
           <SheetTitle className="text-2xl">Trip and Contribution Details</SheetTitle>
         </SheetHeader>
         
-        <div className="mt-6 space-y-5">
+        <Tabs defaultValue="trip" className="mt-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="trip">Trip Details</TabsTrigger>
+            <TabsTrigger value="contributions">Contribution Details</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="trip" className="space-y-5 mt-5">
           {/* Trip Route */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
@@ -233,9 +240,6 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
               {trip.is_return ? "Round Trip" : "One-way"}
             </Badge>
           </div>
-
-
-
 
           {/* Compact Trip Info - single lines */}
           <div className="space-y-1.5 text-sm">
@@ -309,13 +313,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
               <span>{trip.trees_needed} needed</span>
             </div>
           </div>
+          </TabsContent>
 
-          {/* Contributions Section */}
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Contributions ({payments.length})
-            </h3>
+          <TabsContent value="contributions" className="mt-5">
             {isLoadingTrees ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
@@ -407,8 +407,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             ) : (
               <p className="text-sm text-muted-foreground">No contributions yet.</p>
             )}
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
+
       </SheetContent>
     </Sheet>
 
