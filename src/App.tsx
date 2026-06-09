@@ -22,6 +22,7 @@ import { InstitutionalRoute } from "@/components/auth/InstitutionalRoute";
 import { OwnerRoute } from "@/components/auth/OwnerRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { TouristShell } from "@/components/tourist/TouristShell";
 import { LodgeSidebar } from "@/components/lodge/LodgeSidebar";
 import { AgentSidebar } from "@/components/agent/AgentSidebar";
 import ktbLogo from "@/assets/ktb-logo.png";
