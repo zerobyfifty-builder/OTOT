@@ -573,6 +573,9 @@ export const MyTrips = () => {
                           <div className="text-xs text-muted-foreground mt-1">
                             {format(new Date(trip.created_at), "dd MMM yyyy, h:mm a")}
                           </div>
+                          <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="mt-1.5">
+                            {trip.entry_source}
+                          </Badge>
                         </div>
                         <div className="flex gap-2">
                           {trip.treesPlanted >= trip.trees_needed ? (
@@ -582,9 +585,6 @@ export const MyTrips = () => {
                           ) : (
                             <Badge className="bg-red-100 hover:bg-red-100 text-red-700 border-red-200">Not Offset</Badge>
                           )}
-                          <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"}>
-                            {trip.entry_source}
-                          </Badge>
                         </div>
                       </div>
                       <div className="flex items-start justify-between">
