@@ -333,13 +333,13 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="container mx-auto px-4 py-8 space-y-12">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Welcome {getUserName()}!
           </h1>
-          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-20 object-contain" />
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-12 sm:h-20 object-contain self-start sm:self-auto" />
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}
