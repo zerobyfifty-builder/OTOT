@@ -155,6 +155,7 @@ export const MyTrees = () => {
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [expandedContribs, setExpandedContribs] = useState<Set<string>>(new Set());
   const [collapsedContribLists, setCollapsedContribLists] = useState<Set<string>>(new Set());
+  const hasInitCollapsed = useRef(false);
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
 
