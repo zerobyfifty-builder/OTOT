@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf, MoreVertical } from "lucide-react";
@@ -155,6 +155,7 @@ export const MyTrees = () => {
   const [isGeneratingCert, setIsGeneratingCert] = useState(false);
   const [expandedContribs, setExpandedContribs] = useState<Set<string>>(new Set());
   const [collapsedContribLists, setCollapsedContribLists] = useState<Set<string>>(new Set());
+  const hasInitCollapsed = useRef(false);
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
 
@@ -290,6 +291,13 @@ export const MyTrees = () => {
 
     return groups;
   }, [trees, trips]);
+
+  useEffect(() => {
+    if (!isLoading && treeGroups.length > 0 && !hasInitCollapsed.current) {
+      setCollapsedContribLists(new Set(treeGroups.map(g => g.key)));
+      hasInitCollapsed.current = true;
+    }
+  }, [isLoading, treeGroups]);
 
   const totalPages = Math.ceil(treeGroups.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
