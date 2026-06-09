@@ -662,37 +662,46 @@ export const MyTrees = () => {
                                 </span>
                               </div>
                               <div className="divide-y divide-border/40">
-                                {contribGroups.map((cg, cgIdx) => (
+                                 {contribGroups.map((cg, cgIdx) => (
                                   <div
                                     key={`${group.key}-${cg.cid}`}
                                     className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
                                   >
-                                    <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto_auto_auto_auto] items-center gap-x-3 gap-y-1">
+                                    <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                                       <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
-                                      <span className="font-mono text-[11px] sm:text-xs text-foreground truncate" title={cg.cid}>{cg.cid}</span>
-                                      <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                      <span className="hidden sm:flex items-center gap-1 text-xs tabular-nums text-foreground justify-end">
-                                        <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted}
+                                      <span className="inline-flex items-center gap-1 text-xs tabular-nums text-foreground whitespace-nowrap">
+                                        <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
                                       </span>
-                                      <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground text-right whitespace-nowrap">${cg.amount.toFixed(2)}</span>
-                                      <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] justify-self-end whitespace-nowrap`}>{cg.status}</Badge>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 justify-self-end" onClick={(e) => e.stopPropagation()}>
-                                            <MoreVertical className="h-3.5 w-3.5" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
-                                            <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                      <div className="col-span-3 sm:hidden flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
-                                        <span>{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                        <span className="inline-flex items-center gap-1"><Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} trees</span>
-                                        <span className="font-semibold text-foreground">${cg.amount.toFixed(2)}</span>
+                                      <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                                        <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 w-7 p-0"
+                                        title="Track trees"
+                                        onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}
+                                      >
+                                        <MapPin className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <div className="ml-auto flex items-center gap-3">
+                                        <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground whitespace-nowrap">${cg.amount.toFixed(2)}</span>
+                                        <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={(e) => e.stopPropagation()}>
+                                              <MoreVertical className="h-3.5 w-3.5" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
+                                              <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
+                                      <div className="basis-full sm:hidden text-[11px] font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</div>
                                     </div>
                                   </div>
                                 ))}
