@@ -145,7 +145,7 @@ const MobileTopBar = () => (
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="min-h-screen flex w-full">
+    <div className="tourist-glass min-h-screen flex w-full">
       <AppSidebar />
       <main className="flex-1 overflow-auto bg-background">
         <MobileTopBar />
