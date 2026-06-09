@@ -39,6 +39,31 @@
 
 .tourist-glass > * { position: relative; z-index: 1; }
 
+/* ------------ Tinted page background (so frosted cards visibly float) ------------ */
+.tourist-glass .tourist-glass-main {
+  background-color: transparent;
+  background-image:
+    radial-gradient(1200px 600px at 0% -10%, hsl(142 60% 88% / 0.55), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, hsl(180 55% 90% / 0.55), transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, hsl(142 50% 92% / 0.45), transparent 60%),
+    linear-gradient(180deg, hsl(160 40% 97%) 0%, hsl(180 35% 96%) 100%);
+}
+
+/* ------------ Auto-frost top/sticky headers inside tourist pages ------------ */
+.tourist-glass .tourist-glass-main > header,
+.tourist-glass .tourist-glass-main header.sticky,
+.tourist-glass .tourist-glass-main [class*="sticky top-0"],
+.tourist-glass .glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--glass-bg-light-strong) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+
 /* ------------ Surfaces ------------ */
 .tourist-glass .glass-surface,
 .tourist-glass .glass-auto {
