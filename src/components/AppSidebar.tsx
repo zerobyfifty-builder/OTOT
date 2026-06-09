@@ -172,8 +172,8 @@ export function AppSidebar() {
                         to={item.url}
                         className={
                           isActive
-                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-sidebar-primary text-black font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-white hover:text-sidebar-primary hover:bg-sidebar-accent'
+                            ? 'glass-nav-item glass-ripple is-active flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-primary text-black font-medium'
+                            : 'glass-nav-item glass-ripple flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-sidebar-accent/60'
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -200,8 +200,8 @@ export function AppSidebar() {
                         to={item.url}
                         className={
                           isActive
-                            ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-sidebar-primary text-black font-medium'
-                            : 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-white hover:text-sidebar-primary hover:bg-sidebar-accent'
+                            ? 'glass-nav-item glass-ripple is-active flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-primary text-black font-medium'
+                            : 'glass-nav-item glass-ripple flex items-center gap-3 px-3 py-2 rounded-lg text-white hover:bg-sidebar-accent/60'
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
