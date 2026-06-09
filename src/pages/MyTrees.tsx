@@ -662,14 +662,13 @@ export const MyTrees = () => {
                                 </span>
                               </div>
                               <div className="divide-y divide-border/40">
-                                 {contribGroups.map((cg, cgIdx) => (
+                                 {contribGroups.map((cg) => (
                                   <div
                                     key={`${group.key}-${cg.cid}`}
                                     className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
                                   >
                                     <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
-                                      <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
-                                      <span className="inline-flex items-center gap-1 text-xs tabular-nums text-foreground whitespace-nowrap">
+                                      <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
                                         <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
                                       </span>
                                       <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
@@ -686,7 +685,6 @@ export const MyTrees = () => {
                                         <MapPin className="h-3.5 w-3.5" />
                                       </Button>
                                       <div className="ml-auto flex items-center gap-3">
-                                        <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground whitespace-nowrap">${cg.amount.toFixed(2)}</span>
                                         <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
@@ -701,7 +699,6 @@ export const MyTrees = () => {
                                           </DropdownMenuContent>
                                         </DropdownMenu>
                                       </div>
-                                      <div className="basis-full sm:hidden text-[11px] font-semibold tabular-nums text-foreground">${cg.amount.toFixed(2)}</div>
                                     </div>
                                   </div>
                                 ))}
