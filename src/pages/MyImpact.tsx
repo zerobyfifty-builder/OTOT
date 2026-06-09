@@ -85,11 +85,11 @@ export const MyImpact = () => {
   const carbonData = [{
     name: 'Carbon sequestered to date',
     value: stats.carbonToDate,
-    fill: '#8BC34A'
+    fill: 'hsl(var(--accent-lime, 78 95% 62%))'
   }, {
     name: 'Carbon to be sequestered over trees lifetime',
     value: stats.carbonLifetime - stats.carbonToDate,
-    fill: '#C5E1A5'
+    fill: 'hsl(var(--accent-amber, 38 92% 62%))'
   }];
 
   // Species data
