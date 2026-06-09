@@ -1,8 +1,7 @@
 /**
  * Tourist portal backdrop — pure CSS atmospheric scene
- * matching the AgrixAI reference: foggy teal gradient + soft
- * haze blobs + subtle diagonal light shafts.
- * Fixed behind all content; tourist routes render glass panels above it.
+ * matching the AgrixAI reference: deep forest-teal gradient with
+ * soft haze, muted light shafts, and dark vignette.
  */
 export const GlassBackdrop = () => {
   return (
@@ -11,50 +10,41 @@ export const GlassBackdrop = () => {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{
         background:
-          "linear-gradient(180deg, hsl(155 25% 52%) 0%, hsl(160 28% 32%) 45%, hsl(165 35% 18%) 100%)",
+          "linear-gradient(180deg, hsl(152 18% 30%) 0%, hsl(155 22% 18%) 50%, hsl(155 30% 9%) 100%)",
       }}
     >
-      {/* Soft haze — top-left */}
+      {/* Soft top haze — desaturated */}
       <div
-        className="absolute -top-40 -left-40 h-[640px] w-[640px] rounded-full"
+        className="absolute -top-40 left-0 right-0 h-[520px]"
         style={{
           background:
-            "radial-gradient(circle, hsl(150 35% 75% / 0.28) 0%, transparent 65%)",
-          filter: "blur(20px)",
+            "radial-gradient(ellipse at 50% 0%, hsl(150 18% 55% / 0.22) 0%, transparent 70%)",
+          filter: "blur(24px)",
         }}
       />
-      {/* Soft haze — top-right */}
+      {/* Subtle olive glow — mid */}
       <div
-        className="absolute -top-32 -right-32 h-[560px] w-[560px] rounded-full"
+        className="absolute top-1/4 -right-40 h-[480px] w-[480px] rounded-full opacity-20"
         style={{
           background:
-            "radial-gradient(circle, hsl(160 40% 70% / 0.22) 0%, transparent 65%)",
-          filter: "blur(20px)",
+            "radial-gradient(circle, hsl(72 35% 50% / 0.22) 0%, transparent 65%)",
         }}
       />
-      {/* Lime glow accent — mid-right */}
+      {/* Diagonal light shafts — very subtle */}
       <div
-        className="absolute top-1/3 -right-48 h-[520px] w-[520px] rounded-full opacity-25"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
           background:
-            "radial-gradient(circle, hsl(78 95% 62% / 0.35) 0%, transparent 65%)",
-        }}
-      />
-      {/* Diagonal light shafts */}
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          background:
-            "repeating-linear-gradient(115deg, hsl(0 0% 100% / 0.4) 0px, hsl(0 0% 100% / 0.4) 2px, transparent 2px, transparent 180px)",
+            "repeating-linear-gradient(115deg, hsl(0 0% 100% / 0.4) 0px, hsl(0 0% 100% / 0.4) 2px, transparent 2px, transparent 220px)",
           mixBlendMode: "screen",
         }}
       />
       {/* Deep bottom vignette */}
       <div
-        className="absolute inset-x-0 bottom-0 h-1/2"
+        className="absolute inset-x-0 bottom-0 h-2/3"
         style={{
           background:
-            "linear-gradient(180deg, transparent 0%, hsl(165 40% 12% / 0.6) 100%)",
+            "linear-gradient(180deg, transparent 0%, hsl(155 35% 6% / 0.75) 100%)",
         }}
       />
     </div>

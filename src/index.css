@@ -154,61 +154,61 @@ All colors MUST be HSL.
      Only applied inside <TouristShell>; other portals unaffected
      ========================================================= */
   [data-theme="tourist-glass"] {
-    /* Atmospheric teal palette (AgrixAI reference) */
-    --bg-teal-deep: 165 35% 18%;
-    --bg-teal-mid: 160 28% 32%;
-    --bg-teal-soft: 155 25% 52%;
+    /* Atmospheric forest-teal palette (AgrixAI reference — muted, darker) */
+    --bg-teal-deep: 155 30% 9%;
+    --bg-teal-mid: 158 22% 18%;
+    --bg-teal-soft: 152 18% 30%;
 
-    /* Accents */
-    --accent-lime: 78 95% 62%;
-    --accent-amber: 38 92% 62%;
+    /* Muted accents — NOT fluorescent */
+    --accent-lime: 72 42% 60%;       /* soft olive-lime ~#b3c478 */
+    --accent-amber: 36 60% 62%;      /* muted warm amber */
 
-    /* Glass surfaces */
-    --glass-card: 160 25% 38% / 0.28;
-    --glass-card-strong: 160 22% 42% / 0.45;
-    --glass-card-nested: 160 22% 45% / 0.22;
-    --glass-border: 0 0% 100% / 0.24;
-    --glass-border-strong: 0 0% 100% / 0.4;
-    --glass-inner-highlight: 0 0% 100% / 0.14;
+    /* Glass surfaces — darker, lower opacity */
+    --glass-card: 155 18% 26% / 0.32;
+    --glass-card-strong: 155 18% 30% / 0.42;
+    --glass-card-nested: 155 16% 32% / 0.22;
+    --glass-border: 0 0% 100% / 0.14;
+    --glass-border-strong: 0 0% 100% / 0.24;
+    --glass-inner-highlight: 0 0% 100% / 0.08;
 
-    /* Legacy aliases (kept so existing utilities keep working) */
+    /* Legacy aliases */
     --glass-bg: var(--glass-card);
     --glass-bg-strong: var(--glass-card-strong);
     --glass-bg-nested: var(--glass-card-nested);
     --glass-highlight: var(--glass-inner-highlight);
-    --glass-shadow: 0 0% 0% / 0.4;
+    --glass-shadow: 0 0% 0% / 0.45;
     --lime: var(--accent-lime);
 
     /* Re-map shadcn semantic tokens */
-    --background: 165 35% 18%;
+    --background: 155 30% 9%;
     --foreground: 0 0% 100%;
-    --card: 160 25% 38% / 0.28;
+    --card: 155 18% 26% / 0.32;
     --card-foreground: 0 0% 100%;
-    --popover: 160 30% 22% / 0.94;
+    --popover: 155 24% 14% / 0.95;
     --popover-foreground: 0 0% 100%;
-    --primary: 78 95% 62%;
-    --primary-foreground: 165 60% 10%;
-    --secondary: 160 22% 45% / 0.3;
+    --primary: 72 42% 60%;
+    --primary-foreground: 155 60% 10%;
+    --secondary: 155 16% 32% / 0.3;
     --secondary-foreground: 0 0% 100%;
-    --muted: 160 18% 45% / 0.25;
-    --muted-foreground: 150 12% 82%;
-    --accent: 78 95% 62%;
-    --accent-foreground: 165 60% 10%;
-    --destructive: 0 75% 60%;
+    --muted: 155 14% 32% / 0.25;
+    --muted-foreground: 150 10% 78%;
+    --accent: 72 42% 60%;
+    --accent-foreground: 155 60% 10%;
+    --destructive: 0 70% 58%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 100% / 0.22;
-    --input: 160 22% 45% / 0.3;
-    --ring: 78 95% 62%;
+    --border: 0 0% 100% / 0.14;
+    --input: 155 16% 32% / 0.3;
+    --ring: 72 42% 60%;
 
-    /* Sidebar — translucent over backdrop */
-    --sidebar-background: 160 32% 22% / 0.55;
+    /* Sidebar */
+    --sidebar-background: 155 24% 14% / 0.6;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 78 95% 62%;
-    --sidebar-primary-foreground: 165 60% 10%;
-    --sidebar-accent: 160 22% 45% / 0.3;
+    --sidebar-primary: 72 42% 60%;
+    --sidebar-primary-foreground: 155 60% 10%;
+    --sidebar-accent: 155 16% 32% / 0.3;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 100% / 0.14;
-    --sidebar-ring: 78 95% 62%;
+    --sidebar-border: 0 0% 100% / 0.10;
+    --sidebar-ring: 72 42% 60%;
   }
 
   /* Translucent surfaces so backdrop shows through */
