@@ -243,7 +243,7 @@ export const MyTrips = () => {
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
-              <p className="text-sm text-muted-foreground italic flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground italic flex flex-wrap items-center gap-1.5 w-full">
                 If your trip does not appear here, please add it manually.
                 <TooltipProvider>
                   <Tooltip>
