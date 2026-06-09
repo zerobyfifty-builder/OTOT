@@ -101,8 +101,8 @@ export const ContributionTreesSheet = ({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
+                <TableHead className="w-12 text-xs">#</TableHead>
                 <TableHead className="text-xs">Tree ID</TableHead>
-                <TableHead className="text-xs">Location</TableHead>
                 <TableHead className="text-xs">Planting Status</TableHead>
                 <TableHead className="text-xs">Status Dt</TableHead>
                 <TableHead className="text-xs">Survival Status</TableHead>
@@ -110,14 +110,14 @@ export const ContributionTreesSheet = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {trees.map((tree) => {
+              {trees.map((tree, idx) => {
                 const stageKey = STAGE_LABELS[tree.planting_status as string] || "Waiting to be Assigned";
                 const statusDt = transitionDates[tree.id] || tree.updated_at || tree.created_at;
                 const surv = survival[tree.id] || "Unknown";
                 return (
                   <TableRow key={tree.id}>
+                    <TableCell className="text-xs text-muted-foreground tabular-nums">{idx + 1}</TableCell>
                     <TableCell className="font-mono text-xs">{tree.otot_id}</TableCell>
-                    <TableCell className="text-xs">Mau Forest Complex</TableCell>
                     <TableCell>
                       <Badge className={`${STAGE_COLORS[stageKey]} text-[11px]`}>{stageKey}</Badge>
                     </TableCell>
