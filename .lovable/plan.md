@@ -1,107 +1,100 @@
-# Tourist Portal — Liquid Glass Redesign
 
-Apply an AgrixAI-style liquid glass aesthetic across the tourist portal only. Strictly additive: new tokens, new utility classes, new background components, restyled wrappers. No data, route, or business-logic changes.
+# Tourist Portal — Glassmorphism Redo (AgrixAI Reference)
 
-## Scope
+Scrap the current dark-forest glass theme and rebuild to **exactly match the AgrixAI reference**: soft teal-green atmospheric background, large rounded glass cards with thin bright borders, lime-green primary accent, amber/yellow secondary accent, generous spacing, oversized rounded corners.
 
-In: `/dashboard`, `/my-trips`, `/my-trees`, `/my-impact`, `/tree-purchase`, `/pledge`, `/pledge-b`, `/pledge-c`, `/profile`, tourist `AppSidebar` / top nav, dialogs/sheets rendered inside these routes.
+## 1. Reset the design tokens (`src/index.css`)
 
-Out: admin, owner, institutional, lodge, agent, plantation, auth screens, landing, certificate PDF output (PDF generators stay untouched).
+Replace the entire `[data-theme="tourist-glass"]` block. New palette extracted from reference:
 
-## Step 1 — Design tokens (`src/index.css`)
+- `--bg-teal-deep: 165 35% 18%` — deep teal base (bottom of background gradient)
+- `--bg-teal-mid: 160 28% 32%` — mid teal (middle of gradient, foggy)
+- `--bg-teal-soft: 155 25% 48%` — soft hazy teal (top of gradient, light fog)
+- `--accent-lime: 78 95% 62%` — bright lime (primary highlight, buttons, active tab pill, chart bars)
+- `--accent-amber: 38 92% 62%` — warm amber (timeline pills, secondary highlight)
+- `--text-primary: 0 0% 100%` — pure white headings
+- `--text-secondary: 150 15% 82%` — soft warm white body
+- `--text-muted: 150 12% 65%` — muted captions
+- `--glass-card: 160 25% 35% / 0.28` — translucent card fill (much lighter than current)
+- `--glass-card-strong: 160 22% 38% / 0.42`
+- `--glass-border: 0 0% 100% / 0.22` — bright white-ish hairline border (key reference detail)
+- `--glass-border-strong: 0 0% 100% / 0.35`
+- `--glass-inner-highlight: 0 0% 100% / 0.12`
 
-Add a new `[data-theme="tourist-glass"]` scope (applied via a wrapper on the tourist layout root, not the global `:root`) so other portals are unaffected:
+Semantic remap: `--background` → atmospheric gradient, `--card` → `--glass-card`, `--primary` → `--accent-lime`, `--border` → `--glass-border`, `--ring` → `--accent-lime`. Sidebar tokens use same translucent fill.
 
-```css
-[data-theme="tourist-glass"] {
-  --forest-deep: 150 50% 8%;
-  --evergreen: 150 42% 14%;
-  --moss: 122 39% 49%;
-  --sage: 122 36% 74%;
-  --lime: 75 100% 65%;       /* #C6FF4D accent */
+Remove the old dark-forest values entirely. No `--forest-deep`, `--evergreen`, `--moss`, `--sage` references remain.
 
-  --glass-bg: 150 30% 12% / 0.55;
-  --glass-bg-strong: 150 35% 10% / 0.72;
-  --glass-bg-nested: 150 25% 16% / 0.45;
-  --glass-border: 140 30% 85% / 0.18;
-  --glass-highlight: 140 40% 95% / 0.08;
-  --glass-shadow: 150 60% 4% / 0.45;
+## 2. New backdrop (`GlassBackdrop.tsx`)
 
-  /* re-map semantic tokens so existing shadcn components inherit the theme */
-  --background: var(--forest-deep);
-  --foreground: 0 0% 98%;
-  --card: var(--glass-bg);
-  --card-foreground: 0 0% 98%;
-  --popover: var(--glass-bg-strong);
-  --primary: var(--lime);
-  --primary-foreground: 150 60% 8%;
-  --muted: 150 20% 20% / 0.4;
-  --muted-foreground: 140 15% 75%;
-  --accent: var(--moss);
-  --border: var(--glass-border);
-  --input: 150 25% 18% / 0.5;
-  --ring: var(--lime);
-}
+Drop the photo-blur approach (too dark / too literal). Replace with a **pure CSS atmospheric scene** matching the reference:
+
+- Base: vertical gradient `from hsl(155 25% 48%)` (top, foggy light teal) → `hsl(165 35% 18%)` (bottom, deep teal)
+- Layer 2: subtle radial fog blobs in soft white/teal at top-left and top-right (mimics distant haze)
+- Layer 3: very faint diagonal "sun-ray" streaks via low-opacity linear gradient (matches the light-shaft feel in reference)
+- No image file needed — delete usage of `tourist-bg-forest.jpg` (keep file in repo, just unreferenced).
+
+## 3. Utility classes (`src/index.css` `@layer components`)
+
+Rebuild from scratch. Reference cards have: ~28-32px radius, 1px bright border, soft inner top highlight, heavy backdrop blur, no heavy shadows.
+
+- `.glass-card` — `rounded-[28px]`, `border border-[hsl(var(--glass-border))]`, `bg-[hsl(var(--glass-card))]`, `backdrop-blur-2xl`, inner top highlight via `box-shadow inset 0 1px 0 hsl(var(--glass-inner-highlight))`, soft outer shadow `0 20px 60px -20px hsl(0 0% 0% / 0.35)`
+- `.glass-card-nested` — smaller `rounded-2xl`, lighter fill, lighter border (for inner tiles like "Today's Tasks" sub-cards)
+- `.glass-pill` — `rounded-full`, white border, translucent fill (for nav tabs, date pickers)
+- `.glass-pill-active` — lime fill `bg-[hsl(var(--accent-lime))]` with dark text, used for active tab (matches "Dashboard" tab in reference)
+- `.glass-chip-amber` — small rounded-full amber pill (timeline rows)
+- `.glass-chip-lime` — small rounded-full lime pill
+- `.accent-glow-lime` — outer + inner lime glow for "+" FAB and emphasis elements
+- `.text-display` — large white tracking-tight (for "Daily Tasks" style headings)
+
+## 4. Component re-skin order
+
+Same set as before, but visuals now driven by new tokens. Order:
+
+1. **`TouristShell.tsx`** — verify wrapper still applies `data-theme="tourist-glass"`. No structural change.
+2. **`DashboardLayout` top nav (within tourist scope)** — convert top nav into a single floating glass pill row: rounded-full container, inner tab pills, active tab = lime fill with dark text. Search icon, notification bell, "+" FAB all become circular glass buttons; "+" gets `accent-glow-lime`.
+3. **`StatsCard.tsx`** — rebuild: `.glass-card`, oversized number in white with `tabular-nums`, label in muted text, optional lime accent ring on icon. No dark forest greens.
+4. **`Dashboard.tsx`** — page hero matches reference: large display heading + meta row (location pin, date, time) in muted text. Cards laid out in the same 2-col + right calendar-style rail where possible; if not, stack as glass cards.
+5. **`MyTrees.tsx`** — contributions accordion: glass card container, lime left-accent bar (preserve existing memory), amber/lime status chips, smooth expand animation preserved.
+6. **`MyTrips.tsx`** — table/list rendered inside glass card; row dividers `border-white/10`; trip status chips amber/lime.
+7. **`MyImpact.tsx`** — charts re-themed: Recharts bars/lines use lime + amber; gridlines `white/10`; tooltip = glass-card-nested.
+8. **`TreePurchase.tsx`** — pricing breakdown card uses glass-card with nested glass-card-nested rows; CTA button = lime fill, dark text, rounded-full.
+9. **`Pledge.tsx` / `PledgeB.tsx` / `PledgeC.tsx`** — celebration surfaces on glass-card with lime accents.
+10. **`Profile.tsx`** — form fields: translucent input bg, white border, lime focus ring.
+11. **Dialogs / Sheets** — already inherit via `--popover` and `--card` remap; verify X-close button visible on glass.
+
+## 5. Preserved rules (unchanged)
+
+- KTB logo top-right (excluding trips/trees views)
+- "Contribution" terminology, two-line dates, KES integer / USD 2-dp with `$`
+- Dialogs close only via top-right X
+- `tabular-nums` on all numerics
+- Accordion default-collapsed, status progression rules
+- No `text-white` / `bg-black` / raw hex in components — everything via tokens
+- Other portals (admin, owner, lodge, institutional, agent) untouched (theme is scoped via `data-theme`)
+
+## 6. Scope guardrails
+
+- No new dependencies
+- No backend/data changes
+- Light mode deferred (reference is dark)
+- Mobile responsiveness preserved via existing Tailwind breakpoints
+- Each numbered component step is isolated; after each I'll re-check with `browser--view_preview`
+
+## Technical details (for review)
+
+```text
+Token swap path:
+  index.css [data-theme="tourist-glass"]  →  new HSL values
+  GlassBackdrop.tsx                       →  pure CSS gradient + blobs (no img)
+  index.css @layer components             →  rewritten .glass-* utilities
+  components re-skinned                   →  apply .glass-card / .glass-pill / etc.
+
+No component imports change.
+No routing changes.
+No Supabase / RLS changes.
 ```
 
-## Step 2 — Utility classes (`src/index.css` `@layer components`)
+## Deliverable
 
-```css
-.glass-panel        /* primary card: bg-[hsl(var(--glass-bg))] backdrop-blur-xl border border-[hsl(var(--glass-border))] rounded-3xl shadow-[0_8px_32px_hsl(var(--glass-shadow))] relative; with ::before inner highlight */
-.glass-panel-strong /* modal/sheet variant, blur-2xl, stronger bg */
-.glass-panel-nested /* inner panel, lower opacity */
-.glass-pill         /* nav pill / tab pill */
-.glass-chip         /* small icon chip circle */
-.accent-glow        /* lime drop-shadow + ring for FAB / active */
-.text-lime          /* hsl(var(--lime)) */
-.bg-tourist-scene   /* fixed full-bleed image + dark green gradient overlay */
-```
-
-## Step 3 — Background scene component
-
-New file `src/components/tourist/GlassBackdrop.tsx`:
-- `position: fixed inset-0 -z-10`
-- Forest/Mau-Forest hero image (generate one via imagegen, store at `src/assets/tourist-bg-forest.jpg`)
-- Layered: image (blur-sm) → dark green gradient overlay → subtle radial lime glow top-right
-- Mounted once at the tourist layout root
-
-## Step 4 — Tourist layout wrapper
-
-New file `src/components/tourist/TouristShell.tsx`:
-- Applies `data-theme="tourist-glass"` to its root div
-- Renders `<GlassBackdrop />` + children
-- Wrap the tourist routes (in `App.tsx` route group) — existing pages stay as-is inside
-
-## Step 5 — Component re-skin order
-
-Each step is a small, isolated edit. After each, verify visually via `browser--view_preview`.
-
-1. **Top nav / `AppSidebar` (tourist variant)** — wrap nav in `glass-pill` floating bar, lime accent on active route, glowing "+" FAB. Sidebar gets `glass-panel-strong` surface.
-2. **`StatsCard`** — apply `glass-panel`, lime numerals, thin ring.
-3. **`Dashboard.tsx`** — section headers w/ `glass-chip` icons, hero meta block (title + lat/long + location + datetime).
-4. **`MyTrees.tsx`** — re-skin trip group cards + contributions accordion (keep collapsed default, lime left-accent already in place).
-5. **`MyTrips.tsx`** — trip cards as `glass-panel`.
-6. **`MyImpact.tsx`** — gauges/rings on glass, lime highlights, vertical bar-array chart styling via Recharts color overrides.
-7. **`TreePurchase.tsx`** — stepper + pricing breakdown nested glass tiers.
-8. **`Pledge.tsx` / `PledgeB.tsx` / `PledgeC.tsx`** — cinematic glass card.
-9. **`Profile.tsx`** — settings sections as glass panels.
-10. **Dialogs/Sheets used in tourist routes** — wrapper class adds `glass-panel-strong`; keep top-right X close.
-
-## Step 6 — Preserved rules (verify after each step)
-
-- KTB logo placement, "Contribution" terminology, two-line dates, KES integer / USD 2-dp, dialog X-close, tabular-nums, accordion default-collapsed, status progression.
-- No `text-white` / `bg-black` / raw hex in components — all via tokens.
-- Other portals untouched (verify by spot-checking admin & owner routes).
-
-## Technical Details
-
-- Theming via `data-theme` attribute selector keeps Tailwind class names identical; `--background`, `--card`, `--primary` etc. are overridden only inside the tourist subtree.
-- Light-mode: defer for now (reference is dark); existing global `.dark` still works elsewhere.
-- Background image: 1 generated forest hero (`fast` model, 1536×1024, jpg) — single asset reused; lazy `<img>` with `loading="eager"` on first paint.
-- Recharts color: pass `hsl(var(--lime))` via existing chart config — no library changes.
-- No new dependencies.
-
-## Verification
-
-After Step 4: load `/dashboard` — backdrop + theme active, no other portal affected.
-After each component step: `browser--view_preview` at the relevant route, confirm legibility, contrast, and that preserved rules still hold.
+A tourist portal that, side-by-side with the AgrixAI reference, reads as the same visual family: soft teal atmospheric backdrop, floating bright-bordered glass cards, oversized rounded corners, lime primary + amber secondary, generous whitespace, white display type.
