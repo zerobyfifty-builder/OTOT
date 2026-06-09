@@ -36,8 +36,8 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.06;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%232E7D32'><path d='M40 120 C 30 80 60 50 100 50 C 95 80 80 110 40 120 Z'/><path d='M160 60 C 170 100 140 130 100 130 C 105 100 120 70 160 60 Z'/><path d='M30 180 C 25 160 45 145 70 150 C 65 165 55 175 30 180 Z'/></g></svg>");
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%2394A3B8'><path d='M40 120 C 30 80 60 50 100 50 C 95 80 80 110 40 120 Z'/><path d='M160 60 C 170 100 140 130 100 130 C 105 100 120 70 160 60 Z'/><path d='M30 180 C 25 160 45 145 70 150 C 65 165 55 175 30 180 Z'/></g></svg>");
   background-size: 320px 320px;
   background-repeat: repeat;
 }
