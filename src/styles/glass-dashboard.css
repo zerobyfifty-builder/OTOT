@@ -1,0 +1,128 @@
+/* =====================================================================
+   Tourist Dashboard — Glassmorphism layer (additive)
+   All rules scoped under `.tourist-dashboard-glass` so they only affect
+   the tourist Dashboard page. Palette: white / grey / teal-green / black
+   ===================================================================== */
+
+.tourist-dashboard-glass {
+  position: relative;
+  isolation: isolate;
+  --gdash-card-bg: hsl(0 0% 100% / 0.78);
+  --gdash-card-bg-strong: hsl(0 0% 100% / 0.88);
+  --gdash-card-border: hsl(220 14% 88% / 0.75);
+  --gdash-card-shadow:
+    0 1px 2px hsl(220 15% 25% / 0.06),
+    0 14px 36px -18px hsl(220 15% 25% / 0.22),
+    inset 0 1px 0 hsl(0 0% 100% / 0.8);
+  --gdash-card-shadow-hover:
+    0 4px 10px hsl(220 15% 25% / 0.08),
+    0 24px 50px -20px hsl(160 60% 25% / 0.28),
+    inset 0 1px 0 hsl(0 0% 100% / 0.9);
+  --gdash-ring-teal: hsl(166 76% 42% / 0.45);
+}
+
+/* ---------- Aurora backdrop (3 blurred blobs, fixed) ---------- */
+.tourist-dashboard-glass::before,
+.tourist-dashboard-glass::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+.tourist-dashboard-glass::before {
+  background:
+    radial-gradient(38rem 30rem at 12% 18%,  hsl(166 72% 60% / 0.28), transparent 60%),
+    radial-gradient(34rem 28rem at 88% 24%,  hsl(142 62% 58% / 0.22), transparent 62%),
+    radial-gradient(40rem 32rem at 70% 92%,  hsl(180 55% 55% / 0.20), transparent 65%);
+  filter: blur(48px) saturate(140%);
+  animation: gdash-aurora-a 22s ease-in-out infinite alternate;
+}
+
+.tourist-dashboard-glass::after {
+  background:
+    radial-gradient(28rem 22rem at 30% 80%, hsl(160 70% 50% / 0.18), transparent 60%),
+    radial-gradient(26rem 22rem at 80% 60%, hsl(190 60% 55% / 0.16), transparent 60%),
+    radial-gradient(22rem 18rem at 50% 10%, hsl(220 14% 92% / 0.55), transparent 65%);
+  filter: blur(56px) saturate(135%);
+  animation: gdash-aurora-b 28s ease-in-out infinite alternate;
+}
+
+@keyframes gdash-aurora-a {
+  0%   { transform: translate3d(0, 0, 0)        scale(1); }
+  100% { transform: translate3d(-2%, 1.5%, 0)   scale(1.06); }
+}
+@keyframes gdash-aurora-b {
+  0%   { transform: translate3d(0, 0, 0)        scale(1); }
+  100% { transform: translate3d(2.5%, -1.5%, 0) scale(1.05); }
+}
+
+/* Keep page content above the backdrop */
+.tourist-dashboard-glass > * { position: relative; z-index: 1; }
+
+/* ---------- Glass card surface ---------- */
+.tourist-dashboard-glass .glass-card {
+  background-color: var(--gdash-card-bg) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid var(--gdash-card-border) !important;
+  box-shadow: var(--gdash-card-shadow);
+  transition:
+    transform 240ms cubic-bezier(.2,.7,.2,1),
+    box-shadow 240ms ease,
+    border-color 240ms ease;
+}
+
+.tourist-dashboard-glass .glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--gdash-card-shadow-hover);
+  border-color: var(--gdash-ring-teal) !important;
+}
+
+/* ---------- Featured CTA — stronger glass + teal sheen ---------- */
+.tourist-dashboard-glass .glass-card--featured {
+  position: relative;
+  background-color: var(--gdash-card-bg-strong) !important;
+  background-image:
+    linear-gradient(135deg,
+      hsl(166 76% 92% / 0.55) 0%,
+      hsl(0 0% 100% / 0.30) 45%,
+      hsl(142 60% 92% / 0.55) 100%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid hsl(166 60% 70% / 0.45) !important;
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.8) inset,
+    0 30px 60px -30px hsl(166 70% 30% / 0.35),
+    0 8px 24px -12px hsl(220 15% 25% / 0.18);
+}
+
+.tourist-dashboard-glass .glass-card--featured::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(60% 80% at 0% 0%, hsl(0 0% 100% / 0.35), transparent 60%),
+    radial-gradient(50% 70% at 100% 100%, hsl(166 80% 70% / 0.22), transparent 65%);
+  mix-blend-mode: screen;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tourist-dashboard-glass::before,
+  .tourist-dashboard-glass::after { animation: none !important; }
+  .tourist-dashboard-glass .glass-card { transition: none; }
+  .tourist-dashboard-glass .glass-card:hover { transform: none; }
+}
+
+/* ---------- Fallback for browsers without backdrop-filter ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tourist-dashboard-glass .glass-card,
+  .tourist-dashboard-glass .glass-card--featured {
+    background-color: hsl(0 0% 100% / 0.96) !important;
+  }
+}

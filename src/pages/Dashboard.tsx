@@ -332,7 +332,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="tourist-dashboard-glass flex-1 overflow-auto">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -343,7 +343,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}
-        <section className="relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
+        <section className="glass-card glass-card--featured relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
           {/* Decorative pattern background */}
           <div className="absolute inset-0 opacity-5 pointer-events-none">
             <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
@@ -418,7 +418,7 @@ export const Dashboard: React.FC = () => {
         {/* Section 2: Pledge and Contributions */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="relative overflow-hidden">
+            <Card className="glass-card relative overflow-hidden">
               <CardContent className="p-4 sm:p-6 md:p-8">
                 {!stats?.hasPledged ? (
                   <>
