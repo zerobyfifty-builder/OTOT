@@ -48,11 +48,10 @@
    Tints kept very light (≤0.35 alpha) so any text rendered directly
    on the page (not on a card) still meets WCAG AA against --foreground. */
 .tourist-glass .tourist-glass-main {
-  background-color: hsl(165 30% 98%);
+  background-color: hsl(220 14% 96%);
   background-image:
-    radial-gradient(1200px 600px at 0% -10%, hsl(142 55% 90% / 0.35), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, hsl(180 50% 92% / 0.30), transparent 60%),
-    radial-gradient(900px 700px at 50% 110%, hsl(142 45% 94% / 0.25), transparent 60%);
+    radial-gradient(1200px 600px at 0% -10%, hsl(0 0% 100% / 0.6), transparent 60%),
+    radial-gradient(900px 600px at 100% 110%, hsl(220 12% 90% / 0.5), transparent 60%);
 }
 
 
