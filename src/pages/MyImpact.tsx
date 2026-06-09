@@ -85,11 +85,11 @@ export const MyImpact = () => {
   const carbonData = [{
     name: 'Carbon sequestered to date',
     value: stats.carbonToDate,
-    fill: 'hsl(var(--accent-lime, 78 95% 62%))'
+    fill: '#8BC34A'
   }, {
     name: 'Carbon to be sequestered over trees lifetime',
     value: stats.carbonLifetime - stats.carbonToDate,
-    fill: 'hsl(var(--accent-amber, 38 92% 62%))'
+    fill: '#C5E1A5'
   }];
 
   // Species data
@@ -273,11 +273,11 @@ export const MyImpact = () => {
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(var(--accent-lime, 78 95% 62%))' }} />
+                  <div className="w-4 h-4 rounded-full bg-[#8BC34A]" />
                   <span className="text-sm">carbon sequestered to date</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'hsl(var(--accent-amber, 38 92% 62%))' }} />
+                  <div className="w-4 h-4 rounded-full bg-[#C5E1A5]" />
                   <span className="text-sm">carbon to be sequestered over trees' lifetime</span>
                 </div>
               </div>

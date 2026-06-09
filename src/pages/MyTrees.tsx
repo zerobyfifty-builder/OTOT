@@ -124,13 +124,12 @@ const getGroupStatus = (trees: Tree[]): string => {
 };
 
 const getGroupStatusColor = (status: string): string => {
-  // Lime for completed/planted, amber for in-progress, neutral glass for waiting
-  if (status === "Planted") return "border-0 text-[hsl(165,60%,10%)] bg-[hsl(var(--accent-lime,142_70%_45%))]";
-  if (status === "Partially Planted") return "border-0 text-[hsl(30,60%,12%)] bg-[hsl(var(--accent-amber,38_92%_62%))]";
-  if (status === TOURIST_STAGE_LABELS.waiting) return "border-0 text-[hsl(30,60%,12%)] bg-[hsl(var(--accent-amber,45_93%_55%))]/80";
-  if (status === TOURIST_STAGE_LABELS.assigned) return "border-0 text-[hsl(30,60%,12%)] bg-[hsl(var(--accent-amber,38_92%_62%))]/85";
-  if (status === TOURIST_STAGE_LABELS.scheduled) return "border-0 text-[hsl(165,60%,10%)] bg-[hsl(var(--accent-lime,78_95%_62%))]/70";
-  return "bg-muted text-muted-foreground border-0";
+  if (status === "Planted") return "bg-accent/10 text-accent border-accent/20";
+  if (status === "Partially Planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
+  if (status === TOURIST_STAGE_LABELS.waiting) return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+  if (status === TOURIST_STAGE_LABELS.assigned) return "bg-orange-500/10 text-orange-700 border-orange-500/20";
+  if (status === TOURIST_STAGE_LABELS.scheduled) return "bg-cyan-500/10 text-cyan-700 border-cyan-500/20";
+  return "bg-muted text-muted-foreground";
 };
 
 const getAirportCity = (code: string) => {

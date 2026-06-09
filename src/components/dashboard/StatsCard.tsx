@@ -64,15 +64,15 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   const strokeDashoffset = circumference - (overallProgress / 100) * circumference;
 
   return (
-    <Card className="glass-card h-full transition-all duration-300 hover:-translate-y-1 border bg-card">
+    <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card border-none">
       <CardContent className="p-5 sm:p-6 md:p-7 flex flex-col h-full gap-4 sm:gap-5">
         {/* Header */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl glass-chip flex items-center justify-center flex-shrink-0">
-            <Icon className="h-5 w-5 text-lime" strokeWidth={2} />
+          <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${accent.iconBg} flex items-center justify-center flex-shrink-0`}>
+            <Icon className={`h-5 w-5 sm:h-5.5 sm:w-5.5 ${accent.iconColor}`} strokeWidth={2.5} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground leading-tight tracking-tight">{title}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-foreground leading-tight">{title}</h3>
             <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
           </div>
         </div>
@@ -86,22 +86,21 @@ export const StatsCard: React.FC<StatsCardProps> = ({
                 cx="40" cy="40" r="36"
                 fill="none"
                 stroke="hsl(var(--border))"
-                strokeWidth="4"
+                strokeWidth="6"
               />
               <circle
                 cx="40" cy="40" r="36"
                 fill="none"
-                stroke="hsl(var(--lime, var(--primary)))"
-                strokeWidth="4"
+                stroke={primaryStat?.color || 'hsl(var(--primary))'}
+                strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 className="transition-all duration-700 ease-out"
-                style={{ filter: "drop-shadow(0 0 6px hsl(var(--lime, var(--primary)) / 0.5))" }}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-base sm:text-xl font-semibold text-foreground tabular-nums">
+              <span className="text-base sm:text-lg font-bold text-foreground">
                 {Math.round(overallProgress)}%
               </span>
             </div>
@@ -113,7 +112,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
               <div key={i} className="space-y-0.5">
                 <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground truncate mr-2">{stat.label}</span>
-                  <span className="font-semibold text-foreground whitespace-nowrap tabular-nums">
+                  <span className="font-semibold text-foreground whitespace-nowrap">
                     {stat.value}{stat.total !== undefined ? `/${stat.total}` : ''}
                   </span>
                 </div>
