@@ -648,6 +648,7 @@ export const MyTrees = () => {
                                 trees_planted: trs.reduce((s, t) => s + t.num_trees, 0),
                                 amount: trs.reduce((s, t) => s + Number(t.amount_paid), 0),
                                 status: getGroupStatus(trs),
+                                paymentMethod: trs[0]?.payment_method || 'Card',
                               };
                             })
                             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
