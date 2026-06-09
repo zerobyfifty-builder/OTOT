@@ -243,18 +243,20 @@ export const MyTrips = () => {
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
-              <p className="text-sm text-muted-foreground italic flex flex-wrap items-center gap-1.5 w-full">
-                If your trip does not appear here, please add it manually.
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p className="max-w-[200px]">Our Travel Partners automatically add your trips when you book using the same email and mobile number</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <p className="text-sm text-muted-foreground italic w-full">
+                <span className="inline-flex items-center">
+                  If your trip does not appear here, please add it manually.
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p className="max-w-[200px]">Our Travel Partners automatically add your trips when you book using the same email and mobile number</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
               </p>
             </div>
             <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
