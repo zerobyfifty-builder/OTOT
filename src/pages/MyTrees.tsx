@@ -662,40 +662,74 @@ export const MyTrees = () => {
                                 </span>
                               </div>
                               <div className="divide-y divide-border/40">
-                                {contribGroups.map((cg, cgIdx) => (
-                                  <div
-                                    key={`${group.key}-${cg.cid}`}
-                                    className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
-                                  >
-                                    <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_minmax(0,1.4fr)_auto_auto_auto_auto_auto] items-center gap-x-3 gap-y-1">
-                                      <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">{cgIdx + 1}</span>
-                                      <span className="font-mono text-[11px] sm:text-xs text-foreground truncate" title={cg.cid}>{cg.cid}</span>
-                                      <span className="hidden sm:inline text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                      <span className="hidden sm:flex items-center gap-1 text-xs tabular-nums text-foreground justify-end">
-                                        <Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted}
-                                      </span>
-                                      <span className="hidden sm:inline text-xs font-semibold tabular-nums text-foreground text-right whitespace-nowrap">${cg.amount.toFixed(2)}</span>
-                                      <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] justify-self-end whitespace-nowrap`}>{cg.status}</Badge>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 justify-self-end" onClick={(e) => e.stopPropagation()}>
-                                            <MoreVertical className="h-3.5 w-3.5" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
-                                            <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                      <div className="col-span-3 sm:hidden flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
-                                        <span>{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                        <span className="inline-flex items-center gap-1"><Leaf className="h-3 w-3 text-primary/70" />{cg.trees_planted} trees</span>
-                                        <span className="font-semibold text-foreground">${cg.amount.toFixed(2)}</span>
+                                {contribGroups.map((cg) => {
+                                  const location = (cg.trees[0] as any)?.location_name || 'Mau Forest';
+                                  const lat = (cg.trees[0] as any)?.latitude;
+                                  const lng = (cg.trees[0] as any)?.longitude;
+                                  const mapsUrl = lat && lng
+                                    ? `https://www.google.com/maps?q=${lat},${lng}`
+                                    : `https://www.google.com/maps/search/${encodeURIComponent(location)}`;
+                                  return (
+                                    <div
+                                      key={`${group.key}-${cg.cid}`}
+                                      className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors flex items-center gap-3"
+                                    >
+                                      {/* Left: tree count badge + date/location */}
+                                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div className="h-11 w-11 shrink-0 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
+                                          <span className="text-sm font-bold text-primary leading-none tabular-nums">{cg.trees_planted}</span>
+                                          <Leaf className="h-3 w-3 text-primary/70 mt-0.5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
+                                            {format(new Date(cg.date), "d MMM yyyy")}
+                                          </div>
+                                          <div className="flex items-center gap-1.5 mt-0.5">
+                                            <span className="text-xs text-muted-foreground truncate">{location}</span>
+                                            <a
+                                              href={mapsUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="inline-flex items-center justify-center h-5 w-5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+                                              aria-label="Track location"
+                                              title="Track location"
+                                            >
+                                              <MapPin className="h-3 w-3" />
+                                            </a>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Right: amount + status + menu */}
+                                      <div className="flex items-center gap-3 shrink-0">
+                                        <div className="text-right">
+                                          <div className="text-sm font-bold text-foreground tabular-nums whitespace-nowrap">${cg.amount.toFixed(2)}</div>
+                                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{cg.paymentMethod}</div>
+                                        </div>
+                                        <div className="h-8 w-px bg-border/60 hidden sm:block" />
+                                        <div className="text-right hidden sm:block">
+                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[11px] whitespace-nowrap rounded-full`}>{cg.status}</Badge>
+                                          <div className="text-[10px] tabular-nums text-muted-foreground mt-1 whitespace-nowrap">
+                                            {format(new Date(cg.statusDate), "d MMM yyyy")}
+                                          </div>
+                                        </div>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+                                              <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
+                                              <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
 
                             </div>
