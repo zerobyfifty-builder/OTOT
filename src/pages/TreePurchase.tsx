@@ -661,13 +661,13 @@ export const TreePurchase = () => {
                           value={[customTreeCount]}
                           onValueChange={(value) => setCustomTreeCount(value[0])}
                           min={1}
-                          max={Math.max(1, treesNeeded - treesPlanted)}
+                          max={Math.max(1, treesNeeded)}
                           step={1}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>1</span>
-                          <span>{Math.max(1, treesNeeded - treesPlanted)}</span>
+                          <span>{Math.max(1, treesNeeded)}</span>
                         </div>
                       </div>
                     </div>
