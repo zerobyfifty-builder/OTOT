@@ -39,7 +39,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: any; s
 const helpItem = { title: 'Help & Support', url: '/lodge/help', icon: HelpCircle };
 
 export function LodgeSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { lodge, signOut } = useLodgeAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -165,6 +165,7 @@ export function LodgeSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-sidebar-primary text-black font-medium relative'

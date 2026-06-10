@@ -81,7 +81,7 @@ interface OwnerSidebarProps {
 }
 
 export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProps) {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -312,6 +312,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
@@ -334,6 +335,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
@@ -356,6 +358,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
@@ -378,6 +381,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-white/20 text-white font-medium'
@@ -410,6 +414,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                             <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
                               <NavLink
                                 to={subItem.url}
+                                onClick={() => setOpenMobile(false)}
                                 className={({ isActive }) =>
                                   isActive ? 'bg-white/20 text-white font-medium' : ''
                                 }
@@ -444,6 +449,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                             <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
                               <NavLink
                                 to={subItem.url}
+                                onClick={() => setOpenMobile(false)}
                                 className={({ isActive }) =>
                                   isActive ? 'bg-white/20 text-white font-medium' : ''
                                 }

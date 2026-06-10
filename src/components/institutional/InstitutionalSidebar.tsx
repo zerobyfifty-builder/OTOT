@@ -44,7 +44,7 @@ interface InstitutionalSidebarProps {
 }
 
 export function InstitutionalSidebar({ organizationName, organizationCategory }: InstitutionalSidebarProps) {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -175,6 +175,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-primary text-primary-foreground font-medium'

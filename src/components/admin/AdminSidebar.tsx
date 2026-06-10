@@ -137,7 +137,7 @@ const menuItems = [
 ];
 
 export function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const { user, signOut } = useAuth();
 
@@ -210,6 +210,7 @@ export function AdminSidebar() {
                                           >
                                             <NavLink
                                               to={leaf.url}
+                                              onClick={() => setOpenMobile(false)}
                                               className={({ isActive }) =>
                                                 isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
                                               }
@@ -231,6 +232,7 @@ export function AdminSidebar() {
                                 >
                                   <NavLink
                                     to={subItem.url}
+                                    onClick={() => setOpenMobile(false)}
                                     className={({ isActive }) =>
                                       isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
                                     }
@@ -253,6 +255,7 @@ export function AdminSidebar() {
                     >
                       <NavLink
                         to={item.url!}
+                        onClick={() => setOpenMobile(false)}
                         className={({ isActive }) =>
                           isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
                         }
