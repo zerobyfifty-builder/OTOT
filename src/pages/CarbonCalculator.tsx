@@ -910,11 +910,7 @@ export const CarbonCalculator = () => {
                 {/* Header */}
                 <div className="mb-6 flex items-start justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Your Impact Report
-                    </div>
-                    <h2 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
                     <p className="text-sm text-muted-foreground">Turn your travel into a forest</p>
                   </div>
                   <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 animate-scale-in">
