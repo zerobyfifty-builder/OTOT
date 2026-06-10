@@ -33,7 +33,7 @@ const menuItems = [
 ];
 
 export function AgentSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { agent, signOut } = useAgentAuth();
   const location = useLocation();
   const navigate = useNavigate();
