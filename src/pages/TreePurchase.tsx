@@ -213,7 +213,7 @@ export const TreePurchase = () => {
       return "Amazing! You've fully offset your flight emissions. 🌍💚";
     }
     if (percentage >= 80) {
-      return `Almost there! Just ${treesNeeded - customTreeCount} more ${treesNeeded - customTreeCount === 1 ? 'tree' : 'trees'} to reach full offset.`;
+      return `Almost there! Just ${treesNeeded - customTreeCount} more to reach full offset.`;
     }
     if (percentage >= 50) {
       return `Great progress! You're ${percentage}% of the way to offsetting your emissions.`;
@@ -357,7 +357,7 @@ export const TreePurchase = () => {
       
       toast({
         title: "Success!",
-        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}.`,
+        description: `Payment successful! ${treeCount} purchased for $${totalCost.toFixed(2)}.`,
       });
 
     } catch (error: any) {
@@ -393,7 +393,7 @@ export const TreePurchase = () => {
   }
 
   if (showSuccessCard) {
-    const message = `I planted ${getTreeCount()} ${getTreeCount() === 1 ? 'tree' : 'trees'} in Kenya through One Tourist One Tree! 🌳 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya`;
+    const message = `I planted ${getTreeCount()} in Kenya through One Tourist One Tree! 🌳 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya`;
     const shareUrl = window.location.origin;
 
     const shareOnFacebook = () => {
@@ -437,7 +437,7 @@ export const TreePurchase = () => {
                   🎉 Thank You!
                 </CardTitle>
                 <CardDescription className="text-muted-foreground text-lg">
-                  You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
+                  You've successfully planted {getTreeCount()}!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -632,7 +632,7 @@ export const TreePurchase = () => {
                       ${(customTreeCount * PRICE_PER_TREE).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      for {customTreeCount} {customTreeCount === 1 ? "tree" : "trees"}
+                      for {customTreeCount}
                     </p>
                   </div>
                   
@@ -694,7 +694,7 @@ export const TreePurchase = () => {
                         for {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {Math.ceil(treesNeeded / subscriptionMonths)} {Math.ceil(treesNeeded / subscriptionMonths) === 1 ? 'tree' : 'trees'} per month
+                        {Math.ceil(treesNeeded / subscriptionMonths)} per month
                       </p>
                     </div>
                     
