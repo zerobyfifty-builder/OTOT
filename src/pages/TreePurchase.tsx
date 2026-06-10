@@ -19,6 +19,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import mauForestImage from "@/assets/mau-forest-complex.jpg";
 import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
+import { type ContributionTier } from "@/hooks/useContributionTiers";
+import { computeTierPrice } from "@/hooks/useTierPrice";
+import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
 
 interface Lodge {
   id: string;
@@ -45,7 +48,8 @@ export const TreePurchase = () => {
   const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
   
   // Default to "custom" (flexible) option
-  const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("custom");
+  const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom" | "tier">("custom");
+  const [selectedTier, setSelectedTier] = useState<ContributionTier | null>(null);
   
   // Calculate min and max months based on trees needed
   const getMonthlyBounds = () => {
@@ -74,14 +78,22 @@ export const TreePurchase = () => {
   const [dedicationMessage, setDedicationMessage] = useState("");
 
   // Reset subscription months when deselecting monthly option
-  const handleOptionChange = (option: "onetime" | "subscription" | "custom") => {
+  const handleOptionChange = (option: "onetime" | "subscription" | "custom" | "tier") => {
     if (selectedOption === "subscription" && option !== "subscription") {
       setSubscriptionMonths(3);
     }
     if (option === "custom") {
       setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
     }
+    if (option !== "tier") {
+      setSelectedTier(null);
+    }
     setSelectedOption(option);
+  };
+
+  const handleTierSelect = (tier: ContributionTier) => {
+    setSelectedTier(tier);
+    setSelectedOption("tier");
   };
 
   // Live per-tree price from active Planting Costs config (Super Admin → Configuration).
@@ -148,7 +160,10 @@ export const TreePurchase = () => {
     }
   };
 
+  const tierPriceInfo = selectedTier ? computeTierPrice(selectedTier, PRICE_PER_TREE) : null;
+
   const calculatePrice = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.finalPrice;
     switch (selectedOption) {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
@@ -166,6 +181,7 @@ export const TreePurchase = () => {
   };
 
   const getTreeCount = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
     switch (selectedOption) {
       case "onetime":
         return treesNeeded;
@@ -179,6 +195,7 @@ export const TreePurchase = () => {
   };
 
   const getTreesCommitted = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
     switch (selectedOption) {
       case "onetime":
       case "subscription":
@@ -731,6 +748,12 @@ export const TreePurchase = () => {
                 </CardContent>
               </Card>
             </div>
+
+            <MoreWaysToContribute
+              perTree={PRICE_PER_TREE}
+              selectedTierId={selectedTier?.id || null}
+              onSelectTier={handleTierSelect}
+            />
 
             {/* Per-tree price info */}
             <div className="why-per-tree-info flex items-start gap-3 p-4">

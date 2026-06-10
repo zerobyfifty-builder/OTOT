@@ -544,6 +544,95 @@ export type Database = {
         }
         Relationships: []
       }
+      contribution_tier_visibility: {
+        Row: {
+          created_at: string
+          is_visible: boolean
+          portal: Database["public"]["Enums"]["contribution_tier_portal"]
+          tier_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          is_visible?: boolean
+          portal: Database["public"]["Enums"]["contribution_tier_portal"]
+          tier_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          is_visible?: boolean
+          portal?: Database["public"]["Enums"]["contribution_tier_portal"]
+          tier_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_tier_visibility_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "contribution_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contribution_tiers: {
+        Row: {
+          badge: string | null
+          created_at: string
+          description: string | null
+          duration_months: number | null
+          id: string
+          is_active: boolean
+          key: string
+          max_trees: number | null
+          min_trees: number | null
+          name: string
+          price_override_usd: number | null
+          recurring_interval: string | null
+          sort_order: number
+          tier_type: Database["public"]["Enums"]["contribution_tier_type"]
+          trees_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          description?: string | null
+          duration_months?: number | null
+          id?: string
+          is_active?: boolean
+          key: string
+          max_trees?: number | null
+          min_trees?: number | null
+          name: string
+          price_override_usd?: number | null
+          recurring_interval?: string | null
+          sort_order?: number
+          tier_type?: Database["public"]["Enums"]["contribution_tier_type"]
+          trees_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          description?: string | null
+          duration_months?: number | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          max_trees?: number | null
+          min_trees?: number | null
+          name?: string
+          price_override_usd?: number | null
+          recurring_interval?: string | null
+          sort_order?: number
+          tier_type?: Database["public"]["Enums"]["contribution_tier_type"]
+          trees_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contribution_tracking: {
         Row: {
           acknowledgement_doc: string | null
@@ -3929,6 +4018,12 @@ export type Database = {
       agent_tree_status: "Not Planted" | "Planted"
       app_role: "admin" | "user"
       certificate_type: "Pledge" | "Tree Planting"
+      contribution_tier_portal: "tourist" | "b2b"
+      contribution_tier_type:
+        | "fixed"
+        | "custom_range"
+        | "subscription"
+        | "recurring"
       entry_source_type: "Manual" | "Integration"
       growth_stage_type: "Sapling" | "Young" | "Maturing" | "Mature"
       notification_status_type: "Pending" | "Scheduled" | "Sent"
@@ -4113,6 +4208,13 @@ export const Constants = {
       agent_tree_status: ["Not Planted", "Planted"],
       app_role: ["admin", "user"],
       certificate_type: ["Pledge", "Tree Planting"],
+      contribution_tier_portal: ["tourist", "b2b"],
+      contribution_tier_type: [
+        "fixed",
+        "custom_range",
+        "subscription",
+        "recurring",
+      ],
       entry_source_type: ["Manual", "Integration"],
       growth_stage_type: ["Sapling", "Young", "Maturing", "Mature"],
       notification_status_type: ["Pending", "Scheduled", "Sent"],
