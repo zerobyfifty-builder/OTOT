@@ -168,7 +168,16 @@ export const TreePurchase = () => {
   // overridden by the tier's Override $ when set). Falls back to the raw
   // planting-cost per-tree when no such tier is visible for tourists.
   const { tiers: visibleTouristTiers } = useVisibleTiers('tourist');
-  const flexibleTier = visibleTouristTiers.find((t) => t.tier_type === 'custom_range') || null;
+  const flexibleTier =
+    visibleTouristTiers.find((t) => t.tier_type === 'custom_range') ||
+    visibleTouristTiers.find(
+      (t) => t.name?.toLowerCase().includes('flexible')
+    ) ||
+    null;
+  const monthlyTier =
+    visibleTouristTiers.find(
+      (t) => t.name?.toLowerCase().includes('monthly')
+    ) || null;
   const flexiblePerTree = (() => {
     if (!flexibleTier || flexibleTier.price_override_usd == null) return PRICE_PER_TREE;
     const refTrees =
@@ -176,6 +185,7 @@ export const TreePurchase = () => {
     if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
     return Number(flexibleTier.price_override_usd) / refTrees;
   })();
+  const excludedTierIds = [flexibleTier?.id, monthlyTier?.id].filter(Boolean) as string[];
 
   const calculatePrice = () => {
     if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.finalPrice;
@@ -766,6 +776,7 @@ export const TreePurchase = () => {
                 perTree={PRICE_PER_TREE}
                 selectedTierId={selectedTier?.id || null}
                 onSelectTier={handleTierSelect}
+                excludedTierIds={excludedTierIds}
               />
             </div>
 
