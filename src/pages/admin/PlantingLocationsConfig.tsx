@@ -76,6 +76,7 @@ export default function PlantingLocationsConfig() {
       gps_lat: loc.gps_lat?.toString() ?? "",
       gps_lng: loc.gps_lng?.toString() ?? "",
       is_active: loc.is_active,
+      show_in_tourist: loc.show_in_tourist,
       sort_order: loc.sort_order,
     });
     setSheetOpen(true);
