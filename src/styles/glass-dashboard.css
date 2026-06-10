@@ -183,10 +183,41 @@
   opacity: 1 !important;
 }
 
+.tourist-dashboard-glass .glass-card--featured .glass-card svg:not([class*="text-"]) {
+  color: hsl(126 54% 10%) !important;
+}
+
+.tourist-dashboard-glass .glass-card .bg-background,
+.tourist-dashboard-glass .glass-card [class*="bg-background"] {
+  background-color: hsl(132 56% 98% / 0.72) !important;
+  border-color: hsl(130 45% 30% / 0.22) !important;
+}
+
+.tourist-dashboard-glass .glass-card .bg-background p,
+.tourist-dashboard-glass .glass-card [class*="bg-background"] p,
+.tourist-dashboard-glass .glass-card .bg-background span,
+.tourist-dashboard-glass .glass-card [class*="bg-background"] span {
+  color: hsl(126 54% 10%) !important;
+}
+
 .tourist-dashboard-glass .glass-card--featured > .relative h2,
 .tourist-dashboard-glass .glass-card--featured > .relative > .flex h2 {
   color: hsl(114 40% 96%) !important;
   text-shadow: 0 2px 18px hsl(120 70% 4% / 0.58);
+}
+
+.tourist-dashboard-glass section:not(:has(.glass-card--featured)) h2,
+.tourist-dashboard-glass [data-state],
+.tourist-dashboard-glass [data-radix-collection-item],
+.tourist-dashboard-glass button[aria-expanded] {
+  color: hsl(114 40% 96%) !important;
+  text-shadow: 0 1px 10px hsl(120 70% 4% / 0.50);
+}
+
+.tourist-dashboard-glass [data-state] p,
+.tourist-dashboard-glass [role="region"],
+.tourist-dashboard-glass [role="region"] p {
+  color: hsl(116 35% 92% / 0.94) !important;
 }
 
 .tourist-dashboard-glass .glass-card button,
