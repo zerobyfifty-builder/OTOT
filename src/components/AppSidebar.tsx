@@ -35,7 +35,7 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { state, toggleSidebar, setOpen } = useSidebar();
+  const { state, toggleSidebar, setOpen, setOpenMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
   const location = useLocation();
