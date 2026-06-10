@@ -906,12 +906,12 @@ export const CarbonCalculator = () => {
                 <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-accent blur-3xl" />
               </div>
 
-              <div className="relative p-6 sm:p-8">
+              <div className="relative p-4 sm:p-8">
                 {/* Header */}
-                <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="mb-3 sm:mb-6 flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
-                    <p className="text-sm text-muted-foreground">Turn your travel into climate action!</p>
+                    <h2 className="text-xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Turn your travel into climate action!</p>
                   </div>
                   <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 animate-scale-in">
                     <Cloud className="h-7 w-7 text-primary" />
@@ -919,55 +919,55 @@ export const CarbonCalculator = () => {
                 </div>
 
                 {/* Breakdown chips */}
-                <div className="grid gap-3 sm:grid-cols-2 mb-6">
-                  <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
-                      <Plane className="h-5 w-5" />
+                <div className="grid gap-2 sm:gap-3 sm:grid-cols-2 mb-3 sm:mb-6">
+                  <div className="group flex items-center gap-2.5 rounded-xl sm:rounded-2xl border border-border bg-background/60 p-2.5 sm:p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                    <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg sm:rounded-xl bg-sky-500/10 text-sky-600">
+                      <Plane className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground">Flight · {calculation.distance.toLocaleString()} km</p>
-                      <p className="text-base font-semibold tabular-nums">{calculation.flightCO2.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">kg CO₂</span></p>
+                      <p className="text-[11px] sm:text-xs text-muted-foreground">Flight · {calculation.distance.toLocaleString()} km</p>
+                      <p className="text-sm sm:text-base font-semibold tabular-nums">{calculation.flightCO2.toFixed(1)} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">kg CO₂</span></p>
                     </div>
                   </div>
 
                   {calculation.accommodationCO2 > 0 && (
-                    <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-                        <Hotel className="h-5 w-5" />
+                    <div className="group flex items-center gap-2.5 rounded-xl sm:rounded-2xl border border-border bg-background/60 p-2.5 sm:p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                      <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-600">
+                        <Hotel className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{ACCOMMODATION_LABELS[form.getValues("accommodationType")]} · {calculation.nights} nights</p>
-                        <p className="text-base font-semibold tabular-nums">{calculation.accommodationCO2.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">kg CO₂</span></p>
+                        <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{ACCOMMODATION_LABELS[form.getValues("accommodationType")]} · {calculation.nights} nights</p>
+                        <p className="text-sm sm:text-base font-semibold tabular-nums">{calculation.accommodationCO2.toFixed(1)} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">kg CO₂</span></p>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Hero impact panel */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 sm:p-8 text-primary-foreground shadow-xl">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-4 sm:p-8 text-primary-foreground shadow-xl">
                   {/* Floating clouds */}
                   <Wind className="absolute top-4 right-6 h-5 w-5 opacity-30 animate-fade-in" />
                   <Cloud className="absolute top-10 right-16 h-4 w-4 opacity-20" style={{ animation: 'fade-in 1s ease-out 0.3s both' }} />
 
-                  <div className="grid gap-6 sm:grid-cols-2 items-center">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-6 items-center">
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.18em] font-medium opacity-80">Total trip emissions</p>
-                      <div className="mt-1 flex items-baseline gap-2">
-                        <span className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight">{calculation.totalCO2.toFixed(1)}</span>
-                        <span className="text-sm opacity-90">kg CO₂</span>
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] sm:tracking-[0.18em] font-medium opacity-80">Total emissions</p>
+                      <div className="mt-1 flex items-baseline gap-1.5">
+                        <span className="text-3xl sm:text-6xl font-bold tabular-nums tracking-tight">{calculation.totalCO2.toFixed(1)}</span>
+                        <span className="text-xs sm:text-sm opacity-90">kg CO₂</span>
                       </div>
-                      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs">
-                        <Leaf className="h-3.5 w-3.5" />
-                        Offset with native trees
+                      <div className="mt-2 sm:mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs">
+                        <Leaf className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        Offset with trees
                       </div>
                     </div>
 
                     <div className="relative">
-                      <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-5 border border-white/20">
-                        <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">Trees to plant</p>
-                        <div className="mt-1 flex items-baseline gap-2">
-                          <span className="text-5xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
-                          <TreePine className="h-7 w-7 text-emerald-300" strokeWidth={2.5} fill="#10b981" fillOpacity={0.55} />
+                      <div className="rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm p-3 sm:p-5 border border-white/20">
+                        <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.14em] sm:tracking-[0.18em] opacity-80">Trees to plant</p>
+                        <div className="mt-1 flex items-baseline gap-1.5">
+                          <span className="text-3xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
+                          <TreePine className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-300" strokeWidth={2.5} fill="#10b981" fillOpacity={0.55} />
                         </div>
                         {/* Animated mini-forest */}
                         <style>{`
@@ -979,11 +979,11 @@ export const CarbonCalculator = () => {
                             100% { transform: scale(0) translateY(4px); opacity: 0; }
                           }
                         `}</style>
-                        <div className="mt-4 flex flex-wrap gap-1.5">
+                        <div className="mt-2 sm:mt-4 flex flex-wrap gap-1 sm:gap-1.5">
                           {Array.from({ length: visibleTrees }).map((_, i) => (
                             <TreePine
                               key={i}
-                              className="h-5 w-5 text-emerald-300"
+                              className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-300"
                               strokeWidth={2.5}
                               fill="#10b981"
                               fillOpacity={0.55}
@@ -994,7 +994,7 @@ export const CarbonCalculator = () => {
                             />
                           ))}
                           {treesNeeded > visibleTrees && (
-                            <span className="ml-1 self-center text-xs font-medium opacity-90">+{treesNeeded - visibleTrees} more</span>
+                            <span className="ml-1 self-center text-[10px] sm:text-xs font-medium opacity-90">+{treesNeeded - visibleTrees}</span>
                           )}
                         </div>
                       </div>
@@ -1002,35 +1002,35 @@ export const CarbonCalculator = () => {
                   </div>
 
                   {calcResult && (
-                    <p className="mt-5 text-[11px] sm:text-xs opacity-85 border-t border-white/15 pt-3">
+                    <p className="mt-3 sm:mt-5 text-[10px] sm:text-xs opacity-85 border-t border-white/15 pt-2 sm:pt-3">
                       Effective Rate: {calcResult.speciesLabel} · {calcResult.effectiveRate.toFixed(1)} kg CO₂ /tree/yr · {calcResult.horizonYears}-year offset
                     </p>
                   )}
                 </div>
 
                 {calcResult?.configWarning && (
-                  <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm">
                     ⚠️ {calcResult.configWarning}
                   </div>
                 )}
 
                 {/* Actions */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <div className="mt-3 sm:mt-6 flex flex-row gap-2 sm:gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 h-12 rounded-xl border-2"
+                    className="flex-1 h-11 sm:h-12 rounded-xl border-2 text-sm"
                     onClick={onSaveTrip}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Trip"}
                   </Button>
                   <Button
-                    className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
+                    className="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group text-sm"
                     onClick={onPlantTrees}
                   >
-                    <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
-                    Plant {treesNeeded} {treesNeeded === 1 ? 'Tree' : 'Trees'}
-                    <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    <TreePine className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 transition-transform group-hover:-rotate-6" />
+                    Plant Trees
+                    <ArrowRight className="h-4 w-4 ml-1.5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>
               </div>
