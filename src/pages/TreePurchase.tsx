@@ -185,6 +185,13 @@ export const TreePurchase = () => {
     if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
     return Number(flexibleTier.price_override_usd) / refTrees;
   })();
+  const monthlyPerTree = (() => {
+    if (!monthlyTier || monthlyTier.price_override_usd == null) return PRICE_PER_TREE;
+    const refTrees =
+      monthlyTier.trees_count ?? monthlyTier.max_trees ?? monthlyTier.min_trees ?? 1;
+    if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
+    return Number(monthlyTier.price_override_usd) / refTrees;
+  })();
   const excludedTierIds = [flexibleTier?.id, monthlyTier?.id].filter(Boolean) as string[];
 
   const calculatePrice = () => {
@@ -193,7 +200,7 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
       case "subscription":
-        return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+        return (treesNeeded * monthlyPerTree) / subscriptionMonths;
       case "custom":
         return customTreeCount * flexiblePerTree;
       default:
@@ -202,8 +209,9 @@ export const TreePurchase = () => {
   };
 
   const calculateMonthlyPrice = () => {
-    return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+    return (treesNeeded * monthlyPerTree) / subscriptionMonths;
   };
+
 
   const getTreeCount = () => {
     if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
@@ -722,8 +730,9 @@ export const TreePurchase = () => {
                   <div className="mx-auto w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-accent" />
                   </div>
-                  <CardTitle className="text-xl">Monthly Tree Planting</CardTitle>
-                  <CardDescription>Complete payment within 1 year</CardDescription>
+                  <CardTitle className="text-xl">{monthlyTier?.name || "Monthly Tree Planting"}</CardTitle>
+                  <CardDescription>{monthlyTier?.key || "Complete payment within 1 year"}</CardDescription>
+
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4 space-y-4">
