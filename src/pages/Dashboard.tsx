@@ -339,7 +339,7 @@ export const Dashboard: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Welcome {getUserName()}!
           </h1>
-          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-12 sm:h-20 object-contain self-start sm:self-auto" />
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="hidden sm:block h-12 sm:h-20 object-contain self-start sm:self-auto" />
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}
