@@ -967,14 +967,17 @@ export const CarbonCalculator = () => {
                         <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">Trees to plant</p>
                         <div className="mt-1 flex items-baseline gap-2">
                           <span className="text-5xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
-                          <TreePine className="h-7 w-7 opacity-90" />
+                          <TreePine className="h-7 w-7 text-white" strokeWidth={2.25} fill="currentColor" fillOpacity={0.25} />
                         </div>
                         {/* Animated mini-forest */}
                         <div className="mt-4 flex flex-wrap gap-1.5">
                           {Array.from({ length: visibleTrees }).map((_, i) => (
                             <TreePine
                               key={i}
-                              className="h-5 w-5 text-white/90"
+                              className="h-5 w-5 text-white"
+                              strokeWidth={2.25}
+                              fill="currentColor"
+                              fillOpacity={0.25}
                               style={{
                                 animation: `scale-in 0.45s cubic-bezier(.34,1.56,.64,1) ${i * 80}ms both`,
                                 transformOrigin: 'bottom center',
