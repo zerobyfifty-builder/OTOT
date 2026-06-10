@@ -884,7 +884,7 @@ export const TreePurchase = () => {
 
               <p
                 className="tree-purchase-payment-footnote text-center mt-4"
-                style={{ color: "hsl(0 0% 9%)" }}
+                style={{ color: "hsl(0 0% 45%)" }}
               >
                 Secure payment powered by Stripe (integration pending)
               </p>
