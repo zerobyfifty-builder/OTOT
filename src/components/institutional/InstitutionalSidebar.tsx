@@ -175,6 +175,7 @@ export function InstitutionalSidebar({ organizationName, organizationCategory }:
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-primary text-primary-foreground font-medium'
