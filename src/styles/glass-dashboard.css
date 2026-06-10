@@ -154,24 +154,45 @@
   mix-blend-mode: screen;
 }
 
+.tourist-dashboard-glass .glass-card--featured > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tourist-dashboard-glass .glass-card .text-foreground,
+.tourist-dashboard-glass .glass-card .text-muted-foreground,
+.tourist-dashboard-glass .glass-card [class*="text-muted-foreground"] {
+  color: hsl(116 35% 92% / 0.90) !important;
+}
+
+.tourist-dashboard-glass .glass-card button,
+.tourist-dashboard-glass .glass-card a[role="button"] {
+  border-color: hsl(105 85% 76% / 0.54) !important;
+  background-color: hsl(104 78% 70% / 0.78) !important;
+  color: hsl(125 58% 8%) !important;
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.45),
+    0 10px 24px -14px hsl(92 90% 56% / 0.85);
+}
+
 /* =====================================================================
    Sidebar recolor — applied across the tourist portal so the side
    panel matches the dashboard's sage/teal glass theme.
    ===================================================================== */
 .tourist-glass [data-sidebar="sidebar"] {
-  background-color: hsl(180 30% 18% / 0.55) !important;
+  background-color: hsl(126 58% 6% / 0.92) !important;
   background-image: linear-gradient(
     180deg,
-    hsl(158 35% 22% / 0.78) 0%,
-    hsl(178 38% 24% / 0.70) 45%,
-    hsl(200 40% 22% / 0.78) 100%
+    hsl(154 52% 18% / 0.96) 0%,
+    hsl(128 55% 8% / 0.94) 48%,
+    hsl(115 64% 5% / 0.98) 100%
   ) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  backdrop-filter: blur(22px) saturate(170%);
-  border-right: 1px solid hsl(160 40% 80% / 0.18) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-right: 1px solid hsl(105 76% 78% / 0.22) !important;
   box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.10),
-    0 12px 32px hsl(180 40% 10% / 0.35) !important;
+    inset 0 1px 0 hsl(0 0% 100% / 0.14),
+    0 18px 42px hsl(120 80% 2% / 0.55) !important;
 }
 
 /* Subtle leaf silhouette inside sidebar */
