@@ -35,16 +35,16 @@
 
   color: hsl(118 45% 95%);
   /* Paint an unmistakable deep green glassmorphism background directly on the wrapper. */
-  background-color: hsl(125 52% 6%);
+  background-color: hsl(135 65% 4%);
   background-image:
-    radial-gradient(62rem 40rem at 22% 0%, hsl(166 56% 45% / 0.48), transparent 62%),
-    radial-gradient(54rem 40rem at 92% 24%, hsl(92 70% 76% / 0.42), transparent 64%),
-    radial-gradient(46rem 34rem at 54% 74%, hsl(72 88% 72% / 0.24), transparent 68%),
-    radial-gradient(72rem 16rem at 48% 58%, hsl(88 72% 88% / 0.22), transparent 70%),
+    radial-gradient(62rem 40rem at 22% 0%, hsl(160 70% 22% / 0.85), transparent 62%),
+    radial-gradient(54rem 40rem at 92% 24%, hsl(150 60% 18% / 0.80), transparent 64%),
+    radial-gradient(46rem 34rem at 54% 74%, hsl(140 75% 14% / 0.70), transparent 68%),
+    radial-gradient(72rem 16rem at 48% 58%, hsl(165 60% 22% / 0.45), transparent 70%),
     linear-gradient(135deg,
-      hsl(128 55% 7%) 0%,
-      hsl(154 46% 17%) 42%,
-      hsl(118 48% 10%) 100%);
+      hsl(140 70% 4%) 0%,
+      hsl(150 60% 10%) 42%,
+      hsl(130 70% 5%) 100%);
 }
 
 /* Defeat the opaque main background painted by glass.css */
@@ -331,4 +331,51 @@
   .tourist-glass [data-sidebar="sidebar"] {
     background-color: hsl(180 35% 18% / 0.98) !important;
   }
+}
+
+/* ---------- FAQ readability ---------- */
+.tourist-dashboard-glass .faq-heading {
+  color: hsl(96 90% 92%) !important;
+  text-shadow:
+    0 2px 18px hsl(140 90% 3% / 0.75),
+    0 0 1px hsl(140 90% 3% / 0.9) !important;
+  letter-spacing: -0.01em;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card,
+.tourist-dashboard-glass .faq-section .glass-card * {
+  color: hsl(140 70% 10%) !important;
+  text-shadow: none !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card {
+  background-color: hsl(135 50% 97% / 0.92) !important;
+  background-image: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.85) 0%,
+    hsl(135 60% 92% / 0.55) 50%,
+    hsl(165 50% 88% / 0.55) 100%
+  ) !important;
+  border: 1px solid hsl(130 60% 80% / 0.7) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card button[aria-expanded] {
+  color: hsl(140 75% 10%) !important;
+  font-weight: 600;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card button[aria-expanded] svg {
+  color: hsl(140 75% 18%) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card [role="region"],
+.tourist-dashboard-glass .faq-section .glass-card [role="region"] * {
+  color: hsl(140 40% 20%) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card [data-state] {
+  border-bottom-color: hsl(140 40% 70% / 0.5) !important;
 }
