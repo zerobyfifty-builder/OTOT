@@ -549,7 +549,7 @@ export const TreePurchase = () => {
                 <div className="absolute bottom-10 left-20 w-48 h-48 rounded-full border-2 border-foreground"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-foreground"></div>
               </div>
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
