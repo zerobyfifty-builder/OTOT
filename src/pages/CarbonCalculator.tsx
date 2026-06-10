@@ -470,7 +470,7 @@ export const CarbonCalculator = () => {
                           type="button"
                           onClick={() => field.onChange("airports")}
                           className={cn(
-                            "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
+                            "px-6 py-2 text-base font-semibold transition-colors border-b-2 -mb-0.5",
                             field.value === "airports"
                               ? "border-primary text-primary"
                               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -482,7 +482,7 @@ export const CarbonCalculator = () => {
                           type="button"
                           onClick={() => field.onChange("flighttime")}
                           className={cn(
-                            "px-6 py-2 text-sm font-medium transition-colors border-b-2 -mb-0.5",
+                            "px-6 py-2 text-base font-semibold transition-colors border-b-2 -mb-0.5",
                             field.value === "flighttime"
                               ? "border-primary text-primary"
                               : "border-transparent text-muted-foreground hover:text-foreground"
