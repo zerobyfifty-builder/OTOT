@@ -729,16 +729,11 @@ export const TreePurchase = () => {
             </div>
 
             {/* Per-tree price info */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                <CircleDollarSign className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Why ${PRICE_PER_TREE.toFixed(2)} per tree?</p>
-                <p className="text-sm text-muted-foreground">
-                  Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead as per the plantation partners and program administrator charges.
-                </p>
-              </div>
+            <div className="px-1 py-2">
+              <p className="font-semibold text-sm">Why ${PRICE_PER_TREE.toFixed(2)} per tree?</p>
+              <p className="text-sm text-muted-foreground">
+                Your contribution covers seedling, planting labour, 3 years of aftercare, MRV/GPS geotagging and program overhead as per the plantation partners and program administrator charges.
+              </p>
             </div>
           </div>
 
