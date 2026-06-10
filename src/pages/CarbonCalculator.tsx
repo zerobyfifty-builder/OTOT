@@ -415,7 +415,7 @@ export const CarbonCalculator = () => {
             <h1 className="text-4xl font-bold text-foreground">Carbon Calculator</h1>
             <p className="text-muted-foreground">Calculate your travel's carbon footprint and offset it with trees</p>
           </div>
-          <img src={ktbLogo} alt="Kenya Tourism Board" className="h-20 object-contain" />
+          <img src={ktbLogo} alt="Kenya Tourism Board" className="hidden h-20 object-contain md:block" />
         </div>
 
         <Form {...form}>
