@@ -749,6 +749,12 @@ export const TreePurchase = () => {
               </Card>
             </div>
 
+            <MoreWaysToContribute
+              perTree={PRICE_PER_TREE}
+              selectedTierId={selectedTier?.id || null}
+              onSelectTier={handleTierSelect}
+            />
+
             {/* Per-tree price info */}
             <div className="why-per-tree-info flex items-start gap-3 p-4">
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
