@@ -907,7 +907,7 @@ export const CarbonCalculator = () => {
           const treesNeeded = calcResult?.treesNeeded ?? calculation.treesNeeded;
           const visibleTrees = Math.min(treesNeeded, 12);
           return (
-          <div ref={resultsRef} className="mt-8 animate-fade-in scroll-mt-20">
+          <div ref={resultsRef} className="mt-8 animate-fade-in scroll-mt-0">
             <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl">
               {/* Decorative background */}
               <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
