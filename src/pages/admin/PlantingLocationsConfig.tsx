@@ -133,6 +133,7 @@ export default function PlantingLocationsConfig() {
         toast.error("Unassign current location first", {
           description: `"${conflict.planted_by_name}" is currently assigned to the tourist portal.`,
         });
+        setSaving(false);
         return;
       }
     }
