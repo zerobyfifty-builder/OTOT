@@ -1027,14 +1027,14 @@ export const CarbonCalculator = () => {
                 <div className="mt-4 flex flex-row gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 h-10 rounded-xl border-2"
+                    className="flex-1 h-12 rounded-xl border-2"
                     onClick={onSaveTrip}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Trip"}
                   </Button>
                   <Button
-                    className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
+                    className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
                     onClick={onPlantTrees}
                   >
                     <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
