@@ -5,18 +5,25 @@ interface Props {
   perTree: number;
   selectedTierId: string | null;
   onSelectTier: (tier: ContributionTier) => void;
+  excludedTierIds?: string[];
 }
 
 /**
  * Renders dynamic tier cards directly (no wrapper) so they sit inside the
  * existing "Choose Your Option" grid alongside Flexible + Monthly cards.
+ * Tiers matched to existing dedicated cards (via excludedTierIds) are hidden
+ * here to avoid duplicates.
  */
-export const MoreWaysToContribute = ({ perTree, selectedTierId, onSelectTier }: Props) => {
+export const MoreWaysToContribute = ({
+  perTree,
+  selectedTierId,
+  onSelectTier,
+  excludedTierIds = [],
+}: Props) => {
   const { tiers, isLoading } = useVisibleTiers('tourist');
-  // The Flexible Tree Planting card on /tree-purchase already represents the
-  // custom_range tier — pricing flows through there. Hide custom_range tiers
-  // here to avoid rendering a duplicate Flexible card.
-  const filtered = tiers.filter((t) => t.tier_type !== 'custom_range');
+  const filtered = tiers.filter(
+    (t) => t.tier_type !== 'custom_range' && !excludedTierIds.includes(t.id)
+  );
 
   if (isLoading || filtered.length === 0) return null;
 
