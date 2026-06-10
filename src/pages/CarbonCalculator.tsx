@@ -597,7 +597,7 @@ export const CarbonCalculator = () => {
                   <FormItem>
                     <div className="flex items-center justify-between mb-4">
                       <FormLabel>Flight Time (Hours one way)</FormLabel>
-                      <span className="text-lg font-semibold">{field.value} Hours</span>
+                      <span className="text-lg font-semibold">{field.value} Hrs</span>
                     </div>
                     <FormControl>
                       <div className="space-y-2">
