@@ -421,7 +421,7 @@ export const CarbonCalculator = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onCalculate)} className="space-y-6">
             {/* Trip Type Radio Buttons */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col-reverse items-stretch gap-4 md:flex-row md:items-center md:justify-between md:gap-0">
               <FormField
                 control={form.control}
                 name="tripType"
@@ -458,7 +458,7 @@ export const CarbonCalculator = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className="flex gap-0 border-b-2 border-border">
+                      <div className="flex justify-start gap-0 border-b-2 border-border md:justify-end">
                         <button
                           type="button"
                           onClick={() => field.onChange("airports")}
