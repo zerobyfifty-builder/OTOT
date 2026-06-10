@@ -649,8 +649,8 @@ export const TreePurchase = () => {
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>1 Tree</span>
-                          <span>{Math.max(1, treesNeeded - treesPlanted)} Trees</span>
+                          <span>1</span>
+                          <span>{Math.max(1, treesNeeded - treesPlanted)}</span>
                         </div>
                       </div>
                     </div>
