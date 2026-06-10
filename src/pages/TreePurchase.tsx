@@ -213,7 +213,7 @@ export const TreePurchase = () => {
       return "Amazing! You've fully offset your flight emissions. 🌍💚";
     }
     if (percentage >= 80) {
-      return `Almost there! Just ${treesNeeded - customTreeCount} more ${treesNeeded - customTreeCount === 1 ? 'tree' : 'trees'} to reach full offset.`;
+      return `Almost there! Just ${treesNeeded - customTreeCount} more to reach full offset.`;
     }
     if (percentage >= 50) {
       return `Great progress! You're ${percentage}% of the way to offsetting your emissions.`;
