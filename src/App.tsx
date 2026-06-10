@@ -598,6 +598,13 @@ const App = () => (
                 </AdminLayout>
               </SuperAdminRoute>
             } />
+            <Route path="/admin/config/planting-locations" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <PlantingLocationsConfig />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
 
             {/* Placeholder admin routes (reserved for upcoming modules) */}
             {[
