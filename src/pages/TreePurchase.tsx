@@ -60,8 +60,9 @@ export const TreePurchase = () => {
   
   const { minMonths, maxMonths } = getMonthlyBounds();
   const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
-  // Default to the remaining (balance) trees for this trip
-  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded - (routePlantedPrior || 0)));
+  // Default the flexible slider to the full trees needed for this trip so the
+  // thumb starts on the right end. User can drag down to choose fewer trees.
+  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded));
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Card");
