@@ -127,6 +127,16 @@ export default function PlantingLocationsConfig() {
       return;
     }
     setSaving(true);
+    if (form.show_in_tourist) {
+      const conflict = locations.find(l => l.id !== form.id && l.show_in_tourist);
+      if (conflict) {
+        toast.error("Unassign current location first", {
+          description: `"${conflict.planted_by_name}" is currently assigned to the tourist portal.`,
+        });
+        setSaving(false);
+        return;
+      }
+    }
     try {
       const payload = {
         planted_by_name: form.planted_by_name.trim(),
@@ -168,6 +178,15 @@ export default function PlantingLocationsConfig() {
   };
 
   const toggleTourist = async (loc: PlantingLocation) => {
+    if (!loc.show_in_tourist) {
+      const conflict = locations.find(l => l.id !== loc.id && l.show_in_tourist);
+      if (conflict) {
+        toast.error("Unassign current location first", {
+          description: `"${conflict.planted_by_name}" is currently assigned to the tourist portal.`,
+        });
+        return;
+      }
+    }
     const { error } = await supabase
       .from("planting_locations")
       .update({ show_in_tourist: !loc.show_in_tourist })
