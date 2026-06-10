@@ -393,7 +393,7 @@ export const TreePurchase = () => {
   }
 
   if (showSuccessCard) {
-    const message = `I planted ${getTreeCount()} ${getTreeCount() === 1 ? 'tree' : 'trees'} in Kenya through One Tourist One Tree! 🌳 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya`;
+    const message = `I planted ${getTreeCount()} in Kenya through One Tourist One Tree! 🌳 Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya`;
     const shareUrl = window.location.origin;
 
     const shareOnFacebook = () => {
