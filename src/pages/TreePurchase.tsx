@@ -437,7 +437,7 @@ export const TreePurchase = () => {
                   🎉 Thank You!
                 </CardTitle>
                 <CardDescription className="text-muted-foreground text-lg">
-                  You've successfully planted {getTreeCount()} {getTreeCount() === 1 ? 'tree' : 'trees'}!
+                  You've successfully planted {getTreeCount()}!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
