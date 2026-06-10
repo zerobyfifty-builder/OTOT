@@ -660,7 +660,7 @@ export const TreePurchase = () => {
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
                     <p className="text-3xl font-bold text-primary">
-                      ${(customTreeCount * PRICE_PER_TREE).toFixed(2)}
+                      ${(customTreeCount * flexiblePerTree).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
                       for {customTreeCount}
