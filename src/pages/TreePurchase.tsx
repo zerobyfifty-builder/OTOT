@@ -84,7 +84,7 @@ export const TreePurchase = () => {
       setSubscriptionMonths(3);
     }
     if (option === "custom") {
-      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+      setCustomTreeCount(Math.max(1, treesNeeded));
     }
     if (option !== "tier") {
       setSelectedTier(null);
