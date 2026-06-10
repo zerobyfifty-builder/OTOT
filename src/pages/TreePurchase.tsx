@@ -22,6 +22,7 @@ import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 import { useVisibleTiers, type ContributionTier } from "@/hooks/useContributionTiers";
 import { computeTierPrice } from "@/hooks/useTierPrice";
 import { ContributionTierCard } from "@/components/tourist/ContributionTierCard";
+import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
 
 interface Lodge {
   id: string;
