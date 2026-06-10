@@ -60,8 +60,9 @@ export const TreePurchase = () => {
   
   const { minMonths, maxMonths } = getMonthlyBounds();
   const [subscriptionMonths, setSubscriptionMonths] = useState(Math.min(3, maxMonths));
-  // Default to the remaining (balance) trees for this trip
-  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded - (routePlantedPrior || 0)));
+  // Default the flexible slider to the full trees needed for this trip so the
+  // thumb starts on the right end. User can drag down to choose fewer trees.
+  const [customTreeCount, setCustomTreeCount] = useState(Math.max(1, treesNeeded));
   const [lodges, setLodges] = useState<Lodge[]>([]);
   const [selectedLodge, setSelectedLodge] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Card");
@@ -83,7 +84,7 @@ export const TreePurchase = () => {
       setSubscriptionMonths(3);
     }
     if (option === "custom") {
-      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+      setCustomTreeCount(Math.max(1, treesNeeded));
     }
     if (option !== "tier") {
       setSelectedTier(null);
@@ -109,19 +110,19 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
-  // When treesPlanted is loaded from the DB, set the slider to the remaining
-  // balance — but only if the user hasn't already moved it away from the
-  // initial default. This prevents the slider from resetting to 1 on refetch.
+  // Keep the slider thumb pinned to the full trees-needed value when the trip
+  // data resolves, and clamp it if the trip's needed count changes. We use
+  // treesNeeded (not the remaining balance) as the max so the user can always
+  // adjust freely up to the full requirement.
   const didInitFromFetch = useRef(false);
   useEffect(() => {
+    const maxAvailable = Math.max(1, treesNeeded);
     if (didInitFromFetch.current) {
-      // Just clamp if exceeding new max
-      const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
       setCustomTreeCount((prev) => (prev > maxAvailable ? maxAvailable : prev));
       return;
     }
-    if (treesPlanted > 0 || routePlantedPrior !== undefined) {
-      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+    if (treesNeeded > 0) {
+      setCustomTreeCount(maxAvailable);
       didInitFromFetch.current = true;
     }
   }, [treesPlanted, treesNeeded, routePlantedPrior]);
@@ -660,13 +661,13 @@ export const TreePurchase = () => {
                           value={[customTreeCount]}
                           onValueChange={(value) => setCustomTreeCount(value[0])}
                           min={1}
-                          max={Math.max(1, treesNeeded - treesPlanted)}
+                          max={Math.max(1, treesNeeded)}
                           step={1}
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>1</span>
-                          <span>{Math.max(1, treesNeeded - treesPlanted)}</span>
+                          <span>{Math.max(1, treesNeeded)}</span>
                         </div>
                       </div>
                     </div>
