@@ -163,6 +163,20 @@ export const TreePurchase = () => {
 
   const tierPriceInfo = selectedTier ? computeTierPrice(selectedTier, PRICE_PER_TREE) : null;
 
+  // Flexible Tree Planting card sources its per-tree price from the active
+  // custom_range contribution tier (Auto $ from the planting cost config,
+  // overridden by the tier's Override $ when set). Falls back to the raw
+  // planting-cost per-tree when no such tier is visible for tourists.
+  const { tiers: visibleTouristTiers } = useVisibleTiers('tourist');
+  const flexibleTier = visibleTouristTiers.find((t) => t.tier_type === 'custom_range') || null;
+  const flexiblePerTree = (() => {
+    if (!flexibleTier || flexibleTier.price_override_usd == null) return PRICE_PER_TREE;
+    const refTrees =
+      flexibleTier.max_trees ?? flexibleTier.trees_count ?? flexibleTier.min_trees ?? 1;
+    if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
+    return Number(flexibleTier.price_override_usd) / refTrees;
+  })();
+
   const calculatePrice = () => {
     if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.finalPrice;
     switch (selectedOption) {
@@ -171,7 +185,7 @@ export const TreePurchase = () => {
       case "subscription":
         return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
       case "custom":
-        return customTreeCount * PRICE_PER_TREE;
+        return customTreeCount * flexiblePerTree;
       default:
         return 0;
     }
