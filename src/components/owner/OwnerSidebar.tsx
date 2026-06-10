@@ -449,6 +449,7 @@ export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProp
                             <SidebarMenuSubButton asChild className="text-white/70 hover:bg-white/10 hover:text-white">
                               <NavLink
                                 to={subItem.url}
+                                onClick={() => setOpenMobile(false)}
                                 className={({ isActive }) =>
                                   isActive ? 'bg-white/20 text-white font-medium' : ''
                                 }
