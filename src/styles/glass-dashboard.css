@@ -35,16 +35,16 @@
 
   color: hsl(118 45% 95%);
   /* Paint an unmistakable deep green glassmorphism background directly on the wrapper. */
-  background-color: hsl(125 52% 6%);
+  background-color: hsl(135 65% 4%);
   background-image:
-    radial-gradient(62rem 40rem at 22% 0%, hsl(166 56% 45% / 0.48), transparent 62%),
-    radial-gradient(54rem 40rem at 92% 24%, hsl(92 70% 76% / 0.42), transparent 64%),
-    radial-gradient(46rem 34rem at 54% 74%, hsl(72 88% 72% / 0.24), transparent 68%),
-    radial-gradient(72rem 16rem at 48% 58%, hsl(88 72% 88% / 0.22), transparent 70%),
+    radial-gradient(62rem 40rem at 22% 0%, hsl(160 70% 22% / 0.85), transparent 62%),
+    radial-gradient(54rem 40rem at 92% 24%, hsl(150 60% 18% / 0.80), transparent 64%),
+    radial-gradient(46rem 34rem at 54% 74%, hsl(140 75% 14% / 0.70), transparent 68%),
+    radial-gradient(72rem 16rem at 48% 58%, hsl(165 60% 22% / 0.45), transparent 70%),
     linear-gradient(135deg,
-      hsl(128 55% 7%) 0%,
-      hsl(154 46% 17%) 42%,
-      hsl(118 48% 10%) 100%);
+      hsl(140 70% 4%) 0%,
+      hsl(150 60% 10%) 42%,
+      hsl(130 70% 5%) 100%);
 }
 
 /* Defeat the opaque main background painted by glass.css */
