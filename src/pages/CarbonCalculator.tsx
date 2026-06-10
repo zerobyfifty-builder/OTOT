@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { EmailCaptureModal } from "@/components/pledge/EmailCaptureModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import ktbLogo from '@/assets/ktb-logo.png';
 
@@ -109,6 +110,7 @@ export const CarbonCalculator = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [pendingAction, setPendingAction] = useState<'save' | 'plant' | null>(null);
   const [calculatorContext, setCalculatorContext] = useState<any>(null);
@@ -753,7 +755,64 @@ export const CarbonCalculator = () => {
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
+                      {isMobile ? (
+                        <div className="p-4 w-[min(360px,calc(100vw-2rem))]">
+                          {/* Two date input boxes */}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="rounded-lg border bg-background px-3 py-2">
+                              <p className="text-xs text-muted-foreground mb-0.5">Pick-up (From)</p>
+                              <p className="text-sm font-medium text-foreground">
+                                {fromDate ? format(fromDate, "MMM d") : "—"}
+                              </p>
+                            </div>
+                            <div className="rounded-lg border bg-background px-3 py-2">
+                              <p className="text-xs text-muted-foreground mb-0.5">Drop-off (To)</p>
+                              <p className="text-sm font-medium text-foreground">
+                                {toDate ? format(toDate, "MMM d") : "—"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Single calendar in range mode */}
+                          <Calendar
+                            mode="range"
+                            selected={{ from: fromDate, to: toDate }}
+                            onSelect={(range) => {
+                              form.setValue("fromDate", (range?.from as Date) ?? (undefined as any));
+                              form.setValue("toDate", range?.to);
+                              if (tripType === "oneway" && range?.from && !range?.to) {
+                                form.setValue("toDate", range.from);
+                              }
+                            }}
+                            numberOfMonths={1}
+                            initialFocus
+                            className="pointer-events-auto p-0"
+                          />
+
+                          <div className="flex items-center justify-end border-t pt-3 mt-3 gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                form.setValue("fromDate", undefined as any);
+                                form.setValue("toDate", undefined);
+                              }}
+                            >
+                              Clear
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90"
+                              onClick={() => setDatePickerOpen(false)}
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
                       <div className="p-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -763,7 +822,6 @@ export const CarbonCalculator = () => {
                               selected={fromDate}
                               onSelect={(date) => {
                                 form.setValue("fromDate", date as Date);
-                                // For one-way trips, allow same date selection
                                 if (tripType === "oneway" && !toDate) {
                                   form.setValue("toDate", date);
                                 }
@@ -780,7 +838,6 @@ export const CarbonCalculator = () => {
                               onSelect={(date) => form.setValue("toDate", date)}
                               disabled={(date) => {
                                 if (!fromDate) return false;
-                                // For one-way, allow same date; for return, allow same or later
                                 return tripType === "oneway" ? date < fromDate : date < fromDate;
                               }}
                               className="pointer-events-auto"
@@ -811,6 +868,7 @@ export const CarbonCalculator = () => {
                           </div>
                         </div>
                       </div>
+                      )}
                     </PopoverContent>
                   </Popover>
                 </FormItem>
