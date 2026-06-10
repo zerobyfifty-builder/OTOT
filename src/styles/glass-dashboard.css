@@ -559,3 +559,11 @@
   color: hsl(142 60% 38%) !important;
 }
 
+.tree-purchase-glass .tree-purchase-payment-footnote {
+  color: hsl(140 34% 18% / 0.78) !important;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  text-shadow: none !important;
+}
+
