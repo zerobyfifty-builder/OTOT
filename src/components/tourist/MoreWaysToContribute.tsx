@@ -13,8 +13,12 @@ interface Props {
  */
 export const MoreWaysToContribute = ({ perTree, selectedTierId, onSelectTier }: Props) => {
   const { tiers, isLoading } = useVisibleTiers('tourist');
+  // The Flexible Tree Planting card on /tree-purchase already represents the
+  // custom_range tier — pricing flows through there. Hide custom_range tiers
+  // here to avoid rendering a duplicate Flexible card.
+  const filtered = tiers.filter((t) => t.tier_type !== 'custom_range');
 
-  if (isLoading || tiers.length === 0) return null;
+  if (isLoading || filtered.length === 0) return null;
 
   return (
     <>
