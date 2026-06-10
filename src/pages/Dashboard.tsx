@@ -546,11 +546,13 @@ export const Dashboard: React.FC = () => {
         </section>
 
         {/* Section 4: FAQ Accordion */}
-        <section>
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Frequently Asked Questions</h2>
-          <div className="max-w-3xl mx-auto">
-            <FAQAccordion />
-          </div>
+        <section className="faq-section">
+          <h2 className="faq-heading text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Frequently Asked Questions</h2>
+          <Card className="glass-card max-w-3xl mx-auto">
+            <CardContent className="p-4 sm:p-6 md:p-8">
+              <FAQAccordion />
+            </CardContent>
+          </Card>
         </section>
 
       </div>
