@@ -19,9 +19,9 @@
   --gdash-teal-2: 192 42% 48%;
   --gdash-teal-3: 205 40% 30%;
 
-  --gdash-card-bg:        hsl(142 42% 14% / 0.34);
-  --gdash-card-bg-strong: hsl(154 42% 18% / 0.42);
-  --gdash-card-border:    hsl(124 70% 82% / 0.28);
+  --gdash-card-bg:        hsl(132 56% 98% / 0.82);
+  --gdash-card-bg-strong: hsl(152 32% 52% / 0.72);
+  --gdash-card-border:    hsl(124 70% 82% / 0.58);
   --gdash-card-shadow:
     0 1px 2px hsl(180 30% 18% / 0.10),
     0 18px 40px -22px hsl(180 35% 18% / 0.30),
@@ -101,9 +101,9 @@
   background-color: var(--gdash-card-bg) !important;
   background-image: linear-gradient(
     135deg,
-    hsl(0 0% 100% / 0.23) 0%,
-    hsl(124 75% 88% / 0.06) 45%,
-    hsl(158 66% 26% / 0.22) 100%
+    hsl(0 0% 100% / 0.72) 0%,
+    hsl(124 75% 88% / 0.28) 45%,
+    hsl(178 46% 84% / 0.34) 100%
   );
   -webkit-backdrop-filter: blur(30px) saturate(175%);
   backdrop-filter: blur(30px) saturate(175%);
@@ -127,12 +127,13 @@
 /* ---------- Featured CTA — stronger sage/teal sheen ---------- */
 .tourist-dashboard-glass .glass-card--featured {
   position: relative;
+  color: hsl(114 40% 96%);
   background-color: var(--gdash-card-bg-strong) !important;
   background-image:
     linear-gradient(135deg,
-      hsl(0 0% 100% / 0.24) 0%,
-      hsl(101 66% 76% / 0.16) 44%,
-      hsl(160 56% 28% / 0.28) 100%) !important;
+      hsl(0 0% 100% / 0.22) 0%,
+      hsl(101 66% 76% / 0.18) 44%,
+      hsl(160 42% 24% / 0.42) 100%) !important;
   -webkit-backdrop-filter: blur(34px) saturate(185%);
   backdrop-filter: blur(34px) saturate(185%);
   border: 1px solid hsl(105 86% 84% / 0.36) !important;
@@ -159,10 +160,33 @@
   z-index: 1;
 }
 
-.tourist-dashboard-glass .glass-card .text-foreground,
-.tourist-dashboard-glass .glass-card .text-muted-foreground,
-.tourist-dashboard-glass .glass-card [class*="text-muted-foreground"] {
-  color: hsl(116 35% 92% / 0.90) !important;
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured),
+.tourist-dashboard-glass .glass-card--featured .glass-card {
+  color: hsl(126 54% 10%) !important;
+  text-shadow: none !important;
+}
+
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) h2,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) h3,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) p,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) span,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) .text-foreground,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) .text-muted-foreground,
+.tourist-dashboard-glass .glass-card:not(.glass-card--featured) [class*="text-muted-foreground"],
+.tourist-dashboard-glass .glass-card--featured .glass-card h3,
+.tourist-dashboard-glass .glass-card--featured .glass-card p,
+.tourist-dashboard-glass .glass-card--featured .glass-card span,
+.tourist-dashboard-glass .glass-card--featured .glass-card .text-foreground,
+.tourist-dashboard-glass .glass-card--featured .glass-card .text-muted-foreground,
+.tourist-dashboard-glass .glass-card--featured .glass-card [class*="text-muted-foreground"] {
+  color: hsl(126 54% 10%) !important;
+  opacity: 1 !important;
+}
+
+.tourist-dashboard-glass .glass-card--featured > .relative h2,
+.tourist-dashboard-glass .glass-card--featured > .relative > .flex h2 {
+  color: hsl(114 40% 96%) !important;
+  text-shadow: 0 2px 18px hsl(120 70% 4% / 0.58);
 }
 
 .tourist-dashboard-glass .glass-card button,
