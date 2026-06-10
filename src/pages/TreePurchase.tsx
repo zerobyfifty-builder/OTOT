@@ -752,7 +752,7 @@ export const TreePurchase = () => {
                       <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Select Duration (Months)</Label>
-                          <span className="text-sm font-semibold">{subscriptionMonths} {subscriptionMonths === 1 ? 'Month' : 'Months'}</span>
+                          <span className="text-sm font-semibold">{subscriptionMonths}</span>
                         </div>
                         <Slider
                           min={minMonths}
@@ -763,8 +763,8 @@ export const TreePurchase = () => {
                           className="[&_[role=slider]]:bg-background [&_[role=slider]]:border-accent [&_[role=slider]]:border-2"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{minMonths} {minMonths === 1 ? 'Month' : 'Months'}</span>
-                          <span>{maxMonths} {maxMonths === 1 ? 'Month' : 'Months'}</span>
+                          <span>{minMonths}</span>
+                          <span>{maxMonths}</span>
                         </div>
                       </div>
                     )}
