@@ -166,7 +166,7 @@
 }
 
 .tourist-dashboard-glass .glass-card button,
-.tourist-dashboard-glass .glass-card a[role="button"] {
+.tourist-dashboard-glass .glass-card a {
   border-color: hsl(105 85% 76% / 0.54) !important;
   background-color: hsl(104 78% 70% / 0.78) !important;
   color: hsl(125 58% 8%) !important;
