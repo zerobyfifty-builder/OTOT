@@ -168,7 +168,15 @@ export const TreePurchase = () => {
   // overridden by the tier's Override $ when set). Falls back to the raw
   // planting-cost per-tree when no such tier is visible for tourists.
   const { tiers: visibleTouristTiers } = useVisibleTiers('tourist');
-  const flexibleTier = visibleTouristTiers.find((t) => t.tier_type === 'custom_range') || null;
+  const flexibleTier =
+    visibleTouristTiers.find((t) => t.tier_type === 'custom_range') ||
+    visibleTouristTiers.find(
+      (t) =>
+        t.name?.toLowerCase() === 'flexible tree planting' ||
+        t.key?.toLowerCase() === 'flexible_tree_planting' ||
+        t.key?.toLowerCase() === 'flexible'
+    ) ||
+    null;
   const flexiblePerTree = (() => {
     if (!flexibleTier || flexibleTier.price_override_usd == null) return PRICE_PER_TREE;
     const refTrees =
