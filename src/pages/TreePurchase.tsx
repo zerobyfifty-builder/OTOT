@@ -729,7 +729,7 @@ export const TreePurchase = () => {
             </div>
 
             {/* Per-tree price info */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+            <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                 <CircleDollarSign className="h-5 w-5 text-primary" />
               </div>
