@@ -543,8 +543,13 @@ export const TreePurchase = () => {
             </p>
 
             {/* Trip Summary Card */}
-            <Card className="bg-accent/10 border-accent/20">
-              <CardContent className="pt-6">
+            <Card className="glass-card glass-card--featured border-0 overflow-hidden relative">
+              <div className="absolute inset-0 opacity-5 pointer-events-none">
+                <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
+                <div className="absolute bottom-10 left-20 w-48 h-48 rounded-full border-2 border-foreground"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-foreground"></div>
+              </div>
+              <CardContent className="pt-6 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
