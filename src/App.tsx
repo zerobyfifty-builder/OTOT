@@ -137,9 +137,12 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const MobileTopBar = () => (
-  <div className="md:hidden sticky top-0 z-30 flex items-center gap-2 h-12 px-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-    <SidebarTrigger className="h-9 w-9" />
-    <span className="text-sm font-semibold text-foreground">OTOT</span>
+  <div className="md:hidden sticky top-0 z-30 flex items-center justify-between h-12 px-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <div className="flex items-center gap-2">
+      <SidebarTrigger className="h-9 w-9" />
+      <span className="text-sm font-semibold text-foreground">OTOT</span>
+    </div>
+    <img src={ktbLogo} alt="Kenya Tourism Board" className="h-8 object-contain" />
   </div>
 );
 
