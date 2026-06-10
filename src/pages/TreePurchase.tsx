@@ -730,8 +730,9 @@ export const TreePurchase = () => {
                   <div className="mx-auto w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-accent" />
                   </div>
-                  <CardTitle className="text-xl">Monthly Tree Planting</CardTitle>
-                  <CardDescription>Complete payment within 1 year</CardDescription>
+                  <CardTitle className="text-xl">{monthlyTier?.name || "Monthly Tree Planting"}</CardTitle>
+                  <CardDescription>{monthlyTier?.key || "Complete payment within 1 year"}</CardDescription>
+
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4 space-y-4">
