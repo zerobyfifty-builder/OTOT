@@ -399,8 +399,57 @@
   color: hsl(var(--gdash-ink)) !important;
 }
 
-.tree-purchase-glass .rounded-lg.border.bg-card *:not(svg):not(path):not([class*="bg-primary"]):not([class*="bg-accent"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
-  color: inherit;
+.tree-purchase-glass .rounded-lg.border.bg-card h2,
+.tree-purchase-glass .rounded-lg.border.bg-card h3,
+.tree-purchase-glass .rounded-lg.border.bg-card p,
+.tree-purchase-glass .rounded-lg.border.bg-card span,
+.tree-purchase-glass .rounded-lg.border.bg-card label,
+.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-muted-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-primary"],
+.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-accent"] {
+  color: hsl(var(--gdash-ink)) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-muted-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card p.text-sm,
+.tree-purchase-glass .rounded-lg.border.bg-card p.text-xs {
+  color: hsl(var(--gdash-ink-muted)) !important;
+}
+
+.tree-purchase-glass .rounded-lg.border.bg-card .font-bold,
+.tree-purchase-glass .rounded-lg.border.bg-card .font-semibold,
+.tree-purchase-glass .rounded-lg.border.bg-card .text-2xl,
+.tree-purchase-glass .rounded-lg.border.bg-card .text-3xl {
+  color: hsl(136 72% 8%) !important;
+}
+
+.tree-purchase-glass .bg-muted\/50,
+.tree-purchase-glass .rounded-lg:not(.border) {
+  background-color: hsl(135 50% 97% / 0.88) !important;
+  background-image: linear-gradient(135deg, hsl(0 0% 100% / 0.72), hsl(152 54% 88% / 0.42)) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
+  backdrop-filter: blur(24px) saturate(165%);
+  border: 1px solid hsl(130 60% 80% / 0.58) !important;
+  box-shadow: 0 18px 48px -28px hsl(120 80% 3% / 0.58), inset 0 1px 0 hsl(0 0% 100% / 0.42) !important;
+  color: hsl(var(--gdash-ink)) !important;
+}
+
+.tree-purchase-glass .bg-muted\/50 h3,
+.tree-purchase-glass .bg-muted\/50 p,
+.tree-purchase-glass .bg-muted\/50 span,
+.tree-purchase-glass .bg-muted\/50 [class*="text-muted-foreground"],
+.tree-purchase-glass .bg-muted\/50 [class*="text-foreground"] {
+  color: hsl(var(--gdash-ink)) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.tree-purchase-glass .bg-muted\/50 [class*="text-muted-foreground"],
+.tree-purchase-glass .bg-muted\/50 p.text-sm {
+  color: hsl(var(--gdash-ink-muted)) !important;
 }
 
 .tree-purchase-glass > .container > div > h1,
