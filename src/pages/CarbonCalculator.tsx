@@ -230,6 +230,10 @@ export const CarbonCalculator = () => {
     try {
       const result = calculateEmissions(data);
       setCalculation(result);
+      // Smoothly scroll to the results section after render
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     } catch (error) {
       toast({
         title: "Calculation Error",
