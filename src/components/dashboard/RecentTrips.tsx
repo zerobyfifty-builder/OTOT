@@ -59,7 +59,7 @@ export const RecentTrips: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="h-full">
+      <Card className="glass-card h-full">
         <CardHeader>
           <CardTitle className="text-xl">Recent Trips</CardTitle>
         </CardHeader>
