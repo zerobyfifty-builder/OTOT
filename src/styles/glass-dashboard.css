@@ -540,3 +540,28 @@
     0 2px 14px hsl(120 90% 3% / 0.86),
     0 0 2px hsl(120 90% 3% / 0.95) !important;
 }
+
+/* "Why $X per tree?" info block on Tree Purchase page (outside card) */
+.tree-purchase-glass .why-per-tree-title {
+  color: hsl(96 78% 97%) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  text-shadow:
+    0 2px 14px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
+}
+.tree-purchase-glass .why-per-tree-desc {
+  color: hsl(96 66% 95% / 0.98) !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.55 !important;
+  text-shadow:
+    0 2px 14px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
+}
+.tree-purchase-glass .why-per-tree-info > div:first-child {
+  background-color: hsl(105 70% 70% / 0.22) !important;
+}
+.tree-purchase-glass .why-per-tree-info svg {
+  color: hsl(100 80% 75%) !important;
+}
