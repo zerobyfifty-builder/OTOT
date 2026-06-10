@@ -381,7 +381,7 @@
 }
 
 /* ---------- Tree Purchase page — auto-glass all shadcn Cards ---------- */
-.tree-purchase-glass .rounded-lg.border.bg-card {
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) {
   background-color: var(--gdash-card-bg) !important;
   background-image: linear-gradient(
     135deg,
@@ -399,30 +399,30 @@
   color: hsl(var(--gdash-ink)) !important;
 }
 
-.tree-purchase-glass .rounded-lg.border.bg-card h2,
-.tree-purchase-glass .rounded-lg.border.bg-card h3,
-.tree-purchase-glass .rounded-lg.border.bg-card p,
-.tree-purchase-glass .rounded-lg.border.bg-card span,
-.tree-purchase-glass .rounded-lg.border.bg-card label,
-.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-foreground"],
-.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-muted-foreground"],
-.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-primary"],
-.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-accent"] {
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) h2,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) h3,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) p,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) span,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) label,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) [class*="text-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) [class*="text-muted-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) [class*="text-primary"],
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) [class*="text-accent"] {
   color: hsl(var(--gdash-ink)) !important;
   opacity: 1 !important;
   text-shadow: none !important;
 }
 
-.tree-purchase-glass .rounded-lg.border.bg-card [class*="text-muted-foreground"],
-.tree-purchase-glass .rounded-lg.border.bg-card p.text-sm,
-.tree-purchase-glass .rounded-lg.border.bg-card p.text-xs {
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) [class*="text-muted-foreground"],
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) p.text-sm,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) p.text-xs {
   color: hsl(var(--gdash-ink-muted)) !important;
 }
 
-.tree-purchase-glass .rounded-lg.border.bg-card .font-bold,
-.tree-purchase-glass .rounded-lg.border.bg-card .font-semibold,
-.tree-purchase-glass .rounded-lg.border.bg-card .text-2xl,
-.tree-purchase-glass .rounded-lg.border.bg-card .text-3xl {
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) .font-bold,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) .font-semibold,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) .text-2xl,
+.tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) .text-3xl {
   color: hsl(136 72% 8%) !important;
 }
 
