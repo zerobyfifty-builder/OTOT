@@ -566,7 +566,7 @@ export const TreePurchase = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Trees Needed</p>
-                      <p className="text-2xl font-bold text-foreground">{treesNeeded} {treesNeeded === 1 ? "Tree" : "Trees"}</p>
+                      <p className="text-2xl font-bold text-foreground">{treesNeeded}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -575,7 +575,7 @@ export const TreePurchase = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Trees Planted</p>
-                      <p className="text-2xl font-bold text-foreground">{treesPlanted} {treesPlanted === 1 ? "Tree" : "Trees"}</p>
+                      <p className="text-2xl font-bold text-foreground">{treesPlanted}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -584,7 +584,7 @@ export const TreePurchase = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Trees Committed</p>
-                      <p className="text-2xl font-bold text-foreground">{getTreesCommitted()} {getTreesCommitted() === 1 ? "Tree" : "Trees"}</p>
+                      <p className="text-2xl font-bold text-foreground">{getTreesCommitted()}</p>
                     </div>
                   </div>
                 </div>
