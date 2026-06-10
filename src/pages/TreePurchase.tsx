@@ -877,7 +877,7 @@ export const TreePurchase = () => {
                 {isProcessing ? "Processing..." : "Proceed to Payment"}
               </Button>
 
-              <p className="text-xs text-center text-muted-foreground mt-4">
+              <p className="text-xs text-center mt-4 text-foreground/70">
                 Secure payment powered by Stripe (integration pending)
               </p>
             </CardContent>
