@@ -654,8 +654,8 @@ export const TreePurchase = () => {
                   <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
                     <Leaf className="h-8 w-8 text-primary" />
                   </div>
-                  <CardTitle className="text-xl">Flexible Tree Planting</CardTitle>
-                  <CardDescription>Select number of trees</CardDescription>
+                  <CardTitle className="text-xl">{flexibleTier?.name || "Flexible Tree Planting"}</CardTitle>
+                  <CardDescription>{flexibleTier?.key || "Select number of trees"}</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
