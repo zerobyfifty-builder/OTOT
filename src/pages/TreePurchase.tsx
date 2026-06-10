@@ -531,7 +531,7 @@ export const TreePurchase = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background">
+      <div className="tourist-dashboard-glass tree-purchase-glass min-h-screen">
         <div className="container max-w-5xl py-8">
           {/* Page Header with Trip Summary */}
           <div className="mb-8">
