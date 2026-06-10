@@ -332,3 +332,50 @@
     background-color: hsl(180 35% 18% / 0.98) !important;
   }
 }
+
+/* ---------- FAQ readability ---------- */
+.tourist-dashboard-glass .faq-heading {
+  color: hsl(96 90% 92%) !important;
+  text-shadow:
+    0 2px 18px hsl(140 90% 3% / 0.75),
+    0 0 1px hsl(140 90% 3% / 0.9) !important;
+  letter-spacing: -0.01em;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card,
+.tourist-dashboard-glass .faq-section .glass-card * {
+  color: hsl(140 70% 10%) !important;
+  text-shadow: none !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card {
+  background-color: hsl(135 50% 97% / 0.92) !important;
+  background-image: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.85) 0%,
+    hsl(135 60% 92% / 0.55) 50%,
+    hsl(165 50% 88% / 0.55) 100%
+  ) !important;
+  border: 1px solid hsl(130 60% 80% / 0.7) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card button[aria-expanded] {
+  color: hsl(140 75% 10%) !important;
+  font-weight: 600;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card button[aria-expanded] svg {
+  color: hsl(140 75% 18%) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card [role="region"],
+.tourist-dashboard-glass .faq-section .glass-card [role="region"] * {
+  color: hsl(140 40% 20%) !important;
+}
+
+.tourist-dashboard-glass .faq-section .glass-card [data-state] {
+  border-bottom-color: hsl(140 40% 70% / 0.5) !important;
+}
