@@ -877,7 +877,10 @@ export const TreePurchase = () => {
                 {isProcessing ? "Processing..." : "Proceed to Payment"}
               </Button>
 
-              <p className="tree-purchase-payment-footnote text-center mt-4">
+              <p
+                className="tree-purchase-payment-footnote text-center mt-4"
+                style={{ color: "hsl(0 0% 9%)" }}
+              >
                 Secure payment powered by Stripe (integration pending)
               </p>
             </CardContent>
