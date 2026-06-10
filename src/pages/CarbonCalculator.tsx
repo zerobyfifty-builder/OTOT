@@ -915,9 +915,9 @@ export const CarbonCalculator = () => {
                 <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-accent blur-3xl" />
               </div>
 
-              <div className="relative p-6 sm:p-8">
+              <div className="relative p-4 sm:p-6">
                 {/* Header */}
-                <div className="mb-6 flex items-start justify-between gap-4">
+                <div className="mb-3 flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Carbon Footprint</h2>
                     <p className="text-sm text-muted-foreground">Turn your travel into climate action!</p>
@@ -928,8 +928,8 @@ export const CarbonCalculator = () => {
                 </div>
 
                 {/* Breakdown chips */}
-                <div className="grid gap-3 sm:grid-cols-2 mb-6">
-                  <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                <div className="grid gap-3 sm:grid-cols-2 mb-3">
+                  <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-3 transition-all hover:border-primary/40 hover:shadow-md">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
                       <Plane className="h-5 w-5" />
                     </div>
@@ -940,7 +940,7 @@ export const CarbonCalculator = () => {
                   </div>
 
                   {calculation.accommodationCO2 > 0 && (
-                    <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                    <div className="group flex items-center gap-3 rounded-2xl border border-border bg-background/60 p-3 transition-all hover:border-primary/40 hover:shadow-md">
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
                         <Hotel className="h-5 w-5" />
                       </div>
@@ -953,12 +953,12 @@ export const CarbonCalculator = () => {
                 </div>
 
                 {/* Hero impact panel */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 sm:p-8 text-primary-foreground shadow-xl">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-4 sm:p-6 text-primary-foreground shadow-xl">
                   {/* Floating clouds */}
                   <Wind className="absolute top-4 right-6 h-5 w-5 opacity-30 animate-fade-in" />
                   <Cloud className="absolute top-10 right-16 h-4 w-4 opacity-20" style={{ animation: 'fade-in 1s ease-out 0.3s both' }} />
 
-                  <div className="grid gap-6 sm:grid-cols-2 items-center">
+                  <div className="grid gap-4 sm:grid-cols-2 items-center">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.18em] font-medium opacity-80">Total trip emissions</p>
                       <div className="mt-1 flex items-baseline gap-2">
@@ -972,7 +972,7 @@ export const CarbonCalculator = () => {
                     </div>
 
                     <div className="relative">
-                      <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-5 border border-white/20">
+                      <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-4 border border-white/20">
                         <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">Trees to plant</p>
                         <div className="mt-1 flex items-baseline gap-2">
                           <span className="text-5xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
@@ -988,7 +988,7 @@ export const CarbonCalculator = () => {
                             100% { transform: scale(0) translateY(4px); opacity: 0; }
                           }
                         `}</style>
-                        <div className="mt-4 flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap gap-1.5">
                           {Array.from({ length: visibleTrees }).map((_, i) => (
                             <TreePine
                               key={i}
@@ -1011,30 +1011,30 @@ export const CarbonCalculator = () => {
                   </div>
 
                   {calcResult && (
-                    <p className="mt-5 text-[11px] sm:text-xs opacity-85 border-t border-white/15 pt-3">
+                    <p className="mt-3 text-[11px] sm:text-xs opacity-85 border-t border-white/15 pt-2">
                       Effective Rate: {calcResult.speciesLabel} · {calcResult.effectiveRate.toFixed(1)} kg CO₂ /tree/yr · {calcResult.horizonYears}-year offset
                     </p>
                   )}
                 </div>
 
                 {calcResult?.configWarning && (
-                  <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                  <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                     ⚠️ {calcResult.configWarning}
                   </div>
                 )}
 
                 {/* Actions */}
-                <div className="mt-6 flex flex-row gap-3">
+                <div className="mt-4 flex flex-row gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 h-12 rounded-xl border-2"
+                    className="flex-1 h-10 rounded-xl border-2"
                     onClick={onSaveTrip}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Trip"}
                   </Button>
                   <Button
-                    className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
+                    className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
                     onClick={onPlantTrees}
                   >
                     <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
