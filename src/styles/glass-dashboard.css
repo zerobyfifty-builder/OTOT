@@ -561,7 +561,7 @@
 
 .tree-purchase-glass .tree-purchase-payment-footnote,
 .tree-purchase-glass .rounded-lg.border.bg-card:not(.glass-card--featured) p.tree-purchase-payment-footnote {
-  color: hsl(140 40% 20%) !important;
+  color: hsl(140 50% 8%) !important;
   font-size: 0.75rem !important;
   font-weight: 400 !important;
   line-height: 1.4 !important;
