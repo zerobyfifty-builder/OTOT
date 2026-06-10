@@ -160,7 +160,10 @@ export const TreePurchase = () => {
     }
   };
 
+  const tierPriceInfo = selectedTier ? computeTierPrice(selectedTier, PRICE_PER_TREE) : null;
+
   const calculatePrice = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.finalPrice;
     switch (selectedOption) {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
@@ -178,6 +181,7 @@ export const TreePurchase = () => {
   };
 
   const getTreeCount = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
     switch (selectedOption) {
       case "onetime":
         return treesNeeded;
@@ -191,6 +195,7 @@ export const TreePurchase = () => {
   };
 
   const getTreesCommitted = () => {
+    if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
     switch (selectedOption) {
       case "onetime":
       case "subscription":
