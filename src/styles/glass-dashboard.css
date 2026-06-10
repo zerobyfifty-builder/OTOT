@@ -1,27 +1,40 @@
 /* =====================================================================
    Tourist Dashboard — Glassmorphism layer (additive)
-   All rules scoped under `.tourist-dashboard-glass` so they only affect
-   the tourist Dashboard page. Palette: white / grey / teal-green / black
+   Palette inspired by the reference image: sage green → teal-blue glass
+   with soft leaf silhouettes, frosted panels, and warm light bloom.
+   Scoped under `.tourist-dashboard-glass` (page) and `.tourist-glass`
+   (sidebar override on the tourist portal only).
    ===================================================================== */
 
 .tourist-dashboard-glass {
   position: relative;
   isolation: isolate;
-  --gdash-card-bg: hsl(0 0% 100% / 0.78);
-  --gdash-card-bg-strong: hsl(0 0% 100% / 0.88);
-  --gdash-card-border: hsl(220 14% 88% / 0.75);
+
+  /* Reference-image palette */
+  --gdash-sage-1: 96 30% 72%;     /* warm sage highlight  */
+  --gdash-sage-2: 142 28% 52%;    /* mid leaf green       */
+  --gdash-sage-3: 158 35% 32%;    /* deep forest          */
+  --gdash-teal-1: 178 38% 70%;    /* pale aqua            */
+  --gdash-teal-2: 192 42% 48%;    /* mid teal-blue        */
+  --gdash-teal-3: 205 40% 30%;    /* deep slate-blue      */
+
+  /* Glass surfaces — translucent with sage/teal tint */
+  --gdash-card-bg:        hsl(150 30% 96% / 0.55);
+  --gdash-card-bg-strong: hsl(160 35% 95% / 0.70);
+  --gdash-card-border:    hsl(160 30% 80% / 0.55);
   --gdash-card-shadow:
-    0 1px 2px hsl(220 15% 25% / 0.06),
-    0 14px 36px -18px hsl(220 15% 25% / 0.22),
-    inset 0 1px 0 hsl(0 0% 100% / 0.8);
+    0 1px 2px hsl(180 30% 18% / 0.10),
+    0 18px 40px -22px hsl(180 35% 18% / 0.30),
+    inset 0 1px 0 hsl(0 0% 100% / 0.55),
+    inset 0 -1px 0 hsl(160 25% 30% / 0.08);
   --gdash-card-shadow-hover:
-    0 4px 10px hsl(220 15% 25% / 0.08),
-    0 24px 50px -20px hsl(160 60% 25% / 0.28),
-    inset 0 1px 0 hsl(0 0% 100% / 0.9);
-  --gdash-ring-teal: hsl(166 76% 42% / 0.45);
+    0 4px 12px hsl(180 30% 18% / 0.14),
+    0 28px 56px -22px hsl(160 50% 22% / 0.40),
+    inset 0 1px 0 hsl(0 0% 100% / 0.65);
+  --gdash-ring-glow: hsl(166 60% 55% / 0.55);
 }
 
-/* ---------- Aurora backdrop (3 blurred blobs, fixed) ---------- */
+/* ---------- Sage-teal gradient backdrop with leaf motif ---------- */
 .tourist-dashboard-glass::before,
 .tourist-dashboard-glass::after {
   content: "";
@@ -32,31 +45,41 @@
   will-change: transform;
 }
 
+/* Layer 1 — sage→teal gradient + soft light bloom */
 .tourist-dashboard-glass::before {
   background:
-    radial-gradient(38rem 30rem at 12% 18%,  hsl(166 72% 60% / 0.28), transparent 60%),
-    radial-gradient(34rem 28rem at 88% 24%,  hsl(142 62% 58% / 0.22), transparent 62%),
-    radial-gradient(40rem 32rem at 70% 92%,  hsl(180 55% 55% / 0.20), transparent 65%);
-  filter: blur(48px) saturate(140%);
-  animation: gdash-aurora-a 22s ease-in-out infinite alternate;
+    radial-gradient(60rem 40rem at 20% 15%, hsl(var(--gdash-sage-1) / 0.55), transparent 65%),
+    radial-gradient(50rem 38rem at 90% 35%, hsl(var(--gdash-teal-1) / 0.45), transparent 65%),
+    radial-gradient(48rem 36rem at 65% 95%, hsl(var(--gdash-teal-2) / 0.40), transparent 70%),
+    linear-gradient(135deg,
+      hsl(var(--gdash-sage-2) / 0.55) 0%,
+      hsl(var(--gdash-teal-2) / 0.55) 55%,
+      hsl(var(--gdash-teal-3) / 0.65) 100%);
+  filter: saturate(115%);
+  animation: gdash-aurora-a 26s ease-in-out infinite alternate;
 }
 
+/* Layer 2 — leaf silhouettes + warm light streak */
 .tourist-dashboard-glass::after {
-  background:
-    radial-gradient(28rem 22rem at 30% 80%, hsl(160 70% 50% / 0.18), transparent 60%),
-    radial-gradient(26rem 22rem at 80% 60%, hsl(190 60% 55% / 0.16), transparent 60%),
-    radial-gradient(22rem 18rem at 50% 10%, hsl(220 14% 92% / 0.55), transparent 65%);
-  filter: blur(56px) saturate(135%);
-  animation: gdash-aurora-b 28s ease-in-out infinite alternate;
+  background-image:
+    /* warm light streak (bottom-center sheen in reference) */
+    radial-gradient(70rem 6rem at 50% 78%, hsl(48 90% 88% / 0.35), transparent 70%),
+    radial-gradient(30rem 4rem at 50% 78%, hsl(48 95% 95% / 0.55), transparent 70%),
+    /* faint leaf pattern */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><g fill='%23ffffff' opacity='0.06'><path d='M60 220 C40 150 110 90 200 90 C190 160 150 210 60 220 Z'/><path d='M320 110 C340 190 270 260 180 260 C200 190 240 130 320 110 Z'/><path d='M50 360 C40 320 90 290 140 300 C130 330 110 350 50 360 Z'/><path d='M280 350 C300 310 360 300 390 320 C370 350 330 360 280 350 Z'/></g></svg>");
+  background-size: auto, auto, 520px 520px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  filter: blur(0.4px);
+  animation: gdash-aurora-b 32s ease-in-out infinite alternate;
 }
 
 @keyframes gdash-aurora-a {
   0%   { transform: translate3d(0, 0, 0)        scale(1); }
-  100% { transform: translate3d(-2%, 1.5%, 0)   scale(1.06); }
+  100% { transform: translate3d(-1.5%, 1.2%, 0) scale(1.05); }
 }
 @keyframes gdash-aurora-b {
   0%   { transform: translate3d(0, 0, 0)        scale(1); }
-  100% { transform: translate3d(2.5%, -1.5%, 0) scale(1.05); }
+  100% { transform: translate3d(2%, -1%, 0)     scale(1.04); }
 }
 
 /* Keep page content above the backdrop */
@@ -65,38 +88,44 @@
 /* ---------- Glass card surface ---------- */
 .tourist-dashboard-glass .glass-card {
   background-color: var(--gdash-card-bg) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  backdrop-filter: blur(18px) saturate(170%);
+  background-image: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.35) 0%,
+    hsl(160 40% 96% / 0.10) 50%,
+    hsl(180 35% 92% / 0.30) 100%
+  );
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
   border: 1px solid var(--gdash-card-border) !important;
   box-shadow: var(--gdash-card-shadow);
   transition:
-    transform 240ms cubic-bezier(.2,.7,.2,1),
-    box-shadow 240ms ease,
-    border-color 240ms ease;
+    transform 260ms cubic-bezier(.2,.7,.2,1),
+    box-shadow 260ms ease,
+    border-color 260ms ease;
 }
 
 .tourist-dashboard-glass .glass-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--gdash-card-shadow-hover);
-  border-color: var(--gdash-ring-teal) !important;
+  border-color: var(--gdash-ring-glow) !important;
 }
 
-/* ---------- Featured CTA — stronger glass + teal sheen ---------- */
+/* ---------- Featured CTA — stronger sage/teal sheen ---------- */
 .tourist-dashboard-glass .glass-card--featured {
   position: relative;
   background-color: var(--gdash-card-bg-strong) !important;
   background-image:
     linear-gradient(135deg,
-      hsl(166 76% 92% / 0.55) 0%,
-      hsl(0 0% 100% / 0.30) 45%,
-      hsl(142 60% 92% / 0.55) 100%) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid hsl(166 60% 70% / 0.45) !important;
+      hsl(var(--gdash-sage-1) / 0.45) 0%,
+      hsl(0 0% 100% / 0.25) 45%,
+      hsl(var(--gdash-teal-1) / 0.45) 100%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  backdrop-filter: blur(26px) saturate(170%);
+  border: 1px solid hsl(160 50% 70% / 0.55) !important;
   box-shadow:
-    0 1px 0 hsl(0 0% 100% / 0.8) inset,
-    0 30px 60px -30px hsl(166 70% 30% / 0.35),
-    0 8px 24px -12px hsl(220 15% 25% / 0.18);
+    0 1px 0 hsl(0 0% 100% / 0.7) inset,
+    0 30px 60px -28px hsl(180 50% 22% / 0.45),
+    0 8px 24px -12px hsl(160 30% 20% / 0.25);
 }
 
 .tourist-dashboard-glass .glass-card--featured::before {
@@ -106,9 +135,67 @@
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(60% 80% at 0% 0%, hsl(0 0% 100% / 0.35), transparent 60%),
-    radial-gradient(50% 70% at 100% 100%, hsl(166 80% 70% / 0.22), transparent 65%);
+    radial-gradient(60% 80% at 0% 0%,    hsl(0 0% 100% / 0.40), transparent 60%),
+    radial-gradient(55% 75% at 100% 100%, hsl(var(--gdash-teal-1) / 0.30), transparent 65%);
   mix-blend-mode: screen;
+}
+
+/* =====================================================================
+   Sidebar recolor — applied across the tourist portal so the side
+   panel matches the dashboard's sage/teal glass theme.
+   ===================================================================== */
+.tourist-glass [data-sidebar="sidebar"] {
+  background-color: hsl(180 30% 18% / 0.55) !important;
+  background-image: linear-gradient(
+    180deg,
+    hsl(158 35% 22% / 0.78) 0%,
+    hsl(178 38% 24% / 0.70) 45%,
+    hsl(200 40% 22% / 0.78) 100%
+  ) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  border-right: 1px solid hsl(160 40% 80% / 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.10),
+    0 12px 32px hsl(180 40% 10% / 0.35) !important;
+}
+
+/* Subtle leaf silhouette inside sidebar */
+.tourist-glass [data-sidebar="sidebar"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%23ffffff'><path d='M40 140 C25 95 75 55 130 65 C120 110 95 140 40 140 Z'/><path d='M150 40 C170 75 145 120 100 120 C110 85 125 55 150 40 Z'/></g></svg>");
+  background-size: 260px 260px;
+  background-repeat: repeat;
+}
+.tourist-glass [data-sidebar="sidebar"] > * { position: relative; }
+
+/* Override sidebar tokens within tourist portal for a cohesive teal-green look */
+.tourist-glass {
+  --sidebar-background: 180 30% 18%;
+  --sidebar-foreground: 150 30% 96%;
+  --sidebar-primary: 158 60% 55%;
+  --sidebar-primary-foreground: 180 40% 12%;
+  --sidebar-accent: 178 35% 28%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 160 30% 35%;
+  --sidebar-ring: 166 70% 55%;
+}
+
+/* Active nav pill — sage→teal gradient */
+.tourist-glass .glass-nav-item.is-active {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--gdash-sage-1, 96 30% 72%) / 0.95),
+    hsl(166 70% 50% / 0.90)
+  ) !important;
+  color: hsl(180 40% 12%) !important;
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.35),
+    0 8px 22px -6px hsl(166 60% 40% / 0.55);
 }
 
 /* ---------- Reduced motion ---------- */
@@ -123,6 +210,9 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .tourist-dashboard-glass .glass-card,
   .tourist-dashboard-glass .glass-card--featured {
-    background-color: hsl(0 0% 100% / 0.96) !important;
+    background-color: hsl(150 25% 95% / 0.96) !important;
+  }
+  .tourist-glass [data-sidebar="sidebar"] {
+    background-color: hsl(180 35% 18% / 0.98) !important;
   }
 }
