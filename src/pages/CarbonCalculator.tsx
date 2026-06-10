@@ -884,10 +884,19 @@ export const CarbonCalculator = () => {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={isCalculating}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-lg"
+                disabled={isCalculating || !!calculation}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-lg disabled:opacity-100 disabled:bg-muted disabled:text-muted-foreground"
               >
-                {isCalculating ? "Calculating..." : "Calculate My Footprint"}
+                {isCalculating ? (
+                  "Calculating..."
+                ) : calculation ? (
+                  <>
+                    <Check className="mr-2 h-5 w-5" />
+                    Calculated
+                  </>
+                ) : (
+                  "Calculate My Footprint"
+                )}
               </Button>
             </div>
           </form>
