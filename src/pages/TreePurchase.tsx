@@ -110,19 +110,19 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
-  // When treesPlanted is loaded from the DB, set the slider to the remaining
-  // balance — but only if the user hasn't already moved it away from the
-  // initial default. This prevents the slider from resetting to 1 on refetch.
+  // Keep the slider thumb pinned to the full trees-needed value when the trip
+  // data resolves, and clamp it if the trip's needed count changes. We use
+  // treesNeeded (not the remaining balance) as the max so the user can always
+  // adjust freely up to the full requirement.
   const didInitFromFetch = useRef(false);
   useEffect(() => {
+    const maxAvailable = Math.max(1, treesNeeded);
     if (didInitFromFetch.current) {
-      // Just clamp if exceeding new max
-      const maxAvailable = Math.max(1, treesNeeded - treesPlanted);
       setCustomTreeCount((prev) => (prev > maxAvailable ? maxAvailable : prev));
       return;
     }
-    if (treesPlanted > 0 || routePlantedPrior !== undefined) {
-      setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
+    if (treesNeeded > 0) {
+      setCustomTreeCount(maxAvailable);
       didInitFromFetch.current = true;
     }
   }, [treesPlanted, treesNeeded, routePlantedPrior]);
