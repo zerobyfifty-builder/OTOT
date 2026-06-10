@@ -48,7 +48,8 @@ export const TreePurchase = () => {
   const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
   
   // Default to "custom" (flexible) option
-  const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom">("custom");
+  const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom" | "tier">("custom");
+  const [selectedTier, setSelectedTier] = useState<ContributionTier | null>(null);
   
   // Calculate min and max months based on trees needed
   const getMonthlyBounds = () => {
