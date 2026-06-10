@@ -833,23 +833,23 @@ export const TreePurchase = () => {
               />
               <CardContent className="pt-4 text-center space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
-                <h3 className="text-lg font-bold text-foreground">
+                <h3 className="text-lg font-bold text-foreground inline-flex items-center gap-1 justify-center">
                   {plantingLocation?.site_name ?? "Mau Forest Complex"}
+                  {plantingLocation?.gps_lat != null && plantingLocation?.gps_lng != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${plantingLocation.gps_lat},${plantingLocation.gps_lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary"
+                      aria-label="Open location in Google Maps"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </a>
+                  )}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                   {plantingLocation?.site_description ?? "A vital water tower and source of 12 major rivers feeding Lake Victoria, Lake Nakuru, and the Maasai Mara -Serengeti. Your tree is planted here by MFC-ICLIP to restore this degraded landscape and regenerate the forest."}
                 </p>
-                {plantingLocation?.gps_lat != null && plantingLocation?.gps_lng != null && (
-                  <a
-                    href={`https://www.google.com/maps?q=${plantingLocation.gps_lat},${plantingLocation.gps_lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary tabular-nums"
-                  >
-                    <MapPin className="h-3 w-3" />
-                    {Number(plantingLocation.gps_lat).toFixed(4)}, {Number(plantingLocation.gps_lng).toFixed(4)}
-                  </a>
-                )}
                 {(plantingLocation?.site_url ?? "https://mfc-iclip.org/") && (
                   <a href={plantingLocation?.site_url ?? "https://mfc-iclip.org/"} target="_blank" rel="noopener noreferrer">
                     <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
