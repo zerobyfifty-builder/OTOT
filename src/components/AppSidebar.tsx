@@ -200,6 +200,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={() => setOpenMobile(false)}
                         className={
                           isActive
                             ? 'glass-nav-item glass-ripple is-active flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-primary text-black font-medium'
