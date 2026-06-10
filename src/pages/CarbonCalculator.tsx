@@ -761,13 +761,13 @@ export const CarbonCalculator = () => {
                           {/* Two date input boxes */}
                           <div className="grid grid-cols-2 gap-3 mb-4">
                             <div className="rounded-lg border bg-background px-3 py-2">
-                              <p className="text-xs text-muted-foreground mb-0.5">Pick-up (From)</p>
+                              <p className="text-xs text-muted-foreground mb-0.5">From (Onward)</p>
                               <p className="text-sm font-medium text-foreground">
                                 {fromDate ? format(fromDate, "MMM d") : "—"}
                               </p>
                             </div>
                             <div className="rounded-lg border bg-background px-3 py-2">
-                              <p className="text-xs text-muted-foreground mb-0.5">Drop-off (To)</p>
+                              <p className="text-xs text-muted-foreground mb-0.5">To (Return)</p>
                               <p className="text-sm font-medium text-foreground">
                                 {toDate ? format(toDate, "MMM d") : "—"}
                               </p>
