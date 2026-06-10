@@ -333,9 +333,9 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="tourist-dashboard-glass flex-1 overflow-auto">
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
+      <div className="tourist-dashboard-shell container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
-        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="glass-dashboard-header mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Welcome {getUserName()}!
           </h1>
@@ -343,7 +343,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Section 1: Stats Cards with Featured Background */}
-        <section className="glass-card glass-card--featured relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--featured-background))' }}>
+        <section className="glass-card glass-card--featured relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden">
           {/* Decorative pattern background */}
           <div className="absolute inset-0 opacity-5 pointer-events-none">
             <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>

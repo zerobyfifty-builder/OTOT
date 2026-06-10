@@ -64,7 +64,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   const strokeDashoffset = circumference - (overallProgress / 100) * circumference;
 
   return (
-    <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card border-none">
+    <Card className="glass-card h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-card border-none">
       <CardContent className="p-5 sm:p-6 md:p-7 flex flex-col h-full gap-4 sm:gap-5">
         {/* Header */}
         <div className="flex items-start gap-3">
