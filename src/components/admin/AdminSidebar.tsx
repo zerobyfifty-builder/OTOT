@@ -101,6 +101,7 @@ const menuItems = [
       { title: "Wallet Settings", url: "/admin/config/wallet" },
       { title: "Planting Costs", url: "/admin/config/planting-costs" },
       { title: "Contribution Tiers", url: "/admin/config/contribution-tiers" },
+      { title: "Planting Locations", url: "/admin/config/planting-locations" },
     ],
   },
   {
