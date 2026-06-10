@@ -178,7 +178,7 @@ export default function PlantingLocationsConfig() {
         <div>
           <h1 className="text-3xl font-bold text-admin-primary">Planting Locations</h1>
           <p className="text-muted-foreground mt-1">
-            Manage the “Planted by” and “Planted here” content displayed on the tourist tree-purchase page.
+            Manage the content displayed on the tourist tree-purchase page.
           </p>
         </div>
         <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />Add Location</Button>
