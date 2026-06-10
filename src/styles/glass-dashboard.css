@@ -101,14 +101,17 @@
   background-color: var(--gdash-card-bg) !important;
   background-image: linear-gradient(
     135deg,
-    hsl(0 0% 100% / 0.35) 0%,
-    hsl(160 40% 96% / 0.10) 50%,
-    hsl(180 35% 92% / 0.30) 100%
+    hsl(0 0% 100% / 0.23) 0%,
+    hsl(124 75% 88% / 0.06) 45%,
+    hsl(158 66% 26% / 0.22) 100%
   );
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
+  backdrop-filter: blur(30px) saturate(175%);
   border: 1px solid var(--gdash-card-border) !important;
-  box-shadow: var(--gdash-card-shadow);
+  box-shadow:
+    0 28px 70px -28px hsl(120 80% 3% / 0.70),
+    inset 0 1px 0 hsl(0 0% 100% / 0.34),
+    inset 0 -1px 0 hsl(100 70% 80% / 0.10);
   transition:
     transform 260ms cubic-bezier(.2,.7,.2,1),
     box-shadow 260ms ease,
@@ -127,16 +130,16 @@
   background-color: var(--gdash-card-bg-strong) !important;
   background-image:
     linear-gradient(135deg,
-      hsl(var(--gdash-sage-1) / 0.45) 0%,
-      hsl(0 0% 100% / 0.25) 45%,
-      hsl(var(--gdash-teal-1) / 0.45) 100%) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(170%);
-  backdrop-filter: blur(26px) saturate(170%);
-  border: 1px solid hsl(160 50% 70% / 0.55) !important;
+      hsl(0 0% 100% / 0.24) 0%,
+      hsl(101 66% 76% / 0.16) 44%,
+      hsl(160 56% 28% / 0.28) 100%) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(185%);
+  backdrop-filter: blur(34px) saturate(185%);
+  border: 1px solid hsl(105 86% 84% / 0.36) !important;
   box-shadow:
-    0 1px 0 hsl(0 0% 100% / 0.7) inset,
-    0 30px 60px -28px hsl(180 50% 22% / 0.45),
-    0 8px 24px -12px hsl(160 30% 20% / 0.25);
+    0 1px 0 hsl(0 0% 100% / 0.42) inset,
+    0 36px 88px -32px hsl(120 80% 3% / 0.82),
+    0 12px 32px -14px hsl(88 80% 50% / 0.22);
 }
 
 .tourist-dashboard-glass .glass-card--featured::before {
