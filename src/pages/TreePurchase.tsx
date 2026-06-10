@@ -185,6 +185,13 @@ export const TreePurchase = () => {
     if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
     return Number(flexibleTier.price_override_usd) / refTrees;
   })();
+  const monthlyPerTree = (() => {
+    if (!monthlyTier || monthlyTier.price_override_usd == null) return PRICE_PER_TREE;
+    const refTrees =
+      monthlyTier.trees_count ?? monthlyTier.max_trees ?? monthlyTier.min_trees ?? 1;
+    if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
+    return Number(monthlyTier.price_override_usd) / refTrees;
+  })();
   const excludedTierIds = [flexibleTier?.id, monthlyTier?.id].filter(Boolean) as string[];
 
   const calculatePrice = () => {
@@ -193,7 +200,7 @@ export const TreePurchase = () => {
       case "onetime":
         return treesNeeded * PRICE_PER_TREE;
       case "subscription":
-        return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+        return (treesNeeded * monthlyPerTree) / subscriptionMonths;
       case "custom":
         return customTreeCount * flexiblePerTree;
       default:
@@ -202,8 +209,9 @@ export const TreePurchase = () => {
   };
 
   const calculateMonthlyPrice = () => {
-    return (treesNeeded * PRICE_PER_TREE) / subscriptionMonths;
+    return (treesNeeded * monthlyPerTree) / subscriptionMonths;
   };
+
 
   const getTreeCount = () => {
     if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.trees;
