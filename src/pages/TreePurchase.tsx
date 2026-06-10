@@ -641,7 +641,7 @@ export const TreePurchase = () => {
                     <Leaf className="h-8 w-8 text-primary" />
                   </div>
                   <CardTitle className="text-xl">Flexible Tree Planting</CardTitle>
-                  <CardDescription>Choose your own tree quantity</CardDescription>
+                  <CardDescription>Select number of trees</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-4">
                   <div className="py-4">
