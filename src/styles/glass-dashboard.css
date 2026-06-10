@@ -78,6 +78,12 @@
 
 .tourist-dashboard-glass > * { position: relative; z-index: 1; }
 
+.tourist-dashboard-glass {
+  --gdash-ink: 126 54% 10%;
+  --gdash-ink-muted: 132 28% 22%;
+  --gdash-ink-on-dark: 114 40% 96%;
+}
+
 .tourist-dashboard-glass .tourist-dashboard-shell {
   max-width: none;
   width: 100%;
@@ -183,6 +189,24 @@
   opacity: 1 !important;
 }
 
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured),
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) h2,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) h3,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) p,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) span,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) .text-foreground,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) .text-muted-foreground,
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) [class*="text-muted-foreground"] {
+  color: hsl(var(--gdash-ink)) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) [class*="text-muted-foreground"],
+.tourist-dashboard-glass [class*="bg-card"]:not(.glass-card--featured) p:not(.text-foreground) {
+  color: hsl(var(--gdash-ink-muted)) !important;
+}
+
 .tourist-dashboard-glass .glass-card--featured .glass-card svg:not([class*="text-"]) {
   color: hsl(126 54% 10%) !important;
 }
@@ -221,7 +245,9 @@
 }
 
 .tourist-dashboard-glass .glass-card button,
-.tourist-dashboard-glass .glass-card a {
+.tourist-dashboard-glass .glass-card a,
+.tourist-dashboard-glass [class*="bg-card"] button,
+.tourist-dashboard-glass [class*="bg-card"] a {
   border-color: hsl(105 85% 76% / 0.54) !important;
   background-color: hsl(104 78% 70% / 0.78) !important;
   color: hsl(125 58% 8%) !important;
