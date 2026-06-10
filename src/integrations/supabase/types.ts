@@ -2523,6 +2523,54 @@ export type Database = {
         }
         Relationships: []
       }
+      planting_locations: {
+        Row: {
+          created_at: string
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          is_active: boolean
+          photo_url: string | null
+          planted_by_description: string | null
+          planted_by_name: string
+          site_description: string | null
+          site_name: string
+          site_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          is_active?: boolean
+          photo_url?: string | null
+          planted_by_description?: string | null
+          planted_by_name: string
+          site_description?: string | null
+          site_name: string
+          site_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          is_active?: boolean
+          photo_url?: string | null
+          planted_by_description?: string | null
+          planted_by_name?: string
+          site_description?: string | null
+          site_name?: string
+          site_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       planting_records: {
         Row: {
           beat: string | null
