@@ -81,7 +81,7 @@ interface OwnerSidebarProps {
 }
 
 export function OwnerSidebar({ organizationName: propOrgName }: OwnerSidebarProps) {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
