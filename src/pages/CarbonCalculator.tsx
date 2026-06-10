@@ -110,6 +110,7 @@ export const CarbonCalculator = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [pendingAction, setPendingAction] = useState<'save' | 'plant' | null>(null);
   const [calculatorContext, setCalculatorContext] = useState<any>(null);
