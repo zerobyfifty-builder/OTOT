@@ -457,10 +457,12 @@
 .tree-purchase-glass > .container > div > h2,
 .tree-purchase-glass > .container > div > div > h2,
 .tree-purchase-glass h1 {
-  color: hsl(114 35% 96%) !important;
-  text-shadow: 0 2px 18px hsl(120 70% 4% / 0.72);
+  color: hsl(96 78% 97%) !important;
+  text-shadow:
+    0 2px 18px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95);
   font-weight: 700 !important;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .tree-purchase-glass > .container > div > h1 {
@@ -472,10 +474,19 @@
 .tree-purchase-glass > .container > div > div > h2 {
   font-size: clamp(1.5rem, 2vw, 1.875rem) !important;
   line-height: 1.2 !important;
+  color: hsl(96 84% 96%) !important;
+  text-shadow:
+    0 2px 16px hsl(120 90% 3% / 0.88),
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
 }
 
 .tree-purchase-glass > .container > div > p,
 .tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl) {
-  color: hsl(116 35% 92% / 0.94) !important;
-  text-shadow: 0 1px 8px hsl(120 70% 4% / 0.55);
+  color: hsl(96 66% 95% / 0.98) !important;
+  font-size: clamp(1rem, 1.35vw, 1.125rem);
+  font-weight: 600;
+  line-height: 1.6;
+  text-shadow:
+    0 2px 14px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95);
 }
