@@ -167,6 +167,15 @@ export default function PlantingLocationsConfig() {
     await invalidate();
   };
 
+  const toggleTourist = async (loc: PlantingLocation) => {
+    const { error } = await supabase
+      .from("planting_locations")
+      .update({ show_in_tourist: !loc.show_in_tourist })
+      .eq("id", loc.id);
+    if (error) { toast.error(error.message); return; }
+    await invalidate();
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
     const { error } = await supabase.from("planting_locations").delete().eq("id", deleteId);
