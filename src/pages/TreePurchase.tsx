@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
 import mauForestImage from "@/assets/mau-forest-complex.jpg";
 import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
-import { useVisibleTiers, type ContributionTier } from "@/hooks/useContributionTiers";
+import { type ContributionTier } from "@/hooks/useContributionTiers";
 import { computeTierPrice } from "@/hooks/useTierPrice";
 import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
 
