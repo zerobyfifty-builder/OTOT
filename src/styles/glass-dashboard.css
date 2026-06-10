@@ -19,9 +19,9 @@
   --gdash-teal-2: 192 42% 48%;
   --gdash-teal-3: 205 40% 30%;
 
-  --gdash-card-bg:        hsl(150 30% 96% / 0.55);
-  --gdash-card-bg-strong: hsl(160 35% 95% / 0.70);
-  --gdash-card-border:    hsl(160 30% 80% / 0.55);
+  --gdash-card-bg:        hsl(142 42% 14% / 0.34);
+  --gdash-card-bg-strong: hsl(154 42% 18% / 0.42);
+  --gdash-card-border:    hsl(124 70% 82% / 0.28);
   --gdash-card-shadow:
     0 1px 2px hsl(180 30% 18% / 0.10),
     0 18px 40px -22px hsl(180 35% 18% / 0.30),
@@ -33,18 +33,18 @@
     inset 0 1px 0 hsl(0 0% 100% / 0.65);
   --gdash-ring-glow: hsl(166 60% 55% / 0.55);
 
-  /* Paint the aurora directly on the wrapper so it isn't covered by the
-     opaque .tourist-glass-main background from glass.css. */
-  background-color: hsl(200 35% 92%);
+  color: hsl(118 45% 95%);
+  /* Paint an unmistakable deep green glassmorphism background directly on the wrapper. */
+  background-color: hsl(125 52% 6%);
   background-image:
-    radial-gradient(60rem 40rem at 20% 15%, hsl(var(--gdash-sage-1) / 0.75), transparent 65%),
-    radial-gradient(50rem 38rem at 90% 35%, hsl(var(--gdash-teal-1) / 0.70), transparent 65%),
-    radial-gradient(48rem 36rem at 65% 95%, hsl(var(--gdash-teal-2) / 0.55), transparent 70%),
-    radial-gradient(70rem 8rem at 50% 80%, hsl(48 95% 90% / 0.45), transparent 70%),
+    radial-gradient(62rem 40rem at 22% 0%, hsl(166 56% 45% / 0.48), transparent 62%),
+    radial-gradient(54rem 40rem at 92% 24%, hsl(92 70% 76% / 0.42), transparent 64%),
+    radial-gradient(46rem 34rem at 54% 74%, hsl(72 88% 72% / 0.24), transparent 68%),
+    radial-gradient(72rem 16rem at 48% 58%, hsl(88 72% 88% / 0.22), transparent 70%),
     linear-gradient(135deg,
-      hsl(var(--gdash-sage-2) / 0.55) 0%,
-      hsl(var(--gdash-teal-2) / 0.55) 55%,
-      hsl(var(--gdash-teal-3) / 0.65) 100%);
+      hsl(128 55% 7%) 0%,
+      hsl(154 46% 17%) 42%,
+      hsl(118 48% 10%) 100%);
 }
 
 /* Defeat the opaque main background painted by glass.css */
@@ -77,6 +77,24 @@
 }
 
 .tourist-dashboard-glass > * { position: relative; z-index: 1; }
+
+.tourist-dashboard-glass .tourist-dashboard-shell {
+  max-width: none;
+  width: 100%;
+}
+
+.tourist-dashboard-glass .glass-dashboard-header {
+  color: hsl(114 35% 96%);
+  text-shadow: 0 2px 18px hsl(120 70% 4% / 0.72);
+}
+
+.tourist-dashboard-glass .glass-dashboard-header h1,
+.tourist-dashboard-glass h2,
+.tourist-dashboard-glass h3,
+.tourist-dashboard-glass p,
+.tourist-dashboard-glass span:not([class*="bg-"]) {
+  color: inherit;
+}
 
 /* ---------- Glass card surface ---------- */
 .tourist-dashboard-glass .glass-card {
