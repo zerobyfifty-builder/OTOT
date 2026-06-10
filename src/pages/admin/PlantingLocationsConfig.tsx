@@ -127,6 +127,15 @@ export default function PlantingLocationsConfig() {
       return;
     }
     setSaving(true);
+    if (form.show_in_tourist) {
+      const conflict = locations.find(l => l.id !== form.id && l.show_in_tourist);
+      if (conflict) {
+        toast.error("Unassign current location first", {
+          description: `"${conflict.planted_by_name}" is currently assigned to the tourist portal.`,
+        });
+        return;
+      }
+    }
     try {
       const payload = {
         planted_by_name: form.planted_by_name.trim(),
