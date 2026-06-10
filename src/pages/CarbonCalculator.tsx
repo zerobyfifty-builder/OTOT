@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format, differenceInDays } from "date-fns";
-import { CalendarIcon, Plane, MapPin, Users, Hotel, Calendar as CalIcon, Minus, Plus, X, TreePine, Leaf, Sparkles, ArrowRight, Cloud, Wind } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Users, Hotel, Calendar as CalIcon, Minus, Plus, X, TreePine, Leaf, Sparkles, ArrowRight, Cloud, Wind, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -884,10 +884,19 @@ export const CarbonCalculator = () => {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={isCalculating}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-lg"
+                disabled={isCalculating || !!calculation}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-lg disabled:opacity-100 disabled:bg-muted disabled:text-muted-foreground"
               >
-                {isCalculating ? "Calculating..." : "Calculate My Footprint"}
+                {isCalculating ? (
+                  "Calculating..."
+                ) : calculation ? (
+                  <>
+                    <Check className="mr-2 h-5 w-5" />
+                    Calculated
+                  </>
+                ) : (
+                  "Calculate My Footprint"
+                )}
               </Button>
             </div>
           </form>
@@ -898,7 +907,7 @@ export const CarbonCalculator = () => {
           const treesNeeded = calcResult?.treesNeeded ?? calculation.treesNeeded;
           const visibleTrees = Math.min(treesNeeded, 12);
           return (
-          <div ref={resultsRef} className="mt-8 animate-fade-in scroll-mt-20">
+          <div ref={resultsRef} className="mt-8 animate-fade-in scroll-mt-0">
             <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl">
               {/* Decorative background */}
               <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
