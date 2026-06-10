@@ -82,9 +82,9 @@ export default function PlantingLocationsConfig() {
     setSheetOpen(true);
   };
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["planting-locations"] }).then(
-    () => qc.invalidateQueries({ queryKey: ["active-planting-location"] })
-  );
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["planting-locations"] })
+    .then(() => qc.invalidateQueries({ queryKey: ["active-planting-location"] }))
+    .then(() => qc.invalidateQueries({ queryKey: ["tourist-planting-location"] }));
 
   const handlePhotoUpload = async (file: File) => {
     setUploading(true);
