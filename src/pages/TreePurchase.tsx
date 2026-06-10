@@ -776,6 +776,7 @@ export const TreePurchase = () => {
                 perTree={PRICE_PER_TREE}
                 selectedTierId={selectedTier?.id || null}
                 onSelectTier={handleTierSelect}
+                excludedTierIds={excludedTierIds}
               />
             </div>
 
