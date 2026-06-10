@@ -14,7 +14,6 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { generateTreeCertificate, downloadCertificate } from "@/utils/certificateGenerator";
@@ -858,18 +857,32 @@ export const TreePurchase = () => {
               {/* Payment Method Selection */}
               <div className="mb-6 space-y-2">
                 <Label className="text-sm font-medium">Payment Method</Label>
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
                   {["Card", "M-Pesa", "Bank Transfer", "PayPal"].map((method) => (
-                    <div
+                    <button
+                      type="button"
                       key={method}
+                      aria-pressed={paymentMethod === method}
+                      onPointerDown={() => setPaymentMethod(method)}
                       onClick={() => setPaymentMethod(method)}
-                      className="flex min-h-10 items-center space-x-2 cursor-pointer py-2 px-1 text-sm select-none touch-manipulation"
+                      className={`flex min-h-11 items-center gap-2 rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors touch-manipulation select-none ${
+                        paymentMethod === method
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-foreground hover:bg-muted/50"
+                      }`}
                     >
-                      <RadioGroupItem value={method} />
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          paymentMethod === method ? "border-primary" : "border-muted-foreground"
+                        }`}
+                      >
+                        {paymentMethod === method && <span className="h-2 w-2 rounded-full bg-primary" />}
+                      </span>
                       <span>{method}</span>
-                    </div>
+                    </button>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
 
               <Button
