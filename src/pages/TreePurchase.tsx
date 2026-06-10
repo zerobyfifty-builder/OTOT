@@ -865,7 +865,7 @@ export const TreePurchase = () => {
                       onClick={() => setPaymentMethod(method)}
                       className="flex min-h-10 items-center space-x-2 cursor-pointer py-2 px-1 text-sm select-none touch-manipulation"
                     >
-                      <RadioGroupItem value={method} id={`pm-${method}`} />
+                      <RadioGroupItem value={method} />
                       <span>{method}</span>
                     </div>
                   ))}
