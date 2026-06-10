@@ -171,12 +171,13 @@ export const TreePurchase = () => {
   const flexibleTier =
     visibleTouristTiers.find((t) => t.tier_type === 'custom_range') ||
     visibleTouristTiers.find(
-      (t) =>
-        t.name?.toLowerCase() === 'flexible tree planting' ||
-        t.key?.toLowerCase() === 'flexible_tree_planting' ||
-        t.key?.toLowerCase() === 'flexible'
+      (t) => t.name?.toLowerCase().includes('flexible')
     ) ||
     null;
+  const monthlyTier =
+    visibleTouristTiers.find(
+      (t) => t.name?.toLowerCase().includes('monthly')
+    ) || null;
   const flexiblePerTree = (() => {
     if (!flexibleTier || flexibleTier.price_override_usd == null) return PRICE_PER_TREE;
     const refTrees =
@@ -184,6 +185,7 @@ export const TreePurchase = () => {
     if (!refTrees || refTrees <= 0) return PRICE_PER_TREE;
     return Number(flexibleTier.price_override_usd) / refTrees;
   })();
+  const excludedTierIds = [flexibleTier?.id, monthlyTier?.id].filter(Boolean) as string[];
 
   const calculatePrice = () => {
     if (selectedOption === "tier" && tierPriceInfo) return tierPriceInfo.finalPrice;
