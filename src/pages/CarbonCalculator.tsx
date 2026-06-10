@@ -458,7 +458,7 @@ export const CarbonCalculator = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className="flex gap-0 border-b-2 border-border">
+                      <div className="flex justify-start gap-0 border-b-2 border-border md:justify-end">
                         <button
                           type="button"
                           onClick={() => field.onChange("airports")}
