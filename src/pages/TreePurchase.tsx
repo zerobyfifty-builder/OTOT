@@ -543,13 +543,13 @@ export const TreePurchase = () => {
             </p>
 
             {/* Trip Summary Card */}
-            <Card className="glass-card glass-card--featured border-0 overflow-hidden relative">
+            <section className="glass-card glass-card--featured relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden">
               <div className="absolute inset-0 opacity-5 pointer-events-none">
                 <div className="absolute top-10 right-20 w-64 h-64 rounded-full border-2 border-foreground"></div>
                 <div className="absolute bottom-10 left-20 w-48 h-48 rounded-full border-2 border-foreground"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-foreground"></div>
               </div>
-              <CardContent className="pt-6 relative z-10">
+              <div className="relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
@@ -588,7 +588,7 @@ export const TreePurchase = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Progress Bar Section */}
                 <div className="space-y-2 pt-4 border-t border-accent/20">
                   <div className="flex justify-between items-center text-sm">
@@ -596,14 +596,14 @@ export const TreePurchase = () => {
                     <span className="text-muted-foreground">Tree Debt: {getTreeDebtPercentage()}%</span>
                   </div>
                   <div className="relative w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
                       style={{ width: `${getTreeCreditPercentage()}%` }}
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           </div>
 
           {/* Purchase Options */}
