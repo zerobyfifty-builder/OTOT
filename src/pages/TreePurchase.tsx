@@ -752,7 +752,7 @@ export const TreePurchase = () => {
                       <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Select Duration (Months)</Label>
-                          <span className="text-sm font-semibold">{subscriptionMonths}</span>
+                          <span className="text-sm font-semibold">{subscriptionMonths} {subscriptionMonths === 1 ? 'Month' : 'Months'}</span>
                         </div>
                         <Slider
                           min={minMonths}
