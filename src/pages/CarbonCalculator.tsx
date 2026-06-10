@@ -892,7 +892,7 @@ export const CarbonCalculator = () => {
                 ) : calculation ? (
                   <>
                     <Check className="mr-2 h-5 w-5" />
-                    Calculated
+                    CO2 Calculated
                   </>
                 ) : (
                   "Calculate My Footprint"
