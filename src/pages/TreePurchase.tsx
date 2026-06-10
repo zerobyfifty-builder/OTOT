@@ -357,7 +357,7 @@ export const TreePurchase = () => {
       
       toast({
         title: "Success!",
-        description: `Payment successful! ${treeCount} ${treeCount === 1 ? 'tree' : 'trees'} purchased for $${totalCost.toFixed(2)}.`,
+        description: `Payment successful! ${treeCount} purchased for $${totalCost.toFixed(2)}.`,
       });
 
     } catch (error: any) {
