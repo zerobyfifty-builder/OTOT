@@ -200,6 +200,7 @@ export default function PlantingLocationsConfig() {
                   <TableHead>GPS</TableHead>
                   <TableHead>Photo</TableHead>
                   <TableHead>Active</TableHead>
+                  <TableHead>Tourist Portal</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -220,6 +221,9 @@ export default function PlantingLocationsConfig() {
                     </TableCell>
                     <TableCell>
                       <Switch checked={loc.is_active} onCheckedChange={() => toggleActive(loc)} />
+                    </TableCell>
+                    <TableCell>
+                      <Switch checked={loc.show_in_tourist} onCheckedChange={() => toggleTourist(loc)} />
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
