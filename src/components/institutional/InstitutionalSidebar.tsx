@@ -44,7 +44,7 @@ interface InstitutionalSidebarProps {
 }
 
 export function InstitutionalSidebar({ organizationName, organizationCategory }: InstitutionalSidebarProps) {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
