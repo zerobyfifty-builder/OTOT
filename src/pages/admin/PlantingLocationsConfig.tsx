@@ -322,7 +322,7 @@ export default function PlantingLocationsConfig() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Sort order</Label>
                 <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
@@ -331,6 +331,12 @@ export default function PlantingLocationsConfig() {
                 <Label>Active</Label>
                 <div className="flex items-center h-10">
                   <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Tourist Portal</Label>
+                <div className="flex items-center h-10">
+                  <Switch checked={form.show_in_tourist} onCheckedChange={v => setForm(f => ({ ...f, show_in_tourist: v }))} />
                 </div>
               </div>
             </div>
