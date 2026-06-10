@@ -138,6 +138,7 @@ export default function PlantingLocationsConfig() {
         gps_lat: form.gps_lat ? parseFloat(form.gps_lat) : null,
         gps_lng: form.gps_lng ? parseFloat(form.gps_lng) : null,
         is_active: form.is_active,
+        show_in_tourist: form.show_in_tourist,
         sort_order: Number(form.sort_order) || 0,
       };
       if (form.id) {
