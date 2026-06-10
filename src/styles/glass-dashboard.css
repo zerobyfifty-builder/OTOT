@@ -452,13 +452,30 @@
   color: hsl(var(--gdash-ink-muted)) !important;
 }
 
+/* Page-level headings (outside cards) — match dashboard header style */
 .tree-purchase-glass > .container > div > h1,
+.tree-purchase-glass > .container > div > h2,
+.tree-purchase-glass > .container > div > div > h2,
 .tree-purchase-glass h1 {
   color: hsl(114 35% 96%) !important;
   text-shadow: 0 2px 18px hsl(120 70% 4% / 0.72);
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
 }
 
-.tree-purchase-glass > .container > div > p {
+.tree-purchase-glass > .container > div > h1 {
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem) !important;
+  line-height: 1.15 !important;
+}
+
+.tree-purchase-glass > .container > div > h2,
+.tree-purchase-glass > .container > div > div > h2 {
+  font-size: clamp(1.5rem, 2vw, 1.875rem) !important;
+  line-height: 1.2 !important;
+}
+
+.tree-purchase-glass > .container > div > p,
+.tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl) {
   color: hsl(116 35% 92% / 0.94) !important;
   text-shadow: 0 1px 8px hsl(120 70% 4% / 0.55);
 }
