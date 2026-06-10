@@ -47,7 +47,7 @@ export const TreePurchase = () => {
     speciesLabel, rateUsed, speciesId, survivalRate, horizonYears, configId,
   } = location.state || {};
   const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
-  const { data: plantingLocation } = useActivePlantingLocation();
+  const { data: plantingLocation } = useTouristPlantingLocation();
   
   // Default to "custom" (flexible) option
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom" | "tier">("custom");
