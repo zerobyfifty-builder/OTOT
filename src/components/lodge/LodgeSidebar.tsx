@@ -39,7 +39,7 @@ const moduleMenuItems: Record<string, { title: string; url: string; icon: any; s
 const helpItem = { title: 'Help & Support', url: '/lodge/help', icon: HelpCircle };
 
 export function LodgeSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { lodge, signOut } = useLodgeAuth();
   const location = useLocation();
   const navigate = useNavigate();
