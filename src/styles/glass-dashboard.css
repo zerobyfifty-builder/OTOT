@@ -508,6 +508,9 @@
 .tourist-dashboard-glass > .container > p,
 .tourist-dashboard-glass > .container > div > p,
 .tourist-dashboard-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
+.tourist-dashboard-glass > .container > section > p,
+.tourist-dashboard-glass > .container > div > section > p,
+.tourist-dashboard-glass > .container > div > div > section > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
 .tree-purchase-glass > .container > div > p,
 .tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl) {
   color: hsl(96 66% 95% / 0.98) !important;
