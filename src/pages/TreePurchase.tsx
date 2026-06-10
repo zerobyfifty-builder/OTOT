@@ -22,6 +22,7 @@ import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 import { useVisibleTiers, type ContributionTier } from "@/hooks/useContributionTiers";
 import { computeTierPrice } from "@/hooks/useTierPrice";
 import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
+import { useActivePlantingLocation } from "@/hooks/useActivePlantingLocation";
 
 interface Lodge {
   id: string;
@@ -46,6 +47,7 @@ export const TreePurchase = () => {
     speciesLabel, rateUsed, speciesId, survivalRate, horizonYears, configId,
   } = location.state || {};
   const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
+  const { data: plantingLocation } = useActivePlantingLocation();
   
   // Default to "custom" (flexible) option
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom" | "tier">("custom");
@@ -813,31 +815,48 @@ export const TreePurchase = () => {
                   <Trees className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted by</p>
-                <h3 className="text-lg font-bold text-foreground">MFC-ICLIP</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  The Mau Forest Complex Integrated Conservation and Livelihood Improvement Programme, under the <span className="font-bold text-foreground">Ministry of Environment, Climate Change & Forestry</span>, is a landmark 10-year initiative targeting over 317,000 hectares—one of East Africa's most ambitious landscape restoration efforts.
+                <h3 className="text-lg font-bold text-foreground">
+                  {plantingLocation?.planted_by_name ?? "MFC-ICLIP"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {plantingLocation?.planted_by_description ?? "The Mau Forest Complex Integrated Conservation and Livelihood Improvement Programme, under the Ministry of Environment, Climate Change & Forestry, is a landmark 10-year initiative targeting over 317,000 hectares—one of East Africa's most ambitious landscape restoration efforts."}
                 </p>
               </CardContent>
             </Card>
 
             {/* Card 2: Planted here */}
             <Card className="border-border/50 hover:shadow-md transition-shadow overflow-hidden">
-              <img 
-                src={mauForestImage} 
-                alt="Mau Forest Complex reforestation site" 
+              <img
+                src={plantingLocation?.photo_url || mauForestImage}
+                alt={`${plantingLocation?.site_name ?? "Mau Forest Complex"} reforestation site`}
                 className="w-full h-32 object-cover"
               />
               <CardContent className="pt-4 text-center space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Planted here</p>
-                <h3 className="text-lg font-bold text-foreground">Mau Forest Complex</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  A vital water tower and source of 12 major rivers feeding Lake Victoria, Lake Nakuru, and the Maasai Mara -Serengeti. Your tree is planted here by MFC-ICLIP to restore this degraded landscape and regenerate the forest.
+                <h3 className="text-lg font-bold text-foreground">
+                  {plantingLocation?.site_name ?? "Mau Forest Complex"}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {plantingLocation?.site_description ?? "A vital water tower and source of 12 major rivers feeding Lake Victoria, Lake Nakuru, and the Maasai Mara -Serengeti. Your tree is planted here by MFC-ICLIP to restore this degraded landscape and regenerate the forest."}
                 </p>
-                <a href="https://mfc-iclip.org/" target="_blank" rel="noopener noreferrer">
-                  <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
-                    Know more →
-                  </Button>
-                </a>
+                {plantingLocation?.gps_lat != null && plantingLocation?.gps_lng != null && (
+                  <a
+                    href={`https://www.google.com/maps?q=${plantingLocation.gps_lat},${plantingLocation.gps_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary tabular-nums"
+                  >
+                    <MapPin className="h-3 w-3" />
+                    {Number(plantingLocation.gps_lat).toFixed(4)}, {Number(plantingLocation.gps_lng).toFixed(4)}
+                  </a>
+                )}
+                {(plantingLocation?.site_url ?? "https://mfc-iclip.org/") && (
+                  <a href={plantingLocation?.site_url ?? "https://mfc-iclip.org/"} target="_blank" rel="noopener noreferrer">
+                    <Button variant="link" size="sm" className="text-xs text-primary p-0 h-auto">
+                      Know more →
+                    </Button>
+                  </a>
+                )}
               </CardContent>
             </Card>
 

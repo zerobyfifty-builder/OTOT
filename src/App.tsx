@@ -132,6 +132,7 @@ import WalletSettings from "@/pages/admin/WalletSettings";
 import { TreeOperations } from "@/pages/owner/TreeOperations";
 import PlantingCostsConfig from "@/pages/admin/PlantingCostsConfig";
 import ContributionTierSettings from "@/pages/admin/ContributionTierSettings";
+import PlantingLocationsConfig from "@/pages/admin/PlantingLocationsConfig";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -594,6 +595,13 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <ContributionTierSettings />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/config/planting-locations" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <PlantingLocationsConfig />
                 </AdminLayout>
               </SuperAdminRoute>
             } />
