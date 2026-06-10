@@ -9,16 +9,16 @@
 .tourist-dashboard-glass {
   position: relative;
   isolation: isolate;
+  min-height: 100%;
 
   /* Reference-image palette */
-  --gdash-sage-1: 96 30% 72%;     /* warm sage highlight  */
-  --gdash-sage-2: 142 28% 52%;    /* mid leaf green       */
-  --gdash-sage-3: 158 35% 32%;    /* deep forest          */
-  --gdash-teal-1: 178 38% 70%;    /* pale aqua            */
-  --gdash-teal-2: 192 42% 48%;    /* mid teal-blue        */
-  --gdash-teal-3: 205 40% 30%;    /* deep slate-blue      */
+  --gdash-sage-1: 96 30% 72%;
+  --gdash-sage-2: 142 28% 52%;
+  --gdash-sage-3: 158 35% 32%;
+  --gdash-teal-1: 178 38% 70%;
+  --gdash-teal-2: 192 42% 48%;
+  --gdash-teal-3: 205 40% 30%;
 
-  /* Glass surfaces — translucent with sage/teal tint */
   --gdash-card-bg:        hsl(150 30% 96% / 0.55);
   --gdash-card-bg-strong: hsl(160 35% 95% / 0.70);
   --gdash-card-border:    hsl(160 30% 80% / 0.55);
@@ -32,57 +32,50 @@
     0 28px 56px -22px hsl(160 50% 22% / 0.40),
     inset 0 1px 0 hsl(0 0% 100% / 0.65);
   --gdash-ring-glow: hsl(166 60% 55% / 0.55);
-}
 
-/* ---------- Sage-teal gradient backdrop with leaf motif ---------- */
-.tourist-dashboard-glass::before,
-.tourist-dashboard-glass::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  will-change: transform;
-}
-
-/* Layer 1 — sage→teal gradient + soft light bloom */
-.tourist-dashboard-glass::before {
-  background:
-    radial-gradient(60rem 40rem at 20% 15%, hsl(var(--gdash-sage-1) / 0.55), transparent 65%),
-    radial-gradient(50rem 38rem at 90% 35%, hsl(var(--gdash-teal-1) / 0.45), transparent 65%),
-    radial-gradient(48rem 36rem at 65% 95%, hsl(var(--gdash-teal-2) / 0.40), transparent 70%),
+  /* Paint the aurora directly on the wrapper so it isn't covered by the
+     opaque .tourist-glass-main background from glass.css. */
+  background-color: hsl(200 35% 92%);
+  background-image:
+    radial-gradient(60rem 40rem at 20% 15%, hsl(var(--gdash-sage-1) / 0.75), transparent 65%),
+    radial-gradient(50rem 38rem at 90% 35%, hsl(var(--gdash-teal-1) / 0.70), transparent 65%),
+    radial-gradient(48rem 36rem at 65% 95%, hsl(var(--gdash-teal-2) / 0.55), transparent 70%),
+    radial-gradient(70rem 8rem at 50% 80%, hsl(48 95% 90% / 0.45), transparent 70%),
     linear-gradient(135deg,
       hsl(var(--gdash-sage-2) / 0.55) 0%,
       hsl(var(--gdash-teal-2) / 0.55) 55%,
       hsl(var(--gdash-teal-3) / 0.65) 100%);
-  filter: saturate(115%);
-  animation: gdash-aurora-a 26s ease-in-out infinite alternate;
 }
 
-/* Layer 2 — leaf silhouettes + warm light streak */
-.tourist-dashboard-glass::after {
-  background-image:
-    /* warm light streak (bottom-center sheen in reference) */
-    radial-gradient(70rem 6rem at 50% 78%, hsl(48 90% 88% / 0.35), transparent 70%),
-    radial-gradient(30rem 4rem at 50% 78%, hsl(48 95% 95% / 0.55), transparent 70%),
-    /* faint leaf pattern */
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><g fill='%23ffffff' opacity='0.06'><path d='M60 220 C40 150 110 90 200 90 C190 160 150 210 60 220 Z'/><path d='M320 110 C340 190 270 260 180 260 C200 190 240 130 320 110 Z'/><path d='M50 360 C40 320 90 290 140 300 C130 330 110 350 50 360 Z'/><path d='M280 350 C300 310 360 300 390 320 C370 350 330 360 280 350 Z'/></g></svg>");
-  background-size: auto, auto, 520px 520px;
-  background-repeat: no-repeat, no-repeat, repeat;
-  filter: blur(0.4px);
+/* Defeat the opaque main background painted by glass.css */
+.tourist-glass .tourist-glass-main:has(> .tourist-dashboard-glass),
+.tourist-glass .tourist-glass-main > .tourist-dashboard-glass {
+  background: transparent !important;
+}
+.tourist-glass .tourist-glass-main:has(.tourist-dashboard-glass) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Soft leaf silhouette overlay */
+.tourist-dashboard-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><g fill='%23ffffff' opacity='0.10'><path d='M60 220 C40 150 110 90 200 90 C190 160 150 210 60 220 Z'/><path d='M320 110 C340 190 270 260 180 260 C200 190 240 130 320 110 Z'/><path d='M50 360 C40 320 90 290 140 300 C130 330 110 350 50 360 Z'/><path d='M280 350 C300 310 360 300 390 320 C370 350 330 360 280 350 Z'/></g></svg>");
+  background-size: 520px 520px;
+  background-repeat: repeat;
+  mix-blend-mode: soft-light;
   animation: gdash-aurora-b 32s ease-in-out infinite alternate;
 }
 
-@keyframes gdash-aurora-a {
-  0%   { transform: translate3d(0, 0, 0)        scale(1); }
-  100% { transform: translate3d(-1.5%, 1.2%, 0) scale(1.05); }
-}
 @keyframes gdash-aurora-b {
   0%   { transform: translate3d(0, 0, 0)        scale(1); }
   100% { transform: translate3d(2%, -1%, 0)     scale(1.04); }
 }
 
-/* Keep page content above the backdrop */
 .tourist-dashboard-glass > * { position: relative; z-index: 1; }
 
 /* ---------- Glass card surface ---------- */
