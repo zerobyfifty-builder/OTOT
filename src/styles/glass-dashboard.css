@@ -452,34 +452,50 @@
   color: hsl(var(--gdash-ink-muted)) !important;
 }
 
-/* Page-level headings (outside cards) — match dashboard header style */
+/* ============================================================
+   Tourist portal — page-level heading & subtext readability
+   Applies to any page wrapped with .tourist-dashboard-glass.
+   Scoped to elements OUTSIDE cards/frosted surfaces so card text
+   keeps its dark-on-light treatment defined above.
+   ============================================================ */
+.tourist-dashboard-glass > .container > h1,
+.tourist-dashboard-glass > .container > div > h1,
+.tourist-dashboard-glass > .container > div > div > h1,
+.tourist-dashboard-glass > .container > h2,
+.tourist-dashboard-glass > .container > div > h2,
+.tourist-dashboard-glass > .container > div > div > h2,
 .tree-purchase-glass > .container > div > h1,
 .tree-purchase-glass > .container > div > h2,
-.tree-purchase-glass > .container > div > div > h2,
-.tree-purchase-glass h1 {
+.tree-purchase-glass > .container > div > div > h2 {
   color: hsl(96 78% 97%) !important;
   text-shadow:
     0 2px 18px hsl(120 90% 3% / 0.86),
-    0 0 2px hsl(120 90% 3% / 0.95);
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
   font-weight: 700 !important;
   letter-spacing: 0;
 }
 
+.tourist-dashboard-glass > .container > h1,
+.tourist-dashboard-glass > .container > div > h1,
+.tourist-dashboard-glass > .container > div > div > h1,
 .tree-purchase-glass > .container > div > h1 {
   font-size: clamp(1.75rem, 2.4vw, 2.25rem) !important;
   line-height: 1.15 !important;
 }
 
+.tourist-dashboard-glass > .container > h2,
+.tourist-dashboard-glass > .container > div > h2,
+.tourist-dashboard-glass > .container > div > div > h2,
 .tree-purchase-glass > .container > div > h2,
 .tree-purchase-glass > .container > div > div > h2 {
   font-size: clamp(1.5rem, 2vw, 1.875rem) !important;
   line-height: 1.2 !important;
   color: hsl(96 84% 96%) !important;
-  text-shadow:
-    0 2px 16px hsl(120 90% 3% / 0.88),
-    0 0 2px hsl(120 90% 3% / 0.95) !important;
 }
 
+.tourist-dashboard-glass > .container > p,
+.tourist-dashboard-glass > .container > div > p,
+.tourist-dashboard-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
 .tree-purchase-glass > .container > div > p,
 .tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl) {
   color: hsl(96 66% 95% / 0.98) !important;
@@ -489,4 +505,23 @@
   text-shadow:
     0 2px 14px hsl(120 90% 3% / 0.86),
     0 0 2px hsl(120 90% 3% / 0.95);
+}
+
+/* Dashboard header block (Welcome banner) — keep heading + subtext readable */
+.tourist-dashboard-glass .glass-dashboard-header h1,
+.tourist-dashboard-glass .glass-dashboard-header h2 {
+  color: hsl(96 78% 97%) !important;
+  text-shadow:
+    0 2px 18px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
+  font-weight: 700 !important;
+}
+
+.tourist-dashboard-glass .glass-dashboard-header p,
+.tourist-dashboard-glass .glass-dashboard-header .text-muted-foreground {
+  color: hsl(96 66% 95% / 0.98) !important;
+  font-weight: 600 !important;
+  text-shadow:
+    0 2px 14px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95) !important;
 }
