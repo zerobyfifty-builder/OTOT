@@ -694,7 +694,7 @@ export const TreePurchase = () => {
                         for {subscriptionMonths} {subscriptionMonths === 1 ? 'month' : 'months'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {Math.ceil(treesNeeded / subscriptionMonths)} {Math.ceil(treesNeeded / subscriptionMonths) === 1 ? 'tree' : 'trees'} per month
+                        {Math.ceil(treesNeeded / subscriptionMonths)} per month
                       </p>
                     </div>
                     
