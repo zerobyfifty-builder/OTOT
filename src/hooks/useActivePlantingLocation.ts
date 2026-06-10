@@ -12,7 +12,27 @@ export interface PlantingLocation {
   gps_lat: number | null;
   gps_lng: number | null;
   is_active: boolean;
+  show_in_tourist: boolean;
   sort_order: number;
+}
+
+export function useTouristPlantingLocation() {
+  return useQuery({
+    queryKey: ["tourist-planting-location"],
+    queryFn: async (): Promise<PlantingLocation | null> => {
+      const { data, error } = await supabase
+        .from("planting_locations")
+        .select("*")
+        .eq("is_active", true)
+        .eq("show_in_tourist", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as PlantingLocation | null;
+    },
+  });
 }
 
 export function useActivePlantingLocation() {

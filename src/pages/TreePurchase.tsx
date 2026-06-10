@@ -22,7 +22,7 @@ import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 import { useVisibleTiers, type ContributionTier } from "@/hooks/useContributionTiers";
 import { computeTierPrice } from "@/hooks/useTierPrice";
 import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
-import { useActivePlantingLocation } from "@/hooks/useActivePlantingLocation";
+import { useTouristPlantingLocation } from "@/hooks/useActivePlantingLocation";
 
 interface Lodge {
   id: string;
@@ -47,7 +47,7 @@ export const TreePurchase = () => {
     speciesLabel, rateUsed, speciesId, survivalRate, horizonYears, configId,
   } = location.state || {};
   const [treesPlanted, setTreesPlanted] = useState(routePlantedPrior || 0);
-  const { data: plantingLocation } = useActivePlantingLocation();
+  const { data: plantingLocation } = useTouristPlantingLocation();
   
   // Default to "custom" (flexible) option
   const [selectedOption, setSelectedOption] = useState<"onetime" | "subscription" | "custom" | "tier">("custom");

@@ -2533,6 +2533,7 @@ export type Database = {
           photo_url: string | null
           planted_by_description: string | null
           planted_by_name: string
+          show_in_tourist: boolean
           site_description: string | null
           site_name: string
           site_url: string | null
@@ -2548,6 +2549,7 @@ export type Database = {
           photo_url?: string | null
           planted_by_description?: string | null
           planted_by_name: string
+          show_in_tourist?: boolean
           site_description?: string | null
           site_name: string
           site_url?: string | null
@@ -2563,6 +2565,7 @@ export type Database = {
           photo_url?: string | null
           planted_by_description?: string | null
           planted_by_name?: string
+          show_in_tourist?: boolean
           site_description?: string | null
           site_name?: string
           site_url?: string | null

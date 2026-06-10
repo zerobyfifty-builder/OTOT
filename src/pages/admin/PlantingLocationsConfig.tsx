@@ -36,6 +36,7 @@ interface FormState {
   gps_lat: string;
   gps_lng: string;
   is_active: boolean;
+  show_in_tourist: boolean;
   sort_order: number;
 }
 
@@ -49,6 +50,7 @@ const emptyForm: FormState = {
   gps_lat: "",
   gps_lng: "",
   is_active: false,
+  show_in_tourist: false,
   sort_order: 0,
 };
 
@@ -74,14 +76,15 @@ export default function PlantingLocationsConfig() {
       gps_lat: loc.gps_lat?.toString() ?? "",
       gps_lng: loc.gps_lng?.toString() ?? "",
       is_active: loc.is_active,
+      show_in_tourist: loc.show_in_tourist,
       sort_order: loc.sort_order,
     });
     setSheetOpen(true);
   };
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["planting-locations"] }).then(
-    () => qc.invalidateQueries({ queryKey: ["active-planting-location"] })
-  );
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["planting-locations"] })
+    .then(() => qc.invalidateQueries({ queryKey: ["active-planting-location"] }))
+    .then(() => qc.invalidateQueries({ queryKey: ["tourist-planting-location"] }));
 
   const handlePhotoUpload = async (file: File) => {
     setUploading(true);
@@ -135,6 +138,7 @@ export default function PlantingLocationsConfig() {
         gps_lat: form.gps_lat ? parseFloat(form.gps_lat) : null,
         gps_lng: form.gps_lng ? parseFloat(form.gps_lng) : null,
         is_active: form.is_active,
+        show_in_tourist: form.show_in_tourist,
         sort_order: Number(form.sort_order) || 0,
       };
       if (form.id) {
@@ -158,6 +162,15 @@ export default function PlantingLocationsConfig() {
     const { error } = await supabase
       .from("planting_locations")
       .update({ is_active: !loc.is_active })
+      .eq("id", loc.id);
+    if (error) { toast.error(error.message); return; }
+    await invalidate();
+  };
+
+  const toggleTourist = async (loc: PlantingLocation) => {
+    const { error } = await supabase
+      .from("planting_locations")
+      .update({ show_in_tourist: !loc.show_in_tourist })
       .eq("id", loc.id);
     if (error) { toast.error(error.message); return; }
     await invalidate();
@@ -200,6 +213,7 @@ export default function PlantingLocationsConfig() {
                   <TableHead>GPS</TableHead>
                   <TableHead>Photo</TableHead>
                   <TableHead>Active</TableHead>
+                  <TableHead>Tourist Portal</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -220,6 +234,9 @@ export default function PlantingLocationsConfig() {
                     </TableCell>
                     <TableCell>
                       <Switch checked={loc.is_active} onCheckedChange={() => toggleActive(loc)} />
+                    </TableCell>
+                    <TableCell>
+                      <Switch checked={loc.show_in_tourist} onCheckedChange={() => toggleTourist(loc)} />
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -305,7 +322,7 @@ export default function PlantingLocationsConfig() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Sort order</Label>
                 <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
@@ -314,6 +331,12 @@ export default function PlantingLocationsConfig() {
                 <Label>Active</Label>
                 <div className="flex items-center h-10">
                   <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Tourist Portal</Label>
+                <div className="flex items-center h-10">
+                  <Switch checked={form.show_in_tourist} onCheckedChange={v => setForm(f => ({ ...f, show_in_tourist: v }))} />
                 </div>
               </div>
             </div>
