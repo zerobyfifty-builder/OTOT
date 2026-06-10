@@ -632,7 +632,7 @@ export const TreePurchase = () => {
                       ${(customTreeCount * PRICE_PER_TREE).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      for {customTreeCount} {customTreeCount === 1 ? "tree" : "trees"}
+                      for {customTreeCount}
                     </p>
                   </div>
                   
