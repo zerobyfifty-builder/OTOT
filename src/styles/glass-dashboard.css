@@ -540,3 +540,12 @@
     0 2px 14px hsl(120 90% 3% / 0.86),
     0 0 2px hsl(120 90% 3% / 0.95) !important;
 }
+
+/* Per-tree price info (outside cards, on dark glass background) */
+.tree-purchase-glass .price-info-text p {
+  color: hsl(96 66% 95% / 0.98) !important;
+  text-shadow:
+    0 2px 14px hsl(120 90% 3% / 0.86),
+    0 0 2px hsl(120 90% 3% / 0.95);
+  font-weight: 600;
+}
