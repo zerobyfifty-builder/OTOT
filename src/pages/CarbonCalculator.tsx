@@ -108,6 +108,7 @@ export const CarbonCalculator = () => {
   const { user } = useAuth();
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const isMobile = useIsMobile();
