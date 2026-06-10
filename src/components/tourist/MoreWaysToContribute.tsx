@@ -22,7 +22,7 @@ export const MoreWaysToContribute = ({ perTree, selectedTierId, onSelectTier }: 
 
   return (
     <>
-      {tiers.map((tier) => (
+      {filtered.map((tier) => (
         <ContributionTierCard
           key={tier.id}
           tier={tier}
