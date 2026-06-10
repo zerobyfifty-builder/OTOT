@@ -967,19 +967,28 @@ export const CarbonCalculator = () => {
                         <p className="text-[11px] uppercase tracking-[0.18em] opacity-80">Trees to plant</p>
                         <div className="mt-1 flex items-baseline gap-2">
                           <span className="text-5xl sm:text-6xl font-bold tabular-nums">{treesNeeded}</span>
-                          <TreePine className="h-7 w-7 text-white" strokeWidth={2.25} fill="currentColor" fillOpacity={0.25} />
+                          <TreePine className="h-7 w-7 text-emerald-300" strokeWidth={2.5} fill="#10b981" fillOpacity={0.55} />
                         </div>
                         {/* Animated mini-forest */}
+                        <style>{`
+                          @keyframes tree-grow-loop {
+                            0% { transform: scale(0) translateY(4px); opacity: 0; }
+                            15% { transform: scale(1.08) translateY(0); opacity: 1; }
+                            22% { transform: scale(1) translateY(0); opacity: 1; }
+                            85% { transform: scale(1) translateY(0); opacity: 1; }
+                            100% { transform: scale(0) translateY(4px); opacity: 0; }
+                          }
+                        `}</style>
                         <div className="mt-4 flex flex-wrap gap-1.5">
                           {Array.from({ length: visibleTrees }).map((_, i) => (
                             <TreePine
                               key={i}
-                              className="h-5 w-5 text-white"
-                              strokeWidth={2.25}
-                              fill="currentColor"
-                              fillOpacity={0.25}
+                              className="h-5 w-5 text-emerald-300"
+                              strokeWidth={2.5}
+                              fill="#10b981"
+                              fillOpacity={0.55}
                               style={{
-                                animation: `scale-in 0.45s cubic-bezier(.34,1.56,.64,1) ${i * 80}ms both`,
+                                animation: `tree-grow-loop ${Math.max(4, visibleTrees * 0.25 + 2.5)}s ease-in-out ${i * 0.18}s infinite both`,
                                 transformOrigin: 'bottom center',
                               }}
                             />
