@@ -36,6 +36,7 @@ interface FormState {
   gps_lat: string;
   gps_lng: string;
   is_active: boolean;
+  show_in_tourist: boolean;
   sort_order: number;
 }
 
@@ -49,6 +50,7 @@ const emptyForm: FormState = {
   gps_lat: "",
   gps_lng: "",
   is_active: false,
+  show_in_tourist: false,
   sort_order: 0,
 };
 
