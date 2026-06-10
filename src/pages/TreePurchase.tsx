@@ -78,14 +78,22 @@ export const TreePurchase = () => {
   const [dedicationMessage, setDedicationMessage] = useState("");
 
   // Reset subscription months when deselecting monthly option
-  const handleOptionChange = (option: "onetime" | "subscription" | "custom") => {
+  const handleOptionChange = (option: "onetime" | "subscription" | "custom" | "tier") => {
     if (selectedOption === "subscription" && option !== "subscription") {
       setSubscriptionMonths(3);
     }
     if (option === "custom") {
       setCustomTreeCount(Math.max(1, treesNeeded - treesPlanted));
     }
+    if (option !== "tier") {
+      setSelectedTier(null);
+    }
     setSelectedOption(option);
+  };
+
+  const handleTierSelect = (tier: ContributionTier) => {
+    setSelectedTier(tier);
+    setSelectedOption("tier");
   };
 
   // Live per-tree price from active Planting Costs config (Super Admin → Configuration).
