@@ -210,6 +210,7 @@ export function AdminSidebar() {
                                           >
                                             <NavLink
                                               to={leaf.url}
+                                              onClick={() => setOpenMobile(false)}
                                               className={({ isActive }) =>
                                                 isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
                                               }
