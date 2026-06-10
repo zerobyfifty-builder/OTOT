@@ -75,7 +75,7 @@ export const RecentTrips: React.FC = () => {
   }
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="glass-card h-full flex flex-col">
       <CardHeader>
         <CardTitle className="text-xl">Recent Trips</CardTitle>
       </CardHeader>
