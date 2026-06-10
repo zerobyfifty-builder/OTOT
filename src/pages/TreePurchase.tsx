@@ -22,7 +22,7 @@ import { useActivePlantingConfig } from "@/hooks/useActivePlantingConfig";
 import { useVisibleTiers, type ContributionTier } from "@/hooks/useContributionTiers";
 import { computeTierPrice } from "@/hooks/useTierPrice";
 import { MoreWaysToContribute } from "@/components/tourist/MoreWaysToContribute";
-import { useActivePlantingLocation } from "@/hooks/useActivePlantingLocation";
+import { useTouristPlantingLocation } from "@/hooks/useActivePlantingLocation";
 
 interface Lodge {
   id: string;
