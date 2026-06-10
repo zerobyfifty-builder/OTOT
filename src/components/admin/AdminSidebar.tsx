@@ -255,6 +255,7 @@ export function AdminSidebar() {
                     >
                       <NavLink
                         to={item.url!}
+                        onClick={() => setOpenMobile(false)}
                         className={({ isActive }) =>
                           isActive ? "bg-admin-cream/20 text-admin-cream font-medium" : ""
                         }
