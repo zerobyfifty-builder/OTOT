@@ -1015,7 +1015,7 @@ export const CarbonCalculator = () => {
                 )}
 
                 {/* Actions */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <div className="mt-6 flex flex-row gap-3">
                   <Button
                     variant="outline"
                     className="flex-1 h-12 rounded-xl border-2"
@@ -1029,7 +1029,7 @@ export const CarbonCalculator = () => {
                     onClick={onPlantTrees}
                   >
                     <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
-                    Plant {treesNeeded} {treesNeeded === 1 ? 'Tree' : 'Trees'}
+                    Plant Trees
                     <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>
