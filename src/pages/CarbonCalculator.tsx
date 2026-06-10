@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -108,6 +108,7 @@ export const CarbonCalculator = () => {
   const { user } = useAuth();
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -229,6 +230,10 @@ export const CarbonCalculator = () => {
     try {
       const result = calculateEmissions(data);
       setCalculation(result);
+      // Smoothly scroll to the results section after render
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     } catch (error) {
       toast({
         title: "Calculation Error",
@@ -893,7 +898,7 @@ export const CarbonCalculator = () => {
           const treesNeeded = calcResult?.treesNeeded ?? calculation.treesNeeded;
           const visibleTrees = Math.min(treesNeeded, 12);
           return (
-          <div className="mt-8 animate-fade-in">
+          <div ref={resultsRef} className="mt-8 animate-fade-in scroll-mt-20">
             <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl">
               {/* Decorative background */}
               <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
