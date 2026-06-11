@@ -348,7 +348,7 @@ export default function AdminContributionTracking() {
       c.country, c.num_trees, Number(c.amount_paid).toFixed(2), getTechFee(c).toFixed(2),
       getToBeReceived(c).toFixed(2), getRetained(c).toFixed(2), getToBeTransferred(c).toFixed(2), c.status
     ].join(","));
-    const csv = ["Contri ID,Date,Type,Contributor,Country,Trees,Gross,Tech Fee,To Be Received,Retained,To Be Transferred,Status", ...rows].join("\n");
+    const csv = ["ID,Date,Type,Contributor,Country,Trees,Gross,Tech Fee,To Be Received,Retained,To Be Transferred,Status", ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url;
@@ -525,7 +525,7 @@ export default function AdminContributionTracking() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30">
-                      <SortableHead field="contribution_id" label="Contri ID" />
+                      <SortableHead field="contribution_id" label="ID" />
                       <SortableHead field="payment_date" label="Date" />
                       <SortableHead field="contribution_type" label="Type" />
                       <SortableHead field="tourist_name" label="Contributor" />
