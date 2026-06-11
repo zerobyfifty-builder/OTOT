@@ -293,7 +293,22 @@ export default function PlantingLocationsConfig() {
             </div>
             <div className="space-y-2">
               <Label>Planted by description</Label>
-              <Textarea rows={4} value={form.planted_by_description} onChange={e => setForm(f => ({ ...f, planted_by_description: e.target.value }))} />
+              <Textarea
+                rows={4}
+                value={form.planted_by_description}
+                onChange={e => {
+                  const value = e.target.value;
+                  const words = value.trim().split(/\s+/).filter(Boolean);
+                  if (words.length <= 40) {
+                    setForm(f => ({ ...f, planted_by_description: value }));
+                  } else {
+                    setForm(f => ({ ...f, planted_by_description: words.slice(0, 40).join(" ") }));
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {form.planted_by_description.trim() ? form.planted_by_description.trim().split(/\s+/).filter(Boolean).length : 0}/40 words
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Planted here (site name)</Label>
@@ -301,7 +316,22 @@ export default function PlantingLocationsConfig() {
             </div>
             <div className="space-y-2">
               <Label>Site description</Label>
-              <Textarea rows={4} value={form.site_description} onChange={e => setForm(f => ({ ...f, site_description: e.target.value }))} />
+              <Textarea
+                rows={4}
+                value={form.site_description}
+                onChange={e => {
+                  const value = e.target.value;
+                  const words = value.trim().split(/\s+/).filter(Boolean);
+                  if (words.length <= 40) {
+                    setForm(f => ({ ...f, site_description: value }));
+                  } else {
+                    setForm(f => ({ ...f, site_description: words.slice(0, 40).join(" ") }));
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {form.site_description.trim() ? form.site_description.trim().split(/\s+/).filter(Boolean).length : 0}/40 words
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Site website (optional)</Label>
