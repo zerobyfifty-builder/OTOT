@@ -317,11 +317,11 @@ export default function PlantingLocationsConfig() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Planted here (site name)</Label>
+              <Label>Planted here (site name) <span className="text-destructive">*</span></Label>
               <Input value={form.site_name} onChange={e => setForm(f => ({ ...f, site_name: e.target.value }))} placeholder="Mau Forest Complex" />
             </div>
             <div className="space-y-2">
-              <Label>Site description</Label>
+              <Label>Site description <span className="text-destructive">*</span></Label>
               <Textarea
                 rows={4}
                 value={form.site_description}
