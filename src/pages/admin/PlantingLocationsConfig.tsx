@@ -129,7 +129,7 @@ export default function PlantingLocationsConfig() {
       !form.site_description.trim() ||
       !form.photo_url.trim()
     ) {
-      toast.error("Planted by and site name are required");
+      toast.error("All fields are required: Planted by, Planted by description, Planted here, Site description, and Site photo");
       return;
     }
     setSaving(true);
