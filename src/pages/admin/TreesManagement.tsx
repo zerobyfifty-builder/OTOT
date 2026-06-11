@@ -148,7 +148,7 @@ export default function TreesManagement() {
           <TableHeader>
             <TableRow>
               <TableHead>User Email</TableHead>
-              <TableHead>OTOT ID</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>No. of Trees</TableHead>
               <TableHead>Purchase Date</TableHead>
               <TableHead>Status</TableHead>
