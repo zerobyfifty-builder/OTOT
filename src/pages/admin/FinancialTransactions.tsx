@@ -110,7 +110,7 @@ export default function FinancialTransactions() {
 
   const exportTransactions = () => {
     const csv = [
-      ["Date", "User Email", "OTOT ID", "Trees", "Type", "Amount"].join(","),
+      ["Date", "User Email", "ID", "Trees", "Type", "Amount"].join(","),
       ...transactions.map((t) =>
         [
           new Date(t.created_at).toLocaleDateString(),
@@ -195,7 +195,7 @@ export default function FinancialTransactions() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by email or OTOT ID..."
+                placeholder="Search by email or ID..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -256,7 +256,7 @@ export default function FinancialTransactions() {
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>User Email</TableHead>
-                      <TableHead>OTOT ID</TableHead>
+                      <TableHead>ID</TableHead>
                       <TableHead>Trees</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Tree Type</TableHead>
