@@ -345,7 +345,7 @@ export default function PlantingLocationsConfig() {
             </div>
 
             <div className="space-y-2">
-              <Label>Site photo</Label>
+              <Label>Site photo <span className="text-destructive">*</span></Label>
               {form.photo_url ? (
                 <div className="relative inline-block">
                   <img src={form.photo_url} alt="" className="h-32 rounded border" />
