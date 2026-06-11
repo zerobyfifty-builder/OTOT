@@ -470,7 +470,7 @@ export default function TreesAll() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by contribution ID, contributor, or partner..."
+            placeholder="Search by ID, contributor, or partner..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             className="pl-9"
@@ -507,7 +507,7 @@ export default function TreesAll() {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-10" />
-                    <SortableHead field="contribution_id" label="Contri ID" />
+                    <SortableHead field="contribution_id" label="ID" />
                     <SortableHead field="payment_date" label="Date" />
                     <SortableHead field="contribution_type" label="Type" />
                     <SortableHead field="num_trees" label="Trees" />
