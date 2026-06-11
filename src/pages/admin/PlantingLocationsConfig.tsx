@@ -122,7 +122,13 @@ export default function PlantingLocationsConfig() {
   };
 
   const handleSave = async () => {
-    if (!form.planted_by_name.trim() || !form.site_name.trim()) {
+    if (
+      !form.planted_by_name.trim() ||
+      !form.planted_by_description.trim() ||
+      !form.site_name.trim() ||
+      !form.site_description.trim() ||
+      !form.photo_url.trim()
+    ) {
       toast.error("Planted by and site name are required");
       return;
     }
