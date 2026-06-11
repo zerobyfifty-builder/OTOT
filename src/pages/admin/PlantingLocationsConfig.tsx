@@ -302,12 +302,13 @@ export default function PlantingLocationsConfig() {
               <Textarea
                 rows={4}
                 value={form.planted_by_description}
-                onChange={e => {
+              onChange={e => {
                   const value = e.target.value;
                   const words = value.trim().split(/\s+/).filter(Boolean);
+                  const currentCount = form.planted_by_description.trim().split(/\s+/).filter(Boolean).length;
                   if (words.length <= 40) {
                     setForm(f => ({ ...f, planted_by_description: value }));
-                  } else {
+                  } else if (currentCount <= 40) {
                     toast.error("Word limit reached", { description: "Planted by description is limited to 40 words." });
                   }
                 }}
@@ -325,12 +326,13 @@ export default function PlantingLocationsConfig() {
               <Textarea
                 rows={4}
                 value={form.site_description}
-                onChange={e => {
+              onChange={e => {
                   const value = e.target.value;
                   const words = value.trim().split(/\s+/).filter(Boolean);
+                  const currentCount = form.site_description.trim().split(/\s+/).filter(Boolean).length;
                   if (words.length <= 40) {
                     setForm(f => ({ ...f, site_description: value }));
-                  } else {
+                  } else if (currentCount <= 40) {
                     toast.error("Word limit reached", { description: "Site description is limited to 40 words." });
                   }
                 }}
