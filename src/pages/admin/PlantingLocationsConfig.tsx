@@ -308,7 +308,7 @@ export default function PlantingLocationsConfig() {
                   if (words.length <= 40) {
                     setForm(f => ({ ...f, planted_by_description: value }));
                   } else {
-                    setForm(f => ({ ...f, planted_by_description: words.slice(0, 40).join(" ") }));
+                    toast.error("Word limit reached", { description: "Planted by description is limited to 40 words." });
                   }
                 }}
               />
@@ -331,7 +331,7 @@ export default function PlantingLocationsConfig() {
                   if (words.length <= 40) {
                     setForm(f => ({ ...f, site_description: value }));
                   } else {
-                    setForm(f => ({ ...f, site_description: words.slice(0, 40).join(" ") }));
+                    toast.error("Word limit reached", { description: "Site description is limited to 40 words." });
                   }
                 }}
               />
