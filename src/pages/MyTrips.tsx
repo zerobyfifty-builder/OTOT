@@ -572,6 +572,7 @@ export const MyTrips = () => {
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
               {filteredTrips.map(trip => {
+            const { dateText, daysText } = formatDateRange(trip.from_date, trip.to_date);
             const nights = calculateNights(trip.from_date, trip.to_date);
             return <Card key={trip.id}>
                     <CardHeader className="pb-3">
@@ -603,7 +604,7 @@ export const MyTrips = () => {
                         </CardTitle>
                       </div>
                       <CardDescription>
-                        {format(new Date(trip.from_date), "dd MMM yyyy")} - {format(new Date(trip.to_date), "dd MMM yyyy")}
+                        {dateText} ({daysText})
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
