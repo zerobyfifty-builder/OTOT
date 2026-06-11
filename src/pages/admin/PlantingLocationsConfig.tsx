@@ -294,11 +294,11 @@ export default function PlantingLocationsConfig() {
 
           <div className="space-y-5 mt-6">
             <div className="space-y-2">
-              <Label>Planted by (organization)</Label>
+              <Label>Planted by (organization) <span className="text-destructive">*</span></Label>
               <Input value={form.planted_by_name} onChange={e => setForm(f => ({ ...f, planted_by_name: e.target.value }))} placeholder="MFC-ICLIP" />
             </div>
             <div className="space-y-2">
-              <Label>Planted by description</Label>
+              <Label>Planted by description <span className="text-destructive">*</span></Label>
               <Textarea
                 rows={4}
                 value={form.planted_by_description}
