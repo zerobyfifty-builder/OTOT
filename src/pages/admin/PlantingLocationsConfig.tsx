@@ -122,8 +122,14 @@ export default function PlantingLocationsConfig() {
   };
 
   const handleSave = async () => {
-    if (!form.planted_by_name.trim() || !form.site_name.trim()) {
-      toast.error("Planted by and site name are required");
+    if (
+      !form.planted_by_name.trim() ||
+      !form.planted_by_description.trim() ||
+      !form.site_name.trim() ||
+      !form.site_description.trim() ||
+      !form.photo_url.trim()
+    ) {
+      toast.error("All fields are required: Planted by, Planted by description, Planted here, Site description, and Site photo");
       return;
     }
     setSaving(true);
@@ -288,11 +294,11 @@ export default function PlantingLocationsConfig() {
 
           <div className="space-y-5 mt-6">
             <div className="space-y-2">
-              <Label>Planted by (organization)</Label>
+              <Label>Planted by (organization) <span className="text-destructive">*</span></Label>
               <Input value={form.planted_by_name} onChange={e => setForm(f => ({ ...f, planted_by_name: e.target.value }))} placeholder="MFC-ICLIP" />
             </div>
             <div className="space-y-2">
-              <Label>Planted by description</Label>
+              <Label>Planted by description <span className="text-destructive">*</span></Label>
               <Textarea
                 rows={4}
                 value={form.planted_by_description}
@@ -311,11 +317,11 @@ export default function PlantingLocationsConfig() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Planted here (site name)</Label>
+              <Label>Planted here (site name) <span className="text-destructive">*</span></Label>
               <Input value={form.site_name} onChange={e => setForm(f => ({ ...f, site_name: e.target.value }))} placeholder="Mau Forest Complex" />
             </div>
             <div className="space-y-2">
-              <Label>Site description</Label>
+              <Label>Site description <span className="text-destructive">*</span></Label>
               <Textarea
                 rows={4}
                 value={form.site_description}
@@ -339,7 +345,7 @@ export default function PlantingLocationsConfig() {
             </div>
 
             <div className="space-y-2">
-              <Label>Site photo</Label>
+              <Label>Site photo <span className="text-destructive">*</span></Label>
               {form.photo_url ? (
                 <div className="relative inline-block">
                   <img src={form.photo_url} alt="" className="h-32 rounded border" />
