@@ -112,22 +112,15 @@ export const TreePurchase = () => {
     }
   }, [tripId, user]);
 
-  // Keep the slider thumb pinned to the full trees-needed value when the trip
-  // data resolves, and clamp it if the trip's needed count changes. We use
-  // treesNeeded (not the remaining balance) as the max so the user can always
-  // adjust freely up to the full requirement.
-  const didInitFromFetch = useRef(false);
+  // Default the flexible slider to the trip's full trees-needed value whenever
+  // the user lands on this page from a trip's "Trees Offset" / "Plant More Trees"
+  // CTA. This is a marketing decision: present the full impact target up-front.
+  // The slider still lets the user drag down to fewer trees if they choose.
   useEffect(() => {
-    const maxAvailable = Math.max(1, treesNeeded);
-    if (didInitFromFetch.current) {
-      setCustomTreeCount((prev) => (prev > maxAvailable ? maxAvailable : prev));
-      return;
-    }
     if (treesNeeded > 0) {
-      setCustomTreeCount(maxAvailable);
-      didInitFromFetch.current = true;
+      setCustomTreeCount(Math.max(1, treesNeeded));
     }
-  }, [treesPlanted, treesNeeded, routePlantedPrior]);
+  }, [treesNeeded, tripId]);
 
   const fetchTreesPlanted = async () => {
     if (!tripId || !user) return;
