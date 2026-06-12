@@ -126,8 +126,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           >
             {/* Slide 1: Tree Details */}
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
-              <h3 className="text-lg font-bold text-center mb-2">Your tree</h3>
-
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
                 <img
                   src={treeImage}
@@ -181,8 +179,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
             {/* Slide 2: Grower Information */}
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
-              <h3 className="text-lg font-bold text-center mb-2">Your tree carer</h3>
-
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
                 <img
                   src={carerPhoto}
@@ -207,7 +203,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
             {/* Slide 3: Location */}
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
-              <h3 className="text-lg font-bold text-center mb-4">Location</h3>
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
@@ -245,7 +240,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
             {/* Slide 4: Impact */}
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
-              <h3 className="text-lg font-bold text-center mb-4">Impact</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg border p-3 bg-muted/30">
                   <p className="text-xs text-muted-foreground">CO₂ absorbed / year</p>
