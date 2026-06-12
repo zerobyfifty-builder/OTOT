@@ -54,11 +54,23 @@ export default function TemplateDesignerSheet({ template, category, open, onClos
 
   const preview = async () => {
     if (!design) return;
-    const vars = getSampleData(category.key);
+    const vars: Record<string, string> = { ...getSampleData(category.key) };
     if (isSocial) {
       const { text, hashtags } = renderSocialMessage(design, vars);
       toast({ title: 'Sample message', description: `${text}\n${hashtags.map((h) => `#${h}`).join(' ')}` });
       return;
+    }
+    // Inject sample logos so previews render the visual fully.
+    try {
+      const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+        import('@/utils/imageToBase64'),
+        import('@/assets/ktb-dual-logo.png'),
+        import('@/assets/kfs-logo-2.png'),
+      ]);
+      vars.ktbLogoUrl = await imageToBase64(ktb.default).catch(() => '');
+      vars.partnerLogoUrl = await imageToBase64(kfs.default).catch(() => '');
+    } catch {
+      // optional
     }
     const blob = await pdf(renderTemplateDocument(design, vars)).toBlob();
     window.open(URL.createObjectURL(blob), '_blank');
