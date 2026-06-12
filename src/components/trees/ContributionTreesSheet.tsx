@@ -93,7 +93,7 @@ export const ContributionTreesSheet = ({
         <SheetHeader>
           <SheetTitle>Tree Details</SheetTitle>
           <SheetDescription className="font-mono text-xs">
-            Contribution {contributionId}
+            ID {contributionId}
           </SheetDescription>
         </SheetHeader>
 
