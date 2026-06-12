@@ -327,7 +327,7 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-left">Date</TableHead>
-                        <TableHead className="text-left">Contribution ID</TableHead>
+                        <TableHead className="text-left">ID</TableHead>
                         <TableHead className="text-center">Trees</TableHead>
                         <TableHead className="text-center">Method</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
