@@ -49,10 +49,16 @@ export interface TemplateStyle {
   margin: number;
 }
 
+export type LayoutPreset = 'pledge_default';
+
 export interface TemplateDesign {
   version: 1;
   style: TemplateStyle;
   blocks: TemplateBlock[];
+  // Locked layout preset. When set, renderer uses a fixed layout and only
+  // logos + presetFields are editable.
+  layoutPreset?: LayoutPreset;
+  presetFields?: Record<string, string>;
   // For social categories
   social?: {
     message: string;
