@@ -113,7 +113,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                 <img
                   src={treeImage}
                   alt="Tree"
-                  className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'grayscale opacity-50'}`}
+                  className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'blur-[2px] brightness-90'}`}
                 />
                 {!hasActualPhoto && (
                   <div className="absolute inset-0 flex items-center justify-center p-4">
