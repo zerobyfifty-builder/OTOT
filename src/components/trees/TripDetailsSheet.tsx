@@ -323,6 +323,9 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripD
               </div>
             ) : payments.length > 0 ? (
               <>
+                <div className="text-sm text-muted-foreground mb-4">
+                  {payments.length} contributions
+                </div>
                 <TooltipProvider>
                   <Table>
                     <TableHeader>
