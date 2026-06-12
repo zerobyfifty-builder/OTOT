@@ -71,7 +71,29 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data as any;
+      if (data) return data as any;
+
+      // Fallback: latest status transition that captured a geotag
+      // (plantation portal writes lat/lng/geo_tag_id into transition_data
+      //  when status moves to being_mapped / location_mapped).
+      const { data: transitions } = await supabase
+        .from('tree_status_transitions')
+        .select('to_status, transition_data, created_at')
+        .eq('tree_id', tree.id)
+        .order('created_at', { ascending: false });
+
+      for (const t of transitions || []) {
+        const td = (t.transition_data as Record<string, any>) || {};
+        if (td.latitude != null && td.longitude != null) {
+          return {
+            latitude: Number(td.latitude),
+            longitude: Number(td.longitude),
+            geo_tag_id: td.geo_tag_id ?? null,
+            geo_accuracy: td.geo_accuracy ?? null,
+          } as any;
+        }
+      }
+      return null;
     },
     enabled: !!tree.id,
   });
