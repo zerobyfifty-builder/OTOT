@@ -146,7 +146,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <h3 className="text-lg font-bold text-center mb-2">Your tree carer</h3>
 
-              <div className="relative w-full max-w-[240px] mx-auto aspect-square mb-4 rounded-lg overflow-hidden shadow-md bg-muted">
+              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
                 <img
                   src={carerPhoto}
                   alt={carerName}
