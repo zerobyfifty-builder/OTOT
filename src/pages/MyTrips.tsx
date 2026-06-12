@@ -14,7 +14,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
-import { TreeDetailsSheet } from "@/components/trees/TreeDetailsSheet";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 
@@ -41,9 +40,7 @@ export const MyTrips = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
-  const [selectedTripForTrees, setSelectedTripForTrees] = useState<string | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
-  const [isTreeDetailsOpen, setIsTreeDetailsOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
 
   const getFilteredTrips = () => {
@@ -200,10 +197,6 @@ export const MyTrips = () => {
     setIsTripDetailsOpen(true);
   };
 
-  const handleViewTreeDetails = (tripId: string) => {
-    setSelectedTripForTrees(tripId);
-    setIsTreeDetailsOpen(true);
-  };
   const handleDeleteTrip = async (tripId: string) => {
     try {
       const {
@@ -541,10 +534,6 @@ export const MyTrips = () => {
                                         <Eye className="h-4 w-4 mr-2" />
                                         View Details
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleViewTreeDetails(trip.id)}>
-                                        <Leaf className="h-4 w-4 mr-2" />
-                                        Tree Details
-                                      </DropdownMenuItem>
                                       {trip.treesPlanted === 0 ? (
                                         <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
                                           <Trash2 className="h-4 w-4 mr-2" />
@@ -673,10 +662,6 @@ export const MyTrips = () => {
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleViewTreeDetails(trip.id)}>
-                              <Leaf className="h-4 w-4 mr-2" />
-                              Tree Details
-                            </DropdownMenuItem>
                             {trip.treesPlanted === 0 ? (
                               <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" />
@@ -723,16 +708,6 @@ export const MyTrips = () => {
           onClose={() => {
             setIsTripDetailsOpen(false);
             setSelectedTripForDetails(null);
-          }}
-        />
-
-        {/* Tree Details Sheet */}
-        <TreeDetailsSheet
-          tripId={selectedTripForTrees}
-          isOpen={isTreeDetailsOpen}
-          onClose={() => {
-            setIsTreeDetailsOpen(false);
-            setSelectedTripForTrees(null);
           }}
         />
       </div>
