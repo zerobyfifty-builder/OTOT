@@ -332,7 +332,7 @@ export const Dashboard: React.FC = () => {
   });
 
   return (
-    <div className="tourist-dashboard-glass flex-1 overflow-auto">
+    <div className="tourist-dashboard-glass min-h-full">
       <div className="tourist-dashboard-shell container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
         <div className="glass-dashboard-header mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
