@@ -752,16 +752,32 @@ export const MyTrees = () => {
                                         </span>
                                         <Button
                                           size="sm"
-                                          variant="ghost"
-                                          className="h-7 w-7 p-0"
+                                          variant="outline"
+                                          className="h-7 px-2.5 gap-1 text-[11px] font-medium border-primary/30 text-primary bg-primary/5 hover:bg-primary hover:text-primary-foreground hover:border-primary hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
                                           title="Track trees"
                                           tabIndex={isCollapsed ? -1 : 0}
                                           onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
                                         >
                                           <MapPin className="h-3.5 w-3.5" />
+                                          Track
                                         </Button>
                                         <div className="ml-auto flex items-center gap-3">
-                                          <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
+                                          <div className="flex flex-col items-end leading-tight">
+                                            <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
+                                            {(() => {
+                                              const dates = cg.trees
+                                                .map(t => transitionDates[t.id])
+                                                .filter(Boolean)
+                                                .map(d => new Date(d).getTime());
+                                              if (!dates.length) return null;
+                                              const latest = new Date(Math.max(...dates));
+                                              return (
+                                                <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5 whitespace-nowrap">
+                                                  {format(latest, "d MMM yyyy")}
+                                                </span>
+                                              );
+                                            })()}
+                                          </div>
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <Button size="sm" variant="ghost" className="h-7 w-7 p-0" tabIndex={isCollapsed ? -1 : 0} onClick={(e) => e.stopPropagation()}>
