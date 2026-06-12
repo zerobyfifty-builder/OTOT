@@ -669,10 +669,6 @@ export const MyTrips = () => {
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleViewTreeDetails(trip.id)}>
-                              <Leaf className="h-4 w-4 mr-2" />
-                              Tree Details
-                            </DropdownMenuItem>
                             {trip.treesPlanted === 0 ? (
                               <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" />
