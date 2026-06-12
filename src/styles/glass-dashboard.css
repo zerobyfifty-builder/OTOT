@@ -526,19 +526,53 @@
     0 0 2px hsl(120 90% 3% / 0.95);
 }
 
-/* Dashboard header block (Welcome banner) — match My Trips / My Trees headings */
-.tourist-dashboard-glass .glass-dashboard-header h1,
-.tourist-dashboard-glass .glass-dashboard-header h2 {
+/* Tourist page headers — exact My Trees/My Trips typography, overriding glass heading shadows */
+.tourist-dashboard-glass .tourist-page-heading,
+.tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
+.tourist-dashboard-glass > .container .tourist-page-heading,
+.tree-purchase-glass > .container > div > .tourist-page-heading,
+.tree-purchase-glass .tourist-page-heading {
   color: hsl(var(--foreground)) !important;
   text-shadow: none !important;
   font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+  letter-spacing: 0 !important;
+  font-style: normal !important;
 }
 
-.tourist-dashboard-glass .glass-dashboard-header p,
-.tourist-dashboard-glass .glass-dashboard-header .text-muted-foreground {
+.tourist-dashboard-glass .tourist-page-subheading,
+.tourist-dashboard-glass .glass-dashboard-header .tourist-page-subheading,
+.tourist-dashboard-glass > .container .tourist-page-subheading,
+.tree-purchase-glass > .container > div > .tourist-page-subheading,
+.tree-purchase-glass .tourist-page-subheading {
   color: hsl(var(--muted-foreground)) !important;
   font-weight: 400 !important;
   text-shadow: none !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  letter-spacing: 0 !important;
+  font-style: normal !important;
+}
+
+@media (min-width: 640px) {
+  .tourist-dashboard-glass .tourist-page-heading,
+  .tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
+  .tourist-dashboard-glass > .container .tourist-page-heading,
+  .tree-purchase-glass > .container > div > .tourist-page-heading,
+  .tree-purchase-glass .tourist-page-heading {
+    font-size: 2.25rem !important;
+    line-height: 2.5rem !important;
+  }
+
+  .tourist-dashboard-glass .tourist-page-subheading,
+  .tourist-dashboard-glass .glass-dashboard-header .tourist-page-subheading,
+  .tourist-dashboard-glass > .container .tourist-page-subheading,
+  .tree-purchase-glass > .container > div > .tourist-page-subheading,
+  .tree-purchase-glass .tourist-page-subheading {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
 }
 
 /* "Why $X per tree?" footnote-style info on Tree Purchase page */

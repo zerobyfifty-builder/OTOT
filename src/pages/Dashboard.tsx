@@ -337,10 +337,10 @@ export const Dashboard: React.FC = () => {
         {/* Welcome Header */}
         <div className="glass-dashboard-header mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">
+            <h1 className="tourist-page-heading text-2xl sm:text-4xl font-bold text-foreground mb-2">
               Welcome {getUserName()}!
             </h1>
-            <p className="text-sm text-muted-foreground italic">
+            <p className="tourist-page-subheading text-sm sm:text-base text-muted-foreground">
               Your responsible travel dashboard
             </p>
           </div>
