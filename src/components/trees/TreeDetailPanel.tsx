@@ -125,41 +125,37 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       >
         {/* Header + Tabs */}
         <div className="px-4 pt-5 pb-3 pr-12 bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <div className="shrink-0">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  {statusLabel}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {statusDate
-                  ? new Date(statusDate).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })
-                  : '—'}
-              </p>
-            </div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {statusLabel}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            {statusDate
+              ? new Date(statusDate).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })
+              : '—'}
+          </p>
 
-            {/* Tabs as divider */}
-            <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-full overflow-x-auto">
-              {tabs.map((label, idx) => (
-                <button
-                  key={label}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`min-w-max px-3 py-1.5 text-xs font-medium whitespace-nowrap rounded-full transition-all ${
-                    currentSlide === idx
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          {/* Tabs */}
+          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-full overflow-x-auto">
+            {tabs.map((label, idx) => (
+              <button
+                key={label}
+                onClick={() => setCurrentSlide(idx)}
+                className={`min-w-max px-3 py-1.5 text-xs font-medium whitespace-nowrap rounded-full transition-all ${
+                  currentSlide === idx
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
