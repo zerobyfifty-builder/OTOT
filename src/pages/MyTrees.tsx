@@ -699,12 +699,7 @@ export const MyTrees = () => {
                             { stage: 'planted', label: 'Planted', cls: 'text-emerald-700' },
                           ];
                           // Last status change date across all trees
-                          const lastStatusTs = group.trees.reduce((max, t) => {
-                            const d = new Date(transitionDates[t.id] || t.updated_at || t.created_at).getTime();
-                            return d > max ? d : max;
-                          }, 0);
-
-                          return (
+                           return (
                             <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-100/90 via-green-50/85 to-teal-100/90 shadow-md">
                               <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-300/40 blur-3xl" />
                               <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-teal-300/30 blur-3xl" />
