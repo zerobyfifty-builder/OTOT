@@ -118,7 +118,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <p className="text-base font-bold truncate">{tree.otot_id}</p>
                   </div>
                   <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
-                    Track this tree
+                    Track
                   </Button>
                 </div>
 
@@ -159,7 +159,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-base font-bold">{carerName}</p>
                   <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
-                    Track this tree
+                    Track
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
