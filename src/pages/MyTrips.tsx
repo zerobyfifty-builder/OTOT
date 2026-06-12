@@ -381,31 +381,31 @@ export const MyTrips = () => {
                     <table className="w-full">
                       <thead className="bg-muted/50 border-b">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trip ID
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Date Added
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Travel Dates
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trip Details
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             CO₂ Emissions
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trees Needed
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trees Planted
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Offset Status
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Actions
                           </th>
                         </tr>
