@@ -449,7 +449,7 @@ export const MyTrees = () => {
                           { label: "Remaining", value: fmt(treesRemaining), color: "text-orange-600" },
                         ].map((s) => (
                           <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
-                            <p className={`text-xl sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>{s.value}</p>
+                            <p title={s.value} className={`text-xl sm:text-2xl font-bold tabular-nums leading-tight whitespace-nowrap truncate ${s.color}`}>{s.compact}</p>
                             <p className="text-[10px] sm:text-xs text-emerald-800/70 mt-1 font-medium">{s.label}</p>
                           </div>
                         ))}
