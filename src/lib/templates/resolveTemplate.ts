@@ -55,7 +55,7 @@ export async function resolveTemplate(
       return {
         templateId: tpl.id,
         name: tpl.name,
-        design: design.design_json as TemplateDesign,
+        design: design.design_json as unknown as TemplateDesign,
       };
     }
     return null;
