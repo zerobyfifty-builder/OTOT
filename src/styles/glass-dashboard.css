@@ -90,11 +90,15 @@
 }
 
 .tourist-dashboard-glass .glass-dashboard-header {
-  color: hsl(114 35% 96%);
-  text-shadow: 0 2px 18px hsl(120 70% 4% / 0.72);
+  /* Inherit page foreground so headings match other pages (My Trips, My Trees) */
+  color: hsl(var(--foreground));
 }
 
-.tourist-dashboard-glass .glass-dashboard-header h1,
+.tourist-dashboard-glass .glass-dashboard-header h1 {
+  color: hsl(var(--foreground));
+  text-shadow: none;
+}
+
 .tourist-dashboard-glass h2,
 .tourist-dashboard-glass h3,
 .tourist-dashboard-glass p,
