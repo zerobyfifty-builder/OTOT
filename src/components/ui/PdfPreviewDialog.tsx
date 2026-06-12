@@ -148,7 +148,7 @@ export const PdfPreviewDialog = ({
                   <p className="max-w-sm text-sm text-muted-foreground">PDF preview is not available in this browser.</p>
                   <Button variant="outline" onClick={openInNewTab}>
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Open in New Tab
+                    Open
                   </Button>
                 </div>
               </object>
@@ -177,7 +177,7 @@ export const PdfPreviewDialog = ({
             <div className="flex gap-2">
               <Button variant="outline" onClick={openInNewTab} disabled={!previewUrl}>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Open in New Tab
+                Open
               </Button>
               {file && (
                 <Button onClick={handleDownload}>
