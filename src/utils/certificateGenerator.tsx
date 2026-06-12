@@ -6,6 +6,9 @@ import { TreeCertificate } from '@/components/certificates/TreeCertificate';
 import { imageToBase64 } from '@/utils/imageToBase64';
 import ktbDualLogo from '@/assets/ktb-dual-logo.png';
 import kfsLogo2 from '@/assets/kfs-logo-2.png';
+import { isTemplateEngineEnabled } from '@/lib/templates/flags';
+import { resolveTemplate } from '@/lib/templates/resolveTemplate';
+import { renderTemplateDocument } from '@/lib/templates/renderTemplate';
 
 type GlobalWithBuffer = typeof globalThis & {
   Buffer?: typeof import('buffer').Buffer;
@@ -94,6 +97,24 @@ export const generatePledgeCertificate = async ({
     });
   } catch (error) {
     console.error('Error saving certificate to database:', error);
+  }
+
+  // Templates Studio: try approved template first, fall back silently on any issue.
+  try {
+    if (await isTemplateEngineEnabled('pledge_certificate')) {
+      const tpl = await resolveTemplate('pledge_certificate');
+      if (tpl) {
+        const doc = renderTemplateDocument(tpl.design, {
+          userName, date, certificateId, ototId: ototId ?? '',
+          qrCodeUrl: qrCodeDataUrl,
+          ktbLogoUrl: logos.ktbLogoDataUrl,
+          partnerLogoUrl: logos.kfsLogoDataUrl,
+        });
+        return await pdf(doc).toBlob();
+      }
+    }
+  } catch (e) {
+    console.warn('[templates] pledge template render failed, falling back', e);
   }
 
   const blob = await pdf(
