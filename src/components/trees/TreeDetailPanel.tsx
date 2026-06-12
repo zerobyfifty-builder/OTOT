@@ -21,7 +21,10 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 2);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 2) % 2);
 
-  const treeImage = yourTreeImage;
+  const treeImages = Array.isArray(tree.images) ? tree.images : [];
+  const actualTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
+  const hasActualPhoto = !!actualTreeImage;
+  const treeImage = actualTreeImage || yourTreeImage;
 
   const { data: carer } = useQuery({
     queryKey: ['tree-carer', tree.id],
