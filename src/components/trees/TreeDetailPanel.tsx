@@ -142,14 +142,14 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           </p>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-full overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 glass-surface rounded-full overflow-x-auto">
             {tabs.map((label, idx) => (
               <button
                 key={label}
                 onClick={() => setCurrentSlide(idx)}
                 className={`min-w-max px-3 py-1.5 text-xs font-medium whitespace-nowrap rounded-full transition-all ${
                   currentSlide === idx
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'no-glass bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
