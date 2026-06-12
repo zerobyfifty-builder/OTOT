@@ -17,9 +17,11 @@ interface TreeDetailPanelProps {
 
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const tabs = ['Your Tree', 'Your Tree Carer', 'Location', 'Impact'];
+  const slideCount = tabs.length;
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 2);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 2) % 2);
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slideCount);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slideCount) % slideCount);
 
   const treeImages = Array.isArray(tree.images) ? tree.images : [];
   const actualTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
