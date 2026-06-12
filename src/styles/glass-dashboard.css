@@ -528,8 +528,10 @@
 
 /* Tourist page headers — exact My Trees/My Trips typography, overriding glass heading shadows */
 .tourist-dashboard-glass .tourist-page-heading,
+.tourist-dashboard-glass .faq-heading,
 .tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
 .tourist-dashboard-glass > .container .tourist-page-heading,
+.tourist-dashboard-glass > .container .faq-heading,
 .tree-purchase-glass > .container > div > .tourist-page-heading,
 .tree-purchase-glass .tourist-page-heading {
   color: hsl(var(--foreground)) !important;
@@ -557,8 +559,10 @@
 
 @media (min-width: 640px) {
   .tourist-dashboard-glass .tourist-page-heading,
+  .tourist-dashboard-glass .faq-heading,
   .tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
   .tourist-dashboard-glass > .container .tourist-page-heading,
+  .tourist-dashboard-glass > .container .faq-heading,
   .tree-purchase-glass > .container > div > .tourist-page-heading,
   .tree-purchase-glass .tourist-page-heading {
     font-size: 2.25rem !important;
