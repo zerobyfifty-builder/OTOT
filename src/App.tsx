@@ -150,10 +150,9 @@ const MobileTopBar = () => (
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="tourist-glass min-h-screen flex w-full">
+    <div className="tourist-glass h-screen flex w-full overflow-hidden">
       <AppSidebar />
-      <main className="flex-1 overflow-auto tourist-glass-main">
-
+      <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] tourist-glass-main">
         <MobileTopBar />
         {children}
       </main>
