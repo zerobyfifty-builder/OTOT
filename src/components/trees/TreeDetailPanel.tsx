@@ -204,6 +204,70 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                 </p>
               </div>
             </div>
+
+            {/* Slide 3: Location */}
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-4">Location</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Forest:
+                  </p>
+                  <p className="text-sm font-medium">Mau Forest Complex (Nakuru)</p>
+                </div>
+                {tree.latitude && tree.longitude && (
+                  <>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Coordinates:</p>
+                      <p className="text-sm">{tree.latitude}, {tree.longitude}</p>
+                    </div>
+                    <div className="rounded-lg overflow-hidden border">
+                      <iframe
+                        title="Tree location"
+                        width="100%"
+                        height="220"
+                        loading="lazy"
+                        src={`https://www.google.com/maps?q=${tree.latitude},${tree.longitude}&z=14&output=embed`}
+                      />
+                    </div>
+                  </>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                    <Cloud className="h-3.5 w-3.5" />
+                    Weather:
+                  </p>
+                  <p className="text-sm">23.5°C</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 4: Impact */}
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-4">Impact</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">CO₂ absorbed / year</p>
+                  <p className="text-lg font-bold">22 kg</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Oxygen produced / year</p>
+                  <p className="text-lg font-bold">118 kg</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Lifetime CO₂</p>
+                  <p className="text-lg font-bold">~1 ton</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Wildlife supported</p>
+                  <p className="text-lg font-bold">Yes</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                Your tree contributes to restoring the Mau Forest ecosystem, supporting biodiversity, watershed health, and local livelihoods.
+              </p>
+            </div>
           </div>
 
           {/* Slider arrows */}
