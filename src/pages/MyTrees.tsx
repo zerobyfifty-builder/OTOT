@@ -422,6 +422,12 @@ export const MyTrees = () => {
               const treesPct = treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0;
               const co2Pct = totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0;
               const fmt = (n: number) => Math.round(n).toLocaleString();
+              const fmtCompact = (n: number) => {
+                const r = Math.round(n);
+                if (r >= 1_000_000) return (r / 1_000_000).toFixed(r >= 10_000_000 ? 0 : 1).replace(/\.0$/, "") + "M";
+                if (r >= 10_000) return (r / 1_000).toFixed(r >= 100_000 ? 0 : 1).replace(/\.0$/, "") + "k";
+                return r.toLocaleString();
+              };
               return (
                 <>
                   <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-green-50/80 to-teal-50 shadow-sm backdrop-blur-xl p-5 sm:p-6">
