@@ -142,7 +142,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           </p>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1 p-1 glass-surface rounded-full overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 rounded-full overflow-x-auto bg-[hsl(142_60%_90%/0.6)] backdrop-blur-xl border border-[hsl(142_76%_36%/0.25)] shadow-[0_1px_3px_rgba(0,0,0,0.04)] max-sm:bg-[hsl(142_60%_93%/0.82)]">
             {tabs.map((label, idx) => (
               <button
                 key={label}
