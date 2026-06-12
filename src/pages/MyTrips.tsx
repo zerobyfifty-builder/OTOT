@@ -706,6 +706,7 @@ export const MyTrips = () => {
         <TripDetailsSheet
           trip={selectedTripForDetails}
           isOpen={isTripDetailsOpen}
+          view={detailsView}
           onClose={() => {
             setIsTripDetailsOpen(false);
             setSelectedTripForDetails(null);
