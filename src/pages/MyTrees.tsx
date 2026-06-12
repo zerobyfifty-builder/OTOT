@@ -716,7 +716,6 @@ export const MyTrees = () => {
                                 aria-expanded={!isCollapsed}
                               >
                                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-950">
-                                  <DollarSign className="h-3.5 w-3.5 text-emerald-700" />
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'}
                                 </span>
                                 {stageMeta.filter(m => stageCounts[m.stage] > 0).map(m => (
