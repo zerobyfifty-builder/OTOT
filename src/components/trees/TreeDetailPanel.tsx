@@ -61,6 +61,25 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     enabled: !!tree.id,
   });
 
+  const { data: geotag } = useQuery({
+    queryKey: ['tree-geotag', tree.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tree_geotags' as any)
+        .select('latitude, longitude, geo_tag_id, geo_accuracy')
+        .eq('tree_id', tree.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as any;
+    },
+    enabled: !!tree.id,
+  });
+
+  const lat = geotag?.latitude ?? tree.latitude;
+  const lng = geotag?.longitude ?? tree.longitude;
+  const hasLocation = lat != null && lng != null;
+
   const carerPhoto = carer?.photo_url || treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
   const carerDescription = carer
