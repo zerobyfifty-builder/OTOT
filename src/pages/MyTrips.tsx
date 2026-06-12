@@ -255,7 +255,7 @@ export const MyTrips = () => {
             </div>
             <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
               <Plus className="h-4 w-4 mr-2" />
-              Add Trip Manually
+              Add Trip
             </Button>
           </div>
         </div>
