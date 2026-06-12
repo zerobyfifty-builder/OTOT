@@ -522,7 +522,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Section 3: Climate Action Cards */}
         <section>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-left">Step up Your Climate Action</h2>
+          <h2 className="tourist-page-heading text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-left">Step up Your Climate Action</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ClimateActionCard
               image={reduceFootprintImg}
