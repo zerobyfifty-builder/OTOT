@@ -523,9 +523,13 @@ export const MyTrips = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleViewDetails(trip)}>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip, "trip")}>
                                         <Eye className="h-4 w-4 mr-2" />
-                                        Tree details
+                                        Trip Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip, "contributions")}>
+                                        <DollarSign className="h-4 w-4 mr-2" />
+                                        Contributions
                                       </DropdownMenuItem>
                                       {trip.treesPlanted === 0 ? (
                                         <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
