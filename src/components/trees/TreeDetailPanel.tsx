@@ -124,41 +124,43 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
         className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pr-12 border-b bg-background shrink-0">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <div className="flex items-center gap-1.5 text-sm">
-              <span className="text-muted-foreground">Status:</span>
-              <span className="font-semibold capitalize truncate">
-                {tree.planting_status?.replace(/_/g, ' ') || tree.status?.replace(/_/g, ' ') || 'Pending'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm">
-              <span className="text-muted-foreground">Date:</span>
-              <span className="font-semibold truncate">
-                {tree.plant_date
-                  ? new Date(tree.plant_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                  : '—'}
-              </span>
-            </div>
+        <div className="px-5 pt-5 pb-4 pr-12 border-b bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {statusLabel}
+            </span>
           </div>
+          <p className="text-xs text-muted-foreground">
+            {statusDate
+              ? new Date(statusDate).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })
+              : '—'}
+          </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b bg-background shrink-0 overflow-x-auto">
-          {tabs.map((label, idx) => (
-            <button
-              key={label}
-              onClick={() => setCurrentSlide(idx)}
-              className={`flex-1 min-w-max px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
-                currentSlide === idx
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="px-3 pt-3 pb-2 bg-background shrink-0">
+          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-full overflow-x-auto">
+            {tabs.map((label, idx) => (
+              <button
+                key={label}
+                onClick={() => setCurrentSlide(idx)}
+                className={`flex-1 min-w-max px-3 py-1.5 text-xs font-medium whitespace-nowrap rounded-full transition-all ${
+                  currentSlide === idx
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+
 
         {/* Carousel */}
         <div className="flex-1 min-h-0 overflow-hidden relative">
