@@ -40,9 +40,8 @@ export const MyTrips = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
-  const [selectedTripForTrees, setSelectedTripForTrees] = useState<string | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
-  const [isTreeDetailsOpen, setIsTreeDetailsOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
 
   const getFilteredTrips = () => {
