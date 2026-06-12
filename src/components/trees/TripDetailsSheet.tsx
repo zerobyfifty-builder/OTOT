@@ -311,9 +311,12 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripD
               <span>{trip.trees_needed} needed</span>
             </div>
           </div>
-          </TabsContent>
+          </div>
+          )}
 
-          <TabsContent value="contributions" className="mt-5">
+          {view === "contributions" && (
+          <div>
+
             {isLoadingTrees ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
