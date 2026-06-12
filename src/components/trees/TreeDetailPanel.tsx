@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Cloud, Copy, ExternalLink, RefreshCw, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Cloud, ExternalLink, RefreshCw, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
+
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
 
@@ -268,18 +268,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <MapPin className="h-4 w-4" /> Tree Geotag & Map
                   </h4>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${lat}, ${lng}`);
-                        toast.success('Coordinates copied');
-                      }}
-                    >
-                      <Copy className="h-3 w-3 mr-1.5" /> Copy coords
-                    </Button>
                     <a
                       href={`https://www.google.com/maps?q=${lat},${lng}`}
                       target="_blank"
