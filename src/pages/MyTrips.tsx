@@ -41,6 +41,7 @@ export const MyTrips = () => {
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
+  const [detailsView, setDetailsView] = useState<"trip" | "contributions">("trip");
   const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
 
   const getFilteredTrips = () => {
