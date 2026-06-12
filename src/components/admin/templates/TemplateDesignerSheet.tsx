@@ -99,7 +99,11 @@ export default function TemplateDesignerSheet({ template, category, open, onClos
               ))}
             </div>
 
-            {design && !isSocial && (
+            {design && design.layoutPreset === 'pledge_default' && (
+              <PledgePresetEditor design={design} onChange={setDesign} />
+            )}
+
+            {design && !isSocial && !design.layoutPreset && (
               <>
                 <StylePanel design={design} onChange={setDesign} />
                 <div className="space-y-2">
