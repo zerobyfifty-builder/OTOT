@@ -101,55 +101,52 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
             {/* Slide 1: Tree Details */}
-            <div className="min-w-full h-full overflow-y-auto p-6 pb-20">
-              <div className="text-center mb-4">
-                <h3 className="text-xl font-bold mb-2">Your tree</h3>
-              </div>
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-2">Your tree</h3>
 
-              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
+              <div className="relative w-full max-w-[240px] mx-auto aspect-square mb-4 rounded-lg overflow-hidden shadow-md">
                 <img src={treeImage} alt="Tree" className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
+                <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
                   YOUR TREE
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Tree number:</p>
-                  <p className="text-lg font-bold">{tree.otot_id}</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground mb-0.5">Tree number:</p>
+                    <p className="text-base font-bold truncate">{tree.otot_id}</p>
+                  </div>
+                  <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
+                    Track this tree
+                  </Button>
                 </div>
 
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
                     Location:
                   </p>
-                  <p className="text-base">Mau Forest Complex (Nakuru)</p>
+                  <p className="text-sm">Mau Forest Complex (Nakuru)</p>
                 </div>
 
                 {tree.latitude && tree.longitude && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                      <Cloud className="h-4 w-4" />
+                    <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                      <Cloud className="h-3.5 w-3.5" />
                       Weather:
                     </p>
-                    <p className="text-base">23.5°C</p>
+                    <p className="text-sm">23.5°C</p>
                   </div>
                 )}
-
-                <Button className="w-full bg-[#8BC34A] hover:bg-[#7CB342] text-white mt-4" size="lg">
-                  Track this tree
-                </Button>
               </div>
             </div>
 
             {/* Slide 2: Grower Information */}
-            <div className="min-w-full h-full overflow-y-auto p-6 pb-20">
-              <div className="text-center mb-4">
-                <h3 className="text-xl font-bold mb-2">Your tree carer</h3>
-              </div>
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-2">Your tree carer</h3>
 
-              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
+              <div className="relative w-full max-w-[240px] mx-auto aspect-square mb-4 rounded-lg overflow-hidden shadow-md bg-muted">
                 <img
                   src={carerPhoto}
                   alt={carerName}
