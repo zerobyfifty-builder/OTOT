@@ -680,8 +680,9 @@ export const MyTrees = () => {
 
                           const isCollapsed = collapsedContribLists.has(group.key);
                           return (
-                            <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 via-green-50/60 to-teal-50/80 shadow-sm">
-                              <div className="pointer-events-none absolute -top-8 -right-8 h-32 w-32 rounded-full bg-emerald-200/30 blur-2xl" />
+                            <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-100/90 via-green-50/85 to-teal-100/90 shadow-md">
+                              <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-300/40 blur-3xl" />
+                              <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-teal-300/30 blur-3xl" />
                               <button
                                 type="button"
                                 onClick={() => {
@@ -691,25 +692,25 @@ export const MyTrees = () => {
                                     return next;
                                   });
                                 }}
-                                className={`relative w-full px-4 py-2.5 flex items-center gap-2 bg-white/40 ${isCollapsed ? '' : 'border-b border-emerald-200/30'} hover:bg-white/60 transition-colors text-left backdrop-blur-sm`}
+                                className={`relative w-full px-4 py-2.5 flex items-center gap-2 bg-white/60 ${isCollapsed ? '' : 'border-b border-emerald-200/50'} hover:bg-white/80 transition-colors text-left backdrop-blur-md`}
                                 aria-expanded={!isCollapsed}
                               >
-                                <TreePine className="h-3.5 w-3.5 text-emerald-600" />
-                                <span className="text-xs font-semibold text-emerald-900">
+                                <TreePine className="h-3.5 w-3.5 text-emerald-700" />
+                                <span className="text-xs font-semibold text-emerald-950">
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
-                                <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-700 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
+                                <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-800 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
                               <div
                                 className={`relative grid transition-[grid-template-rows,opacity] duration-300 ease-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}
                                 aria-hidden={isCollapsed}
                               >
                                 <div className="overflow-hidden">
-                                  <div className="space-y-2 p-2 bg-white/30 backdrop-blur-sm">
+                                  <div className="space-y-2.5 p-3 bg-white/40 backdrop-blur-md">
                                     {contribGroups.map((cg) => (
                                     <div
                                       key={`${group.key}-${cg.cid}`}
-                                      className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur-sm px-3 sm:px-4 py-3 hover:bg-white/80 transition-colors shadow-sm"
+                                      className="rounded-xl bg-white/80 ring-1 ring-white/90 backdrop-blur-md px-3 sm:px-4 py-3 hover:bg-white transition-colors shadow-sm"
                                     >
                                       <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                                         <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
