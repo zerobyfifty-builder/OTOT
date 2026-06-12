@@ -710,16 +710,6 @@ export const MyTrips = () => {
             setSelectedTripForDetails(null);
           }}
         />
-
-        {/* Tree Details Sheet */}
-        <TreeDetailsSheet
-          tripId={selectedTripForTrees}
-          isOpen={isTreeDetailsOpen}
-          onClose={() => {
-            setIsTreeDetailsOpen(false);
-            setSelectedTripForTrees(null);
-          }}
-        />
       </div>
     </div>;
 };
