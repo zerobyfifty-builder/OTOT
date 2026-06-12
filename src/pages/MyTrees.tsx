@@ -456,7 +456,7 @@ export const MyTrees = () => {
                       </div>
                       <div className="mt-4">
                         <div className="flex justify-between text-xs text-emerald-800/80 mb-1.5 font-medium">
-                          <span>{treesPct}% planted</span>
+                          <span>{treesPct}% committed</span>
                           <span className="tabular-nums">{fmt(plantedTrees)} / {fmt(treesNeeded)}</span>
                         </div>
                         <div className="h-2.5 rounded-full bg-white/60 overflow-hidden ring-1 ring-white/80">
