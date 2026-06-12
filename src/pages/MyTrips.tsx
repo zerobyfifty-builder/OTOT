@@ -607,7 +607,7 @@ export const MyTrips = () => {
                         {dateText} ({daysText})
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3">
                       {/* Trip Details */}
                       <div className="text-sm">
                         <div className="text-muted-foreground mb-1">
