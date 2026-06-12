@@ -375,10 +375,7 @@ export const MyTrips = () => {
                       <thead className="bg-muted/50 border-b">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
-                            Trip ID
-                          </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
-                            Date Added
+                            Trip ID/Dt
                           </th>
                           <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Travel Dates
