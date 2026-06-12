@@ -267,7 +267,7 @@ export default function PledgeC() {
               Thank You for Pledging!
             </h1>
             <p className="text-white/80 text-base md:text-lg mt-3 max-w-md mx-auto leading-relaxed">
-              You're now a Responsible Traveler. Take the next step — claim your certificate or offset your footprint by planting trees in Kenya.
+              You're now a Responsible Traveler. Take the next step — claim your certificate and offset your footprint by planting trees in Kenya.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3 mt-7">
