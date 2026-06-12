@@ -460,7 +460,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                         <div className="text-left flex-1">
                           <p className="text-sm font-semibold text-foreground">Download Certificate</p>
-                          <p className="text-xs text-muted-foreground">Get your pledge certificate as PDF</p>
+                          <p className="text-xs text-muted-foreground">Get your pledge certificate</p>
                         </div>
                         <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
