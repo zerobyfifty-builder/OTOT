@@ -78,18 +78,21 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 pr-12 border-b bg-background shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8 shrink-0" />
-            <span className="text-sm font-semibold whitespace-nowrap">Planted by:</span>
-            <a
-              href="https://mfc-iclip.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline truncate"
-            >
-              MFC-ICLIP
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-            </a>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground">Status:</span>
+              <span className="font-semibold capitalize truncate">
+                {tree.planting_status?.replace(/_/g, ' ') || tree.status?.replace(/_/g, ' ') || 'Pending'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground">Date:</span>
+              <span className="font-semibold truncate">
+                {tree.plant_date
+                  ? new Date(tree.plant_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                  : '—'}
+              </span>
+            </div>
           </div>
         </div>
 
