@@ -29,6 +29,7 @@ interface TripDetailsSheetProps {
   trip: Trip | null;
   isOpen: boolean;
   onClose: () => void;
+  view?: "trip" | "contributions";
 }
 
 const TRAVEL_CLASS_LABELS: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
