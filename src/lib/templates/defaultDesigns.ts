@@ -13,16 +13,17 @@ export function getDefaultDesign(category: CategoryKey): TemplateDesign {
   if (category === 'pledge_certificate') {
     return {
       version: 1,
-      style: { ...baseStyle },
+      style: { ...baseStyle, orientation: 'portrait', margin: 24 },
+      layoutPreset: 'pledge_default',
+      presetFields: {
+        subtitle: 'Certificate of Commitment',
+        title: 'I am a Responsible Traveler',
+        presentedTo: 'This certificate is presented to',
+        pledgeDateText: 'for taking the Responsible Traveler Pledge on {{date}}',
+        pledgeHeading: 'I PLEDGE TO',
+      },
       blocks: [
-        { id: '1', kind: 'header', leftLogo: '{{ktbLogoUrl}}', rightLogo: '{{partnerLogoUrl}}' },
-        { id: '2', kind: 'title', text: 'Pledge Certificate' },
-        { id: '3', kind: 'subtitle', text: 'Kenya Tourism Board' },
-        { id: '4', kind: 'awardedTo', text: 'This pledge is taken by' },
-        { id: '5', kind: 'recipientName', text: '{{userName}}' },
-        { id: '6', kind: 'paragraph', text: 'On {{date}}, committing to support sustainable tourism and reforestation in Kenya.' },
-        { id: '7', kind: 'qrId' },
-        { id: '8', kind: 'footer', text: 'Verify at the URL encoded in the QR code. ID: {{certificateId}}' },
+        { id: 'h', kind: 'header', leftLogo: '{{ktbLogoUrl}}', rightLogo: '{{partnerLogoUrl}}' },
       ],
     };
   }
