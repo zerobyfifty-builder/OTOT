@@ -194,9 +194,6 @@ export default function PledgeC() {
                   <h2 className="text-white/95 text-sm md:text-base font-semibold tracking-wider uppercase">
                     The 10 Principles
                   </h2>
-                  <span className="text-emerald-300/90 text-xs font-medium tabular-nums">
-                    01 — 10
-                  </span>
                 </div>
 
                 <ol className="grid sm:grid-cols-2 gap-x-5 gap-y-3">
