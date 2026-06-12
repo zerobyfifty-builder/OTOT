@@ -14,7 +14,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { TripDetailsSheet } from "@/components/trees/TripDetailsSheet";
-import { TreeDetailsSheet } from "@/components/trees/TreeDetailsSheet";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
 
