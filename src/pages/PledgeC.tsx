@@ -223,7 +223,7 @@ export default function PledgeC() {
                   size="lg"
                   className="w-full h-14 text-base md:text-lg font-semibold rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-xl shadow-emerald-900/30 border border-white/20 transition-all hover:shadow-2xl hover:shadow-emerald-900/40 active:scale-[0.99]"
                 >
-                  I Commit to All 10 Principles
+                  I Commit
                 </Button>
                 <p className="text-center text-white/55 text-xs mt-3">
                   By committing you agree to travel responsibly across Kenya.
