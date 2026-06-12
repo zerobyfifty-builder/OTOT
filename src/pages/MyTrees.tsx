@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf, MoreVertical } from "lucide-react";
+import { Plus, Sprout, ExternalLink, Eye, TreePine, Cloud, ChevronDown, Plane, ShoppingBag, MapPin, Award, Leaf, MoreVertical, DollarSign } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -685,6 +685,25 @@ export const MyTrees = () => {
                             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
                           const isCollapsed = collapsedContribLists.has(group.key);
+
+                          // Aggregate planting status counts across all trees in this group
+                          const stageCounts: Record<TouristStage, number> = { waiting: 0, assigned: 0, scheduled: 0, planted: 0 };
+                          group.trees.forEach(t => {
+                            const stage = toTouristStage(t.planting_status);
+                            stageCounts[stage] += t.num_trees;
+                          });
+                          const stageMeta: { stage: TouristStage; label: string; cls: string }[] = [
+                            { stage: 'waiting', label: 'Waiting', cls: 'text-yellow-700' },
+                            { stage: 'assigned', label: 'Assigned', cls: 'text-orange-700' },
+                            { stage: 'scheduled', label: 'Scheduled', cls: 'text-cyan-700' },
+                            { stage: 'planted', label: 'Planted', cls: 'text-emerald-700' },
+                          ];
+                          // Last status change date across all trees
+                          const lastStatusTs = group.trees.reduce((max, t) => {
+                            const d = new Date(transitionDates[t.id] || t.updated_at || t.created_at).getTime();
+                            return d > max ? d : max;
+                          }, 0);
+
                           return (
                             <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-100/90 via-green-50/85 to-teal-100/90 shadow-md">
                               <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-300/40 blur-3xl" />
@@ -698,13 +717,28 @@ export const MyTrees = () => {
                                     return next;
                                   });
                                 }}
-                                className={`relative w-full px-4 py-2.5 flex items-center gap-2 bg-white/60 ${isCollapsed ? '' : 'border-b border-emerald-200/50'} hover:bg-white/80 transition-colors text-left backdrop-blur-md`}
+                                className={`relative w-full px-4 py-2.5 flex items-center gap-x-3 gap-y-1.5 flex-wrap bg-white/60 ${isCollapsed ? '' : 'border-b border-emerald-200/50'} hover:bg-white/80 transition-colors text-left backdrop-blur-md`}
                                 aria-expanded={!isCollapsed}
                               >
-                                <TreePine className="h-3.5 w-3.5 text-emerald-700" />
-                                <span className="text-xs font-semibold text-emerald-950">
-                                  {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
+                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-950">
+                                  <DollarSign className="h-3.5 w-3.5 text-emerald-700" />
+                                  {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'}
                                 </span>
+                                {stageMeta.filter(m => stageCounts[m.stage] > 0).map(m => (
+                                  <span
+                                    key={m.stage}
+                                    className={`inline-flex items-center gap-1 text-xs font-medium tabular-nums whitespace-nowrap ${m.cls}`}
+                                    title={`${m.label}: ${stageCounts[m.stage]} ${stageCounts[m.stage] === 1 ? 'tree' : 'trees'}`}
+                                  >
+                                    {m.label} {stageCounts[m.stage]}
+                                    <TreePine className="h-3 w-3" />
+                                  </span>
+                                ))}
+                                {lastStatusTs > 0 && (
+                                  <span className="text-[11px] tabular-nums text-emerald-800/80 whitespace-nowrap" title="Last status update">
+                                    · {format(new Date(lastStatusTs), "d MMM yyyy")}
+                                  </span>
+                                )}
                                 <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-800 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
                               <div
