@@ -729,11 +729,6 @@ export const MyTrees = () => {
                                     <TreePine className="h-3 w-3" />
                                   </span>
                                 ))}
-                                {lastStatusTs > 0 && (
-                                  <span className="text-[11px] tabular-nums text-emerald-800/80 whitespace-nowrap" title="Last status update">
-                                    · {format(new Date(lastStatusTs), "d MMM yyyy")}
-                                  </span>
-                                )}
                                 <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-800 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
                               <div
