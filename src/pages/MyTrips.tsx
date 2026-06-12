@@ -464,7 +464,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* CO2 Emissions */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="space-y-1 text-sm">
                                   <div>
                                     <span className="text-muted-foreground">Flight: </span>
