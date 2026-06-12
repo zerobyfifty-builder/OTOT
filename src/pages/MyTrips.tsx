@@ -408,21 +408,14 @@ export const MyTrips = () => {
                         daysText
                       } = formatDateRange(trip.from_date, trip.to_date);
                       return <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
-                              {/* Trip ID */}
-                              <td className="px-6 py-6">
-                                <span className="text-sm font-semibold text-foreground">
-                                  {trip.friendly_trip_id}
-                                </span>
-                              </td>
-
-                              {/* Date Added */}
+                              {/* Trip ID / Date */}
                               <td className="px-6 py-6 whitespace-nowrap">
-                                <div className="text-sm">
-                                  <div className="font-medium text-foreground">
-                                    {format(new Date(trip.created_at), "dd MMM yyyy")}
+                                <div className="space-y-1">
+                                  <div className="text-sm font-semibold text-foreground">
+                                    {trip.friendly_trip_id}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {format(new Date(trip.created_at), "h:mm a")}
+                                    {format(new Date(trip.created_at), "dd MMM yyyy, h:mm a")}
                                   </div>
                                   <Badge variant={trip.entry_source === "Manual" ? "secondary" : "default"} className="text-xs mt-1">
                                     {trip.entry_source}
