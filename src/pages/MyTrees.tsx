@@ -445,7 +445,7 @@ export const MyTrees = () => {
                       <div className="grid grid-cols-3 gap-2 sm:gap-3">
                         {[
                           { label: "Needed", value: fmt(treesNeeded), compact: fmtCompact(treesNeeded), color: "text-emerald-900" },
-                          { label: "Planted", value: fmt(plantedTrees), compact: fmtCompact(plantedTrees), color: "text-green-700" },
+                          { label: "Committed", value: fmt(plantedTrees), compact: fmtCompact(plantedTrees), color: "text-green-700" },
                           { label: "Remaining", value: fmt(treesRemaining), compact: fmtCompact(treesRemaining), color: "text-orange-600" },
                         ].map((s) => (
                           <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
