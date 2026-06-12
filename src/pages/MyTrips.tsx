@@ -575,8 +575,8 @@ export const MyTrips = () => {
             const { dateText, daysText } = formatDateRange(trip.from_date, trip.to_date);
             const nights = calculateNights(trip.from_date, trip.to_date);
             return <Card key={trip.id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between mb-2">
+                    <CardHeader className="pb-1.5">
+                      <div className="flex items-start justify-between">
                         <div>
                           <div className="text-sm font-semibold text-muted-foreground">
                             {trip.friendly_trip_id}
@@ -607,7 +607,7 @@ export const MyTrips = () => {
                         {dateText} ({daysText})
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3">
                       {/* Trip Details */}
                       <div className="text-sm">
                         <div className="text-muted-foreground mb-1">
