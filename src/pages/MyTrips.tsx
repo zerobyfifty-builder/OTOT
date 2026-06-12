@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical, CheckCircle2, AlertCircle, XCircle, ChevronRight, Info } from "lucide-react";
+import { Plane, Calendar, Edit, Eye, Leaf, Plus, Trash2, MoreVertical, CheckCircle2, AlertCircle, XCircle, ChevronRight, Info, DollarSign } from "lucide-react";
 import ktbLogo from '@/assets/ktb-logo.png';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +41,7 @@ export const MyTrips = () => {
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
+  const [detailsView, setDetailsView] = useState<"trip" | "contributions">("trip");
   const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
 
   const getFilteredTrips = () => {
@@ -192,10 +193,12 @@ export const MyTrips = () => {
       description: "Edit functionality will be implemented soon."
     });
   };
-  const handleViewDetails = (trip: TripWithTreeCount) => {
+  const handleViewDetails = (trip: TripWithTreeCount, view: "trip" | "contributions" = "trip") => {
     setSelectedTripForDetails(trip);
+    setDetailsView(view);
     setIsTripDetailsOpen(true);
   };
+
 
   const handleDeleteTrip = async (tripId: string) => {
     try {
@@ -520,9 +523,13 @@ export const MyTrips = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleViewDetails(trip)}>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip, "trip")}>
                                         <Eye className="h-4 w-4 mr-2" />
-                                        Tree details
+                                        Trip Details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleViewDetails(trip, "contributions")}>
+                                        <DollarSign className="h-4 w-4 mr-2" />
+                                        Contributions
                                       </DropdownMenuItem>
                                       {trip.treesPlanted === 0 ? (
                                         <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
@@ -648,9 +655,13 @@ export const MyTrips = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(trip)}>
+                            <DropdownMenuItem onClick={() => handleViewDetails(trip, "trip")}>
                               <Eye className="h-4 w-4 mr-2" />
-                              Tree details
+                              Trip Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(trip, "contributions")}>
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Contributions
                             </DropdownMenuItem>
                             {trip.treesPlanted === 0 ? (
                               <DropdownMenuItem onClick={() => setDeletingTripId(trip.id)} className="text-destructive focus:text-destructive">
@@ -695,6 +706,7 @@ export const MyTrips = () => {
         <TripDetailsSheet
           trip={selectedTripForDetails}
           isOpen={isTripDetailsOpen}
+          view={detailsView}
           onClose={() => {
             setIsTripDetailsOpen(false);
             setSelectedTripForDetails(null);

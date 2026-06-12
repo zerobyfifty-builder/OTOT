@@ -29,6 +29,7 @@ interface TripDetailsSheetProps {
   trip: Trip | null;
   isOpen: boolean;
   onClose: () => void;
+  view?: "trip" | "contributions";
 }
 
 const TRAVEL_CLASS_LABELS: Record<Database["public"]["Enums"]["travel_class_type"], string> = {
@@ -57,7 +58,7 @@ interface PaymentBatch {
   paymentMethod: string;
 }
 
-export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
+export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripDetailsSheetProps) => {
   const [trees, setTrees] = useState<Tree[]>([]);
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
   const [userName, setUserName] = useState("");
@@ -219,16 +220,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl">Trip and Contribution Details</SheetTitle>
+          <SheetTitle className="text-2xl">{view === "contributions" ? "Contribution Details" : "Trip Details"}</SheetTitle>
         </SheetHeader>
-        
-        <Tabs defaultValue="trip" className="mt-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="trip" className="text-xs sm:text-sm px-2">Trip Details</TabsTrigger>
-            <TabsTrigger value="contributions" className="text-xs sm:text-sm px-2"><span className="sm:hidden">Contributions</span><span className="hidden sm:inline">Contribution Details</span></TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="trip" className="space-y-5 mt-5">
+        <div className="mt-6">
+          {view === "trip" && (
+          <div className="space-y-5">
+
           {/* Trip Route */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
@@ -313,9 +311,12 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
               <span>{trip.trees_needed} needed</span>
             </div>
           </div>
-          </TabsContent>
+          </div>
+          )}
 
-          <TabsContent value="contributions" className="mt-5">
+          {view === "contributions" && (
+          <div>
+
             {isLoadingTrees ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
@@ -407,11 +408,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProp
             ) : (
               <p className="text-sm text-muted-foreground">No contributions yet.</p>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+          )}
+        </div>
 
       </SheetContent>
     </Sheet>
+
 
     {/* Unified PDF Preview Dialog */}
     <PdfPreviewDialog
