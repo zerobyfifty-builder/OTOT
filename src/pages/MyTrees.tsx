@@ -733,7 +733,7 @@ export const MyTrees = () => {
                                           className="h-7 w-7 p-0"
                                           title="Track trees"
                                           tabIndex={isCollapsed ? -1 : 0}
-                                          onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}
+                                          onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
                                         >
                                           <MapPin className="h-3.5 w-3.5" />
                                         </Button>
