@@ -426,7 +426,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* Date Added */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="text-sm">
                                   <div className="font-medium text-foreground">
                                     {format(new Date(trip.created_at), "dd MMM yyyy")}
@@ -441,7 +441,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* Travel Dates */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="text-sm">
                                   <div className="font-medium text-foreground">{dateText}</div>
                                   <div className="text-xs text-muted-foreground">{daysText}</div>
