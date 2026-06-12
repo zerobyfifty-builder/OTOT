@@ -155,17 +155,16 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                 />
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xl font-bold mb-2">{carerName}</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {carerDescription}
-                  </p>
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-base font-bold">{carerName}</p>
+                  <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
+                    Track this tree
+                  </Button>
                 </div>
-
-                <Button className="w-full bg-[#8BC34A] hover:bg-[#7CB342] text-white mt-4" size="lg">
-                  Track this tree
-                </Button>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {carerDescription}
+                </p>
               </div>
             </div>
           </div>
