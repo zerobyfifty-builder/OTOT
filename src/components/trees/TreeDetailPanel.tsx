@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Cloud, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Database } from '@/integrations/supabase/types';
@@ -7,7 +7,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
-import ototTreeIcon from '@/assets/otot-tree-icon-new.png';
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 
@@ -22,7 +21,10 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 2);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 2) % 2);
 
-  const treeImage = yourTreeImage;
+  const treeImages = Array.isArray(tree.images) ? tree.images : [];
+  const actualTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
+  const hasActualPhoto = !!actualTreeImage;
+  const treeImage = actualTreeImage || yourTreeImage;
 
   const { data: carer } = useQuery({
     queryKey: ['tree-carer', tree.id],
@@ -79,18 +81,21 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 pr-12 border-b bg-background shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <img src={ototTreeIcon} alt="OTOT" className="h-8 w-8 shrink-0" />
-            <span className="text-sm font-semibold whitespace-nowrap">Planted by:</span>
-            <a
-              href="https://mfc-iclip.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline truncate"
-            >
-              MFC-ICLIP
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-            </a>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground">Status:</span>
+              <span className="font-semibold capitalize truncate">
+                {tree.planting_status?.replace(/_/g, ' ') || tree.status?.replace(/_/g, ' ') || 'Pending'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground">Date:</span>
+              <span className="font-semibold truncate">
+                {tree.plant_date
+                  ? new Date(tree.plant_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                  : '—'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -104,11 +109,24 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <h3 className="text-lg font-bold text-center mb-2">Your tree</h3>
 
-              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
-                <img src={treeImage} alt="Tree" className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
-                  YOUR TREE
-                </div>
+              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
+                <img
+                  src={treeImage}
+                  alt="Tree"
+                  className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'grayscale opacity-50'}`}
+                />
+                {!hasActualPhoto && (
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <p className="text-center text-sm font-semibold text-foreground bg-background/85 backdrop-blur-sm px-4 py-2 rounded-md shadow">
+                      Your tree photo will appear here once it is planted
+                    </p>
+                  </div>
+                )}
+                {hasActualPhoto && (
+                  <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
+                    YOUR TREE
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
