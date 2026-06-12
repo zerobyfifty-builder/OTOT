@@ -709,7 +709,7 @@ export const MyTrees = () => {
                                     {contribGroups.map((cg) => (
                                     <div
                                       key={`${group.key}-${cg.cid}`}
-                                      className="px-3 sm:px-4 py-3 hover:bg-muted/30 transition-colors"
+                                      className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur-sm px-3 sm:px-4 py-3 hover:bg-white/80 transition-colors shadow-sm"
                                     >
                                       <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                                         <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
