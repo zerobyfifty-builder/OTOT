@@ -408,11 +408,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripD
             ) : (
               <p className="text-sm text-muted-foreground">No contributions yet.</p>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+          )}
+        </div>
 
       </SheetContent>
     </Sheet>
+
 
     {/* Unified PDF Preview Dialog */}
     <PdfPreviewDialog
