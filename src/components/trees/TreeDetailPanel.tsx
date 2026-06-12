@@ -101,6 +101,23 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b bg-background shrink-0 overflow-x-auto">
+          {tabs.map((label, idx) => (
+            <button
+              key={label}
+              onClick={() => setCurrentSlide(idx)}
+              className={`flex-1 min-w-max px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
+                currentSlide === idx
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* Carousel */}
         <div className="flex-1 min-h-0 overflow-hidden relative">
           <div
