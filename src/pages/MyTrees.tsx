@@ -416,81 +416,97 @@ export const MyTrees = () => {
             </div>
           </div>
 
-          {/* Summary Statistics */}
+          {/* Summary Statistics - Glassmorphism */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <TreePine className="h-5 w-5 text-primary" />
+            {(() => {
+              const treesPct = treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0;
+              const co2Pct = totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0;
+              const fmt = (n: number) => Math.round(n).toLocaleString();
+              return (
+                <>
+                  <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-green-50/80 to-teal-50 shadow-sm backdrop-blur-xl p-5 sm:p-6">
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-emerald-200/40 blur-3xl" />
+                    <div className="relative">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="h-11 w-11 rounded-full bg-emerald-200/60 ring-1 ring-white/60 flex items-center justify-center shadow-sm">
+                          <TreePine className="h-5 w-5 text-emerald-700" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-emerald-900">Trees Overview</p>
+                          <p className="text-xs text-emerald-700/70">Your planting progress</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {[
+                          { label: "Needed", value: fmt(treesNeeded), color: "text-emerald-900" },
+                          { label: "Planted", value: fmt(plantedTrees), color: "text-green-700" },
+                          { label: "Remaining", value: fmt(treesRemaining), color: "text-orange-600" },
+                        ].map((s) => (
+                          <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
+                            <p className={`text-xl sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>{s.value}</p>
+                            <p className="text-[10px] sm:text-xs text-emerald-800/70 mt-1 font-medium">{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4">
+                        <div className="flex justify-between text-xs text-emerald-800/80 mb-1.5 font-medium">
+                          <span>{treesPct}% planted</span>
+                          <span className="tabular-nums">{fmt(plantedTrees)} / {fmt(treesNeeded)}</span>
+                        </div>
+                        <div className="h-2.5 rounded-full bg-white/60 overflow-hidden ring-1 ring-white/80">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-600 transition-all duration-500"
+                            style={{ width: `${treesPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Trees Overview</p>
-                </div>
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{treesNeeded}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Needed</p>
-                  </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-lg sm:text-2xl font-bold text-green-600 truncate">{plantedTrees}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Planted</p>
-                  </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-lg sm:text-2xl font-bold text-orange-500 truncate">{treesRemaining}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Remaining</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                    <span>{treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0}% planted</span>
-                    <span>{plantedTrees} / {treesNeeded}</span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all duration-500"
-                      style={{ width: `${treesNeeded > 0 ? Math.min(100, (plantedTrees / treesNeeded) * 100) : 0}%` }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-accent/5 border-accent/20">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Cloud className="h-5 w-5 text-accent" />
+                  <div className="relative overflow-hidden rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50 via-cyan-50/80 to-sky-50 shadow-sm backdrop-blur-xl p-5 sm:p-6">
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-teal-200/40 blur-3xl" />
+                    <div className="relative">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="h-11 w-11 rounded-full bg-teal-200/60 ring-1 ring-white/60 flex items-center justify-center shadow-sm">
+                          <Cloud className="h-5 w-5 text-teal-700" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-teal-900">CO₂ Impact</p>
+                          <p className="text-xs text-teal-700/70">Emissions offset by your trees</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {[
+                          { label: "To Offset", value: fmt(totalCO2ToOffset), color: "text-teal-900" },
+                          { label: "Offset", value: fmt(co2AlreadyOffset), color: "text-green-700" },
+                          { label: "Remaining", value: fmt(co2Remaining), color: "text-orange-600" },
+                        ].map((s) => (
+                          <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
+                            <p className={`text-lg sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>
+                              {s.value}
+                              <span className="text-[10px] sm:text-xs font-normal ml-0.5 text-teal-700/70">kg</span>
+                            </p>
+                            <p className="text-[10px] sm:text-xs text-teal-800/70 mt-1 font-medium">{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4">
+                        <div className="flex justify-between text-xs text-teal-800/80 mb-1.5 font-medium">
+                          <span>{co2Pct}% offset</span>
+                          <span className="tabular-nums">{fmt(co2AlreadyOffset)} / {fmt(totalCO2ToOffset)} kg</span>
+                        </div>
+                        <div className="h-2.5 rounded-full bg-white/60 overflow-hidden ring-1 ring-white/80">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-teal-400 to-cyan-600 transition-all duration-500"
+                            style={{ width: `${co2Pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">CO₂ Impact</p>
-                </div>
-                <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-base sm:text-2xl font-bold text-foreground truncate">{totalCO2ToOffset.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">To Offset</p>
-                  </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-base sm:text-2xl font-bold text-green-600 truncate">{co2AlreadyOffset}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Offset</p>
-                  </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 min-w-0">
-                    <p className="text-base sm:text-2xl font-bold text-orange-500 truncate">{co2Remaining.toFixed(0)}<span className="text-[10px] sm:text-sm font-normal ml-0.5">kg</span></p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Remaining</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                    <span>{totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0}% offset</span>
-                    <span>{co2AlreadyOffset} / {totalCO2ToOffset.toFixed(0)} kg</span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-accent transition-all duration-500"
-                      style={{ width: `${totalCO2ToOffset > 0 ? Math.min(100, (co2AlreadyOffset / totalCO2ToOffset) * 100) : 0}%` }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </>
+              );
+            })()}
           </div>
         </div>
 
