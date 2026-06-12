@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Cloud } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Cloud, Copy, ExternalLink, RefreshCw, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
 
@@ -17,6 +18,7 @@ interface TreeDetailPanelProps {
 
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [mapKey, setMapKey] = useState(0);
   const tabs = ['Your Tree', 'Your Tree Carer', 'Location', 'Impact'];
   const slideCount = tabs.length;
 
@@ -58,6 +60,25 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     },
     enabled: !!tree.id,
   });
+
+  const { data: geotag } = useQuery({
+    queryKey: ['tree-geotag', tree.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tree_geotags' as any)
+        .select('latitude, longitude, geo_tag_id, geo_accuracy')
+        .eq('tree_id', tree.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data as any;
+    },
+    enabled: !!tree.id,
+  });
+
+  const lat = geotag?.latitude ?? tree.latitude;
+  const lng = geotag?.longitude ?? tree.longitude;
+  const hasLocation = lat != null && lng != null;
 
   const carerPhoto = carer?.photo_url || treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
@@ -203,39 +224,89 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
             {/* Slide 3: Location */}
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    Forest:
-                  </p>
-                  <p className="text-sm font-medium">Mau Forest Complex (Nakuru)</p>
-                </div>
-                {tree.latitude && tree.longitude && (
-                  <>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-0.5">Coordinates:</p>
-                      <p className="text-sm">{tree.latitude}, {tree.longitude}</p>
-                    </div>
-                    <div className="rounded-lg overflow-hidden border">
+              {hasLocation ? (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                    <MapPin className="h-4 w-4" /> Tree Geotag & Map
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${lat}, ${lng}`);
+                        toast.success('Coordinates copied');
+                      }}
+                    >
+                      <Copy className="h-3 w-3 mr-1.5" /> Copy coords
+                    </Button>
+                    <a
+                      href={`https://www.google.com/maps?q=${lat},${lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-xs h-7 px-2.5 rounded-md border bg-background hover:bg-accent"
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1.5" /> Open in Google Maps
+                    </a>
+                  </div>
+
+                  <div className="rounded-md border bg-muted/30 overflow-hidden" style={{ height: 280 }}>
+                    <div className="relative h-full">
                       <iframe
-                        title="Tree location"
-                        width="100%"
-                        height="220"
+                        key={mapKey}
+                        title="Tree location map"
+                        src={`https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed&t=${mapKey}`}
+                        className="w-full h-full border-0"
                         loading="lazy"
-                        src={`https://www.google.com/maps?q=${tree.latitude},${tree.longitude}&z=14&output=embed`}
                       />
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="h-7 w-7 shadow-md"
+                          onClick={() => setMapKey((k) => k + 1)}
+                          title="Refresh map"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </Button>
+                        <a
+                          href={`https://www.google.com/maps?q=${lat},${lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Expand"
+                          className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/80"
+                        >
+                          <Maximize2 className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
                     </div>
-                  </>
-                )}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                    <Cloud className="h-3.5 w-3.5" />
-                    Weather:
-                  </p>
-                  <p className="text-sm">23.5°C</p>
+                  </div>
+
+                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm pt-1">
+                    <span className="text-muted-foreground">Forest:</span>
+                    <span className="font-medium">Mau Forest Complex (Nakuru)</span>
+                    <span className="text-muted-foreground">Latitude:</span>
+                    <span className="font-medium">{lat}</span>
+                    <span className="text-muted-foreground">Longitude:</span>
+                    <span className="font-medium">{lng}</span>
+                    {geotag?.geo_accuracy != null && (
+                      <>
+                        <span className="text-muted-foreground">Accuracy:</span>
+                        <span className="font-medium">{geotag.geo_accuracy} m</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-lg border border-dashed bg-muted/20 py-10 px-4 text-center">
+                  <MapPin className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No geotag captured yet.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Location will appear here once your tree is mapped.</p>
+                </div>
+              )}
             </div>
 
             {/* Slide 4: Impact */}
