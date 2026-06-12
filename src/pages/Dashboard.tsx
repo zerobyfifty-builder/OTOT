@@ -336,9 +336,14 @@ export const Dashboard: React.FC = () => {
       <div className="tourist-dashboard-shell container mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-12">
         {/* Welcome Header */}
         <div className="glass-dashboard-header mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: '#9ca3af', textShadow: 'none' }}>
-            Welcome {getUserName()}!
-          </h1>
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">
+              Welcome {getUserName()}!
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Your responsible travel dashboard
+            </p>
+          </div>
           <img src={ktbLogo} alt="Kenya Tourism Board" className="hidden sm:block h-12 sm:h-20 object-contain self-start sm:self-auto" />
         </div>
 
