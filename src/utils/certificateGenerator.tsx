@@ -167,6 +167,24 @@ export const generateTreeCertificate = async ({
     console.error('Error saving certificate to database:', error);
   }
 
+  try {
+    if (await isTemplateEngineEnabled('tree_certificate')) {
+      const tpl = await resolveTemplate('tree_certificate');
+      if (tpl) {
+        const doc = renderTemplateDocument(tpl.design, {
+          userName, date, certificateId, ototId: ototId ?? '',
+          numTrees, co2Offset, location: location ?? '',
+          qrCodeUrl: qrCodeDataUrl,
+          ktbLogoUrl: logos.ktbLogoDataUrl,
+          partnerLogoUrl: logos.kfsLogoDataUrl,
+        });
+        return await pdf(doc).toBlob();
+      }
+    }
+  } catch (e) {
+    console.warn('[templates] tree template render failed, falling back', e);
+  }
+
   const blob = await pdf(
     <TreeCertificate
       userName={userName}
