@@ -462,21 +462,21 @@
    Scoped to elements OUTSIDE cards/frosted surfaces so card text
    keeps its dark-on-light treatment defined above.
    ============================================================ */
-.tourist-dashboard-glass > .container > h1,
-.tourist-dashboard-glass > .container > div > h1,
-.tourist-dashboard-glass > .container > div > div > h1,
-.tourist-dashboard-glass > .container > section > h1,
-.tourist-dashboard-glass > .container > div > section > h1,
-.tourist-dashboard-glass > .container > div > div > section > h1,
-.tourist-dashboard-glass > .container > h2,
-.tourist-dashboard-glass > .container > div > h2,
-.tourist-dashboard-glass > .container > div > div > h2,
-.tourist-dashboard-glass > .container > section > h2,
-.tourist-dashboard-glass > .container > div > section > h2,
-.tourist-dashboard-glass > .container > div > div > section > h2,
-.tree-purchase-glass > .container > div > h1,
-.tree-purchase-glass > .container > div > h2,
-.tree-purchase-glass > .container > div > div > h2 {
+.tourist-dashboard-glass > .container > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > h1:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > div > h2:not(.tourist-page-heading):not(.faq-heading) {
   color: hsl(96 78% 97%) !important;
   text-shadow:
     0 2px 18px hsl(120 90% 3% / 0.86),
@@ -485,38 +485,38 @@
   letter-spacing: 0;
 }
 
-.tourist-dashboard-glass > .container > h1,
-.tourist-dashboard-glass > .container > div > h1,
-.tourist-dashboard-glass > .container > div > div > h1,
-.tourist-dashboard-glass > .container > section > h1,
-.tourist-dashboard-glass > .container > div > section > h1,
-.tourist-dashboard-glass > .container > div > div > section > h1,
-.tree-purchase-glass > .container > div > h1 {
+.tourist-dashboard-glass > .container > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > section > h1:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > h1:not(.tourist-page-heading):not(.faq-heading) {
   font-size: clamp(1.75rem, 2.4vw, 2.25rem) !important;
   line-height: 1.15 !important;
 }
 
-.tourist-dashboard-glass > .container > h2,
-.tourist-dashboard-glass > .container > div > h2,
-.tourist-dashboard-glass > .container > div > div > h2,
-.tourist-dashboard-glass > .container > section > h2,
-.tourist-dashboard-glass > .container > div > section > h2,
-.tourist-dashboard-glass > .container > div > div > section > h2,
-.tree-purchase-glass > .container > div > h2,
-.tree-purchase-glass > .container > div > div > h2 {
+.tourist-dashboard-glass > .container > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tourist-dashboard-glass > .container > div > div > section > h2:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > h2:not(.tourist-page-heading):not(.faq-heading),
+.tree-purchase-glass > .container > div > div > h2:not(.tourist-page-heading):not(.faq-heading) {
   font-size: clamp(1.5rem, 2vw, 1.875rem) !important;
   line-height: 1.2 !important;
   color: hsl(96 84% 96%) !important;
 }
 
-.tourist-dashboard-glass > .container > p,
-.tourist-dashboard-glass > .container > div > p,
-.tourist-dashboard-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
-.tourist-dashboard-glass > .container > section > p,
-.tourist-dashboard-glass > .container > div > section > p,
-.tourist-dashboard-glass > .container > div > div > section > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
-.tree-purchase-glass > .container > div > p,
-.tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl) {
+.tourist-dashboard-glass > .container > p:not(.tourist-page-subheading),
+.tourist-dashboard-glass > .container > div > p:not(.tourist-page-subheading),
+.tourist-dashboard-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl):not(.tourist-page-subheading),
+.tourist-dashboard-glass > .container > section > p:not(.tourist-page-subheading),
+.tourist-dashboard-glass > .container > div > section > p:not(.tourist-page-subheading),
+.tourist-dashboard-glass > .container > div > div > section > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl):not(.tourist-page-subheading),
+.tree-purchase-glass > .container > div > p:not(.tourist-page-subheading),
+.tree-purchase-glass > .container > div > div > p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl):not(.tourist-page-subheading) {
   color: hsl(96 66% 95% / 0.98) !important;
   font-size: clamp(1rem, 1.35vw, 1.125rem);
   font-weight: 600;
