@@ -292,7 +292,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
           {/* Dots */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {[0, 1].map((index) => (
+            {Array.from({ length: slideCount }, (_, i) => i).map((index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
