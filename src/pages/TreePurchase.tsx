@@ -647,7 +647,7 @@ export const TreePurchase = () => {
 
           {/* Purchase Options */}
           <div className="space-y-6 mb-8">
-            <h2 className="text-2xl font-semibold text-foreground">Choose Your Option</h2>
+            <h2 className="tourist-page-heading text-2xl font-semibold text-foreground">Choose Your Option</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Option 1: Flexible Tree Planting - Default & most prominent */}
