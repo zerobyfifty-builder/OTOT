@@ -483,13 +483,13 @@ export const MyTrees = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-2 sm:gap-3">
                         {[
-                          { label: "To Offset", value: fmt(totalCO2ToOffset), color: "text-teal-900" },
-                          { label: "Offset", value: fmt(co2AlreadyOffset), color: "text-green-700" },
-                          { label: "Remaining", value: fmt(co2Remaining), color: "text-orange-600" },
+                          { label: "To Offset", value: fmt(totalCO2ToOffset), compact: fmtCompact(totalCO2ToOffset), color: "text-teal-900" },
+                          { label: "Offset", value: fmt(co2AlreadyOffset), compact: fmtCompact(co2AlreadyOffset), color: "text-green-700" },
+                          { label: "Remaining", value: fmt(co2Remaining), compact: fmtCompact(co2Remaining), color: "text-orange-600" },
                         ].map((s) => (
                           <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
-                            <p className={`text-lg sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>
-                              {s.value}
+                            <p title={`${s.value} kg`} className={`text-xl sm:text-2xl font-bold tabular-nums leading-tight whitespace-nowrap truncate ${s.color}`}>
+                              {s.compact}
                               <span className="text-[10px] sm:text-xs font-normal ml-0.5 text-teal-700/70">kg</span>
                             </p>
                             <p className="text-[10px] sm:text-xs text-teal-800/70 mt-1 font-medium">{s.label}</p>
