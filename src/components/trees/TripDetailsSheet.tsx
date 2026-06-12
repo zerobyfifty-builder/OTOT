@@ -58,7 +58,7 @@ interface PaymentBatch {
   paymentMethod: string;
 }
 
-export const TripDetailsSheet = ({ trip, isOpen, onClose }: TripDetailsSheetProps) => {
+export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripDetailsSheetProps) => {
   const [trees, setTrees] = useState<Tree[]>([]);
   const [isLoadingTrees, setIsLoadingTrees] = useState(false);
   const [userName, setUserName] = useState("");
