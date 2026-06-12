@@ -193,10 +193,12 @@ export const MyTrips = () => {
       description: "Edit functionality will be implemented soon."
     });
   };
-  const handleViewDetails = (trip: TripWithTreeCount) => {
+  const handleViewDetails = (trip: TripWithTreeCount, view: "trip" | "contributions" = "trip") => {
     setSelectedTripForDetails(trip);
+    setDetailsView(view);
     setIsTripDetailsOpen(true);
   };
+
 
   const handleDeleteTrip = async (tripId: string) => {
     try {
