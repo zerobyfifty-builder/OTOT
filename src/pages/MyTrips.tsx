@@ -42,7 +42,6 @@ export const MyTrips = () => {
   const [selectedTripForDetails, setSelectedTripForDetails] = useState<Trip | null>(null);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "fully" | "partially" | "not">("all");
 
   const getFilteredTrips = () => {
     switch (statusFilter) {
