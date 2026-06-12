@@ -220,16 +220,13 @@ export const TripDetailsSheet = ({ trip, isOpen, onClose, view = "trip" }: TripD
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl">Trip and Contribution Details</SheetTitle>
+          <SheetTitle className="text-2xl">{view === "contributions" ? "Contribution Details" : "Trip Details"}</SheetTitle>
         </SheetHeader>
-        
-        <Tabs defaultValue="trip" className="mt-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="trip" className="text-xs sm:text-sm px-2">Trip Details</TabsTrigger>
-            <TabsTrigger value="contributions" className="text-xs sm:text-sm px-2"><span className="sm:hidden">Contributions</span><span className="hidden sm:inline">Contribution Details</span></TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="trip" className="space-y-5 mt-5">
+        <div className="mt-6">
+          {view === "trip" && (
+          <div className="space-y-5">
+
           {/* Trip Route */}
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Route</h3>
