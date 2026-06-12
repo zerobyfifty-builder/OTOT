@@ -381,31 +381,31 @@ export const MyTrips = () => {
                     <table className="w-full">
                       <thead className="bg-muted/50 border-b">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trip ID
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Date Added
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Travel Dates
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trip Details
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             CO₂ Emissions
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trees Needed
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Trees Planted
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Offset Status
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                             Actions
                           </th>
                         </tr>
@@ -426,7 +426,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* Date Added */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="text-sm">
                                   <div className="font-medium text-foreground">
                                     {format(new Date(trip.created_at), "dd MMM yyyy")}
@@ -441,7 +441,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* Travel Dates */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="text-sm">
                                   <div className="font-medium text-foreground">{dateText}</div>
                                   <div className="text-xs text-muted-foreground">{daysText}</div>
@@ -464,7 +464,7 @@ export const MyTrips = () => {
                               </td>
 
                               {/* CO2 Emissions */}
-                              <td className="px-6 py-6">
+                              <td className="px-6 py-6 whitespace-nowrap">
                                 <div className="space-y-1 text-sm">
                                   <div>
                                     <span className="text-muted-foreground">Flight: </span>
