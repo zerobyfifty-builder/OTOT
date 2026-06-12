@@ -680,7 +680,8 @@ export const MyTrees = () => {
 
                           const isCollapsed = collapsedContribLists.has(group.key);
                           return (
-                            <div className="mx-4 mb-4 mt-1 rounded-xl border border-border/60 border-l-2 border-l-primary/70 bg-muted/50 overflow-hidden">
+                            <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/80 via-green-50/60 to-teal-50/80 shadow-sm">
+                              <div className="pointer-events-none absolute -top-8 -right-8 h-32 w-32 rounded-full bg-emerald-200/30 blur-2xl" />
                               <button
                                 type="button"
                                 onClick={() => {
@@ -690,21 +691,21 @@ export const MyTrees = () => {
                                     return next;
                                   });
                                 }}
-                                className={`w-full px-4 py-2.5 flex items-center gap-2 bg-muted/60 ${isCollapsed ? '' : 'border-b border-border/40'} hover:bg-muted/70 transition-colors text-left`}
+                                className={`relative w-full px-4 py-2.5 flex items-center gap-2 bg-white/40 ${isCollapsed ? '' : 'border-b border-emerald-200/30'} hover:bg-white/60 transition-colors text-left backdrop-blur-sm`}
                                 aria-expanded={!isCollapsed}
                               >
-                                <TreePine className="h-3.5 w-3.5 text-primary" />
-                                <span className="text-xs font-medium text-muted-foreground">
+                                <TreePine className="h-3.5 w-3.5 text-emerald-600" />
+                                <span className="text-xs font-semibold text-emerald-900">
                                   {contribGroups.length} {contribGroups.length === 1 ? 'contribution' : 'contributions'} in this trip
                                 </span>
-                                <ChevronDown className={`h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
+                                <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-700 transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
                               </button>
                               <div
-                                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}
+                                className={`relative grid transition-[grid-template-rows,opacity] duration-300 ease-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}
                                 aria-hidden={isCollapsed}
                               >
                                 <div className="overflow-hidden">
-                                  <div className="divide-y divide-border/40 bg-background/60">
+                                  <div className="space-y-2 p-2 bg-white/30 backdrop-blur-sm">
                                     {contribGroups.map((cg) => (
                                     <div
                                       key={`${group.key}-${cg.cid}`}
