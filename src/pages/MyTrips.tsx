@@ -579,7 +579,7 @@ export const MyTrips = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="text-sm font-semibold text-muted-foreground">
-                            Trip ID: {trip.friendly_trip_id}
+                            {trip.friendly_trip_id}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {format(new Date(trip.created_at), "dd MMM yyyy, h:mm a")}
