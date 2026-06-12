@@ -579,10 +579,10 @@ export const TreePurchase = () => {
         <div className="container max-w-5xl py-8">
           {/* Page Header with Trip Summary */}
           <div className="mb-8">
-            <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">
+            <h1 className="tourist-page-heading text-2xl sm:text-4xl font-bold text-foreground mb-2">
               Plant Your Trees
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6">
+            <p className="tourist-page-subheading text-sm sm:text-base text-muted-foreground mb-6">
               Choose how you'd like to offset your carbon footprint
             </p>
 
