@@ -529,6 +529,8 @@
 /* Tourist page headers — exact My Trees/My Trips typography, overriding glass heading shadows */
 .tourist-dashboard-glass .tourist-page-heading,
 .tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
+.tourist-dashboard-glass > .container .tourist-page-heading,
+.tree-purchase-glass > .container > div > .tourist-page-heading,
 .tree-purchase-glass .tourist-page-heading {
   color: hsl(var(--foreground)) !important;
   text-shadow: none !important;
@@ -541,6 +543,8 @@
 
 .tourist-dashboard-glass .tourist-page-subheading,
 .tourist-dashboard-glass .glass-dashboard-header .tourist-page-subheading,
+.tourist-dashboard-glass > .container .tourist-page-subheading,
+.tree-purchase-glass > .container > div > .tourist-page-subheading,
 .tree-purchase-glass .tourist-page-subheading {
   color: hsl(var(--muted-foreground)) !important;
   font-weight: 400 !important;
@@ -554,6 +558,8 @@
 @media (min-width: 640px) {
   .tourist-dashboard-glass .tourist-page-heading,
   .tourist-dashboard-glass .glass-dashboard-header .tourist-page-heading,
+  .tourist-dashboard-glass > .container .tourist-page-heading,
+  .tree-purchase-glass > .container > div > .tourist-page-heading,
   .tree-purchase-glass .tourist-page-heading {
     font-size: 2.25rem !important;
     line-height: 2.5rem !important;
@@ -561,6 +567,8 @@
 
   .tourist-dashboard-glass .tourist-page-subheading,
   .tourist-dashboard-glass .glass-dashboard-header .tourist-page-subheading,
+  .tourist-dashboard-glass > .container .tourist-page-subheading,
+  .tree-purchase-glass > .container > div > .tourist-page-subheading,
   .tree-purchase-glass .tourist-page-subheading {
     font-size: 1rem !important;
     line-height: 1.5rem !important;
