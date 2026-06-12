@@ -109,11 +109,24 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <h3 className="text-lg font-bold text-center mb-2">Your tree</h3>
 
-              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
-                <img src={treeImage} alt="Tree" className="w-full h-full object-cover" />
-                <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
-                  YOUR TREE
-                </div>
+              <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
+                <img
+                  src={treeImage}
+                  alt="Tree"
+                  className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'grayscale opacity-50'}`}
+                />
+                {!hasActualPhoto && (
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <p className="text-center text-sm font-semibold text-foreground bg-background/85 backdrop-blur-sm px-4 py-2 rounded-md shadow">
+                      Your tree photo will appear here once it is planted
+                    </p>
+                  </div>
+                )}
+                {hasActualPhoto && (
+                  <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
+                    YOUR TREE
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
