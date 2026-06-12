@@ -596,7 +596,7 @@ export const MyTrees = () => {
                                   <p className="text-sm font-bold text-foreground">{trip.trees_needed}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Trees Planted</p>
+                                  <p className="text-xs text-muted-foreground">Committed</p>
                                   <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
@@ -611,7 +611,7 @@ export const MyTrees = () => {
                             ) : (
                               <>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                  <p className="text-xs text-muted-foreground">Trees Planted</p>
+                                  <p className="text-xs text-muted-foreground">Committed</p>
                                   <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                                 </div>
                                 <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
