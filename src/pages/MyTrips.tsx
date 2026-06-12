@@ -197,10 +197,6 @@ export const MyTrips = () => {
     setIsTripDetailsOpen(true);
   };
 
-  const handleViewTreeDetails = (tripId: string) => {
-    setSelectedTripForTrees(tripId);
-    setIsTreeDetailsOpen(true);
-  };
   const handleDeleteTrip = async (tripId: string) => {
     try {
       const {
