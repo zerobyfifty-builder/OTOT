@@ -778,6 +778,75 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
+          category_key: string
+          created_at: string
+          created_by: string | null
+          current_design_id: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          parity_confirmed_at: string | null
+          status: Database["public"]["Enums"]["template_status"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
+          category_key: string
+          created_at?: string
+          created_by?: string | null
+          current_design_id?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          parity_confirmed_at?: string | null
+          status?: Database["public"]["Enums"]["template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
+          category_key?: string
+          created_at?: string
+          created_by?: string | null
+          current_design_id?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          parity_confirmed_at?: string | null
+          status?: Database["public"]["Enums"]["template_status"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_category_key_fkey"
+            columns: ["category_key"]
+            isOneToOne: false
+            referencedRelation: "template_categories"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "document_templates_current_design_fk"
+            columns: ["current_design_id"]
+            isOneToOne: false
+            referencedRelation: "template_designs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ecosystem_impact_logs: {
         Row: {
           biodiversity_index: number | null
@@ -2820,6 +2889,169 @@ export type Database = {
           },
         ]
       }
+      template_assignments: {
+        Row: {
+          category_key: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          priority: number
+          scope: Database["public"]["Enums"]["template_assignment_scope"]
+          scope_ref_id: string | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          category_key: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          scope: Database["public"]["Enums"]["template_assignment_scope"]
+          scope_ref_id?: string | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          category_key?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          scope?: Database["public"]["Enums"]["template_assignment_scope"]
+          scope_ref_id?: string | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_assignments_category_key_fkey"
+            columns: ["category_key"]
+            isOneToOne: false
+            referencedRelation: "template_categories"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "template_assignments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_categories: {
+        Row: {
+          created_at: string
+          default_orientation: string
+          default_page_size: string
+          description: string | null
+          is_active: boolean
+          key: string
+          label: string
+          merge_fields: Json
+          output_kind: Database["public"]["Enums"]["template_output_kind"]
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_orientation?: string
+          default_page_size?: string
+          description?: string | null
+          is_active?: boolean
+          key: string
+          label: string
+          merge_fields?: Json
+          output_kind: Database["public"]["Enums"]["template_output_kind"]
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_orientation?: string
+          default_page_size?: string
+          description?: string | null
+          is_active?: boolean
+          key?: string
+          label?: string
+          merge_fields?: Json
+          output_kind?: Database["public"]["Enums"]["template_output_kind"]
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      template_designs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          design_json: Json
+          id: string
+          preview_png_url: string | null
+          template_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          design_json: Json
+          id?: string
+          preview_png_url?: string | null
+          template_id: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          design_json?: Json
+          id?: string
+          preview_png_url?: string | null
+          template_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_designs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_engine_flags: {
+        Row: {
+          category_key: string
+          is_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category_key: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category_key?: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_engine_flags_category_key_fkey"
+            columns: ["category_key"]
+            isOneToOne: true
+            referencedRelation: "template_categories"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       tourist_module_permissions: {
         Row: {
           is_enabled: boolean
@@ -4113,6 +4345,9 @@ export type Database = {
         | "completed"
       purchase_type: "One-time" | "Subscription"
       survival_status_type: "Alive" | "Dead" | "Replaced"
+      template_assignment_scope: "global" | "partner" | "portal"
+      template_output_kind: "pdf" | "social"
+      template_status: "draft" | "pending_approval" | "approved" | "archived"
       travel_class_type: "Economy" | "Premium Economy" | "Business" | "First"
       tree_status_type:
         | "Waiting to be Assigned"
@@ -4307,6 +4542,9 @@ export const Constants = {
       ],
       purchase_type: ["One-time", "Subscription"],
       survival_status_type: ["Alive", "Dead", "Replaced"],
+      template_assignment_scope: ["global", "partner", "portal"],
+      template_output_kind: ["pdf", "social"],
+      template_status: ["draft", "pending_approval", "approved", "archived"],
       travel_class_type: ["Economy", "Premium Economy", "Business", "First"],
       tree_status_type: [
         "Waiting to be Assigned",
