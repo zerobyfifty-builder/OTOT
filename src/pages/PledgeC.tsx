@@ -173,7 +173,7 @@ export default function PledgeC() {
                 </span>
               </h1>
               <p className="text-white/80 text-base md:text-lg mt-4 max-w-xl mx-auto leading-relaxed">
-                Read and commit to the ten principles below — your promise to travel light, leave more.
+                Read and commit to the ten principles below!
               </p>
             </div>
 
