@@ -422,6 +422,12 @@ export const MyTrees = () => {
               const treesPct = treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0;
               const co2Pct = totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0;
               const fmt = (n: number) => Math.round(n).toLocaleString();
+              const fmtCompact = (n: number) => {
+                const r = Math.round(n);
+                if (r >= 1_000_000) return (r / 1_000_000).toFixed(r >= 10_000_000 ? 0 : 1).replace(/\.0$/, "") + "M";
+                if (r >= 10_000) return (r / 1_000).toFixed(r >= 100_000 ? 0 : 1).replace(/\.0$/, "") + "k";
+                return r.toLocaleString();
+              };
               return (
                 <>
                   <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-green-50/80 to-teal-50 shadow-sm backdrop-blur-xl p-5 sm:p-6">
@@ -438,12 +444,12 @@ export const MyTrees = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-2 sm:gap-3">
                         {[
-                          { label: "Needed", value: fmt(treesNeeded), color: "text-emerald-900" },
-                          { label: "Planted", value: fmt(plantedTrees), color: "text-green-700" },
-                          { label: "Remaining", value: fmt(treesRemaining), color: "text-orange-600" },
+                          { label: "Needed", value: fmt(treesNeeded), compact: fmtCompact(treesNeeded), color: "text-emerald-900" },
+                          { label: "Planted", value: fmt(plantedTrees), compact: fmtCompact(plantedTrees), color: "text-green-700" },
+                          { label: "Remaining", value: fmt(treesRemaining), compact: fmtCompact(treesRemaining), color: "text-orange-600" },
                         ].map((s) => (
                           <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
-                            <p className={`text-xl sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>{s.value}</p>
+                            <p title={s.value} className={`text-xl sm:text-2xl font-bold tabular-nums leading-tight whitespace-nowrap truncate ${s.color}`}>{s.compact}</p>
                             <p className="text-[10px] sm:text-xs text-emerald-800/70 mt-1 font-medium">{s.label}</p>
                           </div>
                         ))}
@@ -477,13 +483,13 @@ export const MyTrees = () => {
                       </div>
                       <div className="grid grid-cols-3 gap-2 sm:gap-3">
                         {[
-                          { label: "To Offset", value: fmt(totalCO2ToOffset), color: "text-teal-900" },
-                          { label: "Offset", value: fmt(co2AlreadyOffset), color: "text-green-700" },
-                          { label: "Remaining", value: fmt(co2Remaining), color: "text-orange-600" },
+                          { label: "To Offset", value: fmt(totalCO2ToOffset), compact: fmtCompact(totalCO2ToOffset), color: "text-teal-900" },
+                          { label: "Offset", value: fmt(co2AlreadyOffset), compact: fmtCompact(co2AlreadyOffset), color: "text-green-700" },
+                          { label: "Remaining", value: fmt(co2Remaining), compact: fmtCompact(co2Remaining), color: "text-orange-600" },
                         ].map((s) => (
                           <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
-                            <p className={`text-lg sm:text-2xl font-bold tabular-nums break-words leading-tight ${s.color}`}>
-                              {s.value}
+                            <p title={`${s.value} kg`} className={`text-xl sm:text-2xl font-bold tabular-nums leading-tight whitespace-nowrap truncate ${s.color}`}>
+                              {s.compact}
                               <span className="text-[10px] sm:text-xs font-normal ml-0.5 text-teal-700/70">kg</span>
                             </p>
                             <p className="text-[10px] sm:text-xs text-teal-800/70 mt-1 font-medium">{s.label}</p>
