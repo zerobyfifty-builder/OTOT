@@ -76,9 +76,30 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     enabled: !!tree.id,
   });
 
+  const { data: latestStatus } = useQuery({
+    queryKey: ['tree-latest-status', tree.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tree_status_transitions')
+        .select('to_status, created_at')
+        .eq('tree_id', tree.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!tree.id,
+  });
+
+  const statusLabel = (latestStatus?.to_status || tree.planting_status || tree.status || 'pending')
+    .toString()
+    .replace(/_/g, ' ');
+  const statusDate = latestStatus?.created_at || tree.plant_date || tree.updated_at || tree.created_at;
+
   const lat = geotag?.latitude ?? tree.latitude;
   const lng = geotag?.longitude ?? tree.longitude;
   const hasLocation = lat != null && lng != null;
+
 
   const carerPhoto = carer?.photo_url || treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
