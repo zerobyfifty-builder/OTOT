@@ -133,6 +133,7 @@ import { TreeOperations } from "@/pages/owner/TreeOperations";
 import PlantingCostsConfig from "@/pages/admin/PlantingCostsConfig";
 import ContributionTierSettings from "@/pages/admin/ContributionTierSettings";
 import PlantingLocationsConfig from "@/pages/admin/PlantingLocationsConfig";
+import Templates from "@/pages/admin/config/Templates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -602,6 +603,13 @@ const App = () => (
               <SuperAdminRoute>
                 <AdminLayout>
                   <PlantingLocationsConfig />
+                </AdminLayout>
+              </SuperAdminRoute>
+            } />
+            <Route path="/admin/config/templates" element={
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <Templates />
                 </AdminLayout>
               </SuperAdminRoute>
             } />

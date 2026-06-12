@@ -102,6 +102,7 @@ const menuItems = [
       { title: "Planting Costs", url: "/admin/config/planting-costs" },
       { title: "Contribution Tiers", url: "/admin/config/contribution-tiers" },
       { title: "Planting Locations", url: "/admin/config/planting-locations" },
+      { title: "Templates Studio", url: "/admin/config/templates" },
     ],
   },
   {
