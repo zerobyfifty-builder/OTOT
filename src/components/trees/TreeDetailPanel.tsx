@@ -17,9 +17,11 @@ interface TreeDetailPanelProps {
 
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const tabs = ['Your Tree', 'Your Tree Carer', 'Location', 'Impact'];
+  const slideCount = tabs.length;
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % 2);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + 2) % 2);
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slideCount);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slideCount) % slideCount);
 
   const treeImages = Array.isArray(tree.images) ? tree.images : [];
   const actualTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
@@ -97,6 +99,23 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b bg-background shrink-0 overflow-x-auto">
+          {tabs.map((label, idx) => (
+            <button
+              key={label}
+              onClick={() => setCurrentSlide(idx)}
+              className={`flex-1 min-w-max px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
+                currentSlide === idx
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Carousel */}
@@ -185,6 +204,70 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                 </p>
               </div>
             </div>
+
+            {/* Slide 3: Location */}
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-4">Location</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Forest:
+                  </p>
+                  <p className="text-sm font-medium">Mau Forest Complex (Nakuru)</p>
+                </div>
+                {tree.latitude && tree.longitude && (
+                  <>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Coordinates:</p>
+                      <p className="text-sm">{tree.latitude}, {tree.longitude}</p>
+                    </div>
+                    <div className="rounded-lg overflow-hidden border">
+                      <iframe
+                        title="Tree location"
+                        width="100%"
+                        height="220"
+                        loading="lazy"
+                        src={`https://www.google.com/maps?q=${tree.latitude},${tree.longitude}&z=14&output=embed`}
+                      />
+                    </div>
+                  </>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
+                    <Cloud className="h-3.5 w-3.5" />
+                    Weather:
+                  </p>
+                  <p className="text-sm">23.5°C</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 4: Impact */}
+            <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
+              <h3 className="text-lg font-bold text-center mb-4">Impact</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">CO₂ absorbed / year</p>
+                  <p className="text-lg font-bold">22 kg</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Oxygen produced / year</p>
+                  <p className="text-lg font-bold">118 kg</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Lifetime CO₂</p>
+                  <p className="text-lg font-bold">~1 ton</p>
+                </div>
+                <div className="rounded-lg border p-3 bg-muted/30">
+                  <p className="text-xs text-muted-foreground">Wildlife supported</p>
+                  <p className="text-lg font-bold">Yes</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                Your tree contributes to restoring the Mau Forest ecosystem, supporting biodiversity, watershed health, and local livelihoods.
+              </p>
+            </div>
           </div>
 
           {/* Slider arrows */}
@@ -209,7 +292,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
           {/* Dots */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {[0, 1].map((index) => (
+            {Array.from({ length: slideCount }, (_, i) => i).map((index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
