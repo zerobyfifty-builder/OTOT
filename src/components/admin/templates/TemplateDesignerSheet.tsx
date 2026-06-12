@@ -54,11 +54,23 @@ export default function TemplateDesignerSheet({ template, category, open, onClos
 
   const preview = async () => {
     if (!design) return;
-    const vars = getSampleData(category.key);
+    const vars: Record<string, string> = { ...getSampleData(category.key) };
     if (isSocial) {
       const { text, hashtags } = renderSocialMessage(design, vars);
       toast({ title: 'Sample message', description: `${text}\n${hashtags.map((h) => `#${h}`).join(' ')}` });
       return;
+    }
+    // Inject sample logos so previews render the visual fully.
+    try {
+      const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+        import('@/utils/imageToBase64'),
+        import('@/assets/ktb-dual-logo.png'),
+        import('@/assets/kfs-logo-2.png'),
+      ]);
+      vars.ktbLogoUrl = await imageToBase64(ktb.default).catch(() => '');
+      vars.partnerLogoUrl = await imageToBase64(kfs.default).catch(() => '');
+    } catch {
+      // optional
     }
     const blob = await pdf(renderTemplateDocument(design, vars)).toBlob();
     window.open(URL.createObjectURL(blob), '_blank');
@@ -99,7 +111,11 @@ export default function TemplateDesignerSheet({ template, category, open, onClos
               ))}
             </div>
 
-            {design && !isSocial && (
+            {design && design.layoutPreset === 'pledge_default' && (
+              <PledgePresetEditor design={design} onChange={setDesign} />
+            )}
+
+            {design && !isSocial && !design.layoutPreset && (
               <>
                 <StylePanel design={design} onChange={setDesign} />
                 <div className="space-y-2">
@@ -157,6 +173,88 @@ export default function TemplateDesignerSheet({ template, category, open, onClos
         </ScrollArea>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function PledgePresetEditor({ design, onChange }: { design: TemplateDesign; onChange: (d: TemplateDesign) => void }) {
+  const header = design.blocks.find((b) => b.kind === 'header') || { id: 'h', kind: 'header' as const };
+  const updateHeader = (patch: Partial<TemplateBlock>) => {
+    const exists = design.blocks.some((b) => b.kind === 'header');
+    const next = exists
+      ? design.blocks.map((b) => (b.kind === 'header' ? { ...b, ...patch } : b))
+      : [{ ...header, ...patch }, ...design.blocks];
+    onChange({ ...design, blocks: next });
+  };
+  const f = design.presetFields || {};
+  const setField = (k: string, v: string) =>
+    onChange({ ...design, presetFields: { ...f, [k]: v } });
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded border bg-muted/30 p-3 space-y-3">
+        <div className="text-sm font-medium">Logos</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs">Left logo (KTB)</Label>
+            <Input
+              placeholder="{{ktbLogoUrl}} or image URL"
+              value={header.leftLogo || ''}
+              onChange={(e) => updateHeader({ leftLogo: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Right logo (Partner)</Label>
+            <Input
+              placeholder="{{partnerLogoUrl}} or image URL"
+              value={header.rightLogo || ''}
+              onChange={(e) => updateHeader({ rightLogo: e.target.value })}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Leave as <code>{`{{partnerLogoUrl}}`}</code> to auto-pick the assigned plantation partner logo at render time.
+        </p>
+      </div>
+
+      <div className="rounded border bg-muted/30 p-3 space-y-3">
+        <div className="text-sm font-medium">Editable text</div>
+        <div>
+          <Label className="text-xs">Subtitle</Label>
+          <Input value={f.subtitle || ''} onChange={(e) => setField('subtitle', e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Title</Label>
+          <Input value={f.title || ''} onChange={(e) => setField('title', e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Presented-to line</Label>
+          <Input value={f.presentedTo || ''} onChange={(e) => setField('presentedTo', e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Pledge date line</Label>
+          <Input value={f.pledgeDateText || ''} onChange={(e) => setField('pledgeDateText', e.target.value)} />
+          <p className="text-xs text-muted-foreground mt-1">Supports {`{{date}}`}.</p>
+        </div>
+        <div>
+          <Label className="text-xs">Pledge heading</Label>
+          <Input value={f.pledgeHeading || ''} onChange={(e) => setField('pledgeHeading', e.target.value)} />
+        </div>
+      </div>
+
+      <div className="rounded border bg-muted/30 p-3 space-y-2">
+        <div className="text-sm font-medium">Accent color</div>
+        <Input
+          type="color"
+          value={design.style.primaryColor}
+          onChange={(e) => onChange({ ...design, style: { ...design.style, primaryColor: e.target.value } })}
+          className="w-24 h-9 p-1"
+        />
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        The 10 pledge points and the footer (Certificate ID, OTOT ID, QR code, date) are locked to ensure visual parity with the approved Responsible Traveler Pledge certificate.
+      </p>
+    </div>
   );
 }
 
