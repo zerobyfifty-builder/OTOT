@@ -254,18 +254,39 @@ function PreviewButton({ template, category }: { template: DocumentTemplate; cat
       toast({ title: 'No design yet', variant: 'destructive' });
       return;
     }
-    const vars = getSampleData(category.key);
+    const vars: Record<string, any> = { ...getSampleData(category.key) };
+    try {
+      const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+        import('@/utils/imageToBase64'),
+        import('@/assets/ktb-dual-logo.png'),
+        import('@/assets/kfs-logo-2.png'),
+      ]);
+      vars.ktbLogoUrl = await imageToBase64(ktb.default).catch(() => '');
+      vars.partnerLogoUrl = await imageToBase64(kfs.default).catch(() => '');
+    } catch {}
+
+    if (isV2Design(design.design_json)) {
+      if (category.output_kind === 'social') {
+        const text = renderZoneToPlainText((design.design_json as any).zones?.body, vars);
+        const tags = ((design.design_json as any).hashtags || []).map((h: string) => `#${h}`).join(' ');
+        toast({ title: 'Sample message', description: `${text}\n${tags}` });
+        return;
+      }
+      const blob = await pdf(renderTemplateDocumentV2(design.design_json as any, vars)).toBlob();
+      window.open(URL.createObjectURL(blob), '_blank');
+      return;
+    }
+
     if (category.output_kind === 'social') {
       const { text, hashtags } = renderSocialMessage(design.design_json as any, vars);
       toast({ title: 'Sample message', description: `${text}\n${hashtags.map((h) => `#${h}`).join(' ')}` });
       return;
     }
     const blob = await pdf(renderTemplateDocument(design.design_json as any, vars)).toBlob();
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(URL.createObjectURL(blob), '_blank');
   };
   return (
-    <Button size="sm" variant="ghost" onClick={handle}>
+    <Button size="sm" variant="ghost" title="Preview" onClick={handle}>
       <Eye className="h-4 w-4" />
     </Button>
   );
