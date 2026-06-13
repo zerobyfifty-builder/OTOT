@@ -57,6 +57,7 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   const [design, setDesign] = useState<TemplateDesignV2 | null>(null);
   const [activeZone, setActiveZone] = useState<string>('body');
   const [resolvedLogos, setResolvedLogos] = useState<{ ktbLogoUrl?: string; partnerLogoUrl?: string; qrCodeUrl?: string }>({});
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   useEffect(() => {
     (async () => {
