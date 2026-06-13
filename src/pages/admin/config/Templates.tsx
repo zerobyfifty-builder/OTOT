@@ -21,7 +21,7 @@ import { renderTemplateDocumentV2, renderZoneToPlainText } from '@/lib/templates
 import { isV2Design } from '@/lib/templates/typesV2';
 import TemplateDesignerSheet from '@/components/admin/templates/TemplateDesignerSheet';
 import TemplateAssignmentsSheet from '@/components/admin/templates/TemplateAssignmentsSheet';
-import NewTemplateDialog from '@/components/admin/templates/wysiwyg/NewTemplateDialog';
+import NewTemplateSheet from '@/components/admin/templates/wysiwyg/NewTemplateSheet';
 import TemplateEditor from '@/components/admin/templates/wysiwyg/TemplateEditor';
 import type { DocumentTemplate, TemplateCategory } from '@/lib/templates/types';
 
