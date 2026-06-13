@@ -279,13 +279,14 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
                     }
                   >
                     <style>{`
-                      .tpl-canvas .ProseMirror h1 { color: #1a1a1a; font-weight: 700; text-align: center; font-size: 26px; margin: 8px 0 12px; }
-                      .tpl-canvas .ProseMirror h2 { color: var(--tpl-primary); font-weight: 700; text-align: center; font-size: 22px; font-style: italic; margin: 4px 0 8px; }
-                      .tpl-canvas .ProseMirror p { margin: 3px 0; line-height: 1.5; }
+                      .tpl-canvas .ProseMirror h1 { color: #1a1a1a; font-weight: 800; text-align: center; font-size: 34px; line-height: 1.1; margin: 6px 0 14px; letter-spacing: -0.5px; }
+                      .tpl-canvas .ProseMirror h2 { color: var(--tpl-accent); font-weight: 700; text-align: center; font-size: 26px; font-style: italic; margin: 6px 0 10px; }
+                      .tpl-canvas .ProseMirror h3 { color: var(--tpl-accent); font-weight: 500; text-align: center; font-size: 18px; margin: 4px 0 2px; }
+                      .tpl-canvas .ProseMirror p { margin: 3px 0; line-height: 1.5; font-size: 11px; color: #333; }
                       .tpl-canvas .ProseMirror { font-family: Helvetica, Arial, sans-serif; }
                     `}</style>
                     {(design.logos?.left || design.logos?.right) && (
-                      <div className="flex justify-between items-center px-5 pt-4 pb-2">
+                      <div className="flex justify-between items-center px-7 pt-5 pb-1">
                         <LogoSlot value={design.logos.left} resolved={resolvedLogos} side="left" />
                         <LogoSlot value={design.logos.right} resolved={resolvedLogos} side="right" />
                       </div>
@@ -302,10 +303,20 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
                     <div className="flex-1">
                       <EditorContent editor={editor} />
                     </div>
-                    {activeZone === 'body' && resolvedLogos.qrCodeUrl && (
-                      <div className="flex items-end justify-between gap-4 px-6 pb-4 pt-3 border-t mt-auto text-[10px] text-muted-foreground">
-                        <div>QR preview (footer placement)</div>
-                        <img src={resolvedLogos.qrCodeUrl} alt="qr" className="h-12 w-12" />
+                    {activeZone === 'body' && (
+                      <div className="mt-auto px-7 pb-5 pt-3 border-t border-gray-200">
+                        <div className="grid grid-cols-3 items-end gap-3 text-[9px] text-gray-600">
+                          <div className="space-y-0.5">
+                            <div>Certificate ID: {`{{certificateId}}`}</div>
+                            <div>OTOT ID: {`{{ototId}}`}</div>
+                          </div>
+                          <div className="flex justify-center">
+                            {resolvedLogos.qrCodeUrl && (
+                              <img src={resolvedLogos.qrCodeUrl} alt="qr" className="h-14 w-14" />
+                            )}
+                          </div>
+                          <div className="text-right">Date: {`{{date}}`}</div>
+                        </div>
                       </div>
                     )}
                   </div>
