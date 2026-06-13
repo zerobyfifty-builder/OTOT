@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { X, Eye, Send } from 'lucide-react';
+import { X, Eye, Send, ExternalLink } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { pdf } from '@react-pdf/renderer';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
