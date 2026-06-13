@@ -1,27 +1,32 @@
 import { useState } from 'react';
 import { pdf } from '@react-pdf/renderer';
-import { Plus, Eye, Pencil, CheckCircle2, Archive, Send, Link2 } from 'lucide-react';
+import { Plus, Eye, Pencil, CheckCircle2, Archive, Send, Link2, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useTemplateCategories,
   useTemplatesByCategory,
   useEngineFlags,
   useToggleEngineFlag,
-  useCreateTemplate,
   useSetTemplateStatus,
 } from '@/hooks/useTemplates';
-import { getDefaultDesign } from '@/lib/templates/defaultDesigns';
 import { getSampleData } from '@/lib/templates/sampleData';
 import { renderTemplateDocument, renderSocialMessage } from '@/lib/templates/renderTemplate';
+import { renderTemplateDocumentV2, renderZoneToPlainText } from '@/lib/templates/htmlToPdf';
+import { isV2Design } from '@/lib/templates/typesV2';
 import { useTemplateDesign } from '@/hooks/useTemplates';
 import TemplateDesignerSheet from '@/components/admin/templates/TemplateDesignerSheet';
 import TemplateAssignmentsSheet from '@/components/admin/templates/TemplateAssignmentsSheet';
+import NewTemplateDialog from '@/components/admin/templates/wysiwyg/NewTemplateDialog';
+import TemplateEditor from '@/components/admin/templates/wysiwyg/TemplateEditor';
 import type { CategoryKey, DocumentTemplate, TemplateCategory } from '@/lib/templates/types';
 
 export default function Templates() {
@@ -72,16 +77,23 @@ function CategoryPanel({
   onToggleFlag: (v: boolean) => void;
 }) {
   const { data: templates = [] } = useTemplatesByCategory(category.key);
-  const create = useCreateTemplate();
   const setStatus = useSetTemplateStatus();
+  const qc = useQueryClient();
   const [editing, setEditing] = useState<DocumentTemplate | null>(null);
   const [assigning, setAssigning] = useState<DocumentTemplate | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<DocumentTemplate | null>(null);
 
-  const handleCreate = () => {
-    create.mutate(
-      { category_key: category.key, name: `${category.label} draft`, design: getDefaultDesign(category.key) },
-      { onSuccess: () => toast({ title: 'Template created' }) }
-    );
+  const handleDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from('document_templates').delete().eq('id', deleting.id);
+    if (error) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Template deleted' });
+      qc.invalidateQueries({ queryKey: ['document-templates'] });
+    }
+    setDeleting(null);
   };
 
   return (
@@ -98,7 +110,7 @@ function CategoryPanel({
             </span>
             <Switch checked={flagEnabled} onCheckedChange={onToggleFlag} />
           </div>
-          <Button size="sm" onClick={handleCreate}>
+          <Button size="sm" onClick={() => setCreating(true)}>
             <Plus className="h-4 w-4 mr-1" /> New template
           </Button>
         </div>
@@ -108,6 +120,7 @@ function CategoryPanel({
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Version</TableHead>
             <TableHead>Updated</TableHead>
@@ -117,7 +130,7 @@ function CategoryPanel({
         <TableBody>
           {templates.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                 No templates yet — the existing built-in generator will be used.
               </TableCell>
             </TableRow>
@@ -125,6 +138,7 @@ function CategoryPanel({
           {templates.map((t) => (
             <TableRow key={t.id}>
               <TableCell className="font-medium">{t.name}</TableCell>
+              <TableCell className="text-xs text-muted-foreground">{category.label}</TableCell>
               <TableCell>
                 <Badge variant={t.status === 'approved' ? 'default' : 'secondary'}>{t.status}</Badge>
               </TableCell>
@@ -134,12 +148,12 @@ function CategoryPanel({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => setEditing(t)}>
+                  <Button size="sm" variant="ghost" title="Edit" onClick={() => setEditing(t)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <PreviewButton template={t} category={category} />
                   {t.status === 'draft' && (
-                    <Button size="sm" variant="ghost" onClick={() => setStatus.mutate({ id: t.id, status: 'pending_approval' })}>
+                    <Button size="sm" variant="ghost" title="Submit for approval" onClick={() => setStatus.mutate({ id: t.id, status: 'pending_approval' })}>
                       <Send className="h-4 w-4" />
                     </Button>
                   )}
@@ -147,6 +161,7 @@ function CategoryPanel({
                     <Button
                       size="sm"
                       variant="ghost"
+                      title="Approve"
                       onClick={() => {
                         if (window.confirm('Confirm output parity with the existing generator before approving?')) {
                           setStatus.mutate({ id: t.id, status: 'approved', parity: true });
@@ -157,15 +172,18 @@ function CategoryPanel({
                     </Button>
                   )}
                   {t.status === 'approved' && (
-                    <Button size="sm" variant="ghost" onClick={() => setAssigning(t)}>
+                    <Button size="sm" variant="ghost" title="Assign" onClick={() => setAssigning(t)}>
                       <Link2 className="h-4 w-4" />
                     </Button>
                   )}
                   {t.status !== 'archived' && (
-                    <Button size="sm" variant="ghost" onClick={() => setStatus.mutate({ id: t.id, status: 'archived' })}>
+                    <Button size="sm" variant="ghost" title="Archive" onClick={() => setStatus.mutate({ id: t.id, status: 'archived' })}>
                       <Archive className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button size="sm" variant="ghost" title="Delete" onClick={() => setDeleting(t)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -173,14 +191,7 @@ function CategoryPanel({
         </TableBody>
       </Table>
 
-      {editing && (
-        <TemplateDesignerSheet
-          template={editing}
-          category={category}
-          open={!!editing}
-          onClose={() => setEditing(null)}
-        />
-      )}
+      {editing && <EditTemplateRouter template={editing} category={category} onClose={() => setEditing(null)} />}
       {assigning && (
         <TemplateAssignmentsSheet
           template={assigning}
@@ -189,8 +200,51 @@ function CategoryPanel({
           onClose={() => setAssigning(null)}
         />
       )}
+      {creating && (
+        <NewTemplateDialog
+          open={creating}
+          initialCategory={category.key}
+          onClose={() => setCreating(false)}
+          onCreated={(id) => {
+            // Best-effort: find the new template once query refreshes, then open editor.
+            setTimeout(() => {
+              qc.invalidateQueries({ queryKey: ['document-templates'] });
+            }, 150);
+          }}
+        />
+      )}
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes "{deleting?.name}" and its design versions. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
+}
+
+function EditTemplateRouter({
+  template, category, onClose,
+}: { template: DocumentTemplate; category: TemplateCategory; onClose: () => void }) {
+  const { data: design } = useTemplateDesign(template.current_design_id);
+  // Until we know, render nothing; once known, route to V2 editor or legacy sheet.
+  if (!design) {
+    return (
+      <TemplateEditor template={template} category={category} open onClose={onClose} />
+    );
+  }
+  if (isV2Design(design.design_json)) {
+    return <TemplateEditor template={template} category={category} open onClose={onClose} />;
+  }
+  return <TemplateDesignerSheet template={template} category={category} open onClose={onClose} />;
 }
 
 function PreviewButton({ template, category }: { template: DocumentTemplate; category: TemplateCategory }) {
@@ -200,18 +254,39 @@ function PreviewButton({ template, category }: { template: DocumentTemplate; cat
       toast({ title: 'No design yet', variant: 'destructive' });
       return;
     }
-    const vars = getSampleData(category.key);
+    const vars: Record<string, any> = { ...getSampleData(category.key) };
+    try {
+      const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+        import('@/utils/imageToBase64'),
+        import('@/assets/ktb-dual-logo.png'),
+        import('@/assets/kfs-logo-2.png'),
+      ]);
+      vars.ktbLogoUrl = await imageToBase64(ktb.default).catch(() => '');
+      vars.partnerLogoUrl = await imageToBase64(kfs.default).catch(() => '');
+    } catch {}
+
+    if (isV2Design(design.design_json)) {
+      if (category.output_kind === 'social') {
+        const text = renderZoneToPlainText((design.design_json as any).zones?.body, vars);
+        const tags = ((design.design_json as any).hashtags || []).map((h: string) => `#${h}`).join(' ');
+        toast({ title: 'Sample message', description: `${text}\n${tags}` });
+        return;
+      }
+      const blob = await pdf(renderTemplateDocumentV2(design.design_json as any, vars)).toBlob();
+      window.open(URL.createObjectURL(blob), '_blank');
+      return;
+    }
+
     if (category.output_kind === 'social') {
       const { text, hashtags } = renderSocialMessage(design.design_json as any, vars);
       toast({ title: 'Sample message', description: `${text}\n${hashtags.map((h) => `#${h}`).join(' ')}` });
       return;
     }
     const blob = await pdf(renderTemplateDocument(design.design_json as any, vars)).toBlob();
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(URL.createObjectURL(blob), '_blank');
   };
   return (
-    <Button size="sm" variant="ghost" onClick={handle}>
+    <Button size="sm" variant="ghost" title="Preview" onClick={handle}>
       <Eye className="h-4 w-4" />
     </Button>
   );
