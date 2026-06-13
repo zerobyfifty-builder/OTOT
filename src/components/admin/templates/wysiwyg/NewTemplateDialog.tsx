@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { useTemplateCategories, useCreateTemplate } from '@/hooks/useTemplates';
 import { startersForCategory } from '@/lib/templates/starters';
@@ -88,26 +89,40 @@ export default function NewTemplateDialog({ open, onClose, onCreated, initialCat
         <ScrollArea className="max-h-[70vh]">
           <div className="p-5">
             {step === 'category' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {categories.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => {
+              <div className="space-y-4 max-w-xl">
+                <div>
+                  <label className="text-sm font-medium">Document type</label>
+                  <p className="text-xs text-muted-foreground mb-2">Choose what kind of template you want to create.</p>
+                  <Select
+                    value={category?.key || ''}
+                    onValueChange={(v) => {
+                      const c = categories.find((x) => x.key === v) || null;
                       setCategory(c);
-                      setStep('starter');
                     }}
-                    className="text-left rounded-lg border p-4 hover:border-primary hover:bg-muted/30 transition"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="font-medium">{c.label}</div>
-                      <Badge variant="secondary" className="capitalize">{c.output_kind}</Badge>
-                    </div>
-                    {c.description && (
-                      <div className="text-xs text-muted-foreground">{c.description}</div>
-                    )}
-                  </button>
-                ))}
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a document type…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          <div className="flex items-center gap-2">
+                            <span>{c.label}</span>
+                            <Badge variant="secondary" className="capitalize text-[10px]">{c.output_kind}</Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {category?.description && (
+                    <div className="text-xs text-muted-foreground mt-2">{category.description}</div>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={() => setStep('starter')} disabled={!category}>
+                    Next: Choose starter
+                  </Button>
+                </div>
               </div>
             )}
 
