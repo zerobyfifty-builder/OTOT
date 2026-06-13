@@ -3,12 +3,10 @@ import { X, Eye, Send } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import ImageExt from '@tiptap/extension-image';
-import LinkExt from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -68,12 +66,10 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
       Color,
       ImageExt,
-      LinkExt.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: 'Type here…' }),
       MergeField,
     ],
