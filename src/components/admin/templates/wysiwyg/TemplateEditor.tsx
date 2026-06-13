@@ -46,6 +46,40 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
 
   const [design, setDesign] = useState<TemplateDesignV2 | null>(null);
   const [activeZone, setActiveZone] = useState<string>('body');
+  const [resolvedLogos, setResolvedLogos] = useState<{ ktbLogoUrl?: string; partnerLogoUrl?: string; qrCodeUrl?: string }>({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+          import('@/utils/imageToBase64'),
+          import('@/assets/ktb-dual-logo.png'),
+          import('@/assets/kfs-logo-2.png'),
+        ]);
+        const [ktbLogoUrl, partnerLogoUrl] = await Promise.all([
+          imageToBase64(ktb.default).catch(() => ''),
+          imageToBase64(kfs.default).catch(() => ''),
+        ]);
+        // Simple sample QR (inline SVG data URL)
+        const qrCodeUrl =
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='#fff'/><g fill='#000'>${Array.from(
+              { length: 8 },
+            )
+              .map((_, y) =>
+                Array.from({ length: 8 })
+                  .map((__, x) => ((x * 31 + y * 17 + 7) % 3 === 0 ? `<rect x='${x * 8}' y='${y * 8}' width='8' height='8'/>` : ''))
+                  .join(''),
+              )
+              .join('')}</g></svg>`,
+          );
+        setResolvedLogos({ ktbLogoUrl, partnerLogoUrl, qrCodeUrl });
+      } catch {
+        // optional
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (designRow?.design_json) {
