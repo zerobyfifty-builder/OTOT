@@ -1,143 +1,134 @@
+
+# WYSIWYG Templates Studio — Rewrite Plan
+
 ## Goal
+Replace the current block-list designer in **Templates Studio (super admin)** with a TipTap-based WYSIWYG editor. Users pick a document type → pick a pre-designed starter → edit visually with live preview → save / approve / assign. List view (name, type, status, version, updated, actions) stays as-is. PDF output continues to go through `@react-pdf/renderer`; emails/social use plain HTML/text.
 
-Add a Super Admin **Templates Studio** under Configuration to design, preview, version, approve, and assign templates for all customer‑facing documents and share messages. Approved templates become the runtime source of truth for generators (`certificateGenerator.tsx`, `invoiceGenerator.ts`, future ones), with **guaranteed zero regression**: the existing hard‑coded generators stay intact and continue to render unchanged until an approved template is explicitly assigned for that document.
+## Scope
 
-## Non‑negotiable seamless‑integration guarantees
+### In scope
+- New "New template" flow: category picker → starter gallery → editor.
+- New WYSIWYG editor sheet using TipTap, replacing `TemplateDesignerSheet.tsx`.
+- Category-specific canvases (certificate, invoice, email, social) with KTB-branded starters (2–3 per category).
+- Live HTML preview pane + "Preview PDF" using existing react-pdf renderer.
+- Merge-field chips (insert `{{userName}}`, `{{numTrees}}`, etc. as inline nodes).
+- Logo upload / token slots (KTB left, partner right).
+- Backwards compatibility: existing `design_json` rows continue to render and open in a read-only legacy view; new edits save in the new schema.
 
-1. **Existing generators are not modified structurally** — only a thin "try template first, else fall back" head is added. The current `<PledgeCertificate>`, `<TreeCertificate>` components and the jsPDF agent invoice remain the default fallback path forever.
-2. **No existing table, column, RLS policy, trigger, edge function, or route is altered.** All schema work is additive (new tables only).
-3. **All call sites keep their current signatures** — `generatePledgeCertificate`, `generateTreeCertificate`, `generateInvoice` still accept the same params and return the same `Blob` / same download UX.
-4. **Default state after migration = template system inactive.** No template is approved or assigned, so every download path produces byte‑identical output to today. Activating a template is an explicit super_admin action.
-5. **Per‑category kill switch** in `wallet_settings`‑style config (`template_engine_enabled.<category_key>` bool). If any rendering issue surfaces post‑launch, flipping the switch instantly reverts that category to the hard‑coded path with no deploy.
-6. **Runtime resolver is defensive**: if `resolveTemplate` throws, the template render fails, or required merge fields are missing, the generator silently falls back to the existing component. Errors are logged to `integration_logs` for visibility but never block the user's download.
-7. **Sample data parity check** is baked into the approval flow — a template cannot be approved until a side‑by‑side preview against the existing hard‑coded output for that category has been generated and the approver explicitly confirms parity.
+### Out of scope (unchanged)
+- Templates list table, status workflow (draft → pending → approved → archived), versioning, engine flags, assignments sheet.
+- Resolver (`resolveTemplate.ts`), category metadata, certificate/invoice/email consumers downstream.
 
-## Template categories (v1)
+## User flow
 
-| Category key | Output | Used by today |
-|---|---|---|
-| `pledge_certificate` | PDF | `generatePledgeCertificate` |
-| `tree_certificate` | PDF | `generateTreeCertificate` |
-| `tourist_invoice` | PDF | (new — tourist contribution receipt) |
-| `b2b_invoice` | PDF | (new — institutional contribution) |
-| `agent_invoice` | PDF | `generateInvoice` (jsPDF) |
-| `lodge_receipt` | PDF | (future) |
-| `social_share_pledge` | text/card | Pledge share buttons |
-| `social_share_contribution` | text/card | Tree purchase share |
-| `social_share_generic` | text/card | Referral share |
-
-Each category has a fixed merge‑field allow‑list derived from the actual props of the existing components and the attached PDFs:
-
-- Pledge cert: `userName`, `date`, `certificateId`, `ototId`, `qrCodeUrl`, `ktbLogoUrl`, `partnerLogoUrl`.
-- Tree cert: above + `numTrees`, `co2Offset`, `location`, `partnerName`.
-- Agent invoice: `ticketNumber`, `pnr`, `lpo`, `staffName`, `origin`, `destination`, `travelClass`, `treesNeeded`, `co2Kg`, `amountKes`, `agentBusinessName`, `agentContact`, `billToBlock`.
-- Social: `userName`, `numTrees`, `co2Offset`, `verificationUrl`, `hashtags`.
-
-## 1. Database (additive only)
-
-Four new tables, all `public` schema, with `GRANT`s, RLS via `has_role(_, 'super_admin')` for writes and `authenticated` read on approved rows, `updated_at` triggers, and `mdm_audit_log` rows on create/update/approve/archive.
-
-- `template_categories` (seeded ref): `key` PK, `label`, `output_kind`, `merge_fields` jsonb allow‑list, `default_page_size`, `default_orientation`.
-- `document_templates`: `id`, `category_key` FK, `name`, `description`, `status` enum (`draft`|`pending_approval`|`approved`|`archived`), `is_default` bool, `version` int, `current_design_id` FK, `created_by`, `approved_by`, `approved_at`, `parity_confirmed_at`.
-- `template_designs` (immutable snapshots): `id`, `template_id` FK, `version` int, `design_json` jsonb, `preview_png_url`, `created_by`.
-- `template_assignments`: `id`, `category_key`, `template_id` FK, `scope` enum (`global`|`partner`|`portal`), `scope_ref_id` uuid null, `is_active` bool, `priority` int. Resolution: most specific active assignment wins → global default → none.
-
-Plus one row per category in `wallet_settings` (or a new `system_flags` table — TBD during build, additive either way) for the `template_engine_enabled.<category>` kill switch.
-
-## 2. Super Admin UI — `/admin/config/templates`
-
-New route added to `App.tsx` and a "Templates" entry under Configuration in `AppSidebar.tsx` (super_admin only). Both edits are pure additions.
-
-### List view
-Per‑category tabs. Columns: Name, Version, Status, Default?, Assignments, Updated, ⋯ menu (Edit, Duplicate, Submit for Approval, Approve, Archive, Set Default, Manage Assignments).
-
-### Designer (side‑sheet, closes only via top‑right X — per project standard)
-
-Structured block editor (not free HTML) so output stays consistent:
-
-- **Header block**: left logo slot (default KTB locked), right logo slot (token `{{partnerLogoUrl}}` with KFS fallback), title, subtitle.
-- **Body blocks** (reorderable): "Awarded to" line, big name, paragraph with merge‑field chips, stats row, signature row, QR + ID block.
-- **Footer block**: small print, verification URL.
-- **Style panel**: primary color, accent color, font pair (preset list), page size, orientation, margins.
-- **Merge‑field inserter**: dropdown filtered to the category's allow‑list; inserts a chip into the focused text block.
-
-Social categories collapse the designer to: message template with token chips, optional background image slot, hashtag list, character counter, per‑network preview.
-
-### Preview & approve
-
-- Live preview pane renders via the same `@react-pdf/renderer` pipeline used today, fed by sample data from the category's allow‑list.
-- "Generate parity preview" button renders both the new template and the current hard‑coded component side by side. Approver must tick **"Output parity confirmed"** before the Approve action enables. This sets `parity_confirmed_at`.
-- Approved templates are immutable; edits create a new draft version.
-
-### Assignments
-Side panel on each approved template: global default toggle (one per category), per plantation partner override (picker over `organizations` where `category='owner'`), per portal override (`tourist`|`b2b`|`agent`|`lodge`).
-
-## 3. Runtime integration (minimal, defensive, additive)
-
-New, isolated files — no rewrites:
-
-- `src/lib/templates/resolveTemplate.ts` — pure function. Returns the approved template best matching `(categoryKey, { partnerOrgId, portal })`, or `null`. Wrapped in try/catch; on any error returns `null`.
-- `src/lib/templates/renderTemplate.tsx` — walks `design_json`, produces a `@react-pdf/renderer` `<Document>` for PDF categories or `{ text, hashtags, imageUrl }` for social. Validates all required merge fields are present; if any are missing, throws so the caller falls back.
-- `src/lib/templates/flags.ts` — reads the `template_engine_enabled.<category>` kill switch (cached for the session).
-
-Existing generators get a thin head only:
-
-```ts
-// certificateGenerator.tsx (pledge)
-if (await isTemplateEngineEnabled('pledge_certificate')) {
-  try {
-    const tpl = await resolveTemplate('pledge_certificate', { partnerOrgId });
-    if (tpl) {
-      const doc = renderTemplate(tpl, { userName, date, certificateId, ototId, qrCodeDataUrl, ktbLogoDataUrl, kfsLogoDataUrl });
-      return await pdf(doc).toBlob();
-    }
-  } catch (e) {
-    logIntegrationError('pledge_certificate', e);
-    // fall through to existing path
-  }
-}
-// existing hard-coded path — UNCHANGED
-return await pdf(<PledgeCertificate {...props} />).toBlob();
+```text
+Templates Studio
+  └─ [New template]
+       └─ Step 1: Choose category   (Pledge cert / Tree cert / Invoice (3) / Receipt / Email / Social (3))
+       └─ Step 2: Choose starter    (2–3 thumbnails per category, e.g. Classic / Modern / Minimal)
+       └─ Step 3: Editor opens
+            ├─ Top bar: name, category badge, Save draft, Preview PDF, Submit for approval, X
+            ├─ Left:  Toolbar (B I U • headings • align • color • image • merge-field chip • undo/redo)
+            ├─ Center: WYSIWYG canvas (page-sized, paginated visual frame)
+            └─ Right: Inspector (logos, primary/accent color, page size/orientation, merge-field palette)
+List view unchanged. Row actions: View (PDF), Edit (reopens editor), Approve, Assign, Archive, Delete.
 ```
 
-Same shape for tree certificate and agent invoice. The fallback path is byte‑identical to today.
+## Design data model
 
-A new helper `getShareMessage(categoryKey, context)` is added for social categories. Existing share components don't have to adopt it immediately; they can opt in one at a time.
+Keep tables (`document_templates`, `template_designs`, `template_assignments`, `template_engine_flags`, `template_categories`). Evolve `template_designs.design_json` shape:
 
-## 4. Logos & partner branding
+```ts
+// src/lib/templates/types.ts (extended)
+type TemplateDesignV2 = {
+  version: 2;
+  starterKey: string;          // e.g. 'tree_certificate.classic'
+  style: { primaryColor; accentColor; fontFamily; pageSize; orientation; margin };
+  logos: { left?: string; right?: string };     // tokens or data-URLs
+  // TipTap JSON for each named zone the starter exposes
+  zones: Record<string, TipTapJSON>;            // e.g. { header, body, footer, signature }
+  // For social/email categories
+  subject?: TipTapJSON;        // email subject (plain text node)
+  hashtags?: string[];         // social
+};
+```
 
-- KTB logo: left slot, locked, sourced from `src/assets/ktb-dual-logo.png` (already used).
-- Right slot: bound to `{{partnerLogoUrl}}`. At render time, resolved from the tree/contribution's `owner_org_id` → `organizations.logo_url`. Falls back to KFS (`src/assets/kfs-logo-2.png`) if null. No schema change required.
+`version: 1` rows keep working via the existing renderer; new editor only writes `version: 2`. A small adapter `migrateDesignV1toV2(d)` provides a one-shot import path so a legacy template opened in the new editor offers "Convert to WYSIWYG" instead of silent rewrite.
 
-## 5. Regression safety checklist (run before each merge)
+## File plan
 
-- Download a pledge cert with no templates seeded → file hash matches today.
-- Same for tree cert and agent invoice.
-- Approve a template that intentionally omits a required field → user download still succeeds via fallback, error is logged.
-- Toggle the per‑category kill switch off → behavior reverts immediately, no deploy.
-- Run the Supabase linter after the migration; resolve any new findings on the four new tables before sign‑off.
+New
+- `src/components/admin/templates/wysiwyg/NewTemplateDialog.tsx` — 2-step picker (category → starter).
+- `src/components/admin/templates/wysiwyg/StarterGallery.tsx` — thumbnail grid per category.
+- `src/components/admin/templates/wysiwyg/TemplateEditor.tsx` — full-screen sheet hosting toolbar + canvas + inspector.
+- `src/components/admin/templates/wysiwyg/EditorToolbar.tsx` — TipTap toolbar (formatting, image, merge-field, undo/redo).
+- `src/components/admin/templates/wysiwyg/MergeFieldExtension.ts` — TipTap node for `{{field}}` chips.
+- `src/components/admin/templates/wysiwyg/Inspector.tsx` — logos, colors, page settings.
+- `src/components/admin/templates/wysiwyg/canvases/CertificateCanvas.tsx`
+- `src/components/admin/templates/wysiwyg/canvases/InvoiceCanvas.tsx`
+- `src/components/admin/templates/wysiwyg/canvases/EmailCanvas.tsx`
+- `src/components/admin/templates/wysiwyg/canvases/SocialCanvas.tsx`
+- `src/lib/templates/starters/index.ts` — registry of starters keyed by `CategoryKey`.
+- `src/lib/templates/starters/<category>/*.ts` — KTB-branded preset JSON (2–3 per category).
+- `src/lib/templates/htmlToPdf.tsx` — maps TipTap JSON per zone into `@react-pdf/renderer` primitives (Text / View / Image / list).
+- `src/lib/templates/migrateDesign.ts` — V1→V2 adapter.
 
-## 6. Files touched
+Edit (small, surgical)
+- `src/pages/admin/config/Templates.tsx` — "New template" button opens `NewTemplateDialog`; edit row opens `TemplateEditor` for V2 designs, falls back to the legacy `TemplateDesignerSheet` only when `design.version !== 2`. Add a "Delete" action (soft delete via existing `archived` status, plus a hard-delete confirm for drafts).
+- `src/lib/templates/renderTemplate.tsx` — add `renderTemplateDocumentV2(design, vars)` branch that walks zones and delegates to `htmlToPdf.tsx`. V1 path untouched.
+- `src/lib/templates/types.ts` — add V2 types alongside V1.
+- `src/hooks/useTemplates.ts` — `useCreateTemplate` accepts the V2 design shape (already generic over `design`).
 
-- New migration: 4 tables + enums + RLS + grants + seed of `template_categories` + kill‑switch rows. No edits to existing tables.
-- New: `src/pages/admin/config/Templates.tsx`, `TemplateDesigner.tsx`, `TemplateAssignments.tsx`.
-- New: `src/components/admin/templates/*` (BlockEditor, StylePanel, MergeFieldChip, PreviewPane, ParityPreview, SocialPreview).
-- New: `src/hooks/useTemplates.ts`, `useTemplateAssignments.ts`.
-- New: `src/lib/templates/resolveTemplate.ts`, `renderTemplate.tsx`, `flags.ts`, `sampleData.ts`.
-- Edit (thin head only, behind kill switch, fallback preserved): `src/utils/certificateGenerator.tsx`, `src/utils/invoiceGenerator.ts`.
-- Edit (additive): `src/components/AppSidebar.tsx`, `src/App.tsx` route registration.
+Delete
+- None. `TemplateDesignerSheet.tsx` stays as a fallback for V1 rows until they are converted.
 
-## 7. Out of scope (v1)
+## Editor specifics
 
-- WYSIWYG free HTML editing — blocks only.
-- Custom font uploads.
-- Email body templates.
-- Multi‑language variants (structure leaves room via `design_json.locale`).
-- Auto‑posting to social networks.
+- TipTap extensions: `StarterKit`, `Underline`, `TextAlign`, `Color`, `TextStyle`, `Image`, `Link`, `Placeholder`, custom `MergeField` (atom inline node rendering as a styled chip).
+- The canvas wraps each zone in a fixed-width page frame (`A4` or `LETTER`, portrait/landscape) so what you see ≈ output.
+- Inspector edits write straight to `design.style` / `design.logos`; zones update via `editor.getJSON()` on blur and on save.
+- Live HTML preview is the canvas itself; "Preview PDF" reuses `pdf(renderTemplateDocumentV2(...))` with `getSampleData(category.key)` and the same logo injection already in `TemplateDesignerSheet.preview()`.
 
-## 8. Acceptance
+## Starters (initial set)
 
-- Super admin can design, preview, parity‑confirm, approve, and assign a Tree Certificate template; next tourist tree download renders from the template with the partner's logo on the right.
-- Same loop verified for pledge cert and agent invoice against the attached PDFs.
-- With no approved template / kill switch off, every existing download path produces byte‑identical output to today.
-- Toggling the kill switch instantly reverts any category to the hard‑coded path.
+- `pledge_certificate`: Classic (current locked layout, ported), Modern minimal.
+- `tree_certificate`: Classic landscape, Portrait modern, Compact.
+- `tourist_invoice` / `b2b_invoice` / `agent_invoice`: Standard, Compact.
+- `lodge_receipt`: Standard.
+- `social_share_*`: Short, Long, Hashtag-heavy.
+- Email categories (if `output_kind === 'email'` exists; otherwise add later): Newsletter, Transactional, Announcement.
+
+## TipTap → react-pdf mapping
+
+`htmlToPdf.tsx` walks TipTap JSON nodes and emits react-pdf primitives:
+
+```text
+doc/paragraph      -> <Text>
+heading            -> <Text style={h1|h2|h3}>
+bulletList/orderedList/listItem -> <View> + <Text>•</Text> rows
+image              -> <Image src=... />
+mergeField (atom)  -> substitute(vars[name])
+hardBreak          -> "\n"
+marks: bold/italic/underline/color/textAlign -> style props
+```
+
+Unknown nodes fall back to plain text so future extensions can't break rendering.
+
+## Risks & mitigations
+
+- **Visual parity for approved pledge certificate**: keep the locked `pledge_default` V1 renderer; the WYSIWYG pledge starter writes V2 but the resolver's "approved+assigned" template wins, so existing assignments stay pixel-identical until an admin promotes a V2 design.
+- **react-pdf style gaps** (no flex gap, limited fonts): constrain toolbar to supported marks; pre-register fonts already used in the project.
+- **Pagination differences** between HTML preview and PDF: the page frame uses the same margin/orientation, with a warning banner when content overflows one page.
+- **Migrations not required**: schema unchanged; only `design_json` shape evolves.
+
+## Testing
+
+- Manually create a draft in each category, verify save → reopen → preview → approve → assign → resolve → download.
+- Open an existing V1 approved template: confirm it still resolves and downloads identically (legacy renderer path).
+- Run the existing tourist/agent certificate download paths to confirm no regression.
+
+## Out-of-scope confirmations
+
+- No DB migration.
+- No changes to certificate / invoice / receipt generators on the consumer side.
+- No new dependencies beyond TipTap (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-*`).
