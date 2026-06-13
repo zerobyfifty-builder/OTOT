@@ -105,33 +105,64 @@ function treeCertCompact(): TemplateDesignV2 {
 }
 
 function pledgeCertClassic(): TemplateDesignV2 {
+  const tilde = (): TipTapJSON => ({
+    type: 'paragraph',
+    attrs: { textAlign: 'center' },
+    content: [text('~ ~', [{ type: 'textStyle', attrs: { color: '#aaaaaa' } }])],
+  });
+  const point = (s: string): TipTapJSON => ({
+    type: 'paragraph',
+    attrs: { textAlign: 'center' },
+    content: [text(s, [{ type: 'bold' }])],
+  });
+  const points = [
+    'Respect nature by following marked paths and protecting natural surroundings',
+    'Leave no waste behind by disposing of trash properly and keeping natural areas clean',
+    'Support reforestation to fight climate change through tree planting',
+    'Reduce my carbon footprint by choosing eco-friendly travel options',
+    'Respect wildlife by observing animals without disturbing their habitats',
+    'Respect local cultures by honouring traditions and supporting communities',
+    'Use resources wisely by conserving water and minimising waste',
+    'Camp responsibly in designated areas with eco-friendly practices',
+    "Learn and share about Kenya's conservation efforts",
+    'Care for our global environment through responsible tourism',
+  ];
+  const bodyContent: TipTapJSON[] = [
+    center(text('Certificate of Commitment', [{ type: 'textStyle', attrs: { color: '#2f7c49' } }])),
+    h(1, text('I am a Responsible Traveler', [{ type: 'bold' }])),
+    center(text('This certificate is presented to', [{ type: 'textStyle', attrs: { color: '#555555' } }])),
+    h(2, mf('userName')),
+    center(text('for taking the Responsible Traveler Pledge on ', [{ type: 'textStyle', attrs: { color: '#555555' } }]), mf('date')),
+    center(text('I PLEDGE TO', [{ type: 'bold' }, { type: 'textStyle', attrs: { color: '#888888' } }])),
+  ];
+  points.forEach((s, i) => {
+    bodyContent.push(point(s));
+    if (i < points.length - 1) bodyContent.push(tilde());
+  });
   return {
     version: 2,
     starterKey: 'pledge_certificate.classic',
-    style: { ...baseStyle, orientation: 'portrait', margin: 24 },
+    style: {
+      ...baseStyle,
+      orientation: 'portrait',
+      margin: 24,
+      primaryColor: '#4ade80',
+      accentColor: '#2f7c49',
+    },
     logos: { left: '{{ktbLogoUrl}}', right: '{{partnerLogoUrl}}' },
     zones: {
-      body: doc(
-        center(text('Certificate of Commitment')),
-        h(1, text('I am a Responsible Traveler')),
-        center(text('This certificate is presented to')),
-        h(2, mf('userName')),
-        center(text('for taking the Responsible Traveler Pledge on '), mf('date')),
-        center(text('I PLEDGE TO', [{ type: 'bold' }])),
-        bullets(
-          [text('Respect nature and protect natural surroundings')],
-          [text('Leave no waste behind')],
-          [text('Support reforestation to fight climate change')],
-          [text('Reduce my carbon footprint')],
-          [text('Respect wildlife and their habitats')],
-          [text('Respect local cultures and communities')],
-          [text('Use water and resources wisely')],
-          [text('Camp responsibly in designated areas')],
-          [text("Learn and share about Kenya's conservation efforts")],
-          [text('Care for our global environment')],
-        ),
-      ),
-      footer: doc(center(text('Certificate ID: '), mf('certificateId'), text(' · '), mf('date'))),
+      body: { type: 'doc', content: bodyContent },
+      footer: doc({
+        type: 'paragraph',
+        content: [
+          text('Certificate ID: '),
+          mf('certificateId'),
+          text('     OTOT ID: '),
+          mf('ototId'),
+          text('          Date: '),
+          mf('date'),
+        ],
+      }),
     },
   };
 }

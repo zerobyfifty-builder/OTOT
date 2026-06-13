@@ -46,6 +46,40 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
 
   const [design, setDesign] = useState<TemplateDesignV2 | null>(null);
   const [activeZone, setActiveZone] = useState<string>('body');
+  const [resolvedLogos, setResolvedLogos] = useState<{ ktbLogoUrl?: string; partnerLogoUrl?: string; qrCodeUrl?: string }>({});
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [{ imageToBase64 }, ktb, kfs] = await Promise.all([
+          import('@/utils/imageToBase64'),
+          import('@/assets/ktb-dual-logo.png'),
+          import('@/assets/kfs-logo-2.png'),
+        ]);
+        const [ktbLogoUrl, partnerLogoUrl] = await Promise.all([
+          imageToBase64(ktb.default).catch(() => ''),
+          imageToBase64(kfs.default).catch(() => ''),
+        ]);
+        // Simple sample QR (inline SVG data URL)
+        const qrCodeUrl =
+          'data:image/svg+xml;utf8,' +
+          encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='#fff'/><g fill='#000'>${Array.from(
+              { length: 8 },
+            )
+              .map((_, y) =>
+                Array.from({ length: 8 })
+                  .map((__, x) => ((x * 31 + y * 17 + 7) % 3 === 0 ? `<rect x='${x * 8}' y='${y * 8}' width='8' height='8'/>` : ''))
+                  .join(''),
+              )
+              .join('')}</g></svg>`,
+          );
+        setResolvedLogos({ ktbLogoUrl, partnerLogoUrl, qrCodeUrl });
+      } catch {
+        // optional
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (designRow?.design_json) {
@@ -195,18 +229,28 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
               <ScrollArea className="flex-1 bg-muted/20">
                 <div className="p-6 flex justify-center">
                   <div
-                    className="bg-white shadow-md"
-                    style={{
-                      width: pxWidth * 0.72,
-                      minHeight: pxWidth * 0.72 * (orientation === 'portrait' ? 1.414 : 0.707),
-                      border: `2px solid ${design.style.primaryColor}`,
-                      borderRadius: 4,
-                    }}
+                    className="bg-white shadow-md tpl-canvas flex flex-col"
+                    style={
+                      {
+                        width: pxWidth * 0.72,
+                        minHeight: pxWidth * 0.72 * (orientation === 'portrait' ? 1.414 : 0.707),
+                        border: `3px solid ${design.style.primaryColor}`,
+                        borderRadius: 4,
+                        ['--tpl-primary' as any]: design.style.primaryColor,
+                        ['--tpl-accent' as any]: design.style.accentColor,
+                      } as React.CSSProperties
+                    }
                   >
+                    <style>{`
+                      .tpl-canvas .ProseMirror h1 { color: #1a1a1a; font-weight: 700; text-align: center; font-size: 26px; margin: 8px 0 12px; }
+                      .tpl-canvas .ProseMirror h2 { color: var(--tpl-primary); font-weight: 700; text-align: center; font-size: 22px; font-style: italic; margin: 4px 0 8px; }
+                      .tpl-canvas .ProseMirror p { margin: 3px 0; line-height: 1.5; }
+                      .tpl-canvas .ProseMirror { font-family: Helvetica, Arial, sans-serif; }
+                    `}</style>
                     {(design.logos?.left || design.logos?.right) && (
-                      <div className="flex justify-between items-center p-3 border-b text-xs text-muted-foreground">
-                        <LogoSlot value={design.logos.left} />
-                        <LogoSlot value={design.logos.right} />
+                      <div className="flex justify-between items-center px-5 pt-4 pb-2">
+                        <LogoSlot value={design.logos.left} resolved={resolvedLogos} side="left" />
+                        <LogoSlot value={design.logos.right} resolved={resolvedLogos} side="right" />
                       </div>
                     )}
                     {zoneKeys.length > 1 && (
@@ -218,7 +262,15 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
                         </TabsList>
                       </Tabs>
                     )}
-                    <EditorContent editor={editor} />
+                    <div className="flex-1">
+                      <EditorContent editor={editor} />
+                    </div>
+                    {activeZone === 'body' && resolvedLogos.qrCodeUrl && (
+                      <div className="flex items-end justify-between gap-4 px-6 pb-4 pt-3 border-t mt-auto text-[10px] text-muted-foreground">
+                        <div>QR preview (footer placement)</div>
+                        <img src={resolvedLogos.qrCodeUrl} alt="qr" className="h-12 w-12" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </ScrollArea>
@@ -351,10 +403,24 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   );
 }
 
-function LogoSlot({ value }: { value?: string }) {
-  if (!value) return <div className="h-10 w-24 rounded border border-dashed flex items-center justify-center">logo</div>;
-  if (value.startsWith('{{')) {
-    return <div className="h-10 px-2 rounded border border-dashed flex items-center text-[10px]">{value}</div>;
+function LogoSlot({
+  value,
+  resolved,
+  side,
+}: {
+  value?: string;
+  resolved?: { ktbLogoUrl?: string; partnerLogoUrl?: string };
+  side?: 'left' | 'right';
+}) {
+  const sizeClass = side === 'left' ? 'h-14' : 'h-16';
+  if (value) {
+    const m = value.match(/^\{\{(\w+)\}\}$/);
+    if (m) {
+      const url = (resolved as any)?.[m[1]];
+      if (url) return <img src={url} alt="logo" className={`${sizeClass} object-contain`} />;
+      return <div className={`${sizeClass} px-2 rounded border border-dashed flex items-center text-[10px]`}>{value}</div>;
+    }
+    return <img src={value} alt="logo" className={`${sizeClass} object-contain`} />;
   }
-  return <img src={value} alt="logo" className="h-10 object-contain" />;
+  return <div className={`${sizeClass} w-24 rounded border border-dashed flex items-center justify-center text-[10px]`}>logo</div>;
 }
