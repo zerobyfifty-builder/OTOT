@@ -282,22 +282,18 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
                 <div className="p-4 space-y-5">
                   <div className="space-y-2">
                     <Label className="text-xs uppercase tracking-wide text-muted-foreground">Logos</Label>
-                    <div>
-                      <Label className="text-xs">Left logo</Label>
-                      <Input
-                        value={design.logos.left || ''}
-                        placeholder="{{ktbLogoUrl}} or image URL"
-                        onChange={(e) => setDesign({ ...design, logos: { ...design.logos, left: e.target.value } })}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Right logo</Label>
-                      <Input
-                        value={design.logos.right || ''}
-                        placeholder="{{partnerLogoUrl}} or image URL"
-                        onChange={(e) => setDesign({ ...design, logos: { ...design.logos, right: e.target.value } })}
-                      />
-                    </div>
+                    <LogoEditor
+                      label="Left logo"
+                      value={design.logos.left}
+                      resolved={resolvedLogos}
+                      onChange={(v) => setDesign({ ...design, logos: { ...design.logos, left: v } })}
+                    />
+                    <LogoEditor
+                      label="Right logo"
+                      value={design.logos.right}
+                      resolved={resolvedLogos}
+                      onChange={(v) => setDesign({ ...design, logos: { ...design.logos, right: v } })}
+                    />
                   </div>
 
                   {!isSocial && (
