@@ -140,7 +140,7 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   }, [design?.starterKey, template.current_design_id]);
 
   useEffect(() => {
-    if (editor && !editor.isDestroyed && design?.zones[activeZone]) {
+    if (editor && !editor.isDestroyed && editor.commands && design?.zones[activeZone]) {
       const current = JSON.stringify(editor.getJSON());
       const next = JSON.stringify(design.zones[activeZone]);
       if (current !== next) {

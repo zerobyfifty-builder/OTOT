@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function EditorToolbar({ editor, mergeFields }: Props) {
-  if (!editor) return null;
+  if (!editor || editor.isDestroyed || !editor.commands) return null;
 
   const btn = (active: boolean, onClick: () => void, icon: React.ReactNode, title: string) => (
     <Button
@@ -21,7 +21,10 @@ export default function EditorToolbar({ editor, mergeFields }: Props) {
       size="icon"
       variant={active ? 'default' : 'ghost'}
       className="h-8 w-8"
-      onClick={onClick}
+      onClick={() => {
+        if (!editor || editor.isDestroyed || !editor.commands) return;
+        onClick();
+      }}
       title={title}
     >
       {icon}
