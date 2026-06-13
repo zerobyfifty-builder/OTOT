@@ -176,7 +176,7 @@ export default function Templates() {
         />
       )}
       {creating && (
-        <NewTemplateDialog
+        <NewTemplateSheet
           open={creating}
           onClose={() => setCreating(false)}
           onCreated={() => {
