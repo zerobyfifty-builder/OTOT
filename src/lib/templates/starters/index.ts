@@ -128,7 +128,7 @@ function pledgeCertClassic(): TemplateDesignV2 {
     'Care for our global environment through responsible tourism',
   ];
   const bodyContent: TipTapJSON[] = [
-    center(text('Certificate of Commitment', [{ type: 'textStyle', attrs: { color: '#2f7c49' } }])),
+    h(3, text('Certificate of Commitment')),
     h(1, text('I am a Responsible Traveler', [{ type: 'bold' }])),
     center(text('This certificate is presented to', [{ type: 'textStyle', attrs: { color: '#555555' } }])),
     h(2, mf('userName')),
