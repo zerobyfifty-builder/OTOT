@@ -420,3 +420,84 @@ function LogoSlot({
   }
   return <div className={`${sizeClass} w-24 rounded border border-dashed flex items-center justify-center text-[10px]`}>logo</div>;
 }
+
+function resolveLogoSrc(
+  value: string | undefined,
+  resolved?: { ktbLogoUrl?: string; partnerLogoUrl?: string },
+): string | undefined {
+  if (!value) return undefined;
+  const m = value.match(/^\{\{(\w+)\}\}$/);
+  if (m) return (resolved as any)?.[m[1]];
+  return value;
+}
+
+function LogoEditor({
+  label,
+  value,
+  resolved,
+  onChange,
+}: {
+  label: string;
+  value?: string;
+  resolved?: { ktbLogoUrl?: string; partnerLogoUrl?: string };
+  onChange: (v: string | undefined) => void;
+}) {
+  const src = resolveLogoSrc(value, resolved);
+  const inputId = `logo-upload-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const handleFile = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please use an image under 2MB.', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onChange(String(reader.result));
+    reader.readAsDataURL(file);
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label}</Label>
+      <div className="flex items-center gap-3 rounded-md border bg-muted/30 p-2">
+        <div className="h-14 w-20 flex items-center justify-center bg-white rounded border overflow-hidden">
+          {src ? (
+            <img src={src} alt={label} className="max-h-full max-w-full object-contain" />
+          ) : (
+            <span className="text-[10px] text-muted-foreground">No logo</span>
+          )}
+        </div>
+        <div className="flex-1 flex flex-col gap-1">
+          <input
+            id={inputId}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              e.target.value = '';
+            }}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => document.getElementById(inputId)?.click()}
+          >
+            {src ? 'Replace' : 'Upload'}
+          </Button>
+          {src && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              onClick={() => onChange(undefined)}
+            >
+              Remove
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
