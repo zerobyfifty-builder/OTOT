@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Eye, Send, ExternalLink } from 'lucide-react';
 import {
   AlertDialog,
@@ -58,6 +58,11 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   const [activeZone, setActiveZone] = useState<string>('body');
   const [resolvedLogos, setResolvedLogos] = useState<{ ktbLogoUrl?: string; partnerLogoUrl?: string; qrCodeUrl?: string }>({});
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const designRef = useRef<TemplateDesignV2 | null>(null);
+  const activeZoneRef = useRef(activeZone);
+
+  designRef.current = design;
+  activeZoneRef.current = activeZone;
 
   useEffect(() => {
     (async () => {
@@ -97,6 +102,7 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
       const d = designRow.design_json as any;
       if (isV2Design(d)) {
         setDesign(d);
+        setActiveZone(d.zones.body ? 'body' : Object.keys(d.zones)[0] || 'body');
         return;
       }
       // Fallback: shouldn't happen because router only opens V2 here.
@@ -120,19 +126,21 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
     ],
     content: design?.zones[activeZone] || { type: 'doc', content: [{ type: 'paragraph' }] },
     onUpdate: ({ editor }) => {
-      if (!design) return;
+      const currentDesign = designRef.current;
+      const currentZone = activeZoneRef.current;
+      if (!currentDesign || editor.isDestroyed) return;
       const json = editor.getJSON() as TipTapJSON;
-      setDesign({ ...design, zones: { ...design.zones, [activeZone]: json } });
+      setDesign((latest) => (latest ? { ...latest, zones: { ...latest.zones, [currentZone]: json } } : latest));
     },
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none min-h-[200px] focus:outline-none px-6 py-4',
       },
     },
-  }, [activeZone, design?.starterKey]);
+  }, [design?.starterKey, template.current_design_id]);
 
   useEffect(() => {
-    if (editor && !editor.isDestroyed && design?.zones[activeZone]) {
+    if (editor && !editor.isDestroyed && editor.commands && design?.zones[activeZone]) {
       const current = JSON.stringify(editor.getJSON());
       const next = JSON.stringify(design.zones[activeZone]);
       if (current !== next) {
