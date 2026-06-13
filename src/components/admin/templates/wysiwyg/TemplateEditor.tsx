@@ -403,10 +403,24 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   );
 }
 
-function LogoSlot({ value }: { value?: string }) {
-  if (!value) return <div className="h-10 w-24 rounded border border-dashed flex items-center justify-center">logo</div>;
-  if (value.startsWith('{{')) {
-    return <div className="h-10 px-2 rounded border border-dashed flex items-center text-[10px]">{value}</div>;
+function LogoSlot({
+  value,
+  resolved,
+  side,
+}: {
+  value?: string;
+  resolved?: { ktbLogoUrl?: string; partnerLogoUrl?: string };
+  side?: 'left' | 'right';
+}) {
+  const sizeClass = side === 'left' ? 'h-14' : 'h-16';
+  if (value) {
+    const m = value.match(/^\{\{(\w+)\}\}$/);
+    if (m) {
+      const url = (resolved as any)?.[m[1]];
+      if (url) return <img src={url} alt="logo" className={`${sizeClass} object-contain`} />;
+      return <div className={`${sizeClass} px-2 rounded border border-dashed flex items-center text-[10px]`}>{value}</div>;
+    }
+    return <img src={value} alt="logo" className={`${sizeClass} object-contain`} />;
   }
-  return <img src={value} alt="logo" className="h-10 object-contain" />;
+  return <div className={`${sizeClass} w-24 rounded border border-dashed flex items-center justify-center text-[10px]`}>logo</div>;
 }
