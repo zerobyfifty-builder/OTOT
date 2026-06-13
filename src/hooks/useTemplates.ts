@@ -33,6 +33,20 @@ export function useTemplatesByCategory(categoryKey: CategoryKey | null) {
   });
 }
 
+export function useAllTemplates() {
+  return useQuery({
+    queryKey: ['document-templates', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('document_templates')
+        .select('*')
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as DocumentTemplate[];
+    },
+  });
+}
+
 export function useTemplateDesign(designId: string | null) {
   return useQuery({
     queryKey: ['template-design', designId],
