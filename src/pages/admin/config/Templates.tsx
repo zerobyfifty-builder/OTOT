@@ -1,27 +1,32 @@
 import { useState } from 'react';
 import { pdf } from '@react-pdf/renderer';
-import { Plus, Eye, Pencil, CheckCircle2, Archive, Send, Link2 } from 'lucide-react';
+import { Plus, Eye, Pencil, CheckCircle2, Archive, Send, Link2, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useTemplateCategories,
   useTemplatesByCategory,
   useEngineFlags,
   useToggleEngineFlag,
-  useCreateTemplate,
   useSetTemplateStatus,
 } from '@/hooks/useTemplates';
-import { getDefaultDesign } from '@/lib/templates/defaultDesigns';
 import { getSampleData } from '@/lib/templates/sampleData';
 import { renderTemplateDocument, renderSocialMessage } from '@/lib/templates/renderTemplate';
+import { renderTemplateDocumentV2, renderZoneToPlainText } from '@/lib/templates/htmlToPdf';
+import { isV2Design } from '@/lib/templates/typesV2';
 import { useTemplateDesign } from '@/hooks/useTemplates';
 import TemplateDesignerSheet from '@/components/admin/templates/TemplateDesignerSheet';
 import TemplateAssignmentsSheet from '@/components/admin/templates/TemplateAssignmentsSheet';
+import NewTemplateDialog from '@/components/admin/templates/wysiwyg/NewTemplateDialog';
+import TemplateEditor from '@/components/admin/templates/wysiwyg/TemplateEditor';
 import type { CategoryKey, DocumentTemplate, TemplateCategory } from '@/lib/templates/types';
 
 export default function Templates() {
