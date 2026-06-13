@@ -217,7 +217,10 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
             <Button size="sm" variant="outline" onClick={previewPdf}>
               <Eye className="h-4 w-4 mr-1" /> Preview
             </Button>
-            <Button size="sm" variant="outline" onClick={submitForApproval} disabled={update.isPending || setStatus.isPending}>
+            <Button size="sm" variant="outline" onClick={previewPdf}>
+              <ExternalLink className="h-4 w-4 mr-1" /> Open in new tab
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setConfirmSubmit(true)} disabled={update.isPending || setStatus.isPending}>
               <Send className="h-4 w-4 mr-1" /> Submit
             </Button>
             <Button size="sm" onClick={save} disabled={update.isPending}>
@@ -228,6 +231,29 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
             </Button>
           </div>
         </div>
+
+        <AlertDialog open={confirmSubmit} onOpenChange={setConfirmSubmit}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Submit for approval?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will save a new version of “{template.name}” and submit it for approval.
+                You won’t be able to edit it again until it’s reviewed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setConfirmSubmit(false);
+                  submitForApproval();
+                }}
+              >
+                Submit
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {!design && <div className="p-6 text-sm text-muted-foreground">Loading design…</div>}
 
