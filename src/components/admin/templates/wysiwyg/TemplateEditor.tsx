@@ -66,12 +66,10 @@ export default function TemplateEditor({ template, category, open, onClose }: Pr
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
       Color,
       ImageExt,
-      LinkExt.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: 'Type here…' }),
       MergeField,
     ],
