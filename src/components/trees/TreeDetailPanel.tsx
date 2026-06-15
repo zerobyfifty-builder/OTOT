@@ -5,6 +5,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useTouristPlantingLocation } from '@/hooks/useActivePlantingLocation';
 
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
