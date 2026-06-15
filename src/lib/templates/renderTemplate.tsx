@@ -1,5 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import type { TemplateDesign, TemplateBlock } from './types';
+import { isV2Design } from './typesV2';
+import { renderTemplateDocumentV2 } from './htmlToPdf';
 
 type Vars = Record<string, string | number | undefined | null>;
 
