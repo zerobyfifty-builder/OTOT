@@ -74,6 +74,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 28,
   },
+  plantingLocation: {
+    color: '#2f7c49',
+    fontWeight: 'bold',
+  },
   // Impact box
   impactBox: {
     borderWidth: 1,
