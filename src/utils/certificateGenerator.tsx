@@ -193,7 +193,7 @@ export const generateTreeCertificate = async ({
       if (tpl) {
         const doc = renderTemplateDocument(tpl.design, {
           userName, date, certificateId, ototId: ototId ?? '',
-          numTrees, co2Offset, location: location ?? '',
+          numTrees, co2Offset, location: resolvedLocation ?? '',
           qrCodeUrl: qrCodeDataUrl,
           ktbLogoUrl: logos.ktbLogoDataUrl,
           partnerLogoUrl: logos.kfsLogoDataUrl,
