@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTouristModulePermissions } from "@/hooks/useTouristModulePermissions";
+import { useTouristPlantingLocation } from "@/hooks/useActivePlantingLocation";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
