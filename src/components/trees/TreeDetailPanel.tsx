@@ -274,7 +274,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <MapPin className="h-3.5 w-3.5" />
                     Location:
                   </p>
-                  <p className="text-sm">Mau Forest Complex (Nakuru)</p>
+                  <p className="text-sm">{displayLocation}</p>
                 </div>
 
                 {tree.latitude && tree.longitude && (
