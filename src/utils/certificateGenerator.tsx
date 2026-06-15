@@ -5,7 +5,7 @@ import { PledgeCertificate } from '@/components/certificates/PledgeCertificate';
 import { TreeCertificate } from '@/components/certificates/TreeCertificate';
 import { imageToBase64 } from '@/utils/imageToBase64';
 import ktbDualLogo from '@/assets/ktb-dual-logo.png';
-import kfsLogo2 from '@/assets/kfs-logo-2.png';
+import kfsLogo2 from '@/assets/mau-forest-complex-logo.jpeg';
 import { isTemplateEngineEnabled } from '@/lib/templates/flags';
 import { resolveTemplate } from '@/lib/templates/resolveTemplate';
 import { renderTemplateDocument } from '@/lib/templates/renderTemplate';
