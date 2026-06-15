@@ -5,6 +5,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useTouristPlantingLocation } from '@/hooks/useActivePlantingLocation';
 
 import yourTreeImage from '@/assets/your-tree-demo.png';
 import treeCarerImage from '@/assets/tree-carer-demo.png';
@@ -145,6 +146,30 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
   const lng = geotag?.longitude ?? tree.longitude;
   const hasLocation = lat != null && lng != null;
 
+  // Fetch the assigned beat label (from latest 'assigned' transition)
+  const { data: assignedBeatLabel } = useQuery({
+    queryKey: ['tree-assigned-beat', tree.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tree_status_transitions')
+        .select('transition_data, created_at')
+        .eq('tree_id', tree.id)
+        .eq('to_status', 'assigned')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const td = (data as any)?.transition_data || {};
+      return (td.target_beat_label as string) || null;
+    },
+    enabled: !!tree.id,
+  });
+
+  // Fallback: active "planted here" location from Super Admin config
+  const { data: plantingLocation } = useTouristPlantingLocation();
+  const displayLocation =
+    assignedBeatLabel || plantingLocation?.planted_by_name || 'Mau Forest Complex';
+
+
 
   const carerPhoto = carer?.photo_url || treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
@@ -249,7 +274,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <MapPin className="h-3.5 w-3.5" />
                     Location:
                   </p>
-                  <p className="text-sm">Mau Forest Complex (Nakuru)</p>
+                  <p className="text-sm">{displayLocation}</p>
                 </div>
 
                 {tree.latitude && tree.longitude && (

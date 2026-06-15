@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTouristModulePermissions } from "@/hooks/useTouristModulePermissions";
+import { useTouristPlantingLocation } from "@/hooks/useActivePlantingLocation";
 
 type Tree = Database["public"]["Tables"]["trees"]["Row"];
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -158,6 +159,8 @@ export const MyTrees = () => {
   const hasInitCollapsed = useRef(false);
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
+  const { data: activePlantingLocation } = useTouristPlantingLocation();
+  const plantedHereName = activePlantingLocation?.planted_by_name || 'Mau Forest';
 
   useEffect(() => {
     fetchTrees();
@@ -748,7 +751,7 @@ export const MyTrees = () => {
 
                                         <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
                                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                                          <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
+                                          <MapPin className="h-3 w-3 text-primary/70" />{plantedHereName}
                                         </span>
                                         <Button
                                           size="sm"
