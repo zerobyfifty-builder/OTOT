@@ -74,6 +74,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 28,
   },
+  plantingLocation: {
+    color: '#2f7c49',
+    fontWeight: 'bold',
+  },
   // Impact box
   impactBox: {
     borderWidth: 1,
@@ -197,7 +201,7 @@ export const TreeCertificate = ({
         <Text style={styles.presentedText}>This certificate is proudly presented to</Text>
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.plantingText}>
-          for planting {numTrees} {numTrees === 1 ? 'tree' : 'trees'} in Kenya on {date}
+          for planting {numTrees} {numTrees === 1 ? 'tree' : 'trees'} in <Text style={styles.plantingLocation}>{location && location.trim() ? location : 'Kenya'}</Text> on {date}
         </Text>
 
         {/* Impact Box */}
