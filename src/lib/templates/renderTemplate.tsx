@@ -122,7 +122,17 @@ function renderPledgeDefault(design: TemplateDesign, vars: Vars) {
 }
 
 export function renderTemplateDocument(design: TemplateDesign, vars: Vars) {
-  if (design.layoutPreset === 'pledge_default') {
+  // V2 designs (WYSIWYG editor output): route pledge variants through the
+  // pledge layout so uploaded logos/styling are honoured; everything else
+  // uses the generic V2 renderer.
+  if (isV2Design(design as any)) {
+    const v2 = design as any;
+    if (typeof v2.starterKey === 'string' && v2.starterKey.startsWith('pledge_cert')) {
+      return renderPledgeDefault(design, vars);
+    }
+    return renderTemplateDocumentV2(v2, vars);
+  }
+  if ((design as any).layoutPreset === 'pledge_default') {
     return renderPledgeDefault(design, vars);
   }
   const styles = StyleSheet.create({
