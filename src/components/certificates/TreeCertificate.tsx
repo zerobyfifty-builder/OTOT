@@ -194,8 +194,7 @@ export const TreeCertificate = ({
 
         {/* Header */}
         <Text style={styles.initiativeText}>One Tourist One Tree Initiative</Text>
-        <Text style={styles.title}>Certificate of Environmental Action-</Text>
-        <Text style={styles.titleLine2}>Kenya</Text>
+      <Text style={styles.title}>Certificate of Environmental Action</Text>
 
         {/* Presentation */}
         <Text style={styles.presentedText}>This certificate is proudly presented to</Text>
