@@ -751,7 +751,7 @@ export const MyTrees = () => {
 
                                         <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
                                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                                          <MapPin className="h-3 w-3 text-primary/70" />Mau Forest
+                                          <MapPin className="h-3 w-3 text-primary/70" />{plantedHereName}
                                         </span>
                                         <Button
                                           size="sm"
