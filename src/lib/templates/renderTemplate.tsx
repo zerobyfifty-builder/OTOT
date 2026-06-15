@@ -45,9 +45,10 @@ function renderPledgeDefault(design: TemplateDesign, vars: Vars) {
   const pledgeDateText = substitute(f.pledgeDateText || 'for taking the Responsible Traveler Pledge on {{date}}', vars);
   const pledgeHeading = substitute(f.pledgeHeading || 'I PLEDGE TO', vars);
 
-  const header = design.blocks.find((b) => b.kind === 'header');
-  const leftLogo = resolveLogo(header?.leftLogo || '{{ktbLogoUrl}}', vars);
-  const rightLogo = resolveLogo(header?.rightLogo || '{{partnerLogoUrl}}', vars);
+  const header = (design as any).blocks?.find?.((b: any) => b.kind === 'header');
+  const v2Logos = (design as any).logos as { left?: string; right?: string } | undefined;
+  const leftLogo = resolveLogo(v2Logos?.left || header?.leftLogo || '{{ktbLogoUrl}}', vars);
+  const rightLogo = resolveLogo(v2Logos?.right || header?.rightLogo || '{{partnerLogoUrl}}', vars);
   const qr = resolveLogo('{{qrCodeUrl}}', vars);
   const certId = substitute('{{certificateId}}', vars);
   const ototId = substitute('{{ototId}}', vars);
