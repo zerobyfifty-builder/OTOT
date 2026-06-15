@@ -159,6 +159,8 @@ export const MyTrees = () => {
   const hasInitCollapsed = useRef(false);
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
+  const { data: activePlantingLocation } = useTouristPlantingLocation();
+  const plantedHereName = activePlantingLocation?.planted_by_name || 'Mau Forest';
 
   useEffect(() => {
     fetchTrees();
