@@ -1,5 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import type { TemplateDesign, TemplateBlock } from './types';
+import { isV2Design } from './typesV2';
+import { renderTemplateDocumentV2 } from './htmlToPdf';
 
 type Vars = Record<string, string | number | undefined | null>;
 
@@ -43,9 +45,10 @@ function renderPledgeDefault(design: TemplateDesign, vars: Vars) {
   const pledgeDateText = substitute(f.pledgeDateText || 'for taking the Responsible Traveler Pledge on {{date}}', vars);
   const pledgeHeading = substitute(f.pledgeHeading || 'I PLEDGE TO', vars);
 
-  const header = design.blocks.find((b) => b.kind === 'header');
-  const leftLogo = resolveLogo(header?.leftLogo || '{{ktbLogoUrl}}', vars);
-  const rightLogo = resolveLogo(header?.rightLogo || '{{partnerLogoUrl}}', vars);
+  const header = (design as any).blocks?.find?.((b: any) => b.kind === 'header');
+  const v2Logos = (design as any).logos as { left?: string; right?: string } | undefined;
+  const leftLogo = resolveLogo(v2Logos?.left || header?.leftLogo || '{{ktbLogoUrl}}', vars);
+  const rightLogo = resolveLogo(v2Logos?.right || header?.rightLogo || '{{partnerLogoUrl}}', vars);
   const qr = resolveLogo('{{qrCodeUrl}}', vars);
   const certId = substitute('{{certificateId}}', vars);
   const ototId = substitute('{{ototId}}', vars);
@@ -119,7 +122,17 @@ function renderPledgeDefault(design: TemplateDesign, vars: Vars) {
 }
 
 export function renderTemplateDocument(design: TemplateDesign, vars: Vars) {
-  if (design.layoutPreset === 'pledge_default') {
+  // V2 designs (WYSIWYG editor output): route pledge variants through the
+  // pledge layout so uploaded logos/styling are honoured; everything else
+  // uses the generic V2 renderer.
+  if (isV2Design(design as any)) {
+    const v2 = design as any;
+    if (typeof v2.starterKey === 'string' && v2.starterKey.startsWith('pledge_cert')) {
+      return renderPledgeDefault(design, vars);
+    }
+    return renderTemplateDocumentV2(v2, vars);
+  }
+  if ((design as any).layoutPreset === 'pledge_default') {
     return renderPledgeDefault(design, vars);
   }
   const styles = StyleSheet.create({
