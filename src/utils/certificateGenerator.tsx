@@ -150,6 +150,26 @@ export const generateTreeCertificate = async ({
   
   const certificateId = `TRE-${Date.now()}-${userId.substring(0, 8)}`;
   const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
+
+  // Resolve planting location: prefer explicit param, else active tourist planting location.
+  let resolvedLocation = location;
+  if (!resolvedLocation) {
+    try {
+      const { data } = await supabase
+        .from('planting_locations')
+        .select('site_name')
+        .eq('is_active', true)
+        .eq('show_in_tourist', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (data?.site_name) resolvedLocation = data.site_name;
+    } catch (e) {
+      console.warn('Could not fetch active planting location', e);
+    }
+  }
+
   const [qrCodeDataUrl, logos] = await Promise.all([
     generateQRCode(verificationUrl),
     getLogos(),
