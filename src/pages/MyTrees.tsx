@@ -760,7 +760,7 @@ export const MyTrees = () => {
                                           className="h-7 px-2.5 gap-1 text-[11px] font-medium hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
                                           title="Track trees"
                                           tabIndex={isCollapsed ? -1 : 0}
-                                          onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) setSelectedTree(cg.trees[0]); }}
+                                          onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) { setSelectedTree(cg.trees[0]); setSelectedTreeFromBatch(true); } }}
                                         >
                                           <MapPin className="h-3.5 w-3.5" />
                                           Track
