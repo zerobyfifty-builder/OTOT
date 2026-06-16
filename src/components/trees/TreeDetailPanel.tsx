@@ -268,10 +268,12 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground mb-0.5">Tree ID:</p>
-                    <p className="text-sm font-bold truncate">{tree.otot_id}</p>
-                  </div>
+                  {!hideTreeId && (
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground mb-0.5">Tree ID:</p>
+                      <p className="text-sm font-bold truncate">{tree.otot_id}</p>
+                    </div>
+                  )}
                   {hasLocation ? (
                     <Button
                       size="sm"
