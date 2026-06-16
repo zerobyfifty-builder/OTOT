@@ -24,7 +24,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
   const [mapKey, setMapKey] = useState(0);
   const [treePhotoIdx, setTreePhotoIdx] = useState(0);
   const [carerPhotoIdx, setCarerPhotoIdx] = useState(0);
-  const tabs = ['Your Trees', 'Your Tree Carer', 'Location', 'Impact'];
+  const tabs = ['Trees', 'Tree Carer', 'Location', 'Impact'];
   const slideCount = tabs.length;
 
   const treeImages = Array.isArray(tree.images) ? tree.images : [];
