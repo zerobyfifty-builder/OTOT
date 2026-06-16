@@ -149,6 +149,7 @@ export const MyTrees = () => {
   const [transitionDates, setTransitionDates] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
+  const [selectedTreeFromBatch, setSelectedTreeFromBatch] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isTripSheetOpen, setIsTripSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
