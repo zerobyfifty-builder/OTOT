@@ -178,7 +178,18 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
 
 
 
-  const carerPhoto = carer?.photo_url || treeCarerImage;
+  const carerPhotos = (() => {
+    const photosField = (carer as any)?.photos;
+    if (Array.isArray(photosField)) {
+      const urls = photosField
+        .map((p: any) => (typeof p === 'string' ? p : p?.url))
+        .filter((u: any): u is string => !!u);
+      if (urls.length > 0) return urls;
+    }
+    return carer?.photo_url ? [carer.photo_url] : [];
+  })();
+  const hasCarerPhoto = carerPhotos.length > 0;
+  const currentCarerPhoto = hasCarerPhoto ? carerPhotos[carerPhotoIdx % carerPhotos.length] : treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
   const carerDescription = carer
     ? `${carer.age ? `A ${carer.age}-year-old ` : 'A '}tree planter${
