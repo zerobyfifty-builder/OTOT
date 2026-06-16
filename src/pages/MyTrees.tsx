@@ -745,17 +745,19 @@ export const MyTrees = () => {
                                       key={`${group.key}-${cg.cid}`}
                                       className="rounded-xl bg-white/80 ring-1 ring-white/90 backdrop-blur-md px-3 sm:px-4 py-3 hover:bg-white transition-colors shadow-sm"
                                     >
-                                      <div className="flex flex-col gap-2">
-                                        {/* Top row: info + status */}
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                          <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
-                                            <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
-                                          </span>
-                                          <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                                            <MapPin className="h-3 w-3 text-primary/70" />{plantedHereName}
-                                          </span>
-                                          <div className="flex flex-col items-start leading-tight sm:ml-auto">
+                                      <div className="flex items-start gap-3">
+                                        {/* Left: tree info, location, status */}
+                                        <div className="flex-1 min-w-0 space-y-1.5">
+                                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                            <span className="inline-flex items-center gap-1.5 text-sm font-bold tabular-nums text-foreground whitespace-nowrap">
+                                              <TreePine className="h-4 w-4 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
+                                            </span>
+                                            <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                          </div>
+                                          <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                            <MapPin className="h-3.5 w-3.5 text-primary/70" />{plantedHereName}
+                                          </div>
+                                          <div className="flex flex-col items-start leading-tight pt-0.5">
                                             <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
                                             {(() => {
                                               const dates = cg.trees
@@ -765,7 +767,7 @@ export const MyTrees = () => {
                                               if (!dates.length) return null;
                                               const latest = new Date(Math.max(...dates));
                                               return (
-                                                <span className="text-[10px] text-muted-foreground tabular-nums mt-0.5 whitespace-nowrap">
+                                                <span className="text-[10px] text-muted-foreground tabular-nums mt-1 whitespace-nowrap">
                                                   {format(latest, "d MMM yyyy")}
                                                 </span>
                                               );
@@ -773,12 +775,12 @@ export const MyTrees = () => {
                                           </div>
                                         </div>
 
-                                        {/* Bottom row: track + actions aligned right */}
-                                        <div className="flex items-center justify-end gap-2">
+                                        {/* Right: Track on top, 3-dot menu at bottom */}
+                                        <div className="flex flex-col items-end justify-between self-stretch shrink-0">
                                           <Button
                                             size="sm"
                                             variant="default"
-                                            className="h-7 px-2.5 gap-1 text-[11px] font-medium hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
+                                            className="h-8 px-3 gap-1.5 text-xs font-medium hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
                                             title="Track trees"
                                             tabIndex={isCollapsed ? -1 : 0}
                                             onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) { setSelectedTree(cg.trees[0]); setSelectedTreeFromBatch(true); } }}
@@ -800,6 +802,7 @@ export const MyTrees = () => {
                                           </DropdownMenu>
                                         </div>
                                       </div>
+
                                     </div>
                                   ))}
                                   </div>
