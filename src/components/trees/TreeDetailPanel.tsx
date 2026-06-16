@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Cloud, ExternalLink, RefreshCw, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -189,10 +190,11 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden"
-      >
+      <TooltipProvider>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden"
+        >
         {/* Header + Tabs */}
         <div className="px-4 pt-5 pb-3 pr-12 bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
           <div className="flex items-center gap-2 mb-1.5">
@@ -269,9 +271,32 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <p className="text-xs text-muted-foreground mb-0.5">Tree ID:</p>
                     <p className="text-sm font-bold truncate">{tree.otot_id}</p>
                   </div>
-                  <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
-                    Track
-                  </Button>
+                  {hasLocation ? (
+                    <Button
+                      size="sm"
+                      className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0"
+                      onClick={() => setCurrentSlide(2)}
+                    >
+                      Track
+                    </Button>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-block">
+                          <Button
+                            size="sm"
+                            disabled
+                            className="h-8 px-3 bg-gray-400 hover:bg-gray-400 text-white text-xs shrink-0 cursor-not-allowed"
+                          >
+                            Track
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>The tree is not mapped yet</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
 
                 <div>
@@ -449,6 +474,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           </div>
         </div>
       </SheetContent>
+      </TooltipProvider>
     </Sheet>
   );
 };
