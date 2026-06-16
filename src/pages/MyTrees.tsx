@@ -857,7 +857,8 @@ export const MyTrees = () => {
         {selectedTree && (
           <TreeDetailPanel
             tree={selectedTree}
-            onClose={() => setSelectedTree(null)}
+            onClose={() => { setSelectedTree(null); setSelectedTreeFromBatch(false); }}
+            hideTreeId={selectedTreeFromBatch}
           />
         )}
 
