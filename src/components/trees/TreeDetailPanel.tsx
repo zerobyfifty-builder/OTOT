@@ -19,7 +19,7 @@ interface TreeDetailPanelProps {
   hideTreeId?: boolean;
 }
 
-export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
+export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose, hideTreeId }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mapKey, setMapKey] = useState(0);
   const tabs = ['Your Trees', 'Your Tree Carer', 'Location', 'Impact'];
