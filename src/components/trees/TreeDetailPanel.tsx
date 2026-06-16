@@ -373,11 +373,42 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
                 <img
-                  src={carerPhoto}
+                  src={currentCarerPhoto}
                   alt={carerName}
                   className="w-full h-full object-cover"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = treeCarerImage; }}
                 />
+                {carerPhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setCarerPhotoIdx((i) => (i - 1 + carerPhotos.length) % carerPhotos.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCarerPhotoIdx((i) => (i + 1) % carerPhotos.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {carerPhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setCarerPhotoIdx(i)}
+                          className={`h-1.5 rounded-full transition-all ${i === carerPhotoIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`}
+                          aria-label={`Photo ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="space-y-2">
