@@ -271,9 +271,32 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <p className="text-xs text-muted-foreground mb-0.5">Tree ID:</p>
                     <p className="text-sm font-bold truncate">{tree.otot_id}</p>
                   </div>
-                  <Button size="sm" className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0">
-                    Track
-                  </Button>
+                  {hasLocation ? (
+                    <Button
+                      size="sm"
+                      className="h-8 px-3 bg-[#8BC34A] hover:bg-[#7CB342] text-white text-xs shrink-0"
+                      onClick={() => setCurrentSlide(2)}
+                    >
+                      Track
+                    </Button>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-block">
+                          <Button
+                            size="sm"
+                            disabled
+                            className="h-8 px-3 bg-gray-400 hover:bg-gray-400 text-white text-xs shrink-0 cursor-not-allowed"
+                          >
+                            Track
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>The tree is not mapped yet</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
 
                 <div>
