@@ -520,39 +520,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             </div>
           </div>
 
-          {/* Slider arrows */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={prevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg p-0 z-10"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={nextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg p-0 z-10"
-            aria-label="Next"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
-
-          {/* Dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {Array.from({ length: slideCount }, (_, i) => i).map((index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all ${
-                  currentSlide === index ? 'w-8 bg-primary' : 'w-2 bg-muted-foreground/30'
-                }`}
-                aria-label={`Slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
       </SheetContent>
       </TooltipProvider>
