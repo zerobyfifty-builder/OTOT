@@ -878,7 +878,7 @@ export const MyTrees = () => {
           contributionId={contribSheet?.cid || null}
           trees={contribSheet?.trees || []}
           transitionDates={transitionDates}
-          onTrack={(tree) => setSelectedTree(tree)}
+          onTrack={(tree) => { setSelectedTree(tree); setSelectedTreeFromBatch(false); }}
         />
 
         {/* Certificate Preview Dialog */}
