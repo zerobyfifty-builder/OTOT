@@ -789,7 +789,7 @@ export const MyTrees = () => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setContribSheet({ cid: cg.cid, trees: cg.trees }); }}>
-                                                <Eye className="h-3.5 w-3.5 mr-2" /> View tree details
+                                                <Eye className="h-3.5 w-3.5 mr-2" /> Per-tree details
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
                                           </DropdownMenu>
