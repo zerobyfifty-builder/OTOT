@@ -190,10 +190,11 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden"
-      >
+      <TooltipProvider>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-md p-0 flex flex-col h-full overflow-hidden"
+        >
         {/* Header + Tabs */}
         <div className="px-4 pt-5 pb-3 pr-12 bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
           <div className="flex items-center gap-2 mb-1.5">
