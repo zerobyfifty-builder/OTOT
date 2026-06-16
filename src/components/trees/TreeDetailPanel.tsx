@@ -21,7 +21,7 @@ interface TreeDetailPanelProps {
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mapKey, setMapKey] = useState(0);
-  const tabs = ['Your Tree', 'Your Tree Carer', 'Location', 'Impact'];
+  const tabs = ['Your Trees', 'Your Tree Carer', 'Location', 'Impact'];
   const slideCount = tabs.length;
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slideCount);
