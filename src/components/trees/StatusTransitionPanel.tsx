@@ -919,7 +919,6 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               disabled
               className="bg-muted cursor-not-allowed"
             />
-            <p className="text-xs text-muted-foreground">For accountability — recorded with this status change.</p>
           </div>
         </div>
 
