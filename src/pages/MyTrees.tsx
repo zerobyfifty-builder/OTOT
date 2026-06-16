@@ -745,28 +745,29 @@ export const MyTrees = () => {
                                       key={`${group.key}-${cg.cid}`}
                                       className="rounded-xl bg-white/80 ring-1 ring-white/90 backdrop-blur-md px-3 sm:px-4 py-3 hover:bg-white transition-colors shadow-sm"
                                     >
-                                      <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
-                                        <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
-                                          <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
-                                        </span>
-
-                                        <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
-                                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                                          <MapPin className="h-3 w-3 text-primary/70" />{plantedHereName}
-                                        </span>
-                                        <Button
-                                          size="sm"
-                                          variant="default"
-                                          className="h-7 px-2.5 gap-1 text-[11px] font-medium hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
-                                          title="Track trees"
-                                          tabIndex={isCollapsed ? -1 : 0}
-                                          onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) { setSelectedTree(cg.trees[0]); setSelectedTreeFromBatch(true); } }}
-                                        >
-                                          <MapPin className="h-3.5 w-3.5" />
-                                          Track
-                                        </Button>
-                                        <div className="ml-auto flex items-center gap-3">
-                                          <div className="flex flex-col items-end leading-tight">
+                                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-x-3 gap-y-1">
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                          <Button
+                                            size="sm"
+                                            variant="default"
+                                            className="h-7 px-2.5 gap-1 text-[11px] font-medium hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm hover:shadow"
+                                            title="Track trees"
+                                            tabIndex={isCollapsed ? -1 : 0}
+                                            onClick={(e) => { e.stopPropagation(); if (cg.trees[0]) { setSelectedTree(cg.trees[0]); setSelectedTreeFromBatch(true); } }}
+                                          >
+                                            <MapPin className="h-3.5 w-3.5" />
+                                            Track
+                                          </Button>
+                                          <span className="inline-flex items-center gap-1 text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
+                                            <TreePine className="h-3.5 w-3.5 text-primary" />{cg.trees_planted} {cg.trees_planted === 1 ? 'tree' : 'trees'}
+                                          </span>
+                                          <span className="text-xs tabular-nums text-muted-foreground whitespace-nowrap">{format(new Date(cg.date), "d MMM yyyy")}</span>
+                                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                                            <MapPin className="h-3 w-3 text-primary/70" />{plantedHereName}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 sm:ml-auto">
+                                          <div className="flex flex-col items-start sm:items-end leading-tight">
                                             <Badge className={`${getGroupStatusColor(cg.status)} text-[10px] sm:text-[11px] whitespace-nowrap`}>{cg.status}</Badge>
                                             {(() => {
                                               const dates = cg.trees
