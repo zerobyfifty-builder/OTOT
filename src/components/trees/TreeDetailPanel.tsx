@@ -22,14 +22,16 @@ interface TreeDetailPanelProps {
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose, hideTreeId }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mapKey, setMapKey] = useState(0);
+  const [treePhotoIdx, setTreePhotoIdx] = useState(0);
+  const [carerPhotoIdx, setCarerPhotoIdx] = useState(0);
   const tabs = ['Your Trees', 'Your Tree Carer', 'Location', 'Impact'];
   const slideCount = tabs.length;
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slideCount);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slideCount) % slideCount);
-
   const treeImages = Array.isArray(tree.images) ? tree.images : [];
-  const localTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
+  const treeImageUrls = treeImages
+    .map((p: any) => (typeof p === 'string' ? p : p?.url))
+    .filter((u: any): u is string => !!u);
+  const localTreeImage = treeImageUrls[0] || null;
 
   // Fallback: planting photo captured by plantation partner when status -> sapling_planted
   const { data: plantingPhoto } = useQuery({
