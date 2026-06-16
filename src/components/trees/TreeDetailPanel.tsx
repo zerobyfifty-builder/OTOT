@@ -451,6 +451,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
           </div>
         </div>
       </SheetContent>
+      </TooltipProvider>
     </Sheet>
   );
 };
