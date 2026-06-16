@@ -196,20 +196,25 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
         {/* Header + Tabs */}
         <div className="px-4 pt-5 pb-3 pr-12 bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
           <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-medium text-foreground">
+              {displayLocation}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               {statusLabel}
             </span>
+            <span className="text-xs text-muted-foreground">
+              {statusDate
+                ? new Date(statusDate).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : '—'}
+            </span>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">
-            {statusDate
-              ? new Date(statusDate).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })
-              : '—'}
-          </p>
 
           {/* Tabs */}
           <div className="flex items-center gap-1 p-1 rounded-full overflow-x-auto bg-[hsl(142_60%_90%/0.6)] backdrop-blur-xl border border-[hsl(142_76%_36%/0.25)] shadow-[0_1px_3px_rgba(0,0,0,0.04)] max-sm:bg-[hsl(142_60%_93%/0.82)]">
