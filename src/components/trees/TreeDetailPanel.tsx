@@ -277,7 +277,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
                 )}
                 {hasActualPhoto && (
                   <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
-                    YOUR TREE
+                    YOUR TREES
                   </div>
                 )}
                 {treePhotos.length > 1 && (
