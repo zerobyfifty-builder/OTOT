@@ -1266,42 +1266,106 @@ export const OwnerOrders = () => {
                                 </DropdownMenuItem>
                                 )}
                                 {isPlantationType && canMonitoringLogs && (
-                                <DropdownMenuItem onClick={() => {
-                                  setMonitoringSheet(group);
-                                  setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
-                                }}>
-                                  <ClipboardList className="h-3.5 w-3.5 mr-2" />
-                                  Monitoring Logs
-                                </DropdownMenuItem>
+                                  group.planting_status === 'sapling_planted' ? (
+                                    <DropdownMenuItem onClick={() => {
+                                      setMonitoringSheet(group);
+                                      setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
+                                    }}>
+                                      <ClipboardList className="h-3.5 w-3.5 mr-2" />
+                                      Monitoring Logs
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <div>
+                                            <DropdownMenuItem disabled className="opacity-50">
+                                              <ClipboardList className="h-3.5 w-3.5 mr-2" />
+                                              Monitoring Logs
+                                            </DropdownMenuItem>
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent><p>Sapling not yet planted</p></TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )
                                 )}
                                 {isPlantationType && (
                                   <>
                                     {canEcosystem && (
-                                    <DropdownMenuItem onClick={() => {
-                                      setImpactSliderContribId(group.contribution_id);
-                                      setImpactSliderType("ecosystem");
-                                    }}>
-                                      <Globe className="h-3.5 w-3.5 mr-2" />
-                                      Ecosystem Impact
-                                    </DropdownMenuItem>
+                                      group.planting_status === 'sapling_planted' ? (
+                                        <DropdownMenuItem onClick={() => {
+                                          setImpactSliderContribId(group.contribution_id);
+                                          setImpactSliderType("ecosystem");
+                                        }}>
+                                          <Globe className="h-3.5 w-3.5 mr-2" />
+                                          Ecosystem Impact
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <div>
+                                                <DropdownMenuItem disabled className="opacity-50">
+                                                  <Globe className="h-3.5 w-3.5 mr-2" />
+                                                  Ecosystem Impact
+                                                </DropdownMenuItem>
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Sapling not yet planted</p></TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )
                                     )}
                                     {canCommunity && (
-                                    <DropdownMenuItem onClick={() => {
-                                      setImpactSliderContribId(group.contribution_id);
-                                      setImpactSliderType("community");
-                                    }}>
-                                      <Users className="h-3.5 w-3.5 mr-2" />
-                                      Community Impact
-                                    </DropdownMenuItem>
+                                      group.planting_status === 'sapling_planted' ? (
+                                        <DropdownMenuItem onClick={() => {
+                                          setImpactSliderContribId(group.contribution_id);
+                                          setImpactSliderType("community");
+                                        }}>
+                                          <Users className="h-3.5 w-3.5 mr-2" />
+                                          Community Impact
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <div>
+                                                <DropdownMenuItem disabled className="opacity-50">
+                                                  <Users className="h-3.5 w-3.5 mr-2" />
+                                                  Community Impact
+                                                </DropdownMenuItem>
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Sapling not yet planted</p></TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )
                                     )}
                                     {canCarbon && (
-                                    <DropdownMenuItem onClick={() => {
-                                      setImpactSliderContribId(group.contribution_id);
-                                      setImpactSliderType("carbon");
-                                    }}>
-                                      <Cloud className="h-3.5 w-3.5 mr-2" />
-                                      Carbon Metrics
-                                    </DropdownMenuItem>
+                                      group.planting_status === 'sapling_planted' ? (
+                                        <DropdownMenuItem onClick={() => {
+                                          setImpactSliderContribId(group.contribution_id);
+                                          setImpactSliderType("carbon");
+                                        }}>
+                                          <Cloud className="h-3.5 w-3.5 mr-2" />
+                                          Carbon Metrics
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <div>
+                                                <DropdownMenuItem disabled className="opacity-50">
+                                                  <Cloud className="h-3.5 w-3.5 mr-2" />
+                                                  Carbon Metrics
+                                                </DropdownMenuItem>
+                                              </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent><p>Sapling not yet planted</p></TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )
                                     )}
                                   </>
                                 )}
