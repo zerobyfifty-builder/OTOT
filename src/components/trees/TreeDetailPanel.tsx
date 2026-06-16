@@ -33,9 +33,9 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
     .filter((u: any): u is string => !!u);
   const localTreeImage = treeImageUrls[0] || null;
 
-  // Fallback: planting photo captured by plantation partner when status -> sapling_planted
-  const { data: plantingPhoto } = useQuery({
-    queryKey: ['tree-planting-photo', tree.id],
+  // Fallback: planting photos captured by plantation partner when status -> sapling_planted
+  const { data: plantingPhotos } = useQuery({
+    queryKey: ['tree-planting-photos', tree.id],
     queryFn: async () => {
       const { data } = await supabase
         .from('tree_status_transitions')
@@ -46,17 +46,20 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
         .limit(1)
         .maybeSingle();
       const photos = (data as any)?.photos;
-      if (Array.isArray(photos) && photos.length > 0) {
-        return typeof photos[0] === 'string' ? photos[0] : (photos[0] as any)?.url ?? null;
+      if (Array.isArray(photos)) {
+        return photos
+          .map((p: any) => (typeof p === 'string' ? p : p?.url))
+          .filter((u: any): u is string => !!u);
       }
-      return null;
+      return [] as string[];
     },
     enabled: !!tree.id,
   });
 
-  const actualTreeImage = localTreeImage || plantingPhoto || null;
-  const hasActualPhoto = !!actualTreeImage;
-  const treeImage = actualTreeImage || yourTreeImage;
+  const treePhotos = Array.from(new Set([...(treeImageUrls as string[]), ...((plantingPhotos as string[]) || [])]));
+  const hasActualPhoto = treePhotos.length > 0;
+  const currentTreePhoto = hasActualPhoto ? treePhotos[treePhotoIdx % treePhotos.length] : yourTreeImage;
+
 
   const { data: carer } = useQuery({
     queryKey: ['tree-carer', tree.id],
