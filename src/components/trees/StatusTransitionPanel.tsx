@@ -383,21 +383,30 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const title = STATUS_TITLES[request.toStatus] || request.toStatus;
   const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
 
-  const renderPlanterSelect = (fieldKey: string, label: string, required = true) => (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium">{label} {required && <span className="text-destructive">*</span>}</Label>
-      <Select value={formData[fieldKey] || ""} onValueChange={(v) => setField(fieldKey, v)}>
-        <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
-        <SelectContent>
-          {(planters || []).map(p => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.name} {p.planter_type ? `(${p.planter_type})` : ""}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string) => {
+    const options = (planters || []).filter(p => {
+      if (!roleFilter) return true;
+      const roles = Array.isArray((p as any).roles) ? (p as any).roles : [];
+      return roles.includes(roleFilter);
+    });
+    return (
+      <div className="space-y-1.5">
+        <Label className="text-sm font-medium">{label} {required && <span className="text-destructive">*</span>}</Label>
+        <Select value={formData[fieldKey] || ""} onValueChange={(v) => setField(fieldKey, v)}>
+          <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
+          <SelectContent>
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-muted-foreground">No matching planters</div>
+            ) : options.map(p => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name} {p.planter_type ? `(${p.planter_type})` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
 
   const renderPhotoUpload = (maxFiles: number, required = false) => (
     <div className="space-y-2">
