@@ -164,7 +164,8 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     enabled: !!tree.id,
   });
 
-  // Fallback: active "planted here" location from Super Admin config
+  // Active "planted here" location from Super Admin config
+  const { data: plantingLocation } = useTouristPlantingLocation();
   const plantedHereLocation = plantingLocation?.site_name || 'Mau Forest Complex';
   const treeLocation = assignedBeatLabel || plantedHereLocation;
 
