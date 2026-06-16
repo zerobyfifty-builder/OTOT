@@ -630,7 +630,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
               <Label className="text-sm font-medium">Scheduled Planting Date <span className="text-destructive">*</span></Label>
               <Input type="date" value={formData.scheduled_date || ""} onChange={(e) => setField("scheduled_date", e.target.value)} />
             </div>
-            {renderPlanterSelect("planting_team_lead", "Planting Team Lead")}
+            {renderPlanterSelect("planting_team_lead", "Planting Team Lead", true, "Planting Team Lead")}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Community Participants Expected</Label>
               <Input type="number" min={0} value={formData.community_participants_expected || ""} onChange={(e) => setField("community_participants_expected", parseInt(e.target.value) || undefined)} placeholder="Optional" />
