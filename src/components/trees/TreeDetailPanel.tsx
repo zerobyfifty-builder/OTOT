@@ -264,7 +264,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
                 <img
-                  src={treeImage}
+                  src={currentTreePhoto}
                   alt="Tree"
                   className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'blur-[2px] brightness-90'}`}
                 />
@@ -279,6 +279,37 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
                   <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
                     YOUR TREE
                   </div>
+                )}
+                {treePhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setTreePhotoIdx((i) => (i - 1 + treePhotos.length) % treePhotos.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTreePhotoIdx((i) => (i + 1) % treePhotos.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {treePhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setTreePhotoIdx(i)}
+                          className={`h-1.5 rounded-full transition-all ${i === treePhotoIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`}
+                          aria-label={`Photo ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 
