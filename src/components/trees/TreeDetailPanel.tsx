@@ -164,10 +164,10 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
     enabled: !!tree.id,
   });
 
-  // Fallback: active "planted here" location from Super Admin config
+  // Active "planted here" location from Super Admin config
   const { data: plantingLocation } = useTouristPlantingLocation();
-  const displayLocation =
-    assignedBeatLabel || plantingLocation?.planted_by_name || 'Mau Forest Complex';
+  const plantedHereLocation = plantingLocation?.site_name || 'Mau Forest Complex';
+  const treeLocation = assignedBeatLabel || plantedHereLocation;
 
 
 
@@ -197,7 +197,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
         <div className="px-4 pt-5 pb-3 pr-12 bg-gradient-to-br from-primary/5 via-background to-background shrink-0">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs font-medium text-foreground">
-              {displayLocation}
+              {plantedHereLocation}
             </span>
           </div>
           <div className="flex items-center gap-2 mb-3">
@@ -279,7 +279,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose 
                     <MapPin className="h-3.5 w-3.5" />
                     Location:
                   </p>
-                  <p className="text-sm">{displayLocation}</p>
+                  <p className="text-sm">{treeLocation}</p>
                 </div>
 
                 {tree.latitude && tree.longitude && (
