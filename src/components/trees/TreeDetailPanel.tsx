@@ -357,6 +357,25 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
                   <p className="text-sm">{treeLocation}</p>
                 </div>
 
+                {plantingLocation?.planted_by_name && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Planted by:</p>
+                    {plantingLocation.site_url ? (
+                      <a
+                        href={plantingLocation.site_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        {plantingLocation.planted_by_name}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <p className="text-sm">{plantingLocation.planted_by_name}</p>
+                    )}
+                  </div>
+                )}
+
                 {tree.latitude && tree.longitude && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
