@@ -490,8 +490,8 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
                   </div>
 
                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm pt-1">
-                    <span className="text-muted-foreground">Forest:</span>
-                    <span className="font-medium">Mau Forest Complex (Nakuru)</span>
+                    <span className="text-muted-foreground">Location:</span>
+                    <span className="font-medium">{treeLocation}</span>
                     <span className="text-muted-foreground">Latitude:</span>
                     <span className="font-medium">{lat}</span>
                     <span className="text-muted-foreground">Longitude:</span>
