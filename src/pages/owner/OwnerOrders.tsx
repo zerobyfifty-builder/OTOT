@@ -1266,7 +1266,7 @@ export const OwnerOrders = () => {
                                 </DropdownMenuItem>
                                 )}
                                 {isPlantationType && canMonitoringLogs && (
-                                  group.planting_status === 'sapling_planted' ? (
+                                  getPlantingStatusOrder(group.planting_status) >= getPlantingStatusOrder('sapling_planted') ? (
                                     <DropdownMenuItem onClick={() => {
                                       setMonitoringSheet(group);
                                       setMonitoringForm({ inspection_date: '', inspected_by: '', survival_rate_pct: '', trees_alive: '', trees_dead: '', trees_replaced: '', overall_health_notes: '', photos: [] });
@@ -1293,7 +1293,7 @@ export const OwnerOrders = () => {
                                 {isPlantationType && (
                                   <>
                                     {canEcosystem && (
-                                      group.planting_status === 'sapling_planted' ? (
+                                      getPlantingStatusOrder(group.planting_status) >= getPlantingStatusOrder('sapling_planted') ? (
                                         <DropdownMenuItem onClick={() => {
                                           setImpactSliderContribId(group.contribution_id);
                                           setImpactSliderType("ecosystem");
@@ -1318,7 +1318,7 @@ export const OwnerOrders = () => {
                                       )
                                     )}
                                     {canCommunity && (
-                                      group.planting_status === 'sapling_planted' ? (
+                                      getPlantingStatusOrder(group.planting_status) >= getPlantingStatusOrder('sapling_planted') ? (
                                         <DropdownMenuItem onClick={() => {
                                           setImpactSliderContribId(group.contribution_id);
                                           setImpactSliderType("community");
@@ -1343,7 +1343,7 @@ export const OwnerOrders = () => {
                                       )
                                     )}
                                     {canCarbon && (
-                                      group.planting_status === 'sapling_planted' ? (
+                                      getPlantingStatusOrder(group.planting_status) >= getPlantingStatusOrder('sapling_planted') ? (
                                         <DropdownMenuItem onClick={() => {
                                           setImpactSliderContribId(group.contribution_id);
                                           setImpactSliderType("carbon");
