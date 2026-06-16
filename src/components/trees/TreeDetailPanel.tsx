@@ -16,6 +16,7 @@ type Tree = Database["public"]["Tables"]["trees"]["Row"];
 interface TreeDetailPanelProps {
   tree: Tree;
   onClose: () => void;
+  hideTreeId?: boolean;
 }
 
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose }) => {
