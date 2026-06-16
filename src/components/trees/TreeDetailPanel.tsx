@@ -22,18 +22,20 @@ interface TreeDetailPanelProps {
 export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose, hideTreeId }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [mapKey, setMapKey] = useState(0);
+  const [treePhotoIdx, setTreePhotoIdx] = useState(0);
+  const [carerPhotoIdx, setCarerPhotoIdx] = useState(0);
   const tabs = ['Your Trees', 'Your Tree Carer', 'Location', 'Impact'];
   const slideCount = tabs.length;
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slideCount);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slideCount) % slideCount);
-
   const treeImages = Array.isArray(tree.images) ? tree.images : [];
-  const localTreeImage = treeImages.length > 0 ? (typeof treeImages[0] === 'string' ? treeImages[0] : (treeImages[0] as any)?.url) : null;
+  const treeImageUrls = treeImages
+    .map((p: any) => (typeof p === 'string' ? p : p?.url))
+    .filter((u: any): u is string => !!u);
+  const localTreeImage = treeImageUrls[0] || null;
 
-  // Fallback: planting photo captured by plantation partner when status -> sapling_planted
-  const { data: plantingPhoto } = useQuery({
-    queryKey: ['tree-planting-photo', tree.id],
+  // Fallback: planting photos captured by plantation partner when status -> sapling_planted
+  const { data: plantingPhotos } = useQuery({
+    queryKey: ['tree-planting-photos', tree.id],
     queryFn: async () => {
       const { data } = await supabase
         .from('tree_status_transitions')
@@ -44,17 +46,20 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
         .limit(1)
         .maybeSingle();
       const photos = (data as any)?.photos;
-      if (Array.isArray(photos) && photos.length > 0) {
-        return typeof photos[0] === 'string' ? photos[0] : (photos[0] as any)?.url ?? null;
+      if (Array.isArray(photos)) {
+        return photos
+          .map((p: any) => (typeof p === 'string' ? p : p?.url))
+          .filter((u: any): u is string => !!u);
       }
-      return null;
+      return [] as string[];
     },
     enabled: !!tree.id,
   });
 
-  const actualTreeImage = localTreeImage || plantingPhoto || null;
-  const hasActualPhoto = !!actualTreeImage;
-  const treeImage = actualTreeImage || yourTreeImage;
+  const treePhotos = Array.from(new Set([...(treeImageUrls as string[]), ...((plantingPhotos as string[]) || [])]));
+  const hasActualPhoto = treePhotos.length > 0;
+  const currentTreePhoto = hasActualPhoto ? treePhotos[treePhotoIdx % treePhotos.length] : yourTreeImage;
+
 
   const { data: carer } = useQuery({
     queryKey: ['tree-carer', tree.id],
@@ -173,7 +178,18 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
 
 
 
-  const carerPhoto = carer?.photo_url || treeCarerImage;
+  const carerPhotos = (() => {
+    const photosField = (carer as any)?.photos;
+    if (Array.isArray(photosField)) {
+      const urls = photosField
+        .map((p: any) => (typeof p === 'string' ? p : p?.url))
+        .filter((u: any): u is string => !!u);
+      if (urls.length > 0) return urls;
+    }
+    return carer?.photo_url ? [carer.photo_url] : [];
+  })();
+  const hasCarerPhoto = carerPhotos.length > 0;
+  const currentCarerPhoto = hasCarerPhoto ? carerPhotos[carerPhotoIdx % carerPhotos.length] : treeCarerImage;
   const carerName = carer?.name || 'Tree Carer';
   const carerDescription = carer
     ? `${carer.age ? `A ${carer.age}-year-old ` : 'A '}tree planter${
@@ -248,7 +264,7 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg bg-muted">
                 <img
-                  src={treeImage}
+                  src={currentTreePhoto}
                   alt="Tree"
                   className={`w-full h-full object-cover ${hasActualPhoto ? '' : 'blur-[2px] brightness-90'}`}
                 />
@@ -263,6 +279,37 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
                   <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-semibold">
                     YOUR TREE
                   </div>
+                )}
+                {treePhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setTreePhotoIdx((i) => (i - 1 + treePhotos.length) % treePhotos.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTreePhotoIdx((i) => (i + 1) % treePhotos.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {treePhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setTreePhotoIdx(i)}
+                          className={`h-1.5 rounded-full transition-all ${i === treePhotoIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`}
+                          aria-label={`Photo ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -326,11 +373,42 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             <div className="min-w-full h-full overflow-y-auto px-5 pt-3 pb-16">
               <div className="relative w-full aspect-square mb-6 rounded-lg overflow-hidden shadow-lg">
                 <img
-                  src={carerPhoto}
+                  src={currentCarerPhoto}
                   alt={carerName}
                   className="w-full h-full object-cover"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = treeCarerImage; }}
                 />
+                {carerPhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setCarerPhotoIdx((i) => (i - 1 + carerPhotos.length) % carerPhotos.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Previous photo"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCarerPhotoIdx((i) => (i + 1) % carerPhotos.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center"
+                      aria-label="Next photo"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {carerPhotos.map((_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setCarerPhotoIdx(i)}
+                          className={`h-1.5 rounded-full transition-all ${i === carerPhotoIdx ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`}
+                          aria-label={`Photo ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -442,39 +520,6 @@ export const TreeDetailPanel: React.FC<TreeDetailPanelProps> = ({ tree, onClose,
             </div>
           </div>
 
-          {/* Slider arrows */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={prevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg p-0 z-10"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={nextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg p-0 z-10"
-            aria-label="Next"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
-
-          {/* Dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {Array.from({ length: slideCount }, (_, i) => i).map((index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all ${
-                  currentSlide === index ? 'w-8 bg-primary' : 'w-2 bg-muted-foreground/30'
-                }`}
-                aria-label={`Slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
       </SheetContent>
       </TooltipProvider>
