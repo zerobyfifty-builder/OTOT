@@ -160,7 +160,7 @@ export const MyTrees = () => {
   const [contribSheet, setContribSheet] = useState<{ cid: string; trees: Tree[] } | null>(null);
   const itemsPerPage = 10;
   const { data: activePlantingLocation } = useTouristPlantingLocation();
-  const plantedHereName = activePlantingLocation?.planted_by_name || 'Mau Forest';
+  const plantedHereName = activePlantingLocation?.site_name || 'Mau Forest Complex';
 
   useEffect(() => {
     fetchTrees();
