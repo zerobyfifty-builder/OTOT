@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink, User, ImageIcon, Check, Sparkles } from "lucide-react";
+import { RefreshCw, TreePine, DollarSign, Clock, CheckCircle2, Eye, ChevronDown, ChevronRight, Search, ArrowUpDown, ArrowUp, ArrowDown, Layers, CheckCheck, Leaf, FileText, AlertTriangle, MoreVertical, ChevronLeft, Circle, Download, X as XIcon, ZoomIn, ClipboardList, BarChart3, MapPin, Crosshair, TrendingUp, Activity, Info, Maximize2, Copy, ExternalLink, User, ImageIcon, Check, Sparkles, ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -157,6 +157,34 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   funds_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   planting_in_progress: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
   monitored: "bg-teal-500/10 text-teal-700 border-teal-500/20",
+};
+
+const PLANTING_STATUS_DOT_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500",
+  assigned: "bg-orange-500",
+  site_prepared: "bg-amber-500",
+  saplings_ready: "bg-blue-500",
+  planting_scheduled: "bg-indigo-500",
+  sapling_planted: "bg-cyan-500",
+  being_mapped: "bg-purple-500",
+  verified: "bg-teal-500",
+  planted: "bg-green-500",
+  dead: "bg-red-500",
+  re_planted: "bg-emerald-500",
+};
+
+const PLANTING_STATUS_TEXT_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "text-yellow-600",
+  assigned: "text-orange-600",
+  site_prepared: "text-amber-600",
+  saplings_ready: "text-blue-600",
+  planting_scheduled: "text-indigo-600",
+  sapling_planted: "text-cyan-600",
+  being_mapped: "text-purple-600",
+  verified: "text-teal-600",
+  planted: "text-green-600",
+  dead: "text-red-600",
+  re_planted: "text-emerald-600",
 };
 
 const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
@@ -1187,10 +1215,10 @@ export const OwnerOrders = () => {
                                             className={isNextStep ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground" : ""}
                                           >
                                             <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
-                                              {isPassed && <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />}
-                                              {isCurrent && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
-                                              {isNextStep && <Circle className="h-3 w-3 shrink-0" />}
-                                              {!isPassed && !isCurrent && !isNextStep && <span className="w-3 shrink-0" />}
+                                              {isPassed && <CheckCircle2 className={`h-3 w-3 shrink-0 ${PLANTING_STATUS_TEXT_COLORS[s] || 'text-green-500'}`} />}
+                                              {isCurrent && <span className={`h-2 w-2 rounded-full shrink-0 ring-2 ring-offset-1 ring-current ${PLANTING_STATUS_DOT_COLORS[s] || 'bg-primary'}`} />}
+                                              {isNextStep && <ArrowRight className="h-3.5 w-3.5 shrink-0 animate-nudge-right" />}
+                                              {!isPassed && !isCurrent && !isNextStep && <Circle className="h-2.5 w-2.5 shrink-0 text-muted-foreground/40" />}
                                               <span className={isCurrent || isNextStep ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
                                           </SelectItem>

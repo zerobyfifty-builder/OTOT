@@ -152,3 +152,11 @@ All colors MUST be HSL.
     color: hsl(var(--foreground));
   }
 }
+@keyframes nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+
+.animate-nudge-right {
+  animation: nudge-right 1s ease-in-out infinite;
+}
