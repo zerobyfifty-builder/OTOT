@@ -159,6 +159,34 @@ const PLANTING_STATUS_COLORS: Record<string, string> = {
   monitored: "bg-teal-500/10 text-teal-700 border-teal-500/20",
 };
 
+const PLANTING_STATUS_DOT_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "bg-yellow-500",
+  assigned: "bg-orange-500",
+  site_prepared: "bg-amber-500",
+  saplings_ready: "bg-blue-500",
+  planting_scheduled: "bg-indigo-500",
+  sapling_planted: "bg-cyan-500",
+  being_mapped: "bg-purple-500",
+  verified: "bg-teal-500",
+  planted: "bg-green-500",
+  dead: "bg-red-500",
+  re_planted: "bg-emerald-500",
+};
+
+const PLANTING_STATUS_TEXT_COLORS: Record<string, string> = {
+  waiting_to_be_assigned: "text-yellow-600",
+  assigned: "text-orange-600",
+  site_prepared: "text-amber-600",
+  saplings_ready: "text-blue-600",
+  planting_scheduled: "text-indigo-600",
+  sapling_planted: "text-cyan-600",
+  being_mapped: "text-purple-600",
+  verified: "text-teal-600",
+  planted: "text-green-600",
+  dead: "text-red-600",
+  re_planted: "text-emerald-600",
+};
+
 const CONTRIBUTION_STATUS_LABELS: Record<string, string> = {
   contribution_received: "Received",
   contribution_confirmed: "Confirmed",
