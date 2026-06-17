@@ -1214,11 +1214,14 @@ export const OwnerOrders = () => {
                                             disabled={isFutureSkip || false}
                                             className={isNextStep ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground" : ""}
                                           >
-                                            <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
-                                              {isPassed && <CheckCircle2 className={`h-3 w-3 shrink-0 ${PLANTING_STATUS_TEXT_COLORS[s] || 'text-green-500'}`} />}
-                                              {isCurrent && <span className={`h-2 w-2 rounded-full shrink-0 ring-2 ring-offset-1 ring-current ${PLANTING_STATUS_DOT_COLORS[s] || 'bg-primary'}`} />}
-                                              {isNextStep && <ArrowRight className="h-3.5 w-3.5 shrink-0 animate-nudge-right" />}
-                                              {!isPassed && !isCurrent && !isNextStep && <Circle className="h-2.5 w-2.5 shrink-0 text-muted-foreground/40" />}
+                                            <span className={`flex items-center gap-3 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
+                                              {(isPassed || isCurrent) && (
+                                                <div className="h-7 w-7 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                                  <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                                                </div>
+                                              )}
+                                              {isNextStep && <ArrowRight className="h-5 w-5 shrink-0 animate-nudge-right" />}
+                                              {!isPassed && !isCurrent && !isNextStep && <Circle className="h-5 w-5 shrink-0 text-muted-foreground/30" />}
                                               <span className={isCurrent || isNextStep ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
                                           </SelectItem>
