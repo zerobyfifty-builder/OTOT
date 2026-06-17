@@ -910,17 +910,15 @@ export const OwnerOrders = () => {
     </TableHead>
   );
 
-  const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
-    const status = bulkSelections[contribId];
-    if (!status) { toast.error("Please select a status first"); return; }
-    // Find current trees to get from status
+  const applyBulkStatus = useCallback((contribId: string, treeIds: string[], status: string) => {
+    if (!status) return;
     const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
     const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
     const group = contributionGroups.find(g => g.contribution_id === contribId);
-    
+
     const targetOrder = getPlantingStatusOrder(status);
     const currentOrder = getPlantingStatusOrder(fromStatus);
-    
+
     const requestData = {
       treeIds,
       fromStatus,
@@ -930,21 +928,28 @@ export const OwnerOrders = () => {
       isBatch: true,
     };
 
-    // Check for reversion (going backward)
+    // Reversion (going backward) -> show confirmation alert first; slider opens after confirm
     if (targetOrder < currentOrder) {
       setReversionDialog(requestData);
       return;
     }
-    
+
     // "waiting_to_be_assigned" saves immediately (no panel)
     if (status === "waiting_to_be_assigned") {
       bulkUpdateStatus.mutate({ treeIds, status });
+      setBulkSelections(prev => { const n = { ...prev }; delete n[contribId]; return n; });
       return;
     }
-    
+
     setTransitionRequest(requestData);
     setTransitionPanelOpen(true);
-  }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
+  }, [bulkUpdateStatus, trees, contributionGroups]);
+
+  const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
+    const status = bulkSelections[contribId];
+    if (!status) { toast.error("Please select a status first"); return; }
+    applyBulkStatus(contribId, treeIds, status);
+  }, [bulkSelections, applyBulkStatus]);
 
   const handleIndividualStatusChange = useCallback((tree: Tree, newStatus: string) => {
     const fromStatus = tree.planting_status || "waiting_to_be_assigned";
@@ -1022,6 +1027,17 @@ export const OwnerOrders = () => {
       queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
       setBulkSelections({});
       toast.success(`Reverted ${treeIds.length} tree(s) to ${STATUS_LABELS[toStatus]}. Forward records deleted.`);
+
+      // After reverting, open the transition sheet slider for the reverted status
+      setTransitionRequest({
+        treeIds,
+        fromStatus: reversionDialog.fromStatus,
+        toStatus,
+        contributionId: reversionDialog.contributionId,
+        treeCount: reversionDialog.treeCount,
+        isBatch: reversionDialog.isBatch,
+      });
+      setTransitionPanelOpen(true);
     } catch (err: any) {
       toast.error(err.message || "Failed to revert status");
     } finally {
@@ -1189,12 +1205,12 @@ export const OwnerOrders = () => {
                             <div className="flex items-center gap-1.5">
                               {canEditPlantingStatus && group.trees.length > 0 ? (
                                 <>
-                                   <Select
-                                    value={bulkSelections[group.contribution_id] || ""}
-                                    onValueChange={(value) =>
-                                      setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }))
-                                    }
-                                  >
+                                    <Select
+                                     value=""
+                                     onValueChange={(value) => {
+                                       applyBulkStatus(group.contribution_id, group.trees.map(t => t.id), value);
+                                     }}
+                                   >
                                     <SelectTrigger className="w-[190px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium text-left">
                                       <SelectValue placeholder={getGroupStatusLabel(group.planting_status)} />
                                     </SelectTrigger>
@@ -1234,32 +1250,6 @@ export const OwnerOrders = () => {
                                       })}
                                     </SelectContent>
                                   </Select>
-                                  {bulkSelections[group.contribution_id] && (
-                                    <div className="flex items-center gap-1">
-                                      <Button
-                                        size="sm"
-                                        variant="default"
-                                        className="h-7 px-2 text-xs gap-1"
-                                        disabled={bulkUpdateStatus.isPending}
-                                        onClick={() => handleBulkApply(group.contribution_id, group.trees.map(t => t.id))}
-                                      >
-                                        <CheckCheck className="h-3 w-3" />
-                                        Apply
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 px-1.5 text-xs text-muted-foreground hover:text-destructive"
-                                        onClick={() => setBulkSelections(prev => {
-                                          const next = { ...prev };
-                                          delete next[group.contribution_id];
-                                          return next;
-                                        })}
-                                      >
-                                        <XIcon className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  )}
                                 </>
                               ) : (
                                 <Badge className={`whitespace-nowrap px-2 py-0.5 text-[10px] font-medium ${getGroupStatusColor(group.planting_status)}`}>
