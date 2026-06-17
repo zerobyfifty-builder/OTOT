@@ -150,12 +150,18 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       }
       // Universal accountability field — pre-fill with current user's name
       defaults.changed_by = currentUserName || "";
-      setFormData(defaults);
+
+      // Merge in existing transition data when editing the current status
+      const merged = isEditMode && existingTransitionData
+        ? { ...defaults, ...existingTransitionData, changed_by: currentUserName || (existingTransitionData as any).changed_by || "" }
+        : defaults;
+      setFormData(merged);
+      setBaseline(JSON.stringify(merged));
       setPhotos([]);
       setBeatSearch("");
       setEditingPlantedBy(false);
     }
-  }, [request, currentUserName]);
+  }, [request, currentUserName, existingTransitionData, isEditMode]);
 
   // Pre-fill planter from assigned status when data is available
   useEffect(() => {
