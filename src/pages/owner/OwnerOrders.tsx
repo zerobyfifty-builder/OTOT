@@ -1027,6 +1027,17 @@ export const OwnerOrders = () => {
       queryClient.invalidateQueries({ queryKey: ["ownerOrderTrees"] });
       setBulkSelections({});
       toast.success(`Reverted ${treeIds.length} tree(s) to ${STATUS_LABELS[toStatus]}. Forward records deleted.`);
+
+      // After reverting, open the transition sheet slider for the reverted status
+      setTransitionRequest({
+        treeIds,
+        fromStatus: reversionDialog.fromStatus,
+        toStatus,
+        contributionId: reversionDialog.contributionId,
+        treeCount: reversionDialog.treeCount,
+        isBatch: reversionDialog.isBatch,
+      });
+      setTransitionPanelOpen(true);
     } catch (err: any) {
       toast.error(err.message || "Failed to revert status");
     } finally {
