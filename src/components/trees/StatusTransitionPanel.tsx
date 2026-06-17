@@ -57,6 +57,27 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const [photos, setPhotos] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [baseline, setBaseline] = useState<string>("");
+
+  const isEditMode = !!request && request.fromStatus === request.toStatus;
+
+  // Fetch existing transition data when editing current status
+  const { data: existingTransitionData } = useQuery({
+    queryKey: ["existingTransitionData", request?.treeIds?.[0], request?.toStatus],
+    queryFn: async () => {
+      if (!request?.treeIds?.[0]) return null;
+      const { data } = await supabase
+        .from("tree_status_transitions")
+        .select("transition_data")
+        .eq("tree_id", request.treeIds[0])
+        .eq("to_status", request.toStatus)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data?.transition_data as Record<string, any> | null) || null;
+    },
+    enabled: open && !!request && isEditMode,
+  });
 
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
