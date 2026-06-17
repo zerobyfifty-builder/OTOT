@@ -910,17 +910,15 @@ export const OwnerOrders = () => {
     </TableHead>
   );
 
-  const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
-    const status = bulkSelections[contribId];
-    if (!status) { toast.error("Please select a status first"); return; }
-    // Find current trees to get from status
+  const applyBulkStatus = useCallback((contribId: string, treeIds: string[], status: string) => {
+    if (!status) return;
     const currentTrees = trees?.filter(t => treeIds.includes(t.id)) || [];
     const fromStatus = currentTrees[0]?.planting_status || "waiting_to_be_assigned";
     const group = contributionGroups.find(g => g.contribution_id === contribId);
-    
+
     const targetOrder = getPlantingStatusOrder(status);
     const currentOrder = getPlantingStatusOrder(fromStatus);
-    
+
     const requestData = {
       treeIds,
       fromStatus,
@@ -930,21 +928,28 @@ export const OwnerOrders = () => {
       isBatch: true,
     };
 
-    // Check for reversion (going backward)
+    // Reversion (going backward) -> show confirmation alert first; slider opens after confirm
     if (targetOrder < currentOrder) {
       setReversionDialog(requestData);
       return;
     }
-    
+
     // "waiting_to_be_assigned" saves immediately (no panel)
     if (status === "waiting_to_be_assigned") {
       bulkUpdateStatus.mutate({ treeIds, status });
+      setBulkSelections(prev => { const n = { ...prev }; delete n[contribId]; return n; });
       return;
     }
-    
+
     setTransitionRequest(requestData);
     setTransitionPanelOpen(true);
-  }, [bulkSelections, bulkUpdateStatus, trees, contributionGroups]);
+  }, [bulkUpdateStatus, trees, contributionGroups]);
+
+  const handleBulkApply = useCallback((contribId: string, treeIds: string[]) => {
+    const status = bulkSelections[contribId];
+    if (!status) { toast.error("Please select a status first"); return; }
+    applyBulkStatus(contribId, treeIds, status);
+  }, [bulkSelections, applyBulkStatus]);
 
   const handleIndividualStatusChange = useCallback((tree: Tree, newStatus: string) => {
     const fromStatus = tree.planting_status || "waiting_to_be_assigned";
