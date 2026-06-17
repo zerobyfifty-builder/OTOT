@@ -407,8 +407,10 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
   if (!request) return null;
 
-  const title = STATUS_TITLES[request.toStatus] || request.toStatus;
+  const baseTitle = STATUS_TITLES[request.toStatus] || request.toStatus;
+  const title = isEditMode ? `Edit: ${baseTitle}` : baseTitle;
   const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
+  const isDirty = !isEditMode || JSON.stringify(formData) !== baseline || photos.length > 0;
 
   const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string) => {
     const options = (planters || []).filter(p => {
