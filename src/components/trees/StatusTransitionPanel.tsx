@@ -57,6 +57,27 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const [photos, setPhotos] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [baseline, setBaseline] = useState<string>("");
+
+  const isEditMode = !!request && request.fromStatus === request.toStatus;
+
+  // Fetch existing transition data when editing current status
+  const { data: existingTransitionData } = useQuery({
+    queryKey: ["existingTransitionData", request?.treeIds?.[0], request?.toStatus],
+    queryFn: async () => {
+      if (!request?.treeIds?.[0]) return null;
+      const { data } = await supabase
+        .from("tree_status_transitions")
+        .select("transition_data")
+        .eq("tree_id", request.treeIds[0])
+        .eq("to_status", request.toStatus)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data?.transition_data as Record<string, any> | null) || null;
+    },
+    enabled: open && !!request && isEditMode,
+  });
 
   // Beat search state
   const [beatSearch, setBeatSearch] = useState("");
@@ -129,12 +150,18 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       }
       // Universal accountability field — pre-fill with current user's name
       defaults.changed_by = currentUserName || "";
-      setFormData(defaults);
+
+      // Merge in existing transition data when editing the current status
+      const merged = isEditMode && existingTransitionData
+        ? { ...defaults, ...existingTransitionData, changed_by: currentUserName || (existingTransitionData as any).changed_by || "" }
+        : defaults;
+      setFormData(merged);
+      setBaseline(JSON.stringify(merged));
       setPhotos([]);
       setBeatSearch("");
       setEditingPlantedBy(false);
     }
-  }, [request, currentUserName]);
+  }, [request, currentUserName, existingTransitionData, isEditMode]);
 
   // Pre-fill planter from assigned status when data is available
   useEffect(() => {
@@ -380,8 +407,10 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
   if (!request) return null;
 
-  const title = STATUS_TITLES[request.toStatus] || request.toStatus;
+  const baseTitle = STATUS_TITLES[request.toStatus] || request.toStatus;
+  const title = isEditMode ? `Edit: ${baseTitle}` : baseTitle;
   const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
+  const isDirty = !isEditMode || JSON.stringify(formData) !== baseline || photos.length > 0;
 
   const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string) => {
     const options = (planters || []).filter(p => {
@@ -924,8 +953,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
         <SheetFooter className="flex gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose} className="flex-1" disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} disabled={saving || uploading} className="flex-1">
-            {uploading ? "Uploading photos..." : saving ? "Saving..." : "Save"}
+          <Button onClick={handleSave} disabled={saving || uploading || !isDirty} className="flex-1">
+            {uploading ? "Uploading photos..." : saving ? "Saving..." : isEditMode ? "Save changes" : "Save"}
           </Button>
         </SheetFooter>
       </SheetContent>

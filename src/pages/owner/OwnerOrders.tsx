@@ -934,13 +934,15 @@ export const OwnerOrders = () => {
       return;
     }
 
-    // "waiting_to_be_assigned" saves immediately (no panel)
+    // "waiting_to_be_assigned" saves immediately (no panel) — skip if already current
     if (status === "waiting_to_be_assigned") {
+      if (fromStatus === status) return;
       bulkUpdateStatus.mutate({ treeIds, status });
       setBulkSelections(prev => { const n = { ...prev }; delete n[contribId]; return n; });
       return;
     }
 
+    // Same as current status -> open panel in edit mode (prefill existing data)
     setTransitionRequest(requestData);
     setTransitionPanelOpen(true);
   }, [bulkUpdateStatus, trees, contributionGroups]);
