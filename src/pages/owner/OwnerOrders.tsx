@@ -1217,7 +1217,7 @@ export const OwnerOrders = () => {
                                             <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
                                               {isPassed && <CheckCircle2 className={`h-3 w-3 shrink-0 ${PLANTING_STATUS_TEXT_COLORS[s] || 'text-green-500'}`} />}
                                               {isCurrent && <span className={`h-2 w-2 rounded-full shrink-0 ring-2 ring-offset-1 ring-current ${PLANTING_STATUS_DOT_COLORS[s] || 'bg-primary'}`} />}
-                                              {isNextStep && <ArrowRight className="h-3.5 w-3.5 shrink-0 animate-pulse" />}
+                                              {isNextStep && <ArrowRight className="h-3.5 w-3.5 shrink-0 animate-nudge-right" />}
                                               {!isPassed && !isCurrent && !isNextStep && <Circle className="h-2.5 w-2.5 shrink-0 text-muted-foreground/40" />}
                                               <span className={isCurrent || isNextStep ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
