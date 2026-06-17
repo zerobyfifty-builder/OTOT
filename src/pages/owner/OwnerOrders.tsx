@@ -1212,7 +1212,7 @@ export const OwnerOrders = () => {
                                             key={s}
                                             value={s}
                                             disabled={isFutureSkip || false}
-                                            className={isNextStep ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground" : ""}
+                                            className={isNextStep ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[highlighted]:bg-primary data-[highlighted]:text-primary-foreground" : "focus:bg-gray-100 focus:text-gray-900 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"}
                                           >
                                             <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
                                               {isPassed && (
