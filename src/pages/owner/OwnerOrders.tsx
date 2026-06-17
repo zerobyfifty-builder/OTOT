@@ -1206,9 +1206,8 @@ export const OwnerOrders = () => {
                               {canEditPlantingStatus && group.trees.length > 0 ? (
                                 <>
                                     <Select
-                                     value={bulkSelections[group.contribution_id] || ""}
+                                     value=""
                                      onValueChange={(value) => {
-                                       setBulkSelections(prev => ({ ...prev, [group.contribution_id]: value }));
                                        applyBulkStatus(group.contribution_id, group.trees.map(t => t.id), value);
                                      }}
                                    >
