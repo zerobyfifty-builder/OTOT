@@ -953,8 +953,8 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
 
         <SheetFooter className="flex gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose} className="flex-1" disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} disabled={saving || uploading} className="flex-1">
-            {uploading ? "Uploading photos..." : saving ? "Saving..." : "Save"}
+          <Button onClick={handleSave} disabled={saving || uploading || !isDirty} className="flex-1">
+            {uploading ? "Uploading photos..." : saving ? "Saving..." : isEditMode ? "Save changes" : "Save"}
           </Button>
         </SheetFooter>
       </SheetContent>
