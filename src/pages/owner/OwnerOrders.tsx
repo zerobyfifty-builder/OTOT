@@ -1216,17 +1216,17 @@ export const OwnerOrders = () => {
                                           >
                                             <span className={`flex items-center gap-2 whitespace-nowrap ${isFutureSkip ? 'opacity-40' : ''}`}>
                                               {isPassed && (
-                                                <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                                                  <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                                                <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                                  <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
                                                 </div>
                                               )}
                                               {isCurrent && (
-                                                <div className="h-5 w-5 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
-                                                  <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                                                <div className="h-4 w-4 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
+                                                  <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
                                                 </div>
                                               )}
-                                              {isNextStep && <ArrowRight className="h-4 w-4 shrink-0 animate-nudge-right" />}
-                                              {!isPassed && !isCurrent && !isNextStep && <Circle className="h-4 w-4 shrink-0 text-muted-foreground/30" />}
+                                              {isNextStep && <ArrowRight className="h-3.5 w-3.5 shrink-0 animate-nudge-right" />}
+                                              {!isPassed && !isCurrent && !isNextStep && <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground/30" />}
                                               <span className={isCurrent || isNextStep ? "font-semibold" : ""}>{STATUS_LABELS[s]}</span>
                                             </span>
                                           </SelectItem>
