@@ -422,7 +422,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       <div className="space-y-1.5">
         <Label className="text-sm font-medium">{label} {required && <span className="text-destructive">*</span>}</Label>
         <Select value={formData[fieldKey] || ""} onValueChange={(v) => setField(fieldKey, v)}>
-          <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
           <SelectContent>
             {options.length === 0 ? (
               <div className="px-3 py-2 text-sm text-muted-foreground">No matching planters</div>
