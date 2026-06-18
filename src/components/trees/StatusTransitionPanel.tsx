@@ -412,7 +412,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
   const isDirty = !isEditMode || JSON.stringify(formData) !== baseline || photos.length > 0;
 
-  const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string) => {
+  const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string, placeholder = "Select planter...") => {
     const options = (planters || []).filter(p => {
       if (!roleFilter) return true;
       const roles = Array.isArray((p as any).roles) ? (p as any).roles : [];
