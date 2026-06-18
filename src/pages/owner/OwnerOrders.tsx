@@ -1105,7 +1105,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-orange-100"><Clock className="h-5 w-5 text-orange-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Pending Planting</p>
-                <p className="text-2xl font-bold">{formatNumber(totalTrees - planted)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(totalTrees - planted)}</p>
               </div>
             </div>
           </CardContent>
