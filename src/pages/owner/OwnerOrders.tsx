@@ -870,8 +870,16 @@ export const OwnerOrders = () => {
 
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
-  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
-  const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
+  const planted = allGroupTrees
+    .filter(t => getPlantingStatusOrder(t.planting_status || 'waiting_to_be_assigned') >= getPlantingStatusOrder('sapling_planted'))
+    .reduce((s, t) => s + t.num_trees, 0);
+  const USD_TO_KES = 130;
+  const fundsReceived = contributionGroups.reduce((s, g) => {
+    const amt = Number(g.amount_transferred || 0);
+    const inKes = (g.currency || '').toUpperCase() === 'USD' ? amt * USD_TO_KES : amt;
+    return s + inKes;
+  }, 0);
+  const formatInt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
 
   // Check if current owner is plantation type (not institutional)
   const { data: isPlantationType } = useQuery({
@@ -1064,7 +1072,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-primary/10"><TreePine className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Allocated</p>
-                <p className="text-2xl font-bold">{formatNumber(totalTrees)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(totalTrees)}</p>
               </div>
             </div>
           </CardContent>
@@ -1075,7 +1083,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-green-100"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Planted</p>
-                <p className="text-2xl font-bold">{formatNumber(planted)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(planted)}</p>
               </div>
             </div>
           </CardContent>
@@ -1086,7 +1094,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-blue-100"><DollarSign className="h-5 w-5 text-blue-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Funds Received</p>
-                <p className="text-2xl font-bold">KES {formatNumber(fundsReceived)}</p>
+                <p className="text-2xl font-bold tabular-nums">KES {formatInt(fundsReceived)}</p>
               </div>
             </div>
           </CardContent>
@@ -1097,7 +1105,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-orange-100"><Clock className="h-5 w-5 text-orange-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Pending Planting</p>
-                <p className="text-2xl font-bold">{formatNumber(totalTrees - planted)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(totalTrees - planted)}</p>
               </div>
             </div>
           </CardContent>
