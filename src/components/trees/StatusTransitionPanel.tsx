@@ -412,7 +412,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
   const treeLabel = request.treeIds.length === 1 ? "1 tree" : `${request.treeIds.length} trees`;
   const isDirty = !isEditMode || JSON.stringify(formData) !== baseline || photos.length > 0;
 
-  const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string) => {
+  const renderPlanterSelect = (fieldKey: string, label: string, required = true, roleFilter?: string, placeholder = "Select planter...") => {
     const options = (planters || []).filter(p => {
       if (!roleFilter) return true;
       const roles = Array.isArray((p as any).roles) ? (p as any).roles : [];
@@ -422,7 +422,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       <div className="space-y-1.5">
         <Label className="text-sm font-medium">{label} {required && <span className="text-destructive">*</span>}</Label>
         <Select value={formData[fieldKey] || ""} onValueChange={(v) => setField(fieldKey, v)}>
-          <SelectTrigger><SelectValue placeholder="Select planter..." /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
           <SelectContent>
             {options.length === 0 ? (
               <div className="px-3 py-2 text-sm text-muted-foreground">No matching planters</div>
@@ -799,7 +799,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       case "verified":
         return (
           <div className="space-y-4">
-            {renderPlanterSelect("verified_by", "Verified By", true, "Manager")}
+            {renderPlanterSelect("verified_by", "Verified By", true, "Manager", "Select Verifier...")}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Verification Date <span className="text-destructive">*</span></Label>
               <Input type="date" value={formData.verification_date || ""} onChange={(e) => setField("verification_date", e.target.value)} />
