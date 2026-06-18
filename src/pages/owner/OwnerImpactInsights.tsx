@@ -26,7 +26,7 @@ const periodLabels: Record<Period, string> = {
 export const OwnerImpactInsights = ({ skipPermissionCheck = false }: { skipPermissionCheck?: boolean } = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<Period>("30d");
+  const [period, setPeriod] = useState<Period>("all");
   const [orgName, setOrgName] = useState<string>("");
 
   // Module gating
