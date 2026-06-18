@@ -1072,7 +1072,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-primary/10"><TreePine className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Allocated</p>
-                <p className="text-2xl font-bold">{formatNumber(totalTrees)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(totalTrees)}</p>
               </div>
             </div>
           </CardContent>
