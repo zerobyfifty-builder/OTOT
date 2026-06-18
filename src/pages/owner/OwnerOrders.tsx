@@ -1094,7 +1094,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-blue-100"><DollarSign className="h-5 w-5 text-blue-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Funds Received</p>
-                <p className="text-2xl font-bold">KES {formatNumber(fundsReceived)}</p>
+                <p className="text-2xl font-bold tabular-nums">KES {formatInt(fundsReceived)}</p>
               </div>
             </div>
           </CardContent>
