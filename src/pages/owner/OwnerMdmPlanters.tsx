@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const PLANTER_TYPES = ['KFS Staff', 'Community Farmer', 'CBO Member', 'Youth Group', 'School Group', 'Private'];
-const PLANTER_ROLES = ['Planter', 'Planting Team Lead'];
+const PLANTER_ROLES = ['Planter', 'Manager', 'Planting Team Lead'];
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const MARITAL_STATUSES = ['Married', 'Unmarried'];
 
