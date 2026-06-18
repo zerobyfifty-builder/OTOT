@@ -799,7 +799,7 @@ export function StatusTransitionPanel({ open, onClose, request, onConfirm }: Sta
       case "verified":
         return (
           <div className="space-y-4">
-            {renderPlanterSelect("verified_by", "Verified By")}
+            {renderPlanterSelect("verified_by", "Verified By", true, "Manager")}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">Verification Date <span className="text-destructive">*</span></Label>
               <Input type="date" value={formData.verification_date || ""} onChange={(e) => setField("verification_date", e.target.value)} />
