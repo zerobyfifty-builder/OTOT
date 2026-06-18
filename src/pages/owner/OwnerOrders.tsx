@@ -1083,7 +1083,7 @@ export const OwnerOrders = () => {
               <div className="p-2 rounded-lg bg-green-100"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
               <div>
                 <p className="text-xs text-muted-foreground">Planted</p>
-                <p className="text-2xl font-bold">{formatNumber(planted)}</p>
+                <p className="text-2xl font-bold tabular-nums">{formatInt(planted)}</p>
               </div>
             </div>
           </CardContent>
