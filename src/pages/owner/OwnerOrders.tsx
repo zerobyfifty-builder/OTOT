@@ -870,8 +870,16 @@ export const OwnerOrders = () => {
 
   const totalTrees = contributionGroups.reduce((s, g) => s + g.total_trees, 0);
   const allGroupTrees = contributionGroups.flatMap(g => g.trees);
-  const planted = allGroupTrees.filter(t => t.planting_status === 'planted' || t.planting_status === 'verified').reduce((s, t) => s + t.num_trees, 0);
-  const fundsReceived = disbursements?.filter(d => d.status === 'received' || d.status === 'reconciled').reduce((s, d) => s + Number(d.amount), 0) || 0;
+  const planted = allGroupTrees
+    .filter(t => getPlantingStatusOrder(t.planting_status || 'waiting_to_be_assigned') >= getPlantingStatusOrder('sapling_planted'))
+    .reduce((s, t) => s + t.num_trees, 0);
+  const USD_TO_KES = 130;
+  const fundsReceived = contributionGroups.reduce((s, g) => {
+    const amt = Number(g.amount_transferred || 0);
+    const inKes = (g.currency || '').toUpperCase() === 'USD' ? amt * USD_TO_KES : amt;
+    return s + inKes;
+  }, 0);
+  const formatInt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
 
   // Check if current owner is plantation type (not institutional)
   const { data: isPlantationType } = useQuery({
