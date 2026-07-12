@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Pencil, Ban, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Ban, RefreshCw, KeyRound } from 'lucide-react';
 
 interface Lodge {
   id: string;
@@ -24,6 +24,9 @@ export default function LodgesManagement() {
   const [loading, setLoading] = useState(true);
   const [editingLodge, setEditingLodge] = useState<Lodge | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [pwLodge, setPwLodge] = useState<Lodge | null>(null);
+  const [pwForm, setPwForm] = useState({ username: '', password: '' });
+  const [pwSaving, setPwSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -115,6 +118,34 @@ export default function LodgesManagement() {
     }
   };
 
+  const handleOpenPassword = (lodge: Lodge) => {
+    setPwLodge(lodge);
+    setPwForm({ username: '', password: '' });
+  };
+
+  const handleSavePassword = async () => {
+    if (!pwLodge) return;
+    if (!pwForm.username.trim() || pwForm.password.length < 8) {
+      toast({ title: 'Error', description: 'Username required and password must be at least 8 characters', variant: 'destructive' });
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-set-lodge-password', {
+        body: { lodge_id: pwLodge.id, username: pwForm.username.trim(), password: pwForm.password },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast({ title: 'Success', description: `Login credentials set for ${pwLodge.name}` });
+      setPwLodge(null);
+    } catch (error: any) {
+      console.error('Error setting lodge password:', error);
+      toast({ title: 'Error', description: error.message || 'Failed to set lodge password', variant: 'destructive' });
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   const handleToggleActive = async (lodge: Lodge) => {
     try {
       const { error } = await supabase
@@ -182,13 +213,17 @@ export default function LodgesManagement() {
                   </span>
                 </TableCell>
                 <TableCell className="space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(lodge)}>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(lodge)} title="Edit">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button variant="ghost" size="sm" onClick={() => handleOpenPassword(lodge)} title="Set login password">
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleToggleActive(lodge)}
+                    title={lodge.is_active ? 'Deactivate' : 'Activate'}
                   >
                     <Ban className="h-4 w-4" />
                   </Button>
@@ -256,6 +291,41 @@ export default function LodgesManagement() {
             </div>
             <Button onClick={handleSave} className="w-full">
               {editingLodge ? 'Update' : 'Create'} Lodge
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pwLodge} onOpenChange={() => setPwLodge(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set login credentials{pwLodge ? ` — ${pwLodge.name}` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sets the username and password the lodge uses to sign in at <code>/lodge/login</code>.
+              The password is stored hashed (bcrypt) and never shown again.
+            </p>
+            <div>
+              <Label>Username</Label>
+              <Input
+                autoComplete="off"
+                value={pwForm.username}
+                onChange={(e) => setPwForm({ ...pwForm, username: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Password</Label>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={pwForm.password}
+                onChange={(e) => setPwForm({ ...pwForm, password: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Minimum 8 characters.</p>
+            </div>
+            <Button onClick={handleSavePassword} className="w-full" disabled={pwSaving}>
+              {pwSaving ? 'Saving…' : 'Save credentials'}
             </Button>
           </div>
         </DialogContent>

@@ -1,5 +1,14 @@
 project_id = "iezhssfzbiwnofhpjahv"
 
+# The analytics (vector/logflare) container mounts the docker socket, which the
+# local Colima/virtiofs runtime can't do. It's optional for local development.
+[analytics]
+enabled = false
+
+# ---------------------------------------------------------------------------
+# Pre-auth / token-gated functions (must be reachable without a user JWT).
+# Each performs its own validation (rate-limit, magic token, deeplink token).
+# ---------------------------------------------------------------------------
 [functions.deeplink-create]
 verify_jwt = false
 
@@ -12,24 +21,39 @@ verify_jwt = false
 [functions.magic-link-verify]
 verify_jwt = false
 
+# Lodge portal uses custom (non-GoTrue) auth, so these are reachable pre-auth
+# and validate credentials / session tokens internally with the service role.
+[functions.lodge-login]
+verify_jwt = false
+
+[functions.lodge-session-validate]
+verify_jwt = false
+
+[functions.lodge-logout]
+verify_jwt = false
+
+# ---------------------------------------------------------------------------
+# Privileged functions. verify_jwt requires a signed project JWT at the gateway,
+# but the REAL gate is the in-function authenticate()+role check (the public
+# anon key is itself a valid JWT). See supabase/functions/_shared/authz.ts.
+# ---------------------------------------------------------------------------
 [functions.set-password]
 verify_jwt = true
 
-[functions.reset-ktb-password]
-verify_jwt = false
-
 [functions.create-agent-user]
-verify_jwt = false
+verify_jwt = true
 
-[functions.create-stakeholder-user]
-verify_jwt = false
+[functions.create-owner-user]
+verify_jwt = true
+
+[functions.create-partner-user]
+verify_jwt = true
 
 [functions.org-invite-user]
 verify_jwt = true
 
-[functions.create-partner-user]
-verify_jwt = false
-
 [functions.admin-set-user-password]
 verify_jwt = true
 
+[functions.admin-set-lodge-password]
+verify_jwt = true

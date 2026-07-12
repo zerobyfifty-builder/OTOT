@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -119,7 +119,7 @@ export default function Users() {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `https://iezhssfzbiwnofhpjahv.supabase.co/functions/v1/delete-user`,
+        `${SUPABASE_URL}/functions/v1/delete-user`,
         {
           method: 'POST',
           headers: {

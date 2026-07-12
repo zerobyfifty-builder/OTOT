@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { useLodgeAuth } from "@/contexts/LodgeAuthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -178,7 +178,7 @@ export const PlantTree = () => {
 
       // Call edge function to update tree with proper authorization
       const response = await fetch(
-        `https://iezhssfzbiwnofhpjahv.supabase.co/functions/v1/lodge-update-tree`,
+        `${SUPABASE_URL}/functions/v1/lodge-update-tree`,
         {
           method: 'POST',
           headers,

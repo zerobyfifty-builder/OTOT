@@ -25,14 +25,18 @@ export const useLodgeAuth = () => {
   return context;
 };
 
+const SESSION_KEY = 'lodge_session_token';
+const LODGE_KEY = 'lodge_id';
+
 export const LodgeAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lodge, setLodge] = useState<Lodge | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const sessionToken = localStorage.getItem('lodge_session_token');
-    const lodgeId = localStorage.getItem('lodge_id');
+    // Restore an existing session by validating it server-side. The browser no
+    // longer reads lodge_sessions directly (RLS now denies anon access).
+    const sessionToken = localStorage.getItem(SESSION_KEY);
+    const lodgeId = localStorage.getItem(LODGE_KEY);
 
     if (sessionToken && lodgeId) {
       validateSession(sessionToken, lodgeId);
@@ -41,29 +45,26 @@ export const LodgeAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const clearSession = () => {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(LODGE_KEY);
+    setLodge(null);
+  };
+
   const validateSession = async (sessionToken: string, lodgeId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('lodge_sessions')
-        .select('lodge_id, lodges(id, name, location, username)')
-        .eq('session_token', sessionToken)
-        .eq('lodge_id', lodgeId)
-        .gt('expires_at', new Date().toISOString())
-        .single();
+      const { data, error } = await supabase.functions.invoke('lodge-session-validate', {
+        body: { sessionToken, lodgeId },
+      });
 
-      if (error || !data) {
-        localStorage.removeItem('lodge_session_token');
-        localStorage.removeItem('lodge_id');
-        setLodge(null);
+      if (error || !data?.valid || !data?.lodge) {
+        clearSession();
       } else {
-        const lodgeData = Array.isArray(data.lodges) ? data.lodges[0] : data.lodges;
-        setLodge(lodgeData as Lodge);
+        setLodge(data.lodge as Lodge);
       }
-    } catch (error) {
-      console.error('Session validation error:', error);
-      localStorage.removeItem('lodge_session_token');
-      localStorage.removeItem('lodge_id');
-      setLodge(null);
+    } catch (err) {
+      console.error('Session validation error:', err);
+      clearSession();
     } finally {
       setLoading(false);
     }
@@ -71,71 +72,43 @@ export const LodgeAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const signIn = async (username: string, password: string) => {
     try {
-      // First check if lodge exists and password matches
-      const { data: lodgeData, error: lodgeError } = await supabase
-        .from('lodges')
-        .select('id, name, location, username, password_hash')
-        .eq('username', username)
-        .eq('is_active', true)
-        .single();
-
-      if (lodgeError || !lodgeData) {
-        return { error: { message: 'Invalid username or password' } };
-      }
-
-      // Simple password check (in production, use proper hashing like bcrypt)
-      if (lodgeData.password_hash !== password) {
-        return { error: { message: 'Invalid username or password' } };
-      }
-
-      // Create session token
-      const sessionToken = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-      const { error: sessionError } = await supabase
-        .from('lodge_sessions')
-        .insert({
-          lodge_id: lodgeData.id,
-          session_token: sessionToken,
-          expires_at: expiresAt.toISOString(),
-        });
-
-      if (sessionError) {
-        return { error: sessionError };
-      }
-
-      // Store session
-      localStorage.setItem('lodge_session_token', sessionToken);
-      localStorage.setItem('lodge_id', lodgeData.id);
-
-      setLodge({
-        id: lodgeData.id,
-        name: lodgeData.name,
-        location: lodgeData.location,
-        username: lodgeData.username,
+      const { data, error } = await supabase.functions.invoke('lodge-login', {
+        body: { username, password },
       });
 
+      // Edge function returns non-2xx (e.g. 401) as a FunctionsHttpError; surface a
+      // generic message so we never distinguish "bad user" from "bad password".
+      if (error) {
+        return { error: { message: 'Invalid username or password' } };
+      }
+      if (!data?.sessionToken || !data?.lodge) {
+        return { error: { message: data?.error || 'Invalid username or password' } };
+      }
+
+      localStorage.setItem(SESSION_KEY, data.sessionToken);
+      localStorage.setItem(LODGE_KEY, data.lodge.id);
+      setLodge(data.lodge as Lodge);
+
       return { error: null };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { error };
+    } catch (err) {
+      console.error('Sign in error:', err);
+      return { error: { message: 'Invalid username or password' } };
     }
   };
 
   const signOut = async () => {
-    const sessionToken = localStorage.getItem('lodge_session_token');
-    
+    const sessionToken = localStorage.getItem(SESSION_KEY);
     if (sessionToken) {
-      await supabase
-        .from('lodge_sessions')
-        .delete()
-        .eq('session_token', sessionToken);
+      // Best-effort server-side revoke; the session table is service-role only.
+      try {
+        await supabase.functions.invoke('lodge-logout', {
+          body: { sessionToken },
+        });
+      } catch {
+        // ignore — we still clear local state below
+      }
     }
-
-    localStorage.removeItem('lodge_session_token');
-    localStorage.removeItem('lodge_id');
-    setLodge(null);
+    clearSession();
   };
 
   const value = {

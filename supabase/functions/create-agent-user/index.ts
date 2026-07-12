@@ -1,9 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { authenticate, corsHeaders, isPlatformAdmin, json } from '../_shared/authz.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,16 +6,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
+    // AuthZ: platform admins may create any agent; a government_partner may only
+    // create agents within their own organization.
+    const auth = await authenticate(req)
+    if ('error' in auth) return auth.error
+    const supabaseAdmin = auth.ctx.admin
 
     const { name, email, password, business_name, contact_phone, mobile_number, reference_id, organization_id } = await req.json()
 
@@ -30,6 +20,11 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    const canCreate = isPlatformAdmin(auth.ctx.role) ||
+      (auth.ctx.role === 'government_partner' &&
+        !!organization_id && organization_id === auth.ctx.organizationId)
+    if (!canCreate) return json({ error: 'Forbidden' }, 403)
 
     // Get the travel_agent role id
     const { data: roleData, error: roleError } = await supabaseAdmin

@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { User, Lock, Building2, Bell, Shield, Mail, Phone, Globe } from 'lucide-react';
 
-const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
 interface OrgDetails {
   name: string;

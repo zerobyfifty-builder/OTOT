@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SUPABASE_URL } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,6 @@ import { CountrySelector } from '@/components/CountrySelector';
 import { CertificatePreviewDialog } from '@/components/certificates/CertificatePreviewDialog';
 import { CertificateSelectionDialog } from '@/components/certificates/CertificateSelectionDialog';
 
-const SUPABASE_URL = "https://iezhssfzbiwnofhpjahv.supabase.co";
 
 const updateEmailSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),

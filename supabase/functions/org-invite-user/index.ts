@@ -1,7 +1,7 @@
 // Edge function: org-invite-user
 // Creates an auth user with a chosen password (or updates existing), inserts an org_users row
 // with status 'active', and seeds org_user_permissions from role defaults so the user can log in immediately.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { authenticate, isOrgAdminOf, json } from "../_shared/authz.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
+    const auth = await authenticate(req);
+    if ("error" in auth) return auth.error;
+    const admin = auth.ctx.admin;
 
     const body = await req.json();
     const {
@@ -37,6 +37,11 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // AuthZ: caller must be a platform admin or an admin/owner of this organization.
+    if (!(await isOrgAdminOf(auth.ctx, organization_id))) {
+      return json({ error: "Forbidden" }, 403);
+    }
+
     // When a custom_role_id is provided, the org has approved it via the Roles tab — trust it.
     if (!custom_role_id) {
       const allowed = owner_type === "plantation" ? PLANTATION_ROLES : GENERIC_ROLES;
@@ -45,13 +50,6 @@ Deno.serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
-
-    // Caller (inviter)
-    const authHeader = req.headers.get("Authorization") || "";
-    const caller = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user: inviter } } = await caller.auth.getUser();
 
     // Create or update the auth user with the chosen password and confirm email
     let userId: string | null = null;
@@ -99,7 +97,7 @@ Deno.serve(async (req) => {
         custom_role_id: custom_role_id ?? null,
         personal_message,
         status: "active",
-        invited_by: inviter?.id ?? null,
+        invited_by: auth.ctx.user.id,
         invited_at: nowIso,
         joined_at: nowIso,
       }, { onConflict: "organization_id,email" })

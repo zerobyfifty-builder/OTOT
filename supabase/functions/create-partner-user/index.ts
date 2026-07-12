@@ -1,19 +1,14 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { authenticate, corsHeaders, isPlatformAdmin, json } from '../_shared/authz.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
+    // AuthZ: only platform admins may create partner accounts.
+    const auth = await authenticate(req)
+    if ('error' in auth) return auth.error
+    if (!isPlatformAdmin(auth.ctx.role)) return json({ error: 'Forbidden - admin only' }, 403)
+    const supabaseAdmin = auth.ctx.admin
 
     const { name, email, password, organization_id, category } = await req.json()
 

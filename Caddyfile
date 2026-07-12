@@ -1,0 +1,21 @@
+# Serves the built SPA on Railway's injected $PORT.
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	root * /srv
+	encode gzip zstd
+
+	# Long-cache fingerprinted assets; the HTML shell stays uncached so new
+	# deploys are picked up immediately.
+	@static path *.js *.css *.png *.jpg *.jpeg *.svg *.gif *.woff *.woff2 *.ico
+	header @static Cache-Control "public, max-age=31536000, immutable"
+	header /index.html Cache-Control "no-cache"
+
+	# SPA fallback: unknown paths (deep links like /owner/dashboard) serve index.html
+	# so React Router can handle them.
+	try_files {path} /index.html
+	file_server
+}
