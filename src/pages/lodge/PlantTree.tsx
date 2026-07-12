@@ -166,7 +166,7 @@ export const PlantTree = () => {
       // Build headers with auth token
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllemhzc2Z6Yml3bm9maHBqYWh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMzk4NDEsImV4cCI6MjA3NDcxNTg0MX0.lZ6mVrCKrSxza6dsbMS_2Yq5hY-trUAb-hzZGcdrcD8',
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
         'authorization': `Bearer ${session.access_token}`,
       };
 
