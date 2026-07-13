@@ -8,7 +8,8 @@ import { CalendarIcon, Plane, ArrowRight, ArrowLeft, TreePine, Check } from "luc
 import { supabase } from "@/integrations/supabase/client";
 import { useAgentAuth } from "@/contexts/AgentAuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { airports, calculateDistance } from "@/data/airports";
+import { airports } from "@/data/airports";
+import { getFlightEmissions, EMISSION_FACTORS, KG_CO2_PER_TREE } from "@/utils/emissionCalculatorApi";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -55,12 +56,6 @@ interface CalculationResult {
   nights: number;
 }
 
-const EMISSION_FACTORS = {
-  flight: { economy: 0.117, premium_economy: 0.187, business: 0.339, first: 0.468 },
-  accommodation: { none: 0, hotel: 16.7, rental: 10, cruise: 50, service_apartment: 12 },
-};
-
-const KG_CO2_PER_TREE = 160;
 const COST_PER_TREE_KES = 500;
 
 const TRAVEL_CLASS_LABELS: Record<string, string> = {
@@ -106,18 +101,14 @@ export const AgentCalculateOffset = () => {
     setStep(2);
   };
 
-  const calculateEmissions = (data: FlightData): CalculationResult => {
-    const origin = airports.find(a => a.code === data.originAirport);
-    const destination = airports.find(a => a.code === data.destinationAirport);
-    let totalDistance = 0;
-    if (origin && destination) {
-      totalDistance = calculateDistance(origin, destination);
-    }
-    const tripMultiplier = data.tripType === "return" ? 2 : 1;
-    totalDistance *= tripMultiplier;
-
-    const emissionFactor = EMISSION_FACTORS.flight[data.travelClass];
-    const flightCO2 = totalDistance * emissionFactor * data.numTravelers;
+  const calculateEmissions = async (data: FlightData): Promise<CalculationResult> => {
+    // Flight CO2 from the Emission Calculator service (falls back to local).
+    const { distance: totalDistance, flightCO2 } = await getFlightEmissions({
+      cabinClass: data.travelClass,
+      numTravelers: data.numTravelers,
+      isReturn: data.tripType === "return",
+      legs: [{ origin: data.originAirport, destination: data.destinationAirport }],
+    });
 
     let nights = 0;
     if (data.toDate) {
@@ -131,8 +122,8 @@ export const AgentCalculateOffset = () => {
     return { distance: totalDistance, flightCO2, accommodationCO2, totalCO2, treesNeeded, nights };
   };
 
-  const onFlightSubmit = (data: FlightData) => {
-    const result = calculateEmissions(data);
+  const onFlightSubmit = async (data: FlightData) => {
+    const result = await calculateEmissions(data);
     setCalculation(result);
     setStep(3);
   };
