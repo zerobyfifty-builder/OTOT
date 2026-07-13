@@ -7,10 +7,11 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any; alreadyRegistered?: boolean; needsEmailConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  resendConfirmation: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,15 +59,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/auth/verify-email`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
-    return { error };
+
+    // Supabase's email-enumeration protection: signing up with an email that is
+    // already registered returns NO error and a user whose `identities` array is
+    // empty (no new identity was created). Surface that so the UI can tell the
+    // user to sign in instead of pretending a brand-new account was created.
+    const alreadyRegistered =
+      !error &&
+      !!data?.user &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0;
+
+    // A fresh signup with no session means email confirmation is still pending.
+    const needsEmailConfirmation = !error && !alreadyRegistered && !data?.session;
+
+    return { error, alreadyRegistered, needsEmailConfirmation };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -91,9 +106,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth/reset-password`;
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
+    });
+    return { error };
+  };
+
+  const resendConfirmation = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/auth/verify-email`;
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: redirectUrl },
     });
     return { error };
   };
@@ -106,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     resetPassword,
+    resendConfirmation,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

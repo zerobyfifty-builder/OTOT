@@ -1,14 +1,38 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function VerifyEmail() {
-  const { user } = useAuth();
+  const { user, resendConfirmation } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = (location.state as { email?: string } | null)?.email;
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const handleResend = async () => {
+    if (!email || resending || cooldown > 0) return;
+    setResending(true);
+    const { error } = await resendConfirmation(email);
+    setResending(false);
+    if (error) {
+      toast.error(error.message || 'Could not resend the verification email.');
+    } else {
+      toast.success('Verification email sent. Please check your inbox.');
+      setCooldown(30);
+    }
+  };
 
   useEffect(() => {
     // Check for auth hash in URL (email verification callback)
@@ -91,10 +115,31 @@ export default function VerifyEmail() {
 
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground text-center">
-              Didn't receive the email? Check your spam folder or
+              {email
+                ? `We sent it to ${email}. Didn't receive it? Check your spam folder or resend below.`
+                : "Didn't receive the email? Check your spam folder or return to login."}
             </p>
+            {email && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleResend}
+                disabled={resending || cooldown > 0}
+              >
+                {resending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : cooldown > 0 ? (
+                  `Resend available in ${cooldown}s`
+                ) : (
+                  'Resend verification email'
+                )}
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="ghost"
               className="w-full"
               onClick={() => navigate('/auth/login')}
             >
