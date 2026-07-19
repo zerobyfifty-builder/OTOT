@@ -12,6 +12,7 @@ const ActivityLoggerMount = () => {
 };
 import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
 import { AgentAuthProvider } from "@/contexts/AgentAuthContext";
+import { PasswordRecoveryGate } from "@/components/auth/PasswordRecoveryGate";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
@@ -240,6 +241,7 @@ const App = () => (
         <AuthProvider>
           <BrowserRouter>
           <ActivityLoggerMount />
+          <PasswordRecoveryGate />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
