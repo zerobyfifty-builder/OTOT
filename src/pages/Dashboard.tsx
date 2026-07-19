@@ -482,7 +482,10 @@ export const Dashboard: React.FC = () => {
                       <button
                         onClick={async () => {
                           const fullName = await getFullName();
-                          const inviteMessage = `I just earned my pledge-certificate-${fullName} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya\n\nhttps://mvp.the1campaign.com`;
+                          const appUrl =
+                            (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ||
+                            window.location.origin;
+                          const inviteMessage = `I just earned my pledge-certificate-${fullName} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya\n\n${appUrl}`;
                           navigator.clipboard.writeText(inviteMessage);
                           toast({ title: "Message & Link Copied!", description: "Invite message copied to clipboard. Share it with your friends!" });
                         }}

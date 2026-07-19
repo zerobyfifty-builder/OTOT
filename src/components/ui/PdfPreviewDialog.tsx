@@ -45,7 +45,9 @@ interface PdfPreviewDialogProps {
 /*  Share helper                                                       */
 /* ------------------------------------------------------------------ */
 
-const shareUrl = 'https://mvp.the1campaign.com';
+const shareUrl =
+  (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ||
+  window.location.origin;
 
 const buildShareMessage = (name: string) =>
   `I just earned my ${name} from One Tourist One Tree! 🌍🌳 Join me in sustainable travel. #OneTouristOneTree #SustainableTravel #Kenya`;
