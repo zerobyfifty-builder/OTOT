@@ -100,8 +100,8 @@ export const Signup: React.FC = () => {
     setLoading(true);
     
     try {
-      const { error } = await signUp(email, password);
-      
+      const { error, alreadyRegistered } = await signUp(email, password);
+
       if (error) {
         if (error.message.includes('User already registered')) {
           toast.error('An account with this email already exists. Please sign in instead.');
@@ -110,9 +110,15 @@ export const Signup: React.FC = () => {
         } else {
           toast.error(error.message || 'Failed to create account');
         }
-      } else {
-        toast.success('Account created! Please check your email for verification.');
+      } else if (alreadyRegistered) {
+        // Supabase returns a success-shaped response for an existing email
+        // (enumeration protection) — no account was created and the password
+        // was NOT changed. Steer the user to sign in / reset instead.
+        toast.error('An account with this email already exists. Please sign in, or reset your password if you\'ve forgotten it.');
         navigate('/auth/login');
+      } else {
+        toast.success('Account created! Please check your email to verify your account.');
+        navigate('/auth/verify-email', { state: { email } });
       }
     } catch (err) {
       toast.error('An unexpected error occurred');

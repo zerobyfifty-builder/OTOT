@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCarbonCalculation } from "@/hooks/useCarbonCalculation";
-import { airports, calculateDistance } from "@/data/airports";
+import { airports } from "@/data/airports";
+import { getFlightEmissions, EMISSION_FACTORS, KG_CO2_PER_TREE } from "@/utils/emissionCalculatorApi";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -65,26 +66,6 @@ interface CalculationResult {
   treesNeeded: number;
   nights: number;
 }
-
-// Emission factors based on realistic benchmarks (London-Nairobi 6818km reference)
-const EMISSION_FACTORS = {
-  flight: {
-    economy: 0.117,        // 798 kg CO2 / 6818 km
-    premium_economy: 0.187, // 1276.8 kg CO2 / 6818 km
-    business: 0.339,        // 2314 kg CO2 / 6818 km
-    first: 0.468,           // 3191.9 kg CO2 / 6818 km
-  },
-  accommodation: {
-    none: 0,
-    hotel: 16.7,
-    rental: 10,
-    cruise: 50,
-    service_apartment: 12,
-  },
-};
-
-// Tree offset capacity: ~160 kg CO2 per tree (based on benchmark: 798kg / 5 trees)
-const KG_CO2_PER_TREE = 160;
 
 const TRAVEL_CLASS_LABELS = {
   economy: "Economy",
@@ -167,54 +148,46 @@ export const CarbonCalculator = () => {
     }
   }, [user]);
 
-  const calculateEmissions = (data: FormData): CalculationResult => {
-    let totalDistance = 0;
-    let flightCO2 = 0;
+  const calculateEmissions = async (data: FormData): Promise<CalculationResult> => {
+    const isReturn = data.tripType === "return";
 
-    if (data.inputMode === "airports" && data.flights) {
-      // Calculate based on airports
-      data.flights.forEach(flight => {
-        const origin = airports.find(a => a.code === flight.originAirport);
-        const destination = airports.find(a => a.code === flight.destinationAirport);
-        
-        if (origin && destination) {
-          const distance = calculateDistance(origin, destination);
-          totalDistance += distance;
-        }
-      });
+    // Flight CO2 comes from the Emission Calculator service (airports mode) or
+    // the local flight-hours estimate; both fall back to the local formula.
+    const flightResult =
+      data.inputMode === "airports" && data.flights
+        ? await getFlightEmissions({
+            cabinClass: data.travelClass,
+            numTravelers: data.numTravelers,
+            isReturn,
+            legs: data.flights.map((f) => ({
+              origin: f.originAirport,
+              destination: f.destinationAirport,
+            })),
+          })
+        : await getFlightEmissions({
+            cabinClass: data.travelClass,
+            numTravelers: data.numTravelers,
+            isReturn,
+            distanceKm: data.flightHours * 850, // 850 km/h average flight speed
+          });
 
-      // Apply trip type multiplier
-      const tripMultiplier = data.tripType === "return" ? 2 : 1;
-      totalDistance *= tripMultiplier;
-    } else if (data.inputMode === "flighttime") {
-      // Calculate based on flight hours
-      const avgSpeed = 850; // km/h average flight speed
-      totalDistance = data.flightHours * avgSpeed;
-      
-      // Apply trip type multiplier
-      if (data.tripType === "return") {
-        totalDistance *= 2;
-      }
-    }
+    const totalDistance = flightResult.distance;
+    const flightCO2 = flightResult.flightCO2;
 
-    // Calculate flight CO2
-    const emissionFactor = EMISSION_FACTORS.flight[data.travelClass];
-    flightCO2 = totalDistance * emissionFactor * data.numTravelers;
-    
     // Calculate nights
     let nights = 0;
     if (data.toDate) {
       nights = Math.max(1, differenceInDays(data.toDate, data.fromDate));
     }
-    
+
     // Calculate accommodation CO2
     const accommodationFactor = EMISSION_FACTORS.accommodation[data.accommodationType];
     const accommodationCO2 = accommodationFactor * nights * data.numTravelers;
-    
+
     // Calculate total and trees needed (rounded to nearest whole number)
     const totalCO2 = flightCO2 + accommodationCO2;
     const treesNeeded = Math.round(totalCO2 / KG_CO2_PER_TREE);
-    
+
     return {
       distance: totalDistance,
       flightCO2,
@@ -228,7 +201,7 @@ export const CarbonCalculator = () => {
   const onCalculate = async (data: FormData) => {
     setIsCalculating(true);
     try {
-      const result = calculateEmissions(data);
+      const result = await calculateEmissions(data);
       setCalculation(result);
       // Smoothly scroll to the results section after render
       setTimeout(() => {
