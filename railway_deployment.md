@@ -34,7 +34,7 @@ verified live on production** (`iezhssfzbiwnofhpjahv` + Railway). Legend:
 |---|---|---|
 | #5 Code splitting | ⛔ | 0 `React.lazy`, no `manualChunks` — still one monolithic chunk. Biggest fast-follow. |
 | #6 SPA fallback | ✅ | Caddy (Step 2). |
-| #7 CI / tests / Sentry | ⛔ | No `.github/workflows`, no Sentry. Local suites exist: `supabase/security-check.mjs`, `portal-smoke.mjs`. |
+| #7 CI / tests / Sentry | ⚠️ | Migrations: `.github/workflows/migrate.yml` (push to `staging` / `production` / manual). No lint/build CI or Sentry yet. Local suites: `supabase/security-check.mjs`, `portal-smoke.mjs`. |
 | #8 `.env.example` / env separation | ⚠️ | `.env.example` ✅; still a single Supabase project = prod (no staging). |
 | #9 Full RLS audit (145 migrations) | ⚠️ | Lodge tables locked down; full cross-table audit not done. |
 
@@ -73,9 +73,24 @@ These need dashboard/console access I don't have. Values are exact — copy them
    leave as-is; otherwise tell me the domain and I'll switch these (ideally to a
    `VITE_PUBLIC_APP_URL` env var) so shared links resolve.
 
-5. **Apply new migrations to prod via the Supabase SQL Editor** when shipped
-   (`db push` is blocked by the migration-history mismatch). *None required for
-   the current batch.*
+5. **Wire migration CI secrets** (one-time) so
+   `.github/workflows/migrate.yml` can run `supabase db push` on push to
+   `staging` or `production` (migrations only — no seeding). Repo → Settings →
+   Secrets and variables → Actions, add:
+   - `SUPABASE_ACCESS_TOKEN` — [Account → Access Tokens](https://supabase.com/dashboard/account/tokens)
+   - `STAGING_PROJECT_ID` / `STAGING_DB_PASSWORD` — staging Supabase project
+   - `PRODUCTION_PROJECT_ID` / `PRODUCTION_DB_PASSWORD` — production Supabase project
+   - *If `db push` fails with a migration-history mismatch,* repair once locally
+     against the linked project, then re-run the workflow:
+     ```bash
+     supabase link --project-ref <project-ref>
+     supabase migration list   # compare Local vs Remote
+     # Mark remote-only or already-applied versions as needed, e.g.:
+     # supabase migration repair --status applied <version>
+     # supabase migration repair --status reverted <version>
+     supabase db push --yes
+     ```
+     Do **not** run `supabase/seed-local.mjs` against staging/production.
 
 ---
 
