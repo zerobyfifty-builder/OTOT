@@ -85,8 +85,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw insertError;
     }
 
-    // Generate magic link (universal link that works for both app and web)
-    const baseUrl = "https://mvp.the1campaign.com";
+    // Generate magic link (universal link that works for both app and web).
+    // Magic links are a tourist-portal flow, so this points at the public app
+    // domain — set PUBLIC_APP_URL as a function secret.
+    const baseUrl = (Deno.env.get("PUBLIC_APP_URL") || "https://www.onetouristonetree.com")
+      .replace(/\/$/, "");
     const magicLinkUrl = `${baseUrl}/auth/magic?token=${rawToken}`;
 
     // Log the event

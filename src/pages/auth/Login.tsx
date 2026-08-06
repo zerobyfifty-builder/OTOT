@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import { currentPortal, isRoleAllowedOnPortal, normalizeRole, portalHomePath } from '@/lib/portal';
 
 const loginSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
@@ -94,38 +95,24 @@ export const Login: React.FC = () => {
           console.log('[LOGIN] User role from RPC:', userRole);
           console.log('[LOGIN] Role query error:', roleError);
 
-          const isSuperAdmin = userRole === 'super_admin';
-          const isInstitutionalPartner = userRole === 'government_partner';
-          const isBusinessPartner = userRole === 'business_partner';
-          const isTravelAgent = userRole === 'travel_agent';
-          const isOwner = userRole === 'owner';
-          
-          console.log('[LOGIN] Detected role:', userRole, {isSuperAdmin, isInstitutionalPartner, isBusinessPartner, isTravelAgent, isOwner});
-          
-          toast.success('Welcome back!');
-          
-          if (isSuperAdmin) {
-            console.log('[LOGIN] Navigating to /admin');
-            navigate('/admin', { replace: true });
-          } else if (isInstitutionalPartner) {
-            console.log('[LOGIN] Navigating to /institutional/dashboard');
-            navigate('/institutional/dashboard', { replace: true });
-          } else if (isBusinessPartner) {
-            console.log('[LOGIN] Navigating to /lodge/dashboard');
-            navigate('/lodge/dashboard', { replace: true });
-          } else if (isTravelAgent) {
-            console.log('[LOGIN] Navigating to /agent/dashboard');
-            navigate('/agent/dashboard', { replace: true });
-          } else if (isOwner) {
-            console.log('[LOGIN] Navigating to /owner/dashboard');
-            navigate('/owner/dashboard', { replace: true });
-          } else {
-            console.log('[LOGIN] Navigating to /dashboard');
-            navigate('/dashboard', { replace: true });
+          const role = normalizeRole(userRole);
+          console.log('[LOGIN] Detected role:', role, 'portal:', currentPortal.id);
+
+          // Accounts belonging to another portal cannot sign in on this host.
+          if (!isRoleAllowedOnPortal(role)) {
+            await supabase.auth.signOut();
+            toast.error('These credentials are not valid for this portal.');
+            return;
           }
+
+          toast.success('Welcome back!');
+
+          const home = portalHomePath(role);
+          console.log('[LOGIN] Navigating to', home);
+          navigate(home, { replace: true });
         } else {
-          console.log('[LOGIN] No session found, redirecting to /dashboard');
-          navigate('/dashboard', { replace: true });
+          console.log('[LOGIN] No session found, redirecting to portal entry');
+          navigate(portalHomePath('tourist'), { replace: true });
         }
       }
     } catch (err) {
@@ -141,12 +128,15 @@ export const Login: React.FC = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account to continue your carbon offset journey
+            {currentPortal.allowsSignup
+              ? 'Sign in to your account to continue your carbon offset journey'
+              : `Sign in to the ${currentPortal.name}`}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {/* Google Sign In Button */}
+            {/* Google Sign In Button — tourist portal only */}
+            {currentPortal.allowsGoogleAuth && (
             <Button
               type="button"
               variant="outline"
@@ -178,8 +168,10 @@ export const Login: React.FC = () => {
               )}
               Sign in with Google
             </Button>
+            )}
 
             {/* Divider */}
+            {currentPortal.allowsGoogleAuth && (
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -188,6 +180,7 @@ export const Login: React.FC = () => {
                 <span className="bg-background px-4 text-muted-foreground font-medium">OR</span>
               </div>
             </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -259,12 +252,16 @@ export const Login: React.FC = () => {
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
             
-            <div className="text-center text-sm">
-              Don't have an account?{' '}
-              <Link to="/auth/signup" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </div>
+            {/* Self-service signup is tourist-only; ministry/vendor accounts are
+                created by an administrator. */}
+            {currentPortal.allowsSignup && (
+              <div className="text-center text-sm">
+                Don't have an account?{' '}
+                <Link to="/auth/signup" className="text-primary hover:underline">
+                  Sign up
+                </Link>
+              </div>
+            )}
           </CardFooter>
         </form>
       </Card>

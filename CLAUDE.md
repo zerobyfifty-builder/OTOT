@@ -23,6 +23,22 @@ Supabase is managed via the CLI against the linked project (`supabase/config.tom
 
 ## Architecture
 
+### Host-based portal separation
+
+One build and one Supabase project serve three public hostnames, all pointed at the same Railway service. `src/lib/portal.ts` derives the active portal from `window.location.hostname` and owns the whole policy (route ownership, allowed roles, whether Google sign-in and self-service signup are offered):
+
+| Host | Portal | Route prefixes | Roles | Google / Signup |
+|---|---|---|---|---|
+| `www.` / apex / `*.up.railway.app` / localhost | `tourist` | `/`, `/dashboard`, `/pledge*`, `/admin/*`, … | tourist, `super_admin` | yes / yes |
+| `office.onetouristonetree.com` | `ministry` | `/institutional/*` | `government_partner` | no / no |
+| `partner.onetouristonetree.com` | `vendor` | `/owner/*`, `/lodge/*`, `/agent/*` | `owner`, `business_partner`, `travel_agent` | no / no |
+
+`PortalGate` (`src/components/auth/PortalGate.tsx`, wrapping `<Routes>` in `App.tsx`) enforces both halves: a path owned by another portal redirects to this portal's home, and a session whose `get_user_role` value isn't in `allowedRoles` is signed out with a generic "not valid for this portal" message. The role check **fails open** on RPC error so a network blip can't lock anyone out. `/auth/*` is shared by all three portals; `/auth/signup` is tourist-owned.
+
+This layer is purely client-side — there are no per-portal tables and no schema changes. Anything that must not leak between portals still needs RLS. When adding a route, add its prefix to `PORTAL_PATHS` in `src/lib/portal.ts`, or it will be reachable on every host.
+
+Locally, `?portal=ministry` / `?portal=vendor` overrides detection for the tab session (localhost only); `VITE_FORCE_PORTAL` pins a portal at build time.
+
 ### Multi-portal routing
 
 The app is one React Router tree (`src/App.tsx`) serving **five distinct portals** from role/session data, each with its own layout, sidebar, and route guard:

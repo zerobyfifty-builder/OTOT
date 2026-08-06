@@ -52,8 +52,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw insertError;
     }
 
-    // Generate deep link URL
-    const baseUrl = Deno.env.get("SUPABASE_URL")?.replace("https://", "https://mvp.the1campaign.com") || "https://mvp.the1campaign.com";
+    // Generate deep link URL. Pledge deep links belong to the tourist portal —
+    // set PUBLIC_APP_URL as a function secret to override the default domain.
+    const baseUrl = (Deno.env.get("PUBLIC_APP_URL") || "https://www.onetouristonetree.com")
+      .replace(/\/$/, "");
     const deepLinkUrl = `${baseUrl}/pledge?token=${token}`;
     const universalLink = `otot://pledge?token=${token}`; // App deep link
 

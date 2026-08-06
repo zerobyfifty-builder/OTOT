@@ -55,7 +55,7 @@ export const EditUserDialog: React.FC<Props> = ({ user, onOpenChange }) => {
     setSendingReset(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       if (error) throw error;
       toast.success(`Password reset link sent to ${user.email}`);
