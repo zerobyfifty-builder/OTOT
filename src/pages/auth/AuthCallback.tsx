@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { currentPortal, isRoleAllowedOnPortal, normalizeRole, portalHomePath } from "@/lib/portal";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function AuthCallback() {
         if (error) {
           console.error("Auth callback error:", error);
           toast.error("Authentication failed. Please try again.");
-          navigate("/");
+          navigate(currentPortal.entryPath);
           return;
         }
 
@@ -25,19 +26,17 @@ export default function AuthCallback() {
           const { data: userRole } = await supabase
             .rpc('get_user_role', { input_user_id: session.user.id });
 
-          const isSuperAdmin = userRole === 'super_admin';
-          const isInstitutionalPartner = userRole === 'government_partner';
-          const isBusinessPartner = userRole === 'business_partner';
-          const isTravelAgent = userRole === 'travel_agent';
-          const isOwner = userRole === 'owner';
+          const role = normalizeRole(userRole);
 
-          const roleHome =
-            isSuperAdmin ? '/admin'
-            : isInstitutionalPartner ? '/institutional/dashboard'
-            : isBusinessPartner ? '/lodge/dashboard'
-            : isTravelAgent ? '/agent/dashboard'
-            : isOwner ? '/owner/dashboard'
-            : '/dashboard';
+          // Accounts belonging to another portal cannot hold a session here.
+          if (!isRoleAllowedOnPortal(role)) {
+            await supabase.auth.signOut();
+            toast.error('These credentials are not valid for this portal.');
+            navigate(currentPortal.entryPath, { replace: true });
+            return;
+          }
+
+          const roleHome = portalHomePath(role);
 
           // Check if there's stored pledge context
           const pledgeContextStr = sessionStorage.getItem('pledge_context');
@@ -52,12 +51,12 @@ export default function AuthCallback() {
           
           toast.success("Successfully signed in!");
         } else {
-          navigate("/");
+          navigate(currentPortal.entryPath);
         }
       } catch (error) {
         console.error("Unexpected error in auth callback:", error);
         toast.error("Something went wrong. Please try again.");
-        navigate("/");
+        navigate(currentPortal.entryPath);
       }
     };
 

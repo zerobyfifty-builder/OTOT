@@ -13,6 +13,7 @@ const ActivityLoggerMount = () => {
 import { LodgeAuthProvider } from "@/contexts/LodgeAuthContext";
 import { AgentAuthProvider } from "@/contexts/AgentAuthContext";
 import { PasswordRecoveryGate } from "@/components/auth/PasswordRecoveryGate";
+import { PortalGate } from "@/components/auth/PortalGate";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
@@ -242,6 +243,7 @@ const App = () => (
           <BrowserRouter>
           <ActivityLoggerMount />
           <PasswordRecoveryGate />
+          <PortalGate>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -885,6 +887,7 @@ const App = () => (
             {/* 404 page */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </PortalGate>
         </BrowserRouter>
       </AuthProvider>
       </LodgeAuthProvider>
