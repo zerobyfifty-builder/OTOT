@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTOT — Supabase → Neon + Node.js Migration API Plan</title>
+<style>
+  :root{
+    --bg:#ffffff; --ink:#1a2b23; --muted:#5b6b62; --line:#dde5e0;
+    --accent:#1d6b45; --accent-soft:#eaf4ee; --warn-bg:#fff7e8; --warn-line:#e6c98a;
+    --mock:#b3541e; --code-bg:#f4f7f5;
+  }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.55}
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 28px 80px}
+  h1{font-size:1.9rem;margin:.2em 0 .1em}
+  h2{font-size:1.35rem;margin:2.2em 0 .4em;padding-top:.6em;border-top:2px solid var(--accent);color:var(--accent)}
+  h3{font-size:1.05rem;margin:1.6em 0 .3em}
+  p{margin:.5em 0}
+  .sub{color:var(--muted);margin-bottom:1.5em}
+  table{border-collapse:collapse;width:100%;margin:.6em 0 1em;font-size:.86rem}
+  th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-weight:600}
+  code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-size:.85em;font-family:"SF Mono",Menlo,Consolas,monospace}
+  td code{white-space:nowrap}
+  .method{font-weight:700;font-family:Menlo,Consolas,monospace;font-size:.8rem}
+  .get{color:#0b6bcb}.post{color:#1d6b45}.patch{color:#a05a00}.put{color:#a05a00}.del{color:#b3261e}
+  .note{background:var(--accent-soft);border-left:4px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin:.8em 0;font-size:.9rem}
+  .warn{background:var(--warn-bg);border-left:4px solid var(--warn-line);padding:10px 14px;border-radius:0 6px 6px 0;margin:.8em 0;font-size:.9rem}
+  .tag{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle}
+  .tag.new{background:#e3edff;color:#0b47a1}
+  .tag.replace{background:#e8f5ec;color:#1d6b45}
+  .tag.mock{background:#fdeee3;color:var(--mock)}
+  ul{margin:.4em 0 .8em}
+  li{margin:.25em 0}
+  .toc{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:16px 22px;columns:2;font-size:.92rem}
+  .toc a{color:var(--accent);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .fe{border:1px dashed var(--line);border-radius:6px;padding:8px 12px;margin:.5em 0 1.2em;font-size:.88rem;background:#fbfcfb}
+  .fe b{color:var(--accent)}
+  .sch{font-size:.78rem}
+  .sch th{background:#e8f0eb;font-size:.75rem;letter-spacing:.02em}
+  .sch td{vertical-align:top;padding:3px 7px}
+  .sch td:first-child{font-weight:600;white-space:nowrap}
+  .sch td code{font-size:.75rem}
+  h3.sch-h{font-size:.95rem;margin:2em 0 .4em;color:var(--ink)}
+  h3.sch-h:first-of-type{margin-top:0}
+  .note-diagram{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:14px 18px;margin:.8em 0 1.4em;font-size:.84rem}
+  .note-diagram b{color:var(--accent)}
+  @media(max-width:760px){.toc{columns:1}}
+  .overflow{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>OTOT — Backend Migration Plan</h1>
+<p class="sub">Supabase → <b>Neon Postgres + Node.js API</b> · Feature-by-feature endpoint specification · Generated 2026-08-14</p>
+
+<div class="note">
+<b>How to read this doc.</b> Section 1 is the proposed data model — the entity map and relationship diagram for the Neon schema. Every later section is one feature: (1) recommended REST endpoints for the new Node.js backend (Express/Fastify + Neon via <code>pg</code> or Drizzle/Prisma), (2) which existing Supabase behavior (direct table query, RPC, or Edge Function) each endpoint replaces, and (3) a short <b>Frontend wiring</b> note on how to plug the React app in. Endpoints tagged <span class="tag new">NEW</span> have <i>no Supabase equivalent today</i> — the current UI is frontend-only/mock there and these endpoints are what's needed to make it functional. Tags: <span class="tag replace">REPLACES</span> existing Supabase behavior · <span class="tag new">NEW</span> doesn't exist yet · <span class="tag mock">UI IS MOCK</span> current page is hardcoded.
+</div>
+
+<div class="warn">
+<b>The single biggest migration change:</b> today the React app talks to Postgres <i>directly</i> (<code>supabase.from('table')…</code>) and safety comes from 368 RLS policies. On Neon + Node, the browser never touches the DB — every read/write below becomes an authenticated REST call, and all RLS logic moves into API-layer authorization middleware (role + org checks). The ~15 Postgres helper functions (<code>is_super_admin</code>, <code>owner_has_module_permission</code>, …) that exist only to power RLS become plain middleware functions in Node.
+</div>
+
+<h3>Contents</h3>
+<div class="toc">
+<ol>
+<li><a href="#data-model">Proposed data model</a></li>
+<li><a href="#conventions">API conventions & stack</a></li>
+<li><a href="#audit">Current status audit — what's mock vs functional</a></li>
+<li><a href="#auth">Auth — tourist / admin / org (JWT)</a></li>
+<li><a href="#auth-magic">Auth — magic links & deep links</a></li>
+<li><a href="#auth-lodge">Auth — lodge (username/password)</a></li>
+<li><a href="#auth-agent">Auth — travel agent</a></li>
+<li><a href="#users">Users, roles & profile</a></li>
+<li><a href="#orgs">Organizations, modules & permissions</a></li>
+<li><a href="#calculator">CO₂ calculator & trips</a></li>
+<li><a href="#pledge">Pledge / checkout / payments</a></li>
+<li><a href="#trees">Trees & lifecycle tracking</a></li>
+<li><a href="#lodge">Lodge portal</a></li>
+<li><a href="#agent">Travel agent portal</a></li>
+<li><a href="#owner">Owner portal (nurseries, MDM, planting ops)</a></li>
+<li><a href="#finance">Finance — contributions ledger, disbursements, pricing</a></li>
+<li><a href="#institutional">Institutional / ministry portal</a></li>
+<li><a href="#admin">Super-admin portal & platform config</a></li>
+<li><a href="#certs">Certificates, invoices & documents</a></li>
+<li><a href="#engagement">Impact logs, engagement & contributor updates</a></li>
+<li><a href="#notifications">Notifications & activity logs</a></li>
+<li><a href="#uploads">File uploads (storage replacement)</a></li>
+<li><a href="#realtime">Realtime replacement</a></li>
+<li><a href="#gotchas">Migration gotchas & landmines</a></li>
+</ol>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="data-model">1 · Proposed data model</h2>
+
+1 · Proposed data model</h2>
+
+<p>The Neon schema mirrors the current 149-migration Supabase structure but with a cleaner dependency graph. Below is the full entity-relationship overview — every table referenced in the endpoint sections is mapped here.</p>
+
+<div class="note">
+<b>Reading the diagram.</b> Each subsection covers one domain: tables, columns, types, constraints, and FK relationships. The entity overview table at the top gives the bird's-eye view. Below that, each domain gets a detailed column-level schema table followed by a prose explanation of the relationship graph. Primary keys are <b>bold</b>. FK references are noted inline.
+</div>
+
+<h3>1a · Entity overview by domain</h3>
+
+<table>
+<tr><th>Domain</th><th>Tables</th><th>Role in the system</th></tr>
+<tr><td><b>Identity & Auth</b></td><td><code>users</code>, <code>roles</code>, <code>user_roles</code> (legacy), <code>magic_tokens</code>, <code>ephemeral_sessions</code>, <code>lodge_credentials</code>, <code>lodge_sessions</code>, <code>auth_logs</code></td><td>Who can log in, how, and what they can do. Consolidate lodge auth into JWT where possible.</td></tr>
+<tr><td><b>Organizations & Permissions</b></td><td><code>organizations</code>, <code>partner_types</code>, <code>partner_type_modules</code>, <code>modules</code>, <code>module_sub_actions</code>, <code>organization_modules</code>, <code>org_users</code>, <code>org_custom_roles</code>, <code>org_role_permissions</code>, <code>org_user_permissions</code>, <code>org_job_role_defaults</code>, <code>tourist_module_permissions</code></td><td>Multi-tenant org structure, module licensing, fine-grained permissions.</td></tr>
+<tr><td><b>Trips & Carbon</b></td><td><code>trips</code>, <code>carbon_offset_calculations</code>, <code>tree_sequestration_rates</code></td><td>Tourist trip logging and CO₂ → trees-needed math. Emission API key moves server-side.</td></tr>
+<tr><td><b>Pledges & Payments</b></td><td><code>contribution_tiers</code>, <code>contribution_tier_visibility</code>, <code>tourist_purchases</code>, <code>planting_cost_configs</code>, <code>planting_cost_submissions</code>, <code>planting_cost_notifications</code>, <code>partner_transactions</code>, <code>wallet_settings</code></td><td>Monetary flow: tiers → checkout → payment gateway → ledger. No payment processor exists today — this is the core migration gap.</td></tr>
+<tr><td><b>Trees (core)</b></td><td><code>trees</code>, <code>tree_status_transitions</code>, <code>tree_geotags</code>, <code>tree_growth_metrics</code>, <code>tree_survival_tracking</code>, <code>tree_survival_records</code>, <code>tree_monitoring_logs</code>, <code>tree_planting_assignments</code>, <code>tree_carers</code></td><td>One tree → many lifecycle events. Survival has a duplicate table to consolidate. All tree mutations go through the endpoints in section 12.</td></tr>
+<tr><td><b>Contributions & Ledger</b></td><td><code>contribution_tracking</code>, <code>owner_disbursements</code>, <code>contributions</code></td><td>Every financial or tree-based contribution fans out to the ledger. The polymorphic <code>source_table/source_id</code> pattern is the trickiest part.</td></tr>
+<tr><td><b>Agents & Tickets</b></td><td><code>travel_agents</code>, <code>agent_tickets</code></td><td>B2B agent flow: ticket → trip → trees. Triggers ported to the ticket-create endpoint in section 14.</td></tr>
+<tr><td><b>Lodges</b></td><td><code>lodges</code>, <code>reimbursements</code>, <code>reimbursement_docs</code></td><td>Lodge-specific: tree planting, reimbursements, (mock) performance.</td></tr>
+<tr><td><b>Nurseries & Species</b></td><td><code>nurseries</code>, <code>nursery_species</code>, <code>seed_species</code>, <code>seedling_batches</code>, <code>planting_records</code>, <code>monitoring_records</code></td><td>Owner-side propagation: species → batches → planting → monitoring.</td></tr>
+<tr><td><b>MDM (location hierarchy)</b></td><td><code>mdm_location_counties</code>, <code>mdm_location_subcounties</code>, <code>mdm_location_blocks</code>, <code>mdm_location_stations</code>, <code>mdm_location_beats</code>, <code>mdm_audit_log</code></td><td>Five-level administrative geography. Every write appends an audit row.</td></tr>
+<tr><td><b>Documents</b></td><td><code>certificates</code>, <code>document_templates</code>, <code>template_designs</code>, <code>template_assignments</code>, <code>template_categories</code>, <code>template_engine_flags</code></td><td>PDF generation (currently client-side), template management, certificate issuance — currently broken (section 19).</td></tr>
+<tr><td><b>Engagement & Impact</b></td><td><code>impact_metrics</code>, <code>carbon_metrics_logs</code>, <code>community_impact</code>, <code>community_impact_logs</code>, <code>ecosystem_impact_logs</code>, <code>monitoring_logs</code>, <code>engagement_activities</code>, <code>tree_impact_records</code></td><td>Near-duplicate log tables — candidates for consolidation into a single typed <code>impact_logs</code> table during migration.</td></tr>
+<tr><td><b>Platform Config</b></td><td><code>notifications</code>, <code>activity_logs</code>, <code>integration_logs</code>, <code>api_keys</code>, <code>settings</code> (proposed)</td><td>Notifications, audit trail, partner integrations, platform settings.</td></tr>
+<tr><td><b>Views / Virtual</b></td><td><code>v_contribution_source_drift</code></td><td>Reconciliation drift — replaced by the <code>/finance/reconcile</code> endpoint in section 18.</td></tr>
+</table>
+
+<div class="note-diagram">
+<b>Proposed data model — visual overview</b><br><br>
+The diagram below maps the entity relationship graph for the Neon schema. Arrows (<b>→</b>) indicate foreign-key direction. The diagram is grouped by functional layer so relationships within a domain stay readable. Each layer maps directly to one or more schema sub-sections below.<br><br>
+
+<b style="font-size:1.05em">1. IDENTITY &amp; AUTH LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────┐
+  │    roles     │ ← primary-role enum: super_admin|owner|gov_partner|travel_agent|lodge|tourist
+  │  (id, key)   │
+  └──────┬───────┘
+         │ 1:N (role_id)
+         ▼
+  ┌──────────────────────────────────┐
+  │            users                 │
+  │  email, password_hash (bcrypt)   │
+  │  email_verified, active          │
+  └──────┬──────────────┬────────────┘
+         │ 1:N          │ 1:N (user_id)
+         ▼              ▼
+  ┌──────────────┐  ┌─────────────────┐
+  │ magic_tokens │  │ lodge_credentials│
+  │ token_hash   │  │ username, pwd   │
+  │ pledge_ctx   │  └────────┬─────────┘
+  │ expires_at   │           │ 1:1 (lodge_id)
+  └──────────────┘           ▼
+                    ┌──────────────────┐
+                    │  lodge_sessions  │
+                    │ 7-day tokens     │
+                    └──────────────────┘
+
+  Side tables (audit/session):
+    auth_logs → users (login/logout/signup events, append-only)
+    ephemeral_sessions → short-lived cross-request data
+</pre>
+
+<b style="font-size:1.05em">2. ORG &amp; PERMISSIONS LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌────────────────┐
+  │ partner_types  │ → owner | government_partner | …
+  └────────┬───────┘
+           │ 1:N (partner_type_id)
+           ▼
+  ┌────────────────────────────────────────┐
+  │           organizations                │
+  │  name, status, settings (jsonb)        │
+  └─┬───────┬──────────┬──────────────┬────┘
+    │ 1:N   │ 1:N      │ 1:N          │ 1:N
+    ▼       ▼          ▼              ▼
+┌─────────┐ ┌─────────────┐  ┌──────────────┐
+│org_users│ │organization_│  │org_custom_   │
+│(user_id)│ │ modules     │  │ roles        │
+└────┬────┘ └──────┬──────┘  └──────┬───────┘
+     │ M:N         │ M:N            │ 1:N
+     ▼             ▼                ▼
+┌────────────┐ ┌──────────────┐ ┌──────────────────┐
+│    users   │ │   modules    │ │org_role_         │
+│            │ │ (id, key)    │ │permissions       │
+└────────────┘ └──────┬───────┘ └──────────────────┘
+                      │ 1:N
+                      ▼
+              ┌──────────────────┐
+              │module_sub_actions│
+              │ view|create|edit │
+              └──────────────────┘
+
+  Auxiliary:
+    org_user_permissions      → per-user action overrides
+    org_job_role_defaults     → seeds permissions on invite
+    tourist_module_permissions→ tourist sidebar visibility toggle
+</pre>
+
+<b style="font-size:1.05em">3. CARBON &amp; TRIP LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────┐
+  │    trips     │ ← user_id (tourist) OR organization_id (agent)
+  │  carbon_kg   │
+  │  trees_needed│
+  └──────┬───────┘
+         │ 1:N
+         ▼
+  ┌────────────────────────────┐         ┌──────────────────────┐
+  │ carbon_offset_calculations │ N:1 ──► │ tree_sequestration_  │
+  │ calculation_details (jsonb) │         │ rates                │
+  └────────────────────────────┘         │ (species, region,    │
+                                          │  co2_per_year)       │
+                                          └──────────────────────┘
+</pre>
+
+<b style="font-size:1.05em">4. PLEDGE → TREE → LEDGER (core flow)</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌────────────────────┐
+  │ contribution_tiers │ ← pricing per tier (KES/USD)
+  └────────┬───────────┘
+           │ 1:N (tier_id)
+           ▼
+  ┌────────────────────┐     ┌──────────────┐
+  │ tourist_purchases  │ ──► │    trips     │
+  │ payment_status     │     └──────────────┘
+  │ payment_reference  │
+  └────────┬───────────┘
+           │ 1:N (source_id)
+           ▼
+  ┌────────────────────────────────────────────────────┐
+  │             contribution_tracking                  │
+  │   (polymorphic: source_table=                      │
+  │    tourist_purchases | agent_tickets |             │
+  │     partner_transactions | owner_disbursements)    │
+  │   recipient_type: ktb | tech | institution |       │
+  │                    partner | owner                 │
+  └────────────────────────┬───────────────────────────┘
+                           │ N:1
+                           ▼
+                  ┌──────────────────┐
+                  │  contributions   │ ← aggregate header row
+                  │  OTOT-YYYY-XXXXX │
+                  └──────────────────┘
+                           │
+                           ▼  (fan-out)
+                  ┌──────────────────────┐
+                  │  trees (1:N)         │
+                  │  status, geotag,     │
+                  │  health, photos      │
+                  └──────┬───────────────┘
+                         │ 1:N (each)
+              ┌──────────┼──────────────┐
+              ▼          ▼              ▼
+   tree_status_trans   tree_growth_    tree_geotags
+                       metrics         (latest GPS)
+              + tree_survival_records
+              + tree_monitoring_logs
+              + tree_planting_assignments → nurseries/beats
+
+  Side tables for contributions:
+    partner_transactions  → approval workflow, status
+    owner_disbursements   → payout tracking per org
+    wallet_settings       → platform commission config
+</pre>
+
+<b style="font-size:1.05em">5. AGENT &amp; TICKET LAYER (B2B)</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────────┐
+  │  travel_agents   │ ← user_id (nullable), organization_id (gov partner)
+  │  agent_code      │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────────────┐
+  │      agent_tickets       │ ← ticket_number, PNR, passenger details
+  │  trees_needed, planted   │
+  │  ktb_payment_status      │
+  └──────────┬───────────────┘
+             │ 1:N (one ticket → many contributions + ledger rows)
+             ▼
+     contribution_tracking (source_table='agent_tickets')
+</pre>
+
+<b style="font-size:1.05em">6. LODGE LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────────┐
+  │     lodges       │
+  │  region, trees_  │
+  │  planted_target  │
+  └─┬──────┬─────────┘
+    │ 1:N  │ 1:N
+    ▼      ▼
+┌─────────┐ ┌────────────────┐
+│  trees  │ │ reimbursements │
+│(lodge_id)│ └───────┬────────┘
+└─────────┘         │ 1:N
+                    ▼
+            ┌──────────────────┐
+            │reimbursement_docs│
+            └──────────────────┘
+</pre>
+
+<b style="font-size:1.05em">7. NURSERY &amp; SPECIES LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────────┐         ┌────────────────┐
+  │    nurseries     │ 1:N ──► │ nursery_species│ ◄── N:1 ── seed_species
+  │ capacity, stock  │         └────────────────┘            (key, CO2/year)
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐
+  │ seedling_batches │ N:1 ──► seed_species
+  │ batch_number     │
+  │ sow_date → ready │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐     ┌───────────────────┐
+  │ planting_records │ 1:N │ monitoring_records│
+  │ (beat_id FK)     │ ──► │ alive/dead counts │
+  └──────────────────┘     └───────────────────┘
+</pre>
+
+<b style="font-size:1.05em">8. GEOGRAPHY LAYER (MDM — five-level admin hierarchy)</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌──────────────────┐
+  │ mdm_location_    │ ← Level 1
+  │   counties       │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐
+  │ mdm_location_    │ ← Level 2
+  │   subcounties    │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐
+  │ mdm_location_    │ ← Level 3
+  │   blocks         │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐
+  │ mdm_location_    │ ← Level 4
+  │   stations       │
+  └────────┬─────────┘
+           │ 1:N
+           ▼
+  ┌──────────────────┐
+  │ mdm_location_    │ ← Level 5 (used by tree_planting_assignments,
+  │   beats          │           tree_carers)
+  └──────────────────┘
+
+  Audit:
+    mdm_audit_log → every write to any MDM table appends a row
+</pre>
+
+<b style="font-size:1.05em">9. DOCUMENT LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌────────────────────┐
+  │ template_categories│
+  └────────┬───────────┘
+           │ N:1
+           ▼
+  ┌────────────────────┐     ┌─────────────────────┐
+  │ document_templates │ 1:N │  template_designs   │
+  │ status (draft/     │     │  design_json (spec) │
+  │  approved/archived)│     │  semver version     │
+  └────────┬───────────┘     └─────────────────────┘
+           │ 1:N
+           ▼
+  ┌────────────────────┐
+  │ template_assignments│  → scoped to (global | portal | partner | org)
+  └────────────────────┘
+
+  Issued documents:
+  ┌────────────────────┐
+  │   certificates     │ ← 1:1 with trees, links to user + purchase
+  │ certificate_number │   QR-verifiable (verification_token)
+  │ pdf_url            │
+  └────────────────────┘
+</pre>
+
+<b style="font-size:1.05em">10. IMPACT &amp; ENGAGEMENT LAYER (consolidation candidates)</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌────────────────────┐
+  │   contributions    │
+  └────────┬───────────┘
+           │ 1:N
+           ├──────────────────────────┐
+           ▼                          ▼
+  ┌────────────────────┐     ┌────────────────────┐
+  │ engagement_        │     │ tree_impact_records │
+  │ activities         │     │ (milestone|update)  │
+  └────────────────────┘     └─────────┬──────────┘
+                                       │ 1:N each (typed breakdown)
+              ┌────────────────────────┼────────────────────────┐
+              ▼                        ▼                        ▼
+   ┌─────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
+   │ impact_metrics  │  │ carbon_metrics_logs  │  │  community_impact    │
+   │ (type, value)   │  │ (CO2 absorbed)       │  │  (+ ecosystem_logs)  │
+   └─────────────────┘  └──────────────────────┘  └──────────────────────┘
+
+  Candidate consolidation: merge the eight log tables into a single typed
+  `impact_logs` table during migration (one row per event, with `log_type`
+  discriminator).
+</pre>
+
+<b style="font-size:1.05em">11. PLATFORM CONFIG LAYER</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌────────────────────┐         ┌──────────────────┐
+  │   notifications    │         │  activity_logs   │
+  │ (polymorphic       │         │ (per-mutation    │
+  │  recipient)        │         │  audit trail)    │
+  └────────────────────┘         └──────────────────┘
+
+  ┌────────────────────┐         ┌──────────────────┐
+  │   integration_logs │ N:1 ──► │   organizations  │
+  │ (partner API       │         │                  │
+  │  call tracking)    │         └──────────────────┘
+  └────────────────────┘
+            ▲
+            │ 1:N
+  ┌────────────────────┐
+  │     api_keys       │ ← SHA-256 hashed, scoped to organization
+  │ (key_prefix shown) │
+  └────────────────────┘
+
+  ┌────────────────────┐
+  │      settings      │ ← namespaced key/value (gateway.stripe_key,
+  │ (key PK, jsonb)    │   mailer.sender, feature_flags.*)
+  └────────────────────┘
+</pre>
+
+<b style="font-size:1.05em">12. VIEWS / VIRTUAL (computed reads)</b><br>
+<pre style="margin:.3em 0;line-height:1.45">
+  ┌─────────────────────────────┐
+  │ v_contribution_source_drift │ ← replaced by /finance/reconcile endpoint
+  └─────────────────────────────┘
+</pre>
+
+<b>Color-key for the rest of this document:</b>
+<span class="tag replace" style="margin-right:8px">REPLACES</span> existing Supabase query/function/RPC ·
+<span class="tag new" style="margin-right:8px">NEW</span> no Supabase equivalent ·
+<span class="tag mock">MOCK</span> current UI is hardcoded
+</div>
+
+<div class="note-diagram">
+<b>Reading the schema tables below.</b> Each domain gets its own sub-table. Columns are listed with: <b>PK</b> = primary key, <b>NN</b> = not null, <b>UK</b> = unique constraint, <b>FK→X</b> = foreign key to table X. Enum values are listed inline. Default values are noted where they matter for the migration.
+</div>
+
+<h3>1b · Identity & Auth schema</h3>
+
+<table class="sch">
+<tr><th>Table</th><th>Column</th><th>Type</th><th>Constraints</th><th>References / Notes</th></tr>
+<tr><td rowspan="11"><b>users</b></td><td>id</td><td>uuid</td><td>PK, NN, default gen_random_uuid()</td><td></td></tr>
+<tr><td>email</td><td>text</td><td>UK, NN</td><td>Login identity</td></tr>
+<tr><td>full_name</td><td>text</td><td></td><td></td></tr>
+<tr><td>phone</td><td>text</td><td></td><td></td></tr>
+<tr><td>photo_url</td><td>text</td><td></td><td>Profile picture URL</td></tr>
+<tr><td>bio</td><td>text</td><td></td><td></td></tr>
+<tr><td>role_id</td><td>uuid</td><td>FK→roles.id, NN</td><td>Primary role — replaces user_roles enum</td></tr>
+<tr><td>organization_id</td><td>uuid</td><td>FK→organizations.id</td><td>Null for tourists; set for org users</td></tr>
+<tr><td>password_hash</td><td>text</td><td></td><td>bcrypt hash; current value "set" is a marker, not a hash</td></tr>
+<tr><td>email_verified</td><td>boolean</td><td>default false</td><td></td></tr>
+<tr><td>active</td><td>boolean</td><td>default true</td><td></td></tr>
+<tr><td><b>roles</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>name</td><td>text</td><td>UK, NN</td><td>super_admin | owner | government_partner | travel_agent | lodge | tourist</td></tr>
+<tr><td></td><td>description</td><td>text</td><td></td><td></td></tr>
+<tr><td><b>user_roles</b> (legacy)</td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>user_id</td><td>uuid</td><td>FK→users.id, NN</td><td></td></tr>
+<tr><td></td><td>role</td><td>text</td><td></td><td>Legacy enum — drop during migration</td></tr>
+<tr><td rowspan="7"><b>magic_tokens</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>user_id</td><td>uuid</td><td>FK→users.id</td><td>Set after find-or-create on verify</td></tr>
+<tr><td>token_hash</td><td>text</td><td>UK, NN</td><td>SHA-256 hash of the raw token</td></tr>
+<tr><td>email</td><td>text</td><td>NN</td><td>Denormalized for pre-registration tokens</td></tr>
+<tr><td>pledge_context</td><td>jsonb</td><td></td><td>{numTrees, tripId, dedication, …}</td></tr>
+<tr><td>device_fingerprint</td><td>text</td><td></td><td>Optional fraud signal</td></tr>
+<tr><td>expires_at / consumed_at</td><td>timestamptz</td><td></td><td>24h TTL; consumed_at null = unused</td></tr>
+<tr><td><b>ephemeral_sessions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>token</td><td>text</td><td>UK, NN</td><td>Random secret</td></tr>
+<tr><td></td><td>data</td><td>jsonb</td><td></td><td>Session payload</td></tr>
+<tr><td></td><td>expires_at</td><td>timestamptz</td><td></td><td></td></tr>
+<tr><td rowspan="5"><b>lodge_credentials</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>lodge_id</td><td>uuid</td><td>FK→lodges.id, NN</td><td>1:1 with lodges in practice</td></tr>
+<tr><td>username</td><td>text</td><td>UK, NN</td><td></td></tr>
+<tr><td>password_hash</td><td>text</td><td>NN</td><td>bcrypt</td></tr>
+<tr><td>active</td><td>boolean</td><td>default true</td><td></td></tr>
+<tr><td rowspan="3"><b>lodge_sessions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>lodge_credential_id</td><td>uuid</td><td>FK→lodge_credentials.id, NN</td><td></td></tr>
+<tr><td>token / expires_at</td><td>text / timestamptz</td><td>UK (token), NN</td><td>7-day expiry; replace with JWT if consolidating auth</td></tr>
+<tr><td rowspan="5"><b>auth_logs</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>user_id</td><td>uuid</td><td>FK→users.id</td><td>Null for failed attempts with no user yet</td></tr>
+<tr><td>event</td><td>text</td><td>NN</td><td>login | logout | signup | reset | verify | magic_link</td></tr>
+<tr><td>ip_address / user_agent</td><td>text</td><td></td><td></td></tr>
+<tr><td>success</td><td>boolean</td><td>NN, default true</td><td></td></tr>
+</table>
+
+<p><b>Relationships:</b> <code>users.role_id → roles</code> (many-to-one, every user has exactly one primary role). <code>users → user_roles</code> (one-to-many, legacy — drop). <code>users → magic_tokens</code> (one-to-many). <code>users → lodge_credentials</code> (one-to-many, but 1:1 in practice). <code>lodge_credentials → lodge_sessions</code> (one-to-many). <code>users → auth_logs</code> (one-to-many, append-only audit).</p>
+
+<h3>1c · Organizations & Permissions schema</h3>
+
+<table class="sch">
+<tr><th>Table</th><th>Column</th><th>Type</th><th>Constraints</th><th>References / Notes</th></tr>
+<tr><td rowspan="8"><b>organizations</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>name</td><td>text</td><td>NN</td><td></td></tr>
+<tr><td>description</td><td>text</td><td></td><td></td></tr>
+<tr><td>partner_type_id</td><td>uuid</td><td>FK→partner_types.id</td><td>Determines default module set</td></tr>
+<tr><td>status</td><td>text</td><td>default 'active'</td><td>active | suspended | archived</td></tr>
+<tr><td>verification_status</td><td>text</td><td></td><td>pending | verified | rejected</td></tr>
+<tr><td>settings</td><td>jsonb</td><td></td><td>Per-org config (branding, features)</td></tr>
+<tr><td>created_at / updated_at</td><td>timestamptz</td><td></td><td></td></tr>
+<tr><td><b>partner_types</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>name</td><td>text</td><td>UK, NN</td><td>owner | government_partner | …</td></tr>
+<tr><td></td><td>description</td><td>text</td><td></td><td></td></tr>
+<tr><td><b>partner_type_modules</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>partner_type_id</td><td>uuid</td><td>FK→partner_types.id, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td rowspan="5"><b>modules</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>key</td><td>text</td><td>UK, NN</td><td>trees | finance | mdm | nursery | reports | …</td></tr>
+<tr><td>name</td><td>text</td><td>NN</td><td>Human-readable</td></tr>
+<tr><td>description</td><td>text</td><td></td><td></td></tr>
+<tr><td>sort_order</td><td>integer</td><td>default 0</td><td>Sidebar ordering</td></tr>
+<tr><td><b>module_sub_actions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td></td><td>key</td><td>text</td><td>UK (module_id, key), NN</td><td>view | create | edit | delete | approve</td></tr>
+<tr><td></td><td>label</td><td>text</td><td>NN</td><td>"View trees", "Approve costs", …</td></tr>
+<tr><td></td><td>sort_order</td><td>integer</td><td>default 0</td><td></td></tr>
+<tr><td><b>organization_modules</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>organization_id</td><td>uuid</td><td>FK→organizations.id, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td></td><td>enabled</td><td>boolean</td><td>default false</td><td>Overrides partner_type_modules</td></tr>
+<tr><td></td><td>granted_at</td><td>timestamptz</td><td></td><td></td></tr>
+<tr><td rowspan="5"><b>org_users</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>organization_id</td><td>uuid</td><td>FK→organizations.id, NN</td><td></td></tr>
+<tr><td>user_id</td><td>uuid</td><td>FK→users.id, NN</td><td>UK (org_id, user_id)</td></tr>
+<tr><td>job_role</td><td>text</td><td></td><td>"Finance Manager", "Field Officer", …</td></tr>
+<tr><td>custom_role_id / status / joined_at</td><td>uuid / text / timestamptz</td><td>FK→org_custom_roles.id</td><td>status: active | invited | suspended</td></tr>
+<tr><td rowspan="4"><b>org_custom_roles</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td>organization_id</td><td>uuid</td><td>FK→organizations.id, NN</td><td></td></tr>
+<tr><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td>Role is scoped to one module</td></tr>
+<tr><td>name</td><td>text</td><td>NN</td><td>"Approver", "Viewer", …</td></tr>
+<tr><td><b>org_role_permissions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>custom_role_id</td><td>uuid</td><td>FK→org_custom_roles.id, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td></td><td>action</td><td>text</td><td>NN</td><td>view | create | edit | delete | approve</td></tr>
+<tr><td></td><td>allowed</td><td>boolean</td><td>NN, default true</td><td></td></tr>
+<tr><td><b>org_user_permissions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>org_user_id</td><td>uuid</td><td>FK→org_users.id, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td></td><td>action</td><td>text</td><td>NN</td><td></td></tr>
+<tr><td></td><td>allowed</td><td>boolean</td><td>NN, default true</td><td>User-level override</td></tr>
+<tr><td><b>org_job_role_defaults</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>organization_id</td><td>uuid</td><td>FK→organizations.id, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, NN</td><td></td></tr>
+<tr><td></td><td>job_role</td><td>text</td><td>UK (org_id, module_id, job_role), NN</td><td>"Finance Manager"</td></tr>
+<tr><td></td><td>default_permissions</td><td>jsonb</td><td>NN</td><td>{view: true, edit: true, …}</td></tr>
+<tr><td><b>tourist_module_permissions</b></td><td>id</td><td>uuid</td><td>PK, NN</td><td></td></tr>
+<tr><td></td><td>module_id</td><td>uuid</td><td>FK→modules.id, UK, NN</td><td>One row per module</td></tr>
+<tr><td></td><td>visible</td><td>boolean</td><td>NN, default false</td><td>Show in tourist sidebar?</td></tr>
+<tr><td></td><td>sort_order</td><td>integer</td><td>default 0</td><td></td></tr>
+</table>
+
+<p><b>Relationships:</b> <code>organizations → partner_types</code> (many-to-one). <code>partner_types → partner_type_modules → modules</code> (many-to-many). <code>organizations → organization_modules → modules</code> (many-to-many, overrides defaults). <code>organizations → org_users → users</code> (many-to-many). <code>org_users → org_custom_roles</code> (many-to-one, optional). <code>org_custom_roles → org_role_permissions</code> (one-to-many). <code>org_job_role_defaults → org_user_permissions</code> (seeds on invite). <code>modules → module_sub_actions</code> (one-to-many). <code>modules → tourist_module_permissions</code> (one-to-one toggle).</p>
+
+
+<h2 id="conventions">2 · API conventions & recommended stack</h2>
+<ul>
+<li><b>Stack:</b> Node.js 20+, Express or Fastify, Neon Postgres (serverless driver <code>@neondatabase/serverless</code> or plain <code>pg</code> with pooled connection string), Drizzle ORM (schema can be generated from the existing 149 migrations), <code>jsonwebtoken</code> for auth, <code>bcrypt</code> for password hashing, Zod for request validation, Resend/SES/Postmark for email (Supabase GoTrue currently sends all emails — you must bring a mailer).</li>
+<li><b>Base URL:</b> all endpoints below live under <code>/api/v1</code>.</li>
+<li><b>Auth:</b> <code>Authorization: Bearer &lt;JWT&gt;</code> access token (15 min) + httpOnly refresh-token cookie (30 days). JWT claims: <code>{ sub: user_id, role, organization_id }</code> — this replaces the <code>get_user_role</code> RPC round-trip on every route guard.</li>
+<li><b>Errors:</b> uniform <code>{ "error": { "code": "string", "message": "string" } }</code> with proper HTTP status. The Supabase client's <code>{ data, error }</code> shape disappears — wrap the new API client so pages keep a similar calling convention during migration.</li>
+<li><b>Pagination:</b> <code>?page=&amp;limit=</code> returning <code>{ data, total, page, limit }</code> on all list endpoints.</li>
+<li><b>Role middleware:</b> <code>requireAuth</code>, <code>requireRole('super_admin', …)</code>, <code>requireOrgAdmin(orgIdParam)</code>, <code>requireModulePermission(module, action)</code> — direct ports of <code>_shared/authz.ts</code> + the RLS helper functions.</li>
+</ul>
+<div class="fe"><b>Frontend wiring (global):</b> replace <code>src/integrations/supabase/client.ts</code> with a single <code>src/lib/api.ts</code> fetch wrapper that injects the Bearer token, auto-refreshes on 401, and returns <code>{ data, error }</code> so existing call sites migrate mechanically. Keep react-query as the cache layer — only the <code>queryFn</code> bodies change from <code>supabase.from(...)</code> to <code>api.get(...)</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="audit">3 · Current status audit — what's mock vs functional</h2>
+<p>Confirms the "frontend-heavy, not functional" read. Full-repo audit of every routed page:</p>
+
+<div class="overflow"><table>
+<tr><th>Area</th><th>Status today</th><th>What makes it functional</th></tr>
+<tr><td><b>Payments / checkout</b> (<code>TreePurchase.tsx</code>)</td><td><span class="tag mock">MOCK</span> Payment-method picker (Card / M-Pesa / Bank / PayPal) is cosmetic; payment reference is literally <code>SIMULATED-${Date.now()}</code>; UI says "Stripe (integration pending)". No payment SDK exists anywhere in <code>src/</code>.</td><td>§23 checkout + webhook endpoints with a real gateway.</td></tr>
+<tr><td><b>Agent offset payment</b> (<code>AgentCalculateOffset.tsx</code>)</td><td><span class="tag mock">MOCK</span> "Paid" checkbox just stamps <code>payment_date</code>.</td><td>§24 ticket creation + §23 payment flow if agents pay online, or keep as recorded-offline payment.</td></tr>
+<tr><td><b>Certificates</b></td><td><span class="tag mock">BROKEN</span> PDFs render client-side, but the <code>certificates</code> table is <i>read-only everywhere</i> — no code ever inserts a row, so "My certificates" lists are always empty. QR codes on certificates point to <code>/verify</code>, a route that doesn't exist → 404.</td><td>§23 server-side issuance (triggered by payment webhook) + public <code>/verify/:id</code> endpoint & page.</td></tr>
+<tr><td><b>Contributor updates</b> (<code>SendUpdateDialog.tsx</code>)</td><td><span class="tag mock">BROKEN</span> Invokes edge fn <code>send-contributor-update</code> which does not exist in the repo.</td><td>§24 <code>/send-update</code> endpoint + mailer.</td></tr>
+<tr><td><b>Email / SMS / push</b></td><td><span class="tag mock">MISSING</span> Notifications are in-app only (and only surfaced in the lodge portal). All email today is GoTrue auth email; the dedication-email TODO in checkout is unsent.</td><td>Mailer integration (§24) used by §24, §23, §23, §24, §23.</td></tr>
+<tr><td><b>Lodge: Performance page</b></td><td><span class="tag mock">MOCK 100%</span> Score 4.8/5, rank "#2 of 89 lodges", reviews from "Jane Doe / Mike Chen" — all hardcoded; no reviews table exists.</td><td>§23 performance endpoint (computable from real data) — reviews need a new table if wanted.</td></tr>
+<tr><td><b>Lodge: Help page & contact form</b></td><td><span class="tag mock">MOCK</span> Static guides/FAQ; contact form submits nowhere. <code>/lodge/settings</code> sidebar link → 404.</td><td>§23 support-request endpoint (or drop the form).</td></tr>
+<tr><td><b>Admin: 14 placeholder routes</b></td><td><span class="tag mock">MOCK</span> <code>/admin/access/custom</code>, <code>/admin/activity</code>, <code>/admin/audit</code>, <code>/admin/config/{system,payment,email,flags}</code>, <code>/admin/api/{keys,webhooks,logs}</code>, <code>/admin/security</code>, 3 user sub-pages — all render "Coming soon".</td><td>§24 config endpoints (API keys, audit, settings); build pages against them.</td></tr>
+<tr><td><b>Admin: God-Mode overview</b></td><td><span class="tag mock">PARTIAL</span> User/tree/transaction counts are real; growth percentages are literals and "active sessions" is <code>Math.random()</code>.</td><td>§24 <code>/admin/analytics/overview</code>.</td></tr>
+<tr><td><b>Admin: Financial transactions</b></td><td><span class="tag mock">PARTIAL</span> Derives "transactions" from the <code>trees</code> table, not from <code>partner_transactions</code>.</td><td>§24 <code>/finance/transactions</code>.</td></tr>
+<tr><td><b>Partner wizard step 4 (API integration)</b></td><td><span class="tag mock">MOCK</span> API/webhook config UI saves nothing.</td><td>§24 <code>/admin/api-keys</code>.</td></tr>
+<tr><td><b>Tourist: landing, <code>/certificates</code>, MyImpact bits</b></td><td><span class="tag mock">PARTIAL</span> Landing page fully static; <code>/certificates</code> route renders a literal "will be implemented next" stub; MyImpact share link targets <code>/impact/:userId</code> which isn't routed; Mapbox token hardcoded in source; carbon constants hardcoded.</td><td>§24 <code>/public/impact/:userId</code>, §23 certificate list, env-var the Mapbox token.</td></tr>
+<tr><td><b>Tourist: edit trip</b></td><td><span class="tag mock">TODO STUB</span> <code>MyTrips.tsx:190</code> shows a "will be implemented soon" toast.</td><td>§24 <code>PATCH /trips/:id</code>.</td></tr>
+<tr><td><b>Deep links</b></td><td><span class="tag mock">HALF-BUILT</span> Validation is wired into all pledge pages, but nothing ever <i>creates</i> a deep link (<code>deeplink-create</code> has zero callers — no QR/campaign minting UI).</td><td>§23 <code>/deeplinks</code> + an admin campaign screen.</td></tr>
+<tr><td><b>Disbursements / reimbursements</b></td><td><span class="tag mock">PARTIAL</span> Rows and status flags are real; no money actually moves.</td><td>§24 — fine as a ledger; add gateway/payout rails only if in scope.</td></tr>
+<tr><td><b>Everything else</b></td><td>Functional against Supabase: auth, magic links, pledge flow, trees/MDM/nursery ops, org permissions, agent tickets, institutional dashboards, Templates Studio, activity logs.</td><td>1:1 endpoint swap per sections below.</td></tr>
+</table></div>
+
+<div class="warn"><b>Dead code — don't migrate:</b> <code>travel_agent_sessions</code> + <code>is_agent_session_valid</code> (unused), <code>LodgeRoute.tsx</code>, unrouted pages <code>TechDashboard.tsx</code> / <code>OwnerSettings.tsx</code> / <code>InstitutionalAgentTickets.tsx</code>, legacy <code>TreesManagement.tsx</code> (shadowed by a duplicate <code>/admin/trees</code> route), and the duplicated unreachable <code>/lodge/*</code> route declarations in <code>App.tsx</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="auth">4 · Feature: Auth — tourist / admin / org users (JWT)</h2>
+<p>Replaces Supabase Auth (GoTrue) for everyone using <code>AuthContext</code>: tourists, super admins, owners, institutional partners, travel agents. Passwords move to bcrypt hashes in your own <code>users</code> table (the current <code>users.password_hash</code> column is only a <code>"set"</code> marker — real hashes live inside GoTrue and <b>cannot be exported as plaintext</b>; they can be exported as bcrypt hashes via Supabase's admin API/dump, or you force a reset-password flow on first login).</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method post">POST</td><td><code>/auth/signup</code></td><td><span class="tag replace">REPLACES</span> <code>supabase.auth.signUp</code>. Body <code>{email, password}</code>. Creates <code>users</code> row (replicating the <code>handle_new_user</code> trigger), sends verification email, returns <code>{needsEmailConfirmation:true}</code>. Must reproduce the "already registered" detection the UI relies on.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/login</code></td><td><span class="tag replace">REPLACES</span> <code>signInWithPassword</code>. Returns <code>{accessToken, user:{id, email, role, organizationId}}</code> + refresh cookie. Role comes back <i>in the login response</i> — kills the follow-up <code>get_user_role</code> RPC.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/refresh</code></td><td><span class="tag new">NEW</span> Rotate refresh cookie → new access token. Replaces supabase-js <code>autoRefreshToken</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/logout</code></td><td><span class="tag replace">REPLACES</span> <code>supabase.auth.signOut</code>. Revokes refresh token.</td></tr>
+<tr><td class="method get">GET</td><td><code>/auth/me</code></td><td><span class="tag new">NEW</span> Session hydration on app boot: <code>{user, role, organizationId}</code>. Replaces <code>onAuthStateChange</code> + <code>get_user_role</code> in every route guard (<code>ProtectedRoute</code>, <code>OwnerRoute</code>, <code>PortalGate</code>, …).</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/verify-email</code></td><td><span class="tag replace">REPLACES</span> GoTrue confirmation link. Body <code>{token}</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/resend-verification</code></td><td><span class="tag replace">REPLACES</span> <code>auth.resend({type:'signup'})</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/forgot-password</code></td><td><span class="tag replace">REPLACES</span> <code>resetPasswordForEmail</code>. Always 200 (no enumeration).</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/reset-password</code></td><td><span class="tag replace">REPLACES</span> reset flow + edge fn <code>set-password</code>. Body <code>{token, newPassword}</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/auth/google</code> → <code>/auth/google/callback</code></td><td><span class="tag replace">REPLACES</span> <code>signInWithOAuth({provider:'google'})</code> (tourist portal only, per <code>src/lib/portal.ts</code>). Standard OAuth2 code flow with Passport or <code>arctic</code>; callback issues the same JWT pair and redirects to <code>/auth/callback</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/set-password</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>set-password</code> (self-service, used after magic-link onboarding). Auth: own JWT.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> rewrite <code>src/contexts/AuthContext.tsx</code> to call these endpoints and keep the same exported interface (<code>signIn</code>, <code>signUp</code>, <code>resetPassword</code>, <code>user</code>, <code>session</code>) so the ~40 consumer components don't change. Store the access token in memory (context) and rely on the httpOnly refresh cookie for persistence; on boot call <code>/auth/me</code> once and pass role down — route guards then read role from context instead of calling an RPC each mount.</div>
+
+<!-- ============================================================ -->
+<h2 id="auth-magic">5 · Feature: Auth — magic links & pledge deep links</h2>
+<p>Replaces edge functions <code>magic-link-send</code>, <code>magic-link-verify</code>, <code>deeplink-create</code>, <code>deeplink-validate</code> and tables <code>magic_tokens</code> / <code>ephemeral_sessions</code>. Keep the same SHA-256-hashed single-use token design — it's good. You must add a real mailer: today the actual email is sent by GoTrue's <code>signInWithOtp</code>, which disappears with Supabase.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method post">POST</td><td><code>/auth/magic-link</code></td><td><span class="tag replace">REPLACES</span> <code>magic-link-send</code>. Body <code>{email, pledgeContext?, deviceFingerprint?}</code>. Rate-limit 5/email/hour (429), insert hashed token (24 h TTL), email link <code>${APP_URL}/auth/magic?token=…</code> via your mailer, write <code>auth_logs</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/magic-link/verify</code></td><td><span class="tag replace">REPLACES</span> <code>magic-link-verify</code>. Body <code>{token}</code>. Consume token → find-or-create user (email pre-verified) → if <code>pledge_context</code> carries <code>numTrees/tripId</code>, create the pledge <code>trees</code> row → return the <b>same JWT pair as /auth/login</b> plus <code>{isNewUser, redirectUrl, pledgeContext}</code>. No more GoTrue <code>action_link</code> double-redirect dance.</td></tr>
+<tr><td class="method post">POST</td><td><code>/deeplinks</code></td><td><span class="tag replace">REPLACES</span> <code>deeplink-create</code>. Body <code>{campaign?, tripId?, redirectUrl?, ttlSeconds=900, pledgeContext?}</code> → <code>{deepLinkUrl, universalLink, token, expiresAt}</code>. <b>Add rate limiting + an API key</b> — the current function is fully unauthenticated and unthrottled. Note: nothing in the UI calls create today (validation is wired into the pledge pages, creation has zero callers) — an admin "mint campaign QR/deep link" screen is the missing half.</td></tr>
+<tr><td class="method post">POST</td><td><code>/deeplinks/validate</code></td><td><span class="tag replace">REPLACES</span> <code>deeplink-validate</code>. Body <code>{token}</code> → single-use consume → <code>{pledgeContext, expiresIn}</code>. Drop the fake "ephemeral_token" the old function minted but never persisted.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> <code>src/utils/magicLinkAuth.ts</code> and <code>src/utils/deepLink.ts</code> are already thin fetch wrappers around the edge-function URLs — just point them at the new endpoints. <code>src/pages/auth/MagicLink.tsx</code> simplifies a lot: instead of redirecting to a GoTrue <code>authUrl</code> and round-tripping through <code>VerifyEmail.tsx</code> + sessionStorage, it verifies the token, stores the returned JWT via AuthContext, and navigates straight to <code>redirectUrl</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="auth-lodge">6 · Feature: Auth — lodge (username/password, custom sessions)</h2>
+<p>Replaces edge functions <code>lodge-login</code> / <code>lodge-session-validate</code> / <code>lodge-logout</code>, the service-role RPCs <code>verify_lodge_password</code> / <code>set_lodge_password</code>, and tables <code>lodge_credentials</code> / <code>lodge_sessions</code>. Recommended: fold lodges into the same JWT system with <code>role:'lodge'</code> and a <code>lodge_id</code> claim — one auth system instead of three. If you want zero frontend churn, mirror the current token contract instead (shown below).</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method post">POST</td><td><code>/auth/lodge/login</code></td><td><span class="tag replace">REPLACES</span> <code>lodge-login</code>. Body <code>{username, password}</code> → bcrypt check against <code>lodge_credentials</code> → <code>{sessionToken, expiresAt, lodge:{id,name,location}}</code> (7-day token in <code>lodge_sessions</code>), or a JWT if consolidating. Generic 401 message on any failure (current behavior, keep it).</td></tr>
+<tr><td class="method get">GET</td><td><code>/auth/lodge/session</code></td><td><span class="tag replace">REPLACES</span> <code>lodge-session-validate</code>. Header <code>x-lodge-session</code> → <code>{valid, lodge}</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/auth/lodge/logout</code></td><td><span class="tag replace">REPLACES</span> <code>lodge-logout</code>. Deletes the session row.</td></tr>
+<tr><td class="method put">PUT</td><td><code>/admin/lodges/:id/credentials</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>admin-set-lodge-password</code> + RPC <code>set_lodge_password</code>. Auth: platform admin. Body <code>{username, password}</code>; 409 on username collision.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> <code>src/contexts/LodgeAuthContext.tsx</code> keeps its exact shape (localStorage <code>lodge_session_token</code> + <code>lodge_id</code>, boot-time validate call) — only the three <code>functions.invoke(...)</code> calls change to fetches. <code>src/pages/lodge/PlantTree.tsx</code> keeps sending the token in the <code>x-lodge-session</code> header, now to <code>/lodge/trees/:id</code> (§23).</div>
+
+<!-- ============================================================ -->
+<h2 id="auth-agent">7 · Feature: Auth — travel agent</h2>
+<p><b>Good news:</b> despite its name, <code>AgentAuthContext</code> is <i>not</i> a separate auth system — agents log in through normal Supabase Auth, then the context checks <code>get_user_role === 'travel_agent'</code> and loads their <code>travel_agents</code> profile by email. The <code>travel_agent_sessions</code> table and <code>is_agent_session_valid</code> RPC are dead code — do not migrate them.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/agent/profile</code></td><td><span class="tag replace">REPLACES</span> the context's direct query on <code>travel_agents</code> (joined to <code>organizations(name)</code>) by session email. Auth: JWT with <code>role='travel_agent'</code>.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> agents use the same <code>/auth/login</code> as everyone else (§24). <code>AgentAuthContext</code> reduces to: read role from <code>/auth/me</code>; if <code>travel_agent</code>, fetch <code>/agent/profile</code>. Delete the sessions-table plumbing.</div>
+
+<!-- ============================================================ -->
+<h2 id="users">8 · Feature: Users, roles & profile</h2>
+<p>Replaces direct queries on <code>users</code> (76 call sites — the most-touched table), <code>roles</code>, <code>user_roles</code>, plus edge functions <code>delete-user</code> and <code>admin-set-user-password</code>.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/users/me</code></td><td><span class="tag replace">REPLACES</span> profile reads (<code>Profile.tsx</code>, dashboards): profile + <code>otot_id</code>, <code>pledge_status</code>, <code>total_donation</code>.</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/users/me</code></td><td><span class="tag replace">REPLACES</span> profile self-updates (name, phone, photo URL).</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/users</code></td><td><span class="tag replace">REPLACES</span> admin user-list queries. Filters: <code>?role=&amp;organization_id=&amp;search=&amp;pledge_status=</code>. Auth: platform admin.</td></tr>
+<tr><td class="method post">POST</td><td><code>/admin/users</code></td><td><span class="tag replace">REPLACES</span> edge fns <code>create-owner-user</code>, <code>create-partner-user</code>, <code>create-agent-user</code> — unify as one endpoint: body <code>{name, email, password, role, organization_id, category?}</code>. Keep the role rules: <code>government_partner</code> callers may only create agents inside their own org; owner/partner creation is platform-admin only. Idempotent on existing email (update password + role like today).</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/admin/users/:id</code></td><td><span class="tag replace">REPLACES</span> admin edits to <code>users</code> rows (role, org, active flags).</td></tr>
+<tr><td class="method put">PUT</td><td><code>/admin/users/:id/password</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>admin-set-user-password</code>. Auth: platform admin.</td></tr>
+<tr><td class="method del">DELETE</td><td><code>/admin/users/:id</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>delete-user</code>. Auth: super_admin only. Deletes <code>users</code> row + credentials; decide cascade policy for their trees/trips (today GoTrue user is deleted, app rows orphan).</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> admin user-management pages currently mix direct <code>supabase.from('users')</code> queries with <code>functions.invoke('create-*-user')</code> per audience — all of it converges on <code>/admin/users</code>. The three create dialogs (owner/partner/agent) become one API call with a different <code>role</code> value.</div>
+
+<!-- ============================================================ -->
+<h2 id="orgs">9 · Feature: Organizations, modules & permissions</h2>
+<p>Replaces direct CRUD on <code>organizations</code>, <code>partner_types</code>, <code>modules</code>, <code>organization_modules</code>, <code>org_users</code>, <code>org_custom_roles</code>, <code>org_role_permissions</code>, <code>org_user_permissions</code>, and edge fn <code>org-invite-user</code>. This powers <code>useModulePermissions</code> and all owner/institutional sidebars.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/admin/organizations</code> · <span class="method post">POST</span> <code>/admin/organizations</code> · <span class="method patch">PATCH</span> <code>/admin/organizations/:id</code></td><td><span class="tag replace">REPLACES</span> admin org CRUD (33 call sites). Include archive/verify/activate toggles as PATCH fields.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/partner-types</code> (+ POST/PATCH) and <code>/admin/partner-types/:id/modules</code></td><td><span class="tag replace">REPLACES</span> <code>partner_types</code> + <code>partner_type_modules</code> config CRUD.</td></tr>
+<tr><td class="method get">GET</td><td><code>/orgs/:orgId/modules</code> · <span class="method put">PUT</span> <code>/admin/organizations/:id/modules</code></td><td><span class="tag replace">REPLACES</span> <code>organization_modules</code> reads (sidebar building) and admin grants.</td></tr>
+<tr><td class="method get">GET</td><td><code>/orgs/:orgId/users</code></td><td><span class="tag replace">REPLACES</span> <code>useOrgUsers</code> queries on <code>org_users</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/orgs/:orgId/users/invite</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>org-invite-user</code>: create-or-update user + <code>org_users</code> row + seed <code>org_user_permissions</code> from <code>org_job_role_defaults</code>. Auth: org admin of <code>:orgId</code> (port of <code>isOrgAdminOf</code>).</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/orgs/:orgId/users/:orgUserId</code> · <span class="method del">DELETE</span> same</td><td><span class="tag replace">REPLACES</span> org-user edits (job role, custom role, status) and removal.</td></tr>
+<tr><td class="method get">GET</td><td><code>/orgs/:orgId/roles</code> (+ POST/PATCH/DELETE) and <code>/orgs/:orgId/roles/:roleId/permissions</code> (GET/PUT)</td><td><span class="tag replace">REPLACES</span> <code>org_custom_roles</code> + <code>org_role_permissions</code> CRUD (<code>useOrgCustomRoles</code>, <code>useOrgRolePermissions</code>).</td></tr>
+<tr><td class="method get">GET</td><td><code>/me/permissions</code></td><td><span class="tag new">NEW</span> One call returning the caller's <i>effective</i> module permissions — collapses the 4-table walk in <code>useModulePermissions</code> (users → org_users → org_custom_roles → org_role_permissions, fallback organization_modules, org_admin short-circuit) into a single server-side resolution. Also fold in the tourist toggles (<code>tourist_module_permissions</code>).</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> <code>useModulePermissions</code> and its sibling hooks become one <code>useQuery(['me','permissions'])</code> over <code>/me/permissions</code> — the client-side permission-resolution logic (and its subtle fallback bugs) is deleted, and sidebars/guards read from a single cached result. Admin config screens map 1:1 to the CRUD endpoints.</div>
+
+<!-- ============================================================ -->
+<h2 id="calculator">10 · Feature: CO₂ calculator & trips</h2>
+<p>Replaces direct CRUD on <code>trips</code> (20 call sites), <code>carbon_offset_calculations</code>, <code>tree_sequestration_rates</code>, and the browser's direct call to the external emission API (<code>VITE_EMISSION_API_URL</code>).</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method post">POST</td><td><code>/carbon/flight-estimate</code></td><td><span class="tag new">NEW</span> Proxy to the external emission API (moves <code>VITE_EMISSION_API_KEY</code> server-side — today the key ships in the JS bundle). Keeps the local-formula fallback. Body: <code>{legs:[{origin,destination,travelClass}], accommodation?}</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/carbon/species-rates</code></td><td><span class="tag replace">REPLACES</span> reads on <code>tree_sequestration_rates</code> (trees-needed math).</td></tr>
+<tr><td class="method post">POST</td><td><code>/carbon/calculations</code></td><td><span class="tag replace">REPLACES</span> inserts into <code>carbon_offset_calculations</code> (calculator session snapshot incl. <code>flight_legs_json</code>, <code>trees_needed</code>).</td></tr>
+<tr><td class="method post">POST</td><td><code>/trips</code></td><td><span class="tag replace">REPLACES</span> trip inserts. Server generates <code>friendly_trip_id</code> and stamps <code>organization_id</code> (ports the <code>generate_friendly_trip_id</code> + <code>stamp_trip_organization_id</code> triggers).</td></tr>
+<tr><td class="method get">GET</td><td><code>/trips</code> · <code>/trips/:id</code></td><td><span class="tag replace">REPLACES</span> "my trips" reads on dashboard/pledge pages. Scope by caller (own trips; org trips for agents/partners).</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/trips/:id</code></td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> Edit trip — the button in <code>MyTrips.tsx:190</code> is a "will be implemented soon" TODO toast today. Body: airports, travel class, dates; server recomputes CO₂/trees_needed.</td></tr>
+<tr><td class="method del">DELETE</td><td><code>/trips/:id</code></td><td><span class="tag replace">REPLACES</span> trip delete in <code>MyTrips.tsx</code> (own trips only; block if trees are already attached).</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> the calculator flow (<code>CO2Calculator.tsx</code> → sessionStorage <code>calculator-data</code> → pledge) stays client-driven; only the emission API call and the final persistence swap to these endpoints. Guest users can run the calculator unauthenticated — make <code>/carbon/flight-estimate</code> and <code>/carbon/species-rates</code> public, and persist the calculation/trip only once an identity exists (magic-link or login).</div>
+
+<!-- ============================================================ -->
+<h2 id="pledge">11 · Feature: Pledge / checkout / payments</h2>
+<p>The revenue path. Today: inserts into <code>tourist_purchases</code> + <code>trees</code>, with DB triggers (<code>sync_tourist_purchase_to_contribution</code>, <code>auto_allocate_tree</code>, <code>generate_contribution_id</code>, <code>calculate_wallet_allocation</code>) fanning out to the <code>contribution_tracking</code> ledger. <b>There is no real payment processor anywhere in the code</b> — "payment" is a form field. Making this functional needs a gateway integration.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/pledge/tiers</code></td><td><span class="tag replace">REPLACES</span> reads on <code>contribution_tiers</code> + <code>contribution_tier_visibility</code> (+ active <code>planting_cost_configs</code> pricing). Query: <code>?portal=tourist|agent|lodge</code>. Public.</td></tr>
+<tr><td class="method get">GET</td><td><code>/pledge/planting-locations</code></td><td><span class="tag replace">REPLACES</span> reads on <code>planting_locations</code> (<code>show_in_tourist</code>, ordered). Public.</td></tr>
+<tr><td class="method post">POST</td><td><code>/pledge/checkout</code></td><td><span class="tag new">NEW</span> Create a payment intent: body <code>{tierKey | numTrees, tripId?, dedication?, paymentMethod}</code> → creates a <i>pending</i> <code>tourist_purchases</code> row and returns the gateway checkout payload (Stripe PaymentIntent client secret / M-Pesa STK push / Flutterwave link — pick per market; M-Pesa matters for Kenya). Replaces today's "insert a purchase row and call it paid".</td></tr>
+<tr><td class="method post">POST</td><td><code>/payments/webhook/:provider</code></td><td><span class="tag new">NEW</span> Gateway webhook. On success: mark purchase paid → create <code>trees</code> row(s) → write <code>contribution_tracking</code> ledger row (port the sync triggers as one transactional service function) → update <code>users.pledge_status</code>/<code>total_donation</code> → queue certificate + notification. This transaction is the heart of the migration.</td></tr>
+<tr><td class="method get">GET</td><td><code>/pledge/purchases/:id</code></td><td><span class="tag new">NEW</span> Poll payment/fulfillment status for the post-checkout confirmation page.</td></tr>
+<tr><td class="method get">GET</td><td><code>/me/purchases</code></td><td><span class="tag replace">REPLACES</span> purchase-history reads on <code>tourist_purchases</code>.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> the three pledge variants (<code>Pledge.tsx</code>, <code>PledgeB.tsx</code>, <code>PledgeC.tsx</code>) keep their sessionStorage-driven step flow; the final "confirm" step changes from direct table inserts to <code>POST /pledge/checkout</code> → gateway UI → redirect to a confirmation page that polls <code>/pledge/purchases/:id</code>. Anonymous flows first pass through the magic-link capture (§23) so the purchase has a <code>user_id</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="trees">12 · Feature: Trees & lifecycle tracking</h2>
+<p>Replaces direct CRUD on <code>trees</code> (45 call sites), <code>tree_status_transitions</code> (21), <code>tree_geotags</code>, <code>tree_growth_metrics</code>, <code>tree_survival_tracking</code>/<code>tree_survival_records</code>, <code>tree_monitoring_logs</code>, <code>tree_planting_assignments</code>, <code>certificates</code>.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/me/trees</code></td><td><span class="tag replace">REPLACES</span> tourist "My Trees" reads (trees + geotags + latest status + photos, one joined payload).</td></tr>
+<tr><td class="method get">GET</td><td><code>/trees</code></td><td><span class="tag replace">REPLACES</span> scoped list for staff portals. Filters: <code>?status=&amp;planting_status=&amp;owner_org_id=&amp;lodge_id=&amp;beat_id=&amp;search=</code>. Auth middleware scopes by role (owner sees own org's, lodge sees own, admin sees all) — this is where the trees RLS policies land.</td></tr>
+<tr><td class="method get">GET</td><td><code>/trees/:id</code></td><td><span class="tag replace">REPLACES</span> detail reads: tree + transitions + growth metrics + geotag + impact records.</td></tr>
+<tr><td class="method post">POST</td><td><code>/trees/:id/transitions</code></td><td><span class="tag replace">REPLACES</span> inserts to <code>tree_status_transitions</code> (StatusTransitionPanel). Body <code>{toStatus, transitionData?, photos?}</code>. Server validates the status graph, updates <code>trees.status/planting_status</code>, and fires the <code>notify_tree_status_change</code> notification (ported trigger).</td></tr>
+<tr><td class="method put">PUT</td><td><code>/trees/:id/geotag</code></td><td><span class="tag replace">REPLACES</span> upserts on <code>tree_geotags</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/trees/:id/growth</code></td><td><span class="tag replace">REPLACES</span> inserts on <code>tree_growth_metrics</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/trees/:id/survival</code></td><td><span class="tag replace">REPLACES</span> both survival tables — consolidate on one (<code>tree_survival_records</code> has the proper enum) during migration.</td></tr>
+<tr><td class="method post">POST</td><td><code>/contributions/:contributionId/assignments</code></td><td><span class="tag replace">REPLACES</span> <code>tree_planting_assignments</code> CRUD (assign beat, nursery, planter, species, dates). Auth: owner org with module permission.</td></tr>
+<tr><td class="method post">POST</td><td><code>/contributions/:contributionId/monitoring</code></td><td><span class="tag replace">REPLACES</span> <code>tree_monitoring_logs</code> inserts (alive/dead/replaced rollups).</td></tr>
+<tr><td class="method get">GET</td><td><code>/public/impact/:userId</code></td><td><span class="tag new">NEW</span> Public read-only impact summary (trees, CO₂, map points). The MyImpact "share my impact" link already points to <code>/impact/:userId</code> — a route that 404s today. Add this endpoint + the public page it feeds.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> "My Trees" and the various owner/admin tree tables are the heaviest direct-query surfaces in the app — each page's react-query <code>queryFn</code> swaps to the scoped <code>/trees</code> list with filters matching its current <code>.eq()</code> chains. The status-transition panel posts to one endpoint instead of doing insert-transition + update-tree + insert-notification as three client-side writes (which is currently not atomic).</div>
+
+<!-- ============================================================ -->
+<h2 id="lodge">13 · Feature: Lodge portal</h2>
+<p>Replaces edge fn <code>lodge-update-tree</code>, direct reads on <code>trees</code>/<code>lodges</code>, and <code>reimbursements</code> CRUD + the <code>reimbursement-docs</code> bucket.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/lodge/trees</code></td><td><span class="tag replace">REPLACES</span> lodge dashboard tree list (<code>trees.lodge_id = session lodge</code>). Auth: lodge session/JWT.</td></tr>
+<tr><td class="method post">POST</td><td><code>/lodge/trees</code></td><td><span class="tag replace">REPLACES</span> the "plant a tree" insert from <code>PlantTree.tsx</code> (tree + photos + geotag in one call).</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/lodge/trees/:id</code></td><td><span class="tag replace">REPLACES</span> edge fn <code>lodge-update-tree</code>: partial update (type, plant date, lat/lng, carer, notes, images, status with enum validation), 403 unless the tree belongs to this lodge.</td></tr>
+<tr><td class="method get">GET</td><td><code>/lodge/reimbursements</code> · <span class="method post">POST</span> same</td><td><span class="tag replace">REPLACES</span> <code>reimbursements</code> reads/inserts (<code>LodgeReimbursements.tsx</code>). POST accepts uploaded document URLs (§24); server fires <code>notify_reimbursement_created</code>.</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/admin/reimbursements/:id</code></td><td><span class="tag replace">REPLACES</span> the legacy admin approve/reject updates on <code>reimbursements</code> (<code>admin/Reimbursements.tsx</code>) — status flags only; no money moves today.</td></tr>
+<tr><td class="method get">GET</td><td><code>/lodge/performance</code></td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> <code>LodgePerformance.tsx</code> is 100% hardcoded (fake score, fake rank, fake reviews). Compute the real half from existing data: trees planted vs targets, survival rate, avg time-to-planted, rank among lodges. Reviews need a new <code>lodge_reviews</code> table + tourist-facing submit endpoint if the feature is wanted — otherwise cut that card.</td></tr>
+<tr><td class="method post">POST</td><td><code>/support/requests</code></td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> The lodge Help contact form currently submits nowhere. Store + email to support. (Or delete the form.)</td></tr>
+<tr><td class="method get">GET</td><td><code>/lodge/notifications</code> (+ mark-read)</td><td><span class="tag replace">REPLACES</span> lodge notification inbox reads/updates — same handlers as §23, keyed by <code>recipient_type='lodge'</code>.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> lodge pages authenticate via <code>x-lodge-session</code> (or the consolidated JWT) — add that header in the shared api client when <code>LodgeAuthContext</code> is active. <code>PlantTree.tsx</code> currently does photo upload + tree insert + geotag as separate Supabase calls; collapse to upload (§24) then one POST.</div>
+
+<!-- ============================================================ -->
+<h2 id="agent">14 · Feature: Travel agent portal</h2>
+<p>Replaces direct CRUD on <code>agent_tickets</code> (17 call sites) and <code>travel_agents</code> (16), plus the ticket→contribution/trip sync triggers.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/agent/tickets</code></td><td><span class="tag replace">REPLACES</span> agent ticket-list reads (own <code>agent_id</code> scope). Filters: <code>?tree_status=&amp;ktb_payment_status=&amp;search=</code>.</td></tr>
+<tr><td class="method post">POST</td><td><code>/agent/tickets</code></td><td><span class="tag replace">REPLACES</span> ticket creation (PNR, ticket no., CO₂ fields, trees_needed). Server ports <code>sync_agent_ticket_to_contribution</code> + <code>sync_agent_ticket_to_trip</code> triggers: creates the trip + ledger rows transactionally.</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/agent/tickets/:id</code></td><td><span class="tag replace">REPLACES</span> ticket edits (status transitions, LPO number).</td></tr>
+<tr><td class="method get">GET</td><td><code>/agent/summary</code></td><td><span class="tag new">NEW</span> Dashboard aggregates (tickets, trees needed vs planted, KTB payment totals) — currently computed client-side over full table pulls.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/agents</code> (+ POST via §24, PATCH <code>/admin/agents/:id</code>)</td><td><span class="tag replace">REPLACES</span> admin/ministry management of <code>travel_agents</code> (activate/deactivate, org assignment).</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> agent pages already gate on role via <code>AgentRoute</code>; queries swap 1:1. Invoice/receipt URLs on tickets (<code>invoice_url</code>, <code>receipt_url</code>) come from the documents feature (§23) — generate server-side and store the URL on the ticket so the agent list can link them directly.</div>
+
+<!-- ============================================================ -->
+<h2 id="owner">15 · Feature: Owner portal (nurseries, species, MDM, planting ops)</h2>
+<p>Replaces direct CRUD on <code>nurseries</code>, <code>nursery_species</code>, <code>seed_species</code>, <code>seedling_batches</code>, <code>planting_records</code>, <code>monitoring_records</code>, <code>tree_carers</code>, the 5-level <code>mdm_location_*</code> hierarchy, and <code>mdm_audit_log</code>.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/owner/nurseries</code> (+ POST, PATCH/DELETE <code>/owner/nurseries/:id</code>)</td><td><span class="tag replace">REPLACES</span> nursery CRUD, scoped <code>owner_org_id = caller org</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/owner/nurseries/:id/species</code> (+ PUT)</td><td><span class="tag replace">REPLACES</span> <code>nursery_species</code> availability management (15 call sites).</td></tr>
+<tr><td class="method get">GET</td><td><code>/species</code> (+ admin POST/PATCH)</td><td><span class="tag replace">REPLACES</span> <code>seed_species</code> catalog reads (shared by owner + calculator).</td></tr>
+<tr><td class="method get">GET</td><td><code>/owner/batches</code> (+ POST/PATCH)</td><td><span class="tag replace">REPLACES</span> <code>seedling_batches</code> CRUD.</td></tr>
+<tr><td class="method get">GET</td><td><code>/owner/planting-records</code> (+ POST/PATCH) and nested <code>/monitoring</code></td><td><span class="tag replace">REPLACES</span> <code>planting_records</code> + <code>monitoring_records</code> CRUD (field ops).</td></tr>
+<tr><td class="method get">GET</td><td><code>/owner/carers</code> (+ POST/PATCH)</td><td><span class="tag replace">REPLACES</span> <code>tree_carers</code> registry (planters), incl. photo upload URL + beat assignment.</td></tr>
+<tr><td class="method get">GET</td><td><code>/mdm/locations?level=county|subcounty|block|station|beat&amp;parent_id=</code> (+ POST/PATCH/DELETE per level)</td><td><span class="tag replace">REPLACES</span> the 5 <code>mdm_location_*</code> tables' CRUD. Every write also appends <code>mdm_audit_log</code> server-side (14 call sites currently do this manually from the client).</td></tr>
+<tr><td class="method get">GET</td><td><code>/owner/dashboard-summary</code></td><td><span class="tag new">NEW</span> Aggregates for the owner dashboard (trees by status, survival rate, beat targets vs planted) — currently assembled from several full-table client pulls.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> owner pages are permission-gated by <code>useModulePermissions</code> — server must enforce the same module/action checks via <code>requireModulePermission</code> (from §23's resolver) so the UI toggles and API agree. MDM screens keep their tree-drilldown UX; the audit-log write moves out of the client entirely.</div>
+
+<!-- ============================================================ -->
+<h2 id="finance">16 · Feature: Finance — contributions ledger, disbursements, pricing</h2>
+<p>Replaces reads/writes on <code>contribution_tracking</code> (15 call sites), <code>partner_transactions</code>, <code>owner_disbursements</code>, <code>planting_cost_submissions</code>, <code>planting_cost_configs</code>, <code>wallet_settings</code>, and the reconciliation view/function.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/finance/contributions</code></td><td><span class="tag replace">REPLACES</span> ledger reads. Role-scoped: admin sees all; owner sees own-org rows; ministry sees institution rows. Filters: <code>?status=&amp;source_table=&amp;from=&amp;to=</code>.</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/finance/contributions/:contributionId/receipts</code></td><td><span class="tag replace">REPLACES</span> stakeholder receipt-confirmation updates (ktb/tech/institution/partner receipt ids + dates; ports <code>auto_populate_receipt_fields</code>).</td></tr>
+<tr><td class="method get">GET</td><td><code>/finance/disbursements</code> (+ POST, PATCH <code>/:id</code>)</td><td><span class="tag replace">REPLACES</span> <code>owner_disbursements</code> CRUD (KTB→owner payouts, reconciliation status).</td></tr>
+<tr><td class="method get">GET</td><td><code>/finance/transactions</code> (+ POST, PATCH <code>/:id/approve</code>)</td><td><span class="tag replace">REPLACES</span> <code>partner_transactions</code> incl. the approve step (<code>approved_by/at</code>).</td></tr>
+<tr><td class="method post">POST</td><td><code>/finance/cost-submissions</code> (+ GET list, PATCH <code>/:id/review</code>)</td><td><span class="tag replace">REPLACES</span> owner cost proposals (<code>planting_cost_submissions</code>) + admin review; review approval creates the new <code>planting_cost_configs</code> row and flips <code>is_active</code>, then notifies via <code>planting_cost_notifications</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/finance/active-config</code></td><td><span class="tag replace">REPLACES</span> <code>useActivePlantingConfig</code> reads (the active pricing config drives all tier pricing). Public read (pricing is shown to tourists).</td></tr>
+<tr><td class="method post">POST</td><td><code>/finance/reconcile</code></td><td><span class="tag replace">REPLACES</span> RPC <code>reconcile_contribution_sources()</code> + view <code>v_contribution_source_drift</code> (add GET <code>/finance/drift</code>). Auth: super_admin.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> financial dashboards (<code>OwnerFinancial.tsx</code>, admin wallet screens) currently pull raw ledger rows and aggregate in the browser — add server-side totals to the list responses (<code>{data, totals:{paid, received, retained, transferred}}</code>) so the UI stops recomputing money client-side. The realtime pricing-config subscription becomes a react-query refetch on the checkout page (§23).</div>
+
+<!-- ============================================================ -->
+<h2 id="institutional">17 · Feature: Institutional / ministry portal</h2>
+<p>Ministry (<code>government_partner</code>) users manage agents in their org, view org-scoped trees/trips/contributions, and track KTB payment status on agent tickets. Mostly reuses §24/§24/§24 endpoints with org scoping; the extra pieces:</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/institutional/summary</code></td><td><span class="tag new">NEW</span> Org-level dashboard aggregates (tickets, trees, CO₂, payment status counts) — currently client-side over full pulls.</td></tr>
+<tr><td class="method get">GET</td><td><code>/institutional/agents</code></td><td><span class="tag replace">REPLACES</span> org-scoped <code>travel_agents</code> reads; creation goes through <code>/admin/users</code> (§24) with the gov-partner same-org rule.</td></tr>
+<tr><td class="method patch">PATCH</td><td><code>/institutional/tickets/:id/payment-status</code></td><td><span class="tag replace">REPLACES</span> ministry updates to <code>agent_tickets.ktb_payment_status</code>.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> the institutional portal is served from <code>office.onetouristonetree.com</code> — host-based portal separation (<code>src/lib/portal.ts</code>, <code>PortalGate</code>) is purely client-side and survives unchanged; the server just enforces role+org on every request so the portal split is no longer trust-bearing.</div>
+
+<!-- ============================================================ -->
+<h2 id="admin">18 · Feature: Super-admin portal & platform config</h2>
+<p>Beyond user/org management (§24–7) and finance (§24), the admin portal owns platform config tables. All endpoints auth: <code>super_admin</code> (or <code>admin</code> where the current RLS allows).</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/admin/config/tiers</code> (+ POST/PATCH/DELETE, PUT <code>/:id/visibility</code>)</td><td><span class="tag replace">REPLACES</span> <code>contribution_tiers</code> + per-portal visibility CRUD.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/config/planting-locations</code> (+ POST/PATCH/DELETE)</td><td><span class="tag replace">REPLACES</span> <code>planting_locations</code> CRUD incl. photo + sort order.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/config/modules</code> (+ PATCH)</td><td><span class="tag replace">REPLACES</span> <code>modules</code> / <code>module_sub_actions</code> registry edits + tourist toggles (<code>tourist_module_permissions</code>).</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/config/wallet-settings</code> (+ PUT)</td><td><span class="tag replace">REPLACES</span> <code>wallet_settings</code> key/value edits (fee percentages).</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/api-keys</code> (+ POST, DELETE <code>/:id</code>)</td><td><span class="tag replace">REPLACES</span> <code>api_keys</code> management for partner API access (hash on create, show prefix only). Partner-facing API auth middleware validates <code>key_hash</code> + scopes + rate limit, logging to <code>integration_logs</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/analytics/overview</code></td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> Platform KPIs for the God-Mode dashboard. Today's page mixes real counts with literal growth percentages and <code>Math.random()</code> "active sessions" — replace with real aggregates (users, trees by status, revenue from the ledger, survival, signups over time).</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/settings</code> (+ PUT <code>/admin/settings/:key</code>)</td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> Backing for the placeholder config pages (<code>/admin/config/system</code>, <code>/payment</code>, <code>/email</code>, <code>/flags</code>): a namespaced key/value settings store (gateway keys, mailer sender, feature flags). Generalizes <code>wallet_settings</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/webhooks</code> (+ POST/PATCH/DELETE)</td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> Backing for <code>/admin/api/webhooks</code> and the partner-wizard's API step (currently saves nothing): partner webhook subscriptions + delivery log.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/integration-logs</code></td><td><span class="tag replace">REPLACES</span> <code>integration_logs</code> reads (AlertsPanel) and backs the <code>/admin/api/logs</code> placeholder page.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/audit</code></td><td><span class="tag new">NEW</span> <span class="tag mock">UI IS MOCK</span> Backing for <code>/admin/audit</code> + <code>/admin/security</code> placeholders: unified feed over <code>auth_logs</code> + <code>mdm_audit_log</code> + <code>activity_logs</code> with actor/resource filters.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> admin config pages are straightforward table CRUD — each maps to one endpoint group; the main change is that "God Mode" dashboards read pre-aggregated numbers instead of pulling whole tables.</div>
+
+<!-- ============================================================ -->
+<h2 id="certs">19 · Feature: Certificates, invoices, receipts & Templates Studio</h2>
+<p>Replaces <code>certificates</code>, <code>document_templates</code>, <code>template_designs</code>, <code>template_assignments</code>, <code>template_categories</code>, <code>template_engine_flags</code> CRUD. PDF generation is currently 100% client-side (jspdf/react-pdf) — recommended: move generation server-side so documents are durable, consistent, and emailable.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/templates/categories</code></td><td><span class="tag replace">REPLACES</span> category catalog reads (merge fields, page setup).</td></tr>
+<tr><td class="method get">GET</td><td><code>/templates</code> (+ POST, PATCH <code>/:id</code>, POST <code>/:id/designs</code>, POST <code>/:id/approve</code>)</td><td><span class="tag replace">REPLACES</span> Templates Studio CRUD: template headers, versioned <code>design_json</code>, approval workflow (<code>template_status</code>), engine flags.</td></tr>
+<tr><td class="method get">GET</td><td><code>/templates/resolve?category=&amp;orgId=&amp;portal=</code></td><td><span class="tag replace">REPLACES</span> <code>resolveTemplate.ts</code> scope/priority resolution (global &lt; portal &lt; partner) — move server-side so document rendering and the studio preview agree.</td></tr>
+<tr><td class="method post">POST</td><td><code>/documents/certificates</code></td><td><span class="tag new">NEW</span> Server-side certificate render for a tree/pledge: resolve template → render PDF (e.g. <code>@react-pdf/renderer</code> runs fine in Node, or Playwright HTML→PDF) → store (§24) → insert <code>certificates</code> row → return URL. Also triggered automatically by the payment webhook (§23).</td></tr>
+<tr><td class="method post">POST</td><td><code>/documents/invoices</code> · <code>/documents/receipts</code></td><td><span class="tag new">NEW</span> Same pattern for agent/B2B invoices and lodge receipts; store URL on <code>agent_tickets.invoice_url</code> / <code>partner_transactions</code>.</td></tr>
+<tr><td class="method get">GET</td><td><code>/me/certificates</code></td><td><span class="tag replace">REPLACES</span> tourist certificate list reads — which are <b>always empty today</b>: nothing in the codebase ever inserts a <code>certificates</code> row. The issuance endpoint above is what makes Dashboard/Profile certificate lists real.</td></tr>
+<tr><td class="method get">GET</td><td><code>/verify/:certificateId</code></td><td><span class="tag new">NEW</span> Public certificate verification. Every generated certificate already embeds a QR code pointing to <code>/verify</code> — <b>a route that doesn't exist, so all QR codes 404</b>. Return issued-to, tree count, date, validity; add the matching public page.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> tourist/agent UIs change from "generate PDF in the browser on click" to "GET the stored document URL" (with a generate-on-demand fallback for legacy rows). The Templates Studio editor keeps its client-side preview but saves designs and resolves the active template through the API, eliminating the drift between client resolver and rendered output.</div>
+
+<!-- ============================================================ -->
+
+<!-- ============================================================ -->
+
+<li><b>Stack:</b> Node.js 20+, Express or Fastify, Postgres (serverless driver <code>pg</code> with pooled connection string, or Drizzle ORM — schema can be generated from the existing 149 migrations), <code>jsonwebtoken</code> for auth, <code>bcrypt</code> for password hashing, Zod for request validation, Resend/SES/Postmark for email (Supabase GoTrue currently sends all emails — you must bring a mailer).</li>
+<li><b>Base URL:</b> all endpoints below live under <code>/api/v1</code>.</li>
+<li><b>Auth:</b> <code>Authorization: Bearer <JWT></code> access token (15 min) + httpOnly refresh-token cookie (30 days). JWT claims: <code>{ sub: user_id, role, organization_id }</code> — this replaces the <code>get_user_role</code> RPC round-trip on every route guard.</li>
+<li><b>Errors:</b> uniform <code>{ "error": { "code": "string", "message": "string" } }</code> with proper HTTP status. The Supabase client's <code>{ data, error }</code> shape disappears — wrap the new API client so pages keep a similar calling convention during migration.</li>
+<li><b>Pagination:</b> <code>?page=&limit=</code> returning <code>{ data, total, page, limit }</code> on all list endpoints.</li>
+<li><b>Role middleware:</b> <code>requireAuth</code>, <code>requireRole('super_admin', ...)</code>, <code>requireOrgAdmin(orgIdParam)</code>, <code>requireModulePermission(module, action)</code> — direct ports of <code>_shared/authz.ts</code> + the RLS helper functions.</li>
+<p><b>Frontend wiring (global):</b> replace <code>src/integrations/supabase/client.ts</code> with a single <code>src/lib/api.ts</code> fetch wrapper that injects the Bearer token, auto-refreshes on 401, and returns <code>{ data, error }</code> so existing call sites migrate mechanically. Keep react-query as the cache layer — only the <code>queryFn</code> bodies change from <code>supabase.from(...)</code> to <code>api.get(...)</code>.</p>
+
+<!-- ============================================================ -->
+
+<p>Confirms the &quot;frontend-heavy, not functional&quot; read. Full-repo audit of every routed page:</p>
+<div class="overflow"><table class="sch">
+<tr><th>Area</th><th>Status today</th><th>What makes it functional</th></tr>
+<tr><td></td><td>**Payments / checkout** (`TreePurchase.tsx`)</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK&lt;/span&gt; Payment-method picker is cosmetic; payment reference is literally `SIMULATED-${Date.now()}`. No payment SDK exists anywhere in `src/`.</td></tr>
+<tr><td></td><td>**Agent offset payment** (`AgentCalculateOffset.tsx`)</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK&lt;/span&gt; &quot;Paid&quot; checkbox just stamps `payment_date`.</td></tr>
+<tr><td></td><td>**Certificates**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;BROKEN&lt;/span&gt; PDFs render client-side, but the `certificates` table is read-only everywhere — no code ever inserts a row, so &quot;My certificates&quot; lists are always empty. QR codes on certificates point to `/verify`, a route that doesn&#x27;t exist → 404.</td></tr>
+<tr><td></td><td>**Contributor updates** (`SendUpdateDialog.tsx`)</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;BROKEN&lt;/span&gt; Invokes edge fn `send-contributor-update` which does not exist in the repo.</td></tr>
+<tr><td></td><td>**Email / SMS / push**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MISSING&lt;/span&gt; Notifications are in-app only (and only surfaced in the lodge portal). All email today is GoTrue auth email; the dedication-email TODO in checkout is unsent.</td></tr>
+<tr><td></td><td>**Lodge: Performance page**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK 100%&lt;/span&gt; Score 4.8/5, rank &quot;#2 of 89 lodges&quot;, reviews from &quot;Jane Doe / Mike Chen&quot; — all hardcoded; no reviews table exists.</td></tr>
+<tr><td></td><td>**Lodge: Help page &amp; contact form**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK&lt;/span&gt; Static guides/FAQ; contact form submits nowhere. `/lodge/settings` sidebar link → 404.</td></tr>
+<tr><td></td><td>**Admin: 14 placeholder routes**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK&lt;/span&gt; `/admin/access/custom`, `/admin/activity`, `/admin/audit`, `/admin/config/{system,payment,email,flags}`, `/admin/api/{keys,webhooks,logs}`, `/admin/security`, 3 user sub-pages — all render &quot;Coming soon&quot;.</td></tr>
+<tr><td></td><td>**Admin: God-Mode overview**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;MOCK&lt;/span&gt; User/tree/transaction counts are real; growth percentages are literals and &quot;active sessions&quot; is `Math.random()`.</td></tr>
+<tr><td></td><td>**Admin: Financial transactions**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;PARTIAL&lt;/span&gt; Derives &quot;transactions&quot; from the `trees` table, not from `partner_transactions`.</td></tr>
+<tr><td></td><td>**Tourist: landing, /certificates, MyImpact bits**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;PARTIAL&lt;/span&gt; Landing page fully static; `/certificates` route renders a literal &quot;will be implemented next&quot; stub; MyImpact share link targets `/impact/:userId` which isn&#x27;t routed; Mapbox token hardcoded in source.</td></tr>
+<tr><td></td><td>**Tourist: edit trip**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;TODO STUB&lt;/span&gt; `MyTrips.tsx:190` shows a &quot;will be implemented soon&quot; toast.</td></tr>
+<tr><td></td><td>**Deep links**</td><td>&lt;span style=&quot;background:#fdeee3;color:#b3541e;padding:1px 8px;border-radius:10px;font-size:.85em;font-weight:600&quot;&gt;HALF-BUILT&lt;/span&gt; Validation is wired into all pledge pages, but nothing ever creates a deep link (`deeplink-create` has zero callers — no QR/campaign minting UI).</td></tr>
+<tr><td></td><td>**Everything else**</td><td>Functional against Supabase: auth, magic links, pledge flow, trees/MDM/nursery ops, org permissions, agent tickets, institutional dashboards, Templates Studio, activity logs.</td></tr>
+</table></div>
+<p><b>Dead code — don&#x27;t migrate:</b> <code>travel_agent_sessions</code> + <code>is_agent_session_valid</code> (unused), <code>LodgeRoute.tsx</code>, unrouted pages <code>TechDashboard.tsx</code> / <code>OwnerSettings.tsx</code> / <code>InstitutionalAgentTickets.tsx</code>, legacy <code>TreesManagement.tsx</code> (shadowed by a duplicate <code>/admin/trees</code> route), and the duplicated unreachable <code>/lodge/*</code> route declarations in <code>App.tsx</code>.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces Supabase Auth (GoTrue) for everyone using <code>AuthContext</code>: tourists, super admins, owners, institutional partners, travel agents. Passwords move to bcrypt hashes in your own <code>users</code> table (the current <code>users.password_hash</code> column is only a <code>&quot;set&quot;</code> marker — real hashes live inside GoTrue and cannot be exported as plaintext; they can be exported as bcrypt hashes via Supabase&#x27;s admin API/dump, or you force a reset-password flow on first login).</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>POST</td><td>`/auth/signup`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/login`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/refresh`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/logout`</td></tr>
+<tr><td></td><td>GET</td><td>`/auth/me`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/verify-email`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/resend-verification`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/forgot-password`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/reset-password`</td></tr>
+<tr><td></td><td>GET</td><td>`/auth/google` → `/auth/google/callback`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> rewrite <code>src/contexts/AuthContext.tsx</code> to call these endpoints and keep the same exported interface (<code>signIn</code>, <code>signUp</code>, <code>resetPassword</code>, <code>user</code>, <code>session</code>) so the ~40 consumer components don&#x27;t change. Store the access token in memory (context) and rely on the httpOnly refresh cookie for persistence; on boot call <code>/auth/me</code> once and pass role down — route guards then read role from context instead of calling an RPC each mount.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces edge functions <code>magic-link-send</code>, <code>magic-link-verify</code>, <code>deeplink-create</code>, <code>deeplink-validate</code> and tables <code>magic_tokens</code> / <code>ephemeral_sessions</code>. Keep the same SHA-256-hashed single-use token design — it&#x27;s good. You must add a real mailer: today the actual email is sent by GoTrue&#x27;s <code>signInWithOtp</code>, which disappears with Supabase.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>POST</td><td>`/auth/magic-link`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/magic-link/verify`</td></tr>
+<tr><td></td><td>POST</td><td>`/deeplinks`</td></tr>
+<tr><td></td><td>POST</td><td>`/deeplinks/validate`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> <code>src/utils/magicLinkAuth.ts</code> and <code>src/utils/deepLink.ts</code> are already thin fetch wrappers around the edge-function URLs — just point them at the new endpoints. <code>src/pages/auth/MagicLink.tsx</code> simplifies a lot: instead of redirecting to a GoTrue <code>authUrl</code> and round-tripping through <code>VerifyEmail.tsx</code> + sessionStorage, it verifies the token, stores the returned JWT via AuthContext, and navigates straight to <code>redirectUrl</code>.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces edge functions <code>lodge-login</code> / <code>lodge-session-validate</code> / <code>lodge-logout</code>, the service-role RPCs <code>verify_lodge_password</code> / <code>set_lodge_password</code>, and tables <code>lodge_credentials</code> / <code>lodge_sessions</code>. Recommended: fold lodges into the same JWT system with <code>role:&#x27;lodge&#x27;</code> and a <code>lodge_id</code> claim — one auth system instead of three. If you want zero frontend churn, mirror the current token contract instead (shown below).</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>POST</td><td>`/auth/lodge/login`</td></tr>
+<tr><td></td><td>GET</td><td>`/auth/lodge/session`</td></tr>
+<tr><td></td><td>POST</td><td>`/auth/lodge/logout`</td></tr>
+<tr><td></td><td>PUT</td><td>`/admin/lodges/:id/credentials`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> <code>src/contexts/LodgeAuthContext.tsx</code> keeps its exact shape (localStorage <code>lodge_session_token</code> + <code>lodge_id</code>, boot-time validate call) — only the three <code>functions.invoke(...)</code> calls change to fetches. <code>src/pages/lodge/PlantTree.tsx</code> keeps sending the token in the <code>x-lodge-session</code> header, now to <code>/lodge/trees/:id</code> (section 13).</p>
+
+<!-- ============================================================ -->
+
+<p><b>Good news:</b> despite its name, <code>AgentAuthContext</code> is not a separate auth system — agents log in through normal Supabase Auth, then the context checks <code>get_user_role === &#x27;travel_agent&#x27;</code> and loads their <code>travel_agents</code> profile by email. The <code>travel_agent_sessions</code> table and <code>is_agent_session_valid</code> RPC are dead code — do not migrate them.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/agent/profile`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> agents use the same <code>/auth/login</code> as everyone else (section 4). <code>AgentAuthContext</code> reduces to: read role from <code>/auth/me</code>; if <code>travel_agent</code>, fetch <code>/agent/profile</code>. Delete the sessions-table plumbing.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct queries on <code>users</code> (76 call sites — the most-touched table), <code>roles</code>, <code>user_roles</code>, plus edge functions <code>delete-user</code> and <code>admin-set-user-password</code>.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/users/me`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/users/me`</td></tr>
+<tr><td></td><td>GET</td><td>`/admin/users`</td></tr>
+<tr><td></td><td>POST</td><td>`/admin/users`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/admin/users/:id`</td></tr>
+<tr><td></td><td>PUT</td><td>`/admin/users/:id/password`</td></tr>
+<tr><td></td><td>DELETE</td><td>`/admin/users/:id`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> admin user-management pages currently mix direct <code>supabase.from(&#x27;users&#x27;)</code> queries with <code>functions.invoke(&#x27;create-*-user&#x27;)</code> per audience — all of it converges on <code>/admin/users</code>. The three create dialogs (owner/partner/agent) become one API call with a different <code>role</code> value.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct CRUD on <code>organizations</code>, <code>partner_types</code>, <code>modules</code>, <code>organization_modules</code>, <code>org_users</code>, <code>org_custom_roles</code>, <code>org_role_permissions</code>, <code>org_user_permissions</code>, and edge fn <code>org-invite-user</code>. This powers <code>useModulePermissions</code> and all owner/institutional sidebars.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/admin/organizations` / `/:id`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/admin/partner-types` / `/:id/modules`</td></tr>
+<tr><td></td><td>GET/PUT</td><td>`/orgs/:orgId/modules` / `/admin/organizations/:id/modules`</td></tr>
+<tr><td></td><td>GET</td><td>`/orgs/:orgId/users`</td></tr>
+<tr><td></td><td>POST</td><td>`/orgs/:orgId/users/invite`</td></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/orgs/:orgId/roles` / `/:roleId/permissions`</td></tr>
+<tr><td></td><td>GET</td><td>`/me/permissions`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> <code>useModulePermissions</code> and its sibling hooks become one <code>useQuery([&#x27;me&#x27;,&#x27;permissions&#x27;])</code> over <code>/me/permissions</code> — the client-side permission-resolution logic (and its subtle fallback bugs) is deleted, and sidebars/guards read from a single cached result. Admin config screens map 1:1 to the CRUD endpoints.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct CRUD on <code>trips</code> (20 call sites), <code>carbon_offset_calculations</code>, <code>tree_sequestration_rates</code>, and the browser&#x27;s direct call to the external emission API (<code>VITE_EMISSION_API_URL</code>).</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>POST</td><td>`/carbon/flight-estimate`</td></tr>
+<tr><td></td><td>GET</td><td>`/carbon/species-rates`</td></tr>
+<tr><td></td><td>POST</td><td>`/carbon/calculations`</td></tr>
+<tr><td></td><td>POST</td><td>`/trips`</td></tr>
+<tr><td></td><td>GET</td><td>`/trips` · `/trips/:id`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/trips/:id`</td></tr>
+<tr><td></td><td>DELETE</td><td>`/trips/:id`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> the calculator flow (<code>CO2Calculator.tsx</code> → sessionStorage <code>calculator-data</code> → pledge) stays client-driven; only the emission API call and the final persistence swap to these endpoints. Guest users can run the calculator unauthenticated — make <code>/carbon/flight-estimate</code> and <code>/carbon/species-rates</code> public, and persist the calculation/trip only once an identity exists (magic-link or login).</p>
+
+<!-- ============================================================ -->
+
+<p>The revenue path. Today: inserts into <code>tourist_purchases</code> + <code>trees</code>, with DB triggers fanning out to the <code>contribution_tracking</code> ledger. There is no real payment processor anywhere in the code — &quot;payment&quot; is a form field. Making this functional needs a gateway integration.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/pledge/tiers`</td></tr>
+<tr><td></td><td>GET</td><td>`/pledge/planting-locations`</td></tr>
+<tr><td></td><td>POST</td><td>`/pledge/checkout`</td></tr>
+<tr><td></td><td>POST</td><td>`/payments/webhook/:provider`</td></tr>
+<tr><td></td><td>GET</td><td>`/pledge/purchases/:id`</td></tr>
+<tr><td></td><td>GET</td><td>`/me/purchases`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> the three pledge variants (<code>Pledge.tsx</code>, <code>PledgeB.tsx</code>, <code>PledgeC.tsx</code>) keep their sessionStorage-driven step flow; the final &quot;confirm&quot; step changes from direct table inserts to <code>POST /pledge/checkout</code> → gateway UI → redirect to a confirmation page that polls <code>/pledge/purchases/:id</code>. Anonymous flows first pass through the magic-link capture (section 5) so the purchase has a <code>user_id</code>.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct CRUD on <code>trees</code> (45 call sites), <code>tree_status_transitions</code> (21), <code>tree_geotags</code>, <code>tree_growth_metrics</code>, <code>tree_survival_tracking</code>/<code>tree_survival_records</code>, <code>tree_monitoring_logs</code>, <code>tree_planting_assignments</code>, <code>certificates</code>.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/me/trees`</td></tr>
+<tr><td></td><td>GET</td><td>`/trees`</td></tr>
+<tr><td></td><td>GET</td><td>`/trees/:id`</td></tr>
+<tr><td></td><td>POST</td><td>`/trees/:id/transitions`</td></tr>
+<tr><td></td><td>PUT</td><td>`/trees/:id/geotag`</td></tr>
+<tr><td></td><td>POST</td><td>`/trees/:id/growth`</td></tr>
+<tr><td></td><td>POST</td><td>`/trees/:id/survival`</td></tr>
+<tr><td></td><td>POST</td><td>`/contributions/:contributionId/assignments`</td></tr>
+<tr><td></td><td>POST</td><td>`/contributions/:contributionId/monitoring`</td></tr>
+<tr><td></td><td>GET</td><td>`/public/impact/:userId`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> &quot;My Trees&quot; and the various owner/admin tree tables are the heaviest direct-query surfaces in the app — each page&#x27;s react-query <code>queryFn</code> swaps to the scoped <code>/trees</code> list with filters matching its current <code>.eq()</code> chains. The status-transition panel posts to one endpoint instead of doing insert-transition + update-tree + insert-notification as three client-side writes (which is currently not atomic).</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces edge fn <code>lodge-update-tree</code>, direct reads on <code>trees</code>/<code>lodges</code>, and <code>reimbursements</code> CRUD + the <code>reimbursement-docs</code> bucket.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/lodge/trees`</td></tr>
+<tr><td></td><td>POST</td><td>`/lodge/trees`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/lodge/trees/:id`</td></tr>
+<tr><td></td><td>GET/POST</td><td>`/lodge/reimbursements`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/admin/reimbursements/:id`</td></tr>
+<tr><td></td><td>GET</td><td>`/lodge/performance`</td></tr>
+<tr><td></td><td>POST</td><td>`/support/requests`</td></tr>
+<tr><td></td><td>GET</td><td>`/lodge/notifications`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> lodge pages authenticate via <code>x-lodge-session</code> (or the consolidated JWT) — add that header in the shared api client when <code>LodgeAuthContext</code> is active. <code>PlantTree.tsx</code> currently does photo upload + tree insert + geotag as separate Supabase calls; collapse to upload (section 22) then one POST.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct CRUD on <code>agent_tickets</code> (17 call sites) and <code>travel_agents</code> (16), plus the ticket→contribution/trip sync triggers.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/agent/tickets`</td></tr>
+<tr><td></td><td>POST</td><td>`/agent/tickets`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/agent/tickets/:id`</td></tr>
+<tr><td></td><td>GET</td><td>`/agent/summary`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/admin/agents` / `/:id`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> agent pages already gate on role via <code>AgentRoute</code>; queries swap 1:1. Invoice/receipt URLs on tickets (<code>invoice_url</code>, <code>receipt_url</code>) come from the documents feature (section 19) — generate server-side and store the URL on the ticket so the agent list can link them directly.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces direct CRUD on <code>nurseries</code>, <code>nursery_species</code>, <code>seed_species</code>, <code>seedling_batches</code>, <code>planting_records</code>, <code>monitoring_records</code>, <code>tree_carers</code>, the 5-level <code>mdm_location_*</code> hierarchy, and <code>mdm_audit_log</code>.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/owner/nurseries` / `/:id`</td></tr>
+<tr><td></td><td>GET/PUT</td><td>`/owner/nurseries/:id/species`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/species`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/owner/batches`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/owner/planting-records` + nested `/monitoring`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/owner/carers`</td></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/mdm/locations?level=county</td></tr>
+<tr><td></td><td>GET</td><td>`/owner/dashboard-summary`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> owner pages are permission-gated by <code>useModulePermissions</code> — server must enforce the same module/action checks via <code>requireModulePermission</code> (from section 2&#x27;s resolver) so the UI toggles and API agree. MDM screens keep their tree-drilldown UX; the audit-log write moves out of the client entirely.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces reads/writes on <code>contribution_tracking</code> (15 call sites), <code>partner_transactions</code>, <code>owner_disbursements</code>, <code>planting_cost_submissions</code>, <code>planting_cost_configs</code>, <code>wallet_settings</code>, and the reconciliation view/function.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/finance/contributions`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/finance/contributions/:contributionId/receipts`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/finance/disbursements` / `/:id`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/finance/transactions` / `/:id/approve`</td></tr>
+<tr><td></td><td>POST/GET/PATCH</td><td>`/finance/cost-submissions` / `/:id/review`</td></tr>
+<tr><td></td><td>GET</td><td>`/finance/active-config`</td></tr>
+<tr><td></td><td>POST</td><td>`/finance/reconcile`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> financial dashboards (<code>OwnerFinancial.tsx</code>, admin wallet screens) currently pull raw ledger rows and aggregate in the browser — add server-side totals to the list responses (<code>{data, totals:{paid, received, retained, transferred}}</code>) so the UI stops recomputing money client-side. The realtime pricing-config subscription becomes a react-query refetch on the checkout page (section 11).</p>
+
+<!-- ============================================================ -->
+
+<p>Ministry (<code>government_partner</code>) users manage agents in their org, view org-scoped trees/trips/contributions, and track KTB payment status on agent tickets. Mostly reuses sections 9/14/16 endpoints with org scoping; the extra pieces:</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/institutional/summary`</td></tr>
+<tr><td></td><td>GET</td><td>`/institutional/agents`</td></tr>
+<tr><td></td><td>PATCH</td><td>`/institutional/tickets/:id/payment-status`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> the institutional portal is served from <code>office.onetouristonetree.com</code> — host-based portal separation (<code>src/lib/portal.ts</code>, <code>PortalGate</code>) is purely client-side and survives unchanged; the server just enforces role+org on every request so the portal split is no longer trust-bearing.</p>
+
+<!-- ============================================================ -->
+
+<p>Beyond user/org management (sections 8–9) and finance (section 16), the admin portal owns platform config tables. All endpoints auth: <code>super_admin</code> (or <code>admin</code> where the current RLS allows).</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/admin/config/tiers` / `/:id/visibility`</td></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/admin/config/planting-locations`</td></tr>
+<tr><td></td><td>GET/PATCH</td><td>`/admin/config/modules`</td></tr>
+<tr><td></td><td>GET/PUT</td><td>`/admin/config/wallet-settings`</td></tr>
+<tr><td></td><td>GET/POST/DELETE</td><td>`/admin/api-keys` / `/:id`</td></tr>
+<tr><td></td><td>GET</td><td>`/admin/analytics/overview`</td></tr>
+<tr><td></td><td>GET/PUT</td><td>`/admin/settings` / `/:key`</td></tr>
+<tr><td></td><td>GET/POST/PATCH/DELETE</td><td>`/admin/webhooks`</td></tr>
+<tr><td></td><td>GET</td><td>`/admin/integration-logs`</td></tr>
+<tr><td></td><td>GET</td><td>`/admin/audit`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> admin config pages are straightforward table CRUD — each maps to one endpoint group; the main change is that &quot;God Mode&quot; dashboards read pre-aggregated numbers instead of pulling whole tables.</p>
+
+<!-- ============================================================ -->
+
+<p>Replaces <code>certificates</code>, <code>document_templates</code>, <code>template_designs</code>, <code>template_assignments</code>, <code>template_categories</code>, <code>template_engine_flags</code> CRUD. PDF generation is currently 100% client-side (jspdf/react-pdf) — recommended: move generation server-side so documents are durable, consistent, and emailable.</p>
+<div class="overflow"><table class="sch">
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td></td><td>GET</td><td>`/templates/categories`</td></tr>
+<tr><td></td><td>GET/POST/PATCH</td><td>`/templates` + `/:id/designs` + `/:id/approve`</td></tr>
+<tr><td></td><td>GET</td><td>`/templates/resolve?category=&amp;orgId=&amp;portal=`</td></tr>
+<tr><td></td><td>POST</td><td>`/documents/certificates`</td></tr>
+<tr><td></td><td>POST</td><td>`/documents/invoices` · `/documents/receipts`</td></tr>
+<tr><td></td><td>GET</td><td>`/me/certificates`</td></tr>
+<tr><td></td><td>GET</td><td>`/verify/:certificateId`</td></tr>
+</table></div>
+<p><b>Frontend wiring:</b> tourist/agent UIs change from &quot;generate PDF in the browser on click&quot; to &quot;GET the stored document URL&quot; (with a generate-on-demand fallback for legacy rows). The Templates Studio editor keeps its client-side preview but saves designs and resolves the active template through the API, eliminating the drift between client resolver and rendered output.</p>
+
+<h2 id="engagement">20 · Feature: Impact logs, engagement & contributor updates</h2>
+<p>Replaces the <code>contribution_id</code>-keyed log tables (<code>impact_metrics</code>, <code>carbon_metrics_logs</code>, <code>community_impact</code>, <code>community_impact_logs</code>, <code>ecosystem_impact_logs</code>, <code>monitoring_logs</code>, <code>engagement_activities</code>, <code>tree_impact_records</code>) and the <b>missing</b> <code>send-contributor-update</code> function.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/contributions/:contributionId/impact</code></td><td><span class="tag replace">REPLACES</span> combined impact reads (metrics + logs + photos) for tourist "impact" views and owner logging screens.</td></tr>
+<tr><td class="method post">POST</td><td><code>/contributions/:contributionId/impact-logs</code></td><td><span class="tag replace">REPLACES</span> inserts across the log tables (body includes <code>type: carbon|community|ecosystem|monitoring|engagement</code> — consider consolidating these near-identical tables into one during migration).</td></tr>
+<tr><td class="method post">POST</td><td><code>/contributions/:contributionId/send-update</code></td><td><span class="tag new">NEW</span> The UI (<code>SendUpdateDialog.tsx</code>) invokes edge fn <code>send-contributor-update</code> — <b>which does not exist in the repo</b>. Implement it here: compose email (recipient, subject, message, optional impact summary + photos) → send via mailer → log to <code>engagement_activities</code>. This is a currently-broken feature this endpoint makes functional.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> <code>ImpactLogSliders.tsx</code> and the engagement screens post to the consolidated log endpoint with a <code>type</code> discriminator; <code>SendUpdateDialog</code> finally works by pointing at <code>/send-update</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="notifications">21 · Feature: Notifications & activity logs</h2>
+<p>Replaces <code>notifications</code> reads, the notify-* DB triggers, <code>activity_logs</code> + the client-side monkey-patch, and <code>auth_logs</code>.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method get">GET</td><td><code>/me/notifications</code> · <span class="method patch">PATCH</span> <code>/me/notifications/:id/read</code> · <span class="method post">POST</span> <code>/me/notifications/read-all</code></td><td><span class="tag replace">REPLACES</span> notification bell reads/updates. Creation happens server-side inside the relevant services (tree status change, reimbursement created, allocation, cost workflow) — ports of the <code>notify_*</code> triggers.</td></tr>
+<tr><td class="method get">GET</td><td><code>/admin/activity-logs</code> and <code>/orgs/:orgId/activity-logs</code></td><td><span class="tag replace">REPLACES</span> ActivityFeed + org LogsTab reads. Filters: <code>?action_type=&amp;resource_type=&amp;from=&amp;to=</code>.</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> <b>delete the <code>supabase.from()</code> monkey-patch</b> in <code>client.ts</code> — activity logging becomes Express middleware that records every authenticated mutation (route, actor, org, resource) automatically, which is both complete and tamper-proof (today a client can simply not log). Page-view logging (<code>useAutoPageViewLogger</code>) can keep posting to a lightweight <code>POST /activity/page-view</code>.</div>
+
+<!-- ============================================================ -->
+<h2 id="uploads">22 · Feature: File uploads (Supabase Storage replacement)</h2>
+<p>Replaces buckets <code>lodge-photos</code>, <code>reimbursement-docs</code> (private), <code>profile-photos</code>, <code>planting-photos</code>. Recommended: S3-compatible object storage (Cloudflare R2 is the cheap default) with <b>presigned upload URLs</b> so files never pass through the Node server.</p>
+
+<div class="overflow"><table>
+<tr><th>Method</th><th>Endpoint</th><th>Purpose / replaces</th></tr>
+<tr><td class="method post">POST</td><td><code>/uploads/presign</code></td><td><span class="tag new">NEW</span> Body <code>{purpose: 'lodge-photo'|'reimbursement-doc'|'profile-photo'|'planting-photo', filename, contentType}</code> → validates MIME/size per purpose (5–10 MB caps as today) → returns <code>{uploadUrl, fileUrl}</code>. Client PUTs the file to <code>uploadUrl</code>, then stores <code>fileUrl</code> in the relevant record exactly as it stores public URLs now.</td></tr>
+<tr><td class="method get">GET</td><td><code>/uploads/reimbursement-docs/:key</code></td><td><span class="tag new">NEW</span> Authenticated redirect to a presigned GET for the <i>private</i> bucket. (Note: the current code calls <code>getPublicUrl</code> on this private bucket — those links are already broken; this endpoint fixes that too.)</td></tr>
+</table></div>
+
+<div class="fe"><b>Frontend wiring:</b> every <code>.upload() + .getPublicUrl()</code> pair (PlantTree, LodgeReimbursements, Profile, OwnerMdmPlanters, ImpactLogSliders, StatusTransitionPanel, OwnerOrders, PlantingLocationsConfig) becomes presign → PUT → save URL. Wrap it once as <code>uploadFile(purpose, file): Promise&lt;url&gt;</code> in the api client and swap call sites mechanically.</div>
+
+<!-- ============================================================ -->
+<h2 id="realtime">23 · Feature: Realtime replacement</h2>
+<p>Only three <code>postgres_changes</code> subscriptions exist, and none needs true websockets:</p>
+<ul>
+<li><b>Admin ActivityFeed</b> — already polls every 5 s alongside the subscription; keep polling <code>GET /admin/activity-logs?after=&lt;cursor&gt;</code>.</li>
+<li><b>Org LogsTab</b> — subscription only triggers a refetch; use react-query <code>refetchInterval</code> on <code>/orgs/:orgId/activity-logs</code>.</li>
+<li><b>useActivePlantingConfig</b> — subscription only invalidates the cache; poll <code>/finance/active-config</code> with a 60 s <code>staleTime</code> (pricing changes are rare).</li>
+</ul>
+<div class="fe"><b>Frontend wiring:</b> delete the three <code>supabase.channel()</code> blocks and set <code>refetchInterval</code> on the corresponding queries. If live push is ever genuinely needed, add one SSE endpoint backed by Postgres LISTEN/NOTIFY later — don't build it for the migration.</div>
+
+<!-- ============================================================ -->
+<h2 id="gotchas">24 · Migration gotchas & landmines</h2>
+<ul>
+<li><b>Passwords:</b> GoTrue stores bcrypt hashes — export them via Supabase's admin tooling into your <code>users.password_hash</code> (bcrypt verifies identically in Node), or force password reset on first login. The current <code>users.password_hash = "set"</code> marker is not a hash.</li>
+<li><b>Stale generated types:</b> <code>src/integrations/supabase/types.ts</code> predates the lodge-auth hardening migration — it still shows <code>lodges.username/password_hash</code> (dropped) and lacks <code>lodge_credentials</code>. Derive the Neon schema from the migrations, not from types.ts.</li>
+<li><b>Enum bug to fix in transit:</b> <code>magic-link-verify</code> inserts <code>purchase_type: "Direct"</code> which isn't in the <code>purchase_type</code> enum (<code>One-time | Subscription</code>) — that pledge insert silently fails today. Fix the value when porting (§23).</li>
+<li><b>~60 DB triggers</b> (ID generation, ledger sync, auto-allocation, notifications, <code>updated_at</code>) must be ported — recommended as explicit service-layer transactions in Node rather than re-created as triggers, so the logic is testable and visible. Keep <code>updated_at</code> as a trigger; port the business ones into code.</li>
+<li><b>Polymorphic keys:</b> <code>contribution_tracking.source_table/source_id</code> and the text business key <code>contribution_id</code> shared across ~10 tables have no FK enforcement — keep the reconciliation endpoint (§24) and consider adding real FKs where the data allows.</li>
+<li><b>Duplicate systems to consolidate during migration:</b> two role systems (<code>users.role_id→roles</code> vs legacy <code>user_roles</code> enum — keep <code>roles</code>), two survival tables (keep <code>tree_survival_records</code>), legacy <code>stakeholder_*</code> naming remnants, dead <code>travel_agent_sessions</code>.</li>
+<li><b>Email:</b> Supabase sent every email (signup confirm, reset, magic link, OTP). Budget a mailer integration + templates for all of §24–3 and §24 before cutover.</li>
+<li><b>RLS → middleware parity:</b> 368 policies collapse into the role/org/module middleware of §24. Write a test matrix per endpoint (role × ownership) — this is where migrations quietly create data leaks.</li>
+<li><b>Neon specifics:</b> use the pooled connection string for the API; enable <code>pg_cron</code> replacement via a Node cron (token cleanup <code>cleanup_expired_tokens</code>, session expiry sweeps). Neon has no storage/auth/functions — that's exactly what §24–5, §23 and §24 replace.</li>
+</ul>
+
+<p class="sub" style="margin-top:3em">— End of migration plan. Built from a full audit of the repo: every route in <code>App.tsx</code>, all 17 edge functions, the 149 SQL migrations, and every <code>supabase.from()/rpc()/storage</code> call site in <code>src/</code>.</p>
+
+</div>
+</body>
+</html>

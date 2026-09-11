@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTOT — Data Model Diagram</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8faf9;
+    --surface: #ffffff;
+    --ink: #1a2b23;
+    --muted: #5b6b62;
+    --line: #dde5e0;
+    --accent: #1d6b45;
+    --accent-soft: #eaf4ee;
+    --code-bg: #f4f7f5;
+    --domain-auth: #e8f5ec;
+    --domain-org: #e3edff;
+    --domain-trip: #fff7e8;
+    --domain-pledge: #fdeee3;
+    --domain-tree: #eaf4ee;
+    --domain-ledger: #f3e8ff;
+    --domain-agent: #e3edff;
+    --domain-lodge: #fff3e0;
+    --domain-nursery: #e8f5ec;
+    --domain-mdm: #fce4ec;
+    --domain-doc: #e3edff;
+    --domain-impact: #fff7e8;
+    --domain-platform: #f3f4f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 28px 32px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header h1 { font-size: 1.5rem; }
+  .header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .controls button:hover { background: var(--accent); color: white; }
+  .controls button.active { background: var(--accent); color: white; }
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .swatch {
+    width: 12px; height: 12px; border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  .diagram-wrap {
+    padding: 24px 32px 80px;
+    overflow: auto;
+  }
+  .diagram-wrap svg {
+    max-width: 100%;
+    height: auto;
+  }
+  .note {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    padding: 12px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 0 32px 24px;
+    font-size: 0.88rem;
+  }
+  .note b { color: var(--accent); }
+  .section-label {
+    padding: 16px 32px 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    margin-top: 8px;
+  }
+  .section-label:first-child { border-top: none; margin-top: 0; }
+  .mermaid .er .entity { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>OTOT — Proposed Data Model</h1>
+  <p>Entity-relationship diagram for the Neon Postgres migration · Supabase → Node.js API</p>
+  <div class="controls">
+    <button class="active" onclick="showAll()">All domains</button>
+    <button onclick="showDomain('auth')">Identity & Auth</button>
+    <button onclick="showDomain('org')">Orgs & Permissions</button>
+    <button onclick="showDomain('trip')">Trips & Carbon</button>
+    <button onclick="showDomain('pledge')">Pledges & Payments</button>
+    <button onclick="showDomain('tree')">Trees</button>
+    <button onclick="showDomain('ledger')">Contributions & Ledger</button>
+    <button onclick="showDomain('agent')">Agents & Tickets</button>
+    <button onclick="showDomain('lodge')">Lodges</button>
+    <button onclick="showDomain('nursery')">Nurseries & Species</button>
+    <button onclick="showDomain('mdm')">MDM Locations</button>
+    <button onclick="showDomain('doc')">Documents & Templates</button>
+    <button onclick="showDomain('impact')">Engagement & Impact</button>
+    <button onclick="showDomain('platform')">Platform Config</button>
+  </div>
+  <div class="legend">
+    <span><span class="swatch" style="background:#e8f5ec"></span>PK</span>
+    <span><span class="swatch" style="background:#d1e8d8"></span>FK</span>
+    <span><span class="swatch" style="background:#f3f4f6"></span>column</span>
+    <span style="margin-left:8px">Solid ── = FK relationship · Dashed - - = logical/polymorphic</span>
+  </div>
+</div>
+
+<div class="note">
+  <b>How to read this:</b> Each box is a table. <b>Bold</b> columns are primary keys. Columns followed by <code>FK</code> are foreign keys. Click a domain button above to isolate that section. The full diagram is best viewed on a wide screen — zoom with browser controls if needed.
+</div>
+
+<div class="diagram-wrap">
+<div class="mermaid">
+erDiagram
+    %% ================================================================
+    %%  IDENTITY & AUTH
+    %% ================================================================
+    users {
+        uuid id PK "auto"
+        string email UK
+        string full_name
+        string phone
+        string photo_url
+        text bio
+        uuid role_id FK"→roles"
+        uuid organization_id FK"→orgs"
+        string password_hash
+        string email_verified
+        boolean active
+        timestamp created_at
+        timestamp updated_at
+    }
+    roles {
+        uuid id PK
+        string name UK "super_admin|owner|gov_partner|agent|lodge|tourist"
+        text description
+    }
+    user_roles {
+        uuid id PK
+        uuid user_id FK"→users"
+        string role "legacy enum"
+    }
+    magic_tokens {
+        uuid id PK
+        uuid user_id FK"→users"
+        string token_hash UK
+        string email
+        jsonb pledge_context
+        string device_fingerprint
+        timestamp expires_at
+        timestamp consumed_at
+        timestamp created_at
+    }
+    ephemeral_sessions {
+        uuid id PK
+        string token UK
+        jsonb data
+        timestamp expires_at
+    }
+    lodge_credentials {
+        uuid id PK
+        uuid lodge_id FK"→lodges"
+        string username UK
+        string password_hash
+        boolean active
+        timestamp created_at
+    }
+    lodge_sessions {
+        uuid id PK
+        uuid lodge_credential_id FK"→lodge_credentials"
+        string token UK
+        timestamp expires_at
+    }
+    auth_logs {
+        uuid id PK
+        uuid user_id FK"→users"
+        string event "login|logout|signup|reset|verify"
+        string ip_address
+        text user_agent
+        boolean success
+        timestamp created_at
+    }
+
+    users ||--o{ user_roles : "legacy roles"
+    users }o--|| roles : "primary role"
+    users ||--o{ magic_tokens : "requests"
+    users ||--o{ auth_logs : "generates"
+    users ||--o{ lodge_credentials : "may have"
+    lodge_credentials ||--o{ lodge_sessions : "creates"
+
+    %% ================================================================
+    %%  ORGANIZATIONS & PERMISSIONS
+    %% ================================================================
+    organizations {
+        uuid id PK
+        string name
+        text description
+        uuid partner_type_id FK"→partner_types"
+        string status "active|suspended|archived"
+        string verification_status
+        jsonb settings
+        timestamp created_at
+        timestamp updated_at
+    }
+    partner_types {
+        uuid id PK
+        string name UK "owner|government_partner|..."
+        text description
+    }
+    partner_type_modules {
+        uuid id PK
+        uuid partner_type_id FK"→partner_types"
+        uuid module_id FK"→modules"
+    }
+    modules {
+        uuid id PK
+        string key UK "trees|finance|mdm|..."
+        string name
+        text description
+        integer sort_order
+    }
+    module_sub_actions {
+        uuid id PK
+        uuid module_id FK"→modules"
+        string key UK
+        string label
+        integer sort_order
+    }
+    organization_modules {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid module_id FK"→modules"
+        boolean enabled
+        timestamp granted_at
+    }
+    org_users {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid user_id FK"→users"
+        string job_role
+        uuid custom_role_id FK"→org_custom_roles"
+        string status "active|invited|suspended"
+        timestamp joined_at
+    }
+    org_custom_roles {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid module_id FK"→modules"
+        string name
+    }
+    org_role_permissions {
+        uuid id PK
+        uuid custom_role_id FK"→org_custom_roles"
+        uuid module_id FK"→modules"
+        string action
+        boolean allowed
+    }
+    org_user_permissions {
+        uuid id PK
+        uuid org_user_id FK"→org_users"
+        uuid module_id FK"→modules"
+        string action
+        boolean allowed
+    }
+    org_job_role_defaults {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid module_id FK"→modules"
+        string job_role UK
+        jsonb default_permissions
+    }
+    tourist_module_permissions {
+        uuid id PK
+        uuid module_id FK"→modules"
+        boolean visible
+        integer sort_order
+    }
+
+    organizations }o--|| partner_types : "classified as"
+    partner_types ||--o{ partner_type_modules : "allows"
+    modules ||--o{ partner_type_modules : "included in"
+    modules ||--o{ organization_modules : "granted in"
+    modules ||--o{ module_sub_actions : "has actions"
+    modules ||--o{ org_custom_roles : "scoped to"
+    modules ||--o{ org_role_permissions : "granted via"
+    modules ||--o{ org_user_permissions : "granted to"
+    modules ||--o{ tourist_module_permissions : "visible to"
+    organizations ||--o{ org_users : "has members"
+    org_users }o--|| org_custom_roles : "may have"
+    org_custom_roles ||--o{ org_role_permissions : "defines"
+    org_job_role_defaults ||--o{ org_user_permissions : "seeds"
+
+    %% ================================================================
+    %%  TRIPS & CARBON
+    %% ================================================================
+    trips {
+        uuid id PK
+        uuid user_id FK"→users"
+        uuid organization_id FK"→organizations"
+        string friendly_trip_id UK
+        string origin_airport
+        string destination_airport
+        date travel_date
+        string travel_class
+        integer passengers
+        float total_co2_kg
+        jsonb flight_legs_json
+        timestamp created_at
+        timestamp updated_at
+    }
+    carbon_offset_calculations {
+        uuid id PK
+        uuid trip_id FK"→trips"
+        uuid user_id FK"→users"
+        float total_emissions_kg
+        float trees_needed
+        jsonb legs
+        text accommodation_type
+        timestamp created_at
+    }
+    tree_sequestration_rates {
+        uuid id PK
+        string species UK
+        float co2_per_tree_kg
+        float survival_rate
+        integer years_to_maturity
+        timestamp valid_from
+        timestamp valid_to
+    }
+
+    trips ||--o{ carbon_offset_calculations : "has"
+    carbon_offset_calculations }o--|| tree_sequestration_rates : "uses"
+
+    %% ================================================================
+    %%  PLEDGES & PAYMENTS
+    %% ================================================================
+    contribution_tiers {
+        uuid id PK
+        string key UK
+        string name
+        text description
+        integer trees
+        float price_usd
+        integer sort_order
+        boolean active
+    }
+    contribution_tier_visibility {
+        uuid id PK
+        uuid tier_id FK"→contribution_tiers"
+        string portal "tourist|agent|lodge"
+        boolean visible
+    }
+    tourist_purchases {
+        uuid id PK
+        uuid user_id FK"→users"
+        uuid trip_id FK"→trips"
+        string contribution_id UK
+        uuid tier_id FK"→contribution_tiers"
+        string purchase_type
+        integer num_trees
+        float amount
+        string currency
+        string payment_method
+        string payment_status "pending|paid|failed|refunded"
+        string payment_reference
+        string dedication
+        text notes
+        timestamp paid_at
+        timestamp created_at
+    }
+    planting_cost_configs {
+        uuid id PK
+        string name
+        float cost_per_tree
+        jsonb cost_breakdown
+        boolean is_active
+        timestamp effective_from
+        timestamp effective_to
+    }
+    planting_cost_submissions {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        float proposed_cost_per_tree
+        text justification
+        string status "pending|approved|rejected"
+        uuid reviewed_by FK"→users"
+        timestamp reviewed_at
+        timestamp created_at
+    }
+    planting_cost_notifications {
+        uuid id PK
+        uuid submission_id FK"→planting_cost_submissions"
+        uuid recipient_id FK"→users"
+        string channel "email|sms|in_app"
+        boolean sent
+        timestamp sent_at
+    }
+    partner_transactions {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        string type
+        float amount
+        string currency
+        string status
+        string receipt_url
+        jsonb metadata
+        timestamp created_at
+    }
+    wallet_settings {
+        string key PK
+        text value
+        text description
+        timestamp updated_at
+    }
+
+    contribution_tiers ||--o{ contribution_tier_visibility : "shown in"
+    contribution_tiers ||--o{ planting_cost_configs : "drives"
+    planting_cost_configs ||--o{ planting_cost_submissions : "replaced by"
+    planting_cost_submissions ||--o{ planting_cost_notifications : "triggers"
+
+    %% ================================================================
+    %%  TREES (core)
+    %% ================================================================
+    trees {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid nursery_id FK"→nurseries"
+        uuid species_id FK"→seed_species"
+        uuid lodge_id FK"→lodges"
+        uuid carer_id FK"→tree_carers"
+        uuid contribution_id UK"polymorphic"
+        string contribution_id_text UK"business key"
+        string source_table "tourist_purchases|agent_tickets|..."
+        uuid source_id
+        string status "pledged|allocated|nursery|planted|surviving|dead"
+        string planting_status
+        date planted_at
+        float latitude
+        float longitude
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+    tree_status_transitions {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        string from_status
+        string to_status
+        text reason
+        jsonb transition_data
+        uuid actor_id FK"→users"
+        timestamp created_at
+    }
+    tree_geotags {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        float latitude
+        float longitude
+        float accuracy_m
+        string captured_by
+        timestamp captured_at
+    }
+    tree_growth_metrics {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        float height_cm
+        float dbh_cm
+        float canopy_spread_m
+        string health_status
+        string measured_by
+        timestamp measured_at
+    }
+    tree_survival_tracking {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        boolean alive
+        string cause_if_dead
+        timestamp checked_at
+    }
+    tree_survival_records {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        boolean alive
+        string cause_if_dead
+        jsonb replacement_tree_id
+        timestamp checked_at
+    }
+    tree_monitoring_logs {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        string status
+        integer alive_count
+        integer dead_count
+        integer replaced_count
+        text notes
+        uuid recorder_id FK"→users"
+        timestamp recorded_at
+    }
+    tree_planting_assignments {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        uuid contribution_id FK"→contributions"
+        uuid beat_id FK"→mdm_location_beats"
+        uuid nursery_id FK"→nurseries"
+        uuid species_id FK"→seed_species"
+        uuid planter_id FK"→tree_carers"
+        date planned_date
+        date actual_date
+        string status
+    }
+    tree_carers {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        string full_name
+        string phone
+        string photo_url
+        string id_number
+        string beat_id FK"→mdm_location_beats"
+        boolean active
+    }
+
+    trees ||--o{ tree_status_transitions : "undergoes"
+    trees ||--o{ tree_geotags : "has"
+    trees ||--o{ tree_growth_metrics : "records"
+    trees ||--o{ tree_survival_tracking : "tracks"
+    trees ||--o{ tree_survival_records : "records"
+    trees ||--o{ tree_monitoring_logs : "logged in"
+    trees ||--o{ tree_planting_assignments : "has"
+    trees }o--|| nurseries : "planted at"
+    trees }o--|| seed_species : "is species"
+    trees }o--|| lodges : "planted by"
+    trees }o--|| tree_carers : "assigned to"
+    tree_planting_assignments }o--|| mdm_location_beats : "in beat"
+
+    %% ================================================================
+    %%  CONTRIBUTIONS & LEDGER
+    %% ================================================================
+    contributions {
+        uuid id PK
+        string contribution_id UK
+        uuid organization_id FK"→organizations"
+        float total_amount
+        float total_trees
+        string status
+        timestamp created_at
+    }
+    contribution_tracking {
+        uuid id PK
+        string contribution_id FK"→contributions"
+        string source_table "tourist_purchases|agent_tickets|partner_transactions"
+        uuid source_id
+        float amount
+        float trees_count
+        string category
+        string status
+        jsonb metadata
+        timestamp created_at
+    }
+    owner_disbursements {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        uuid contribution_id FK"→contributions"
+        float amount
+        string status "pending|processing|paid"
+        string payment_reference
+        timestamp paid_at
+        timestamp created_at
+    }
+
+    contributions ||--o{ contribution_tracking : "tracks"
+    contributions ||--o{ owner_disbursements : "disbursed as"
+    contributions ||--o{ trees : "covers"
+
+    %% ================================================================
+    %%  AGENTS & TICKETS
+    %% ================================================================
+    travel_agents {
+        uuid id PK
+        uuid user_id FK"→users"
+        uuid organization_id FK"→organizations"
+        string license_number
+        string agency_name
+        string phone
+        string status "active|inactive|suspended"
+        timestamp created_at
+    }
+    agent_tickets {
+        uuid id PK
+        uuid agent_id FK"→travel_agents"
+        string pnr
+        string ticket_number
+        string contribution_id
+        float co2_emissions_kg
+        integer trees_needed
+        string ktb_payment_status
+        string lpo_number
+        string status
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    organizations ||--o{ travel_agents : "employs"
+    travel_agents ||--o{ agent_tickets : "creates"
+    agent_tickets ||--o{ contributions : "generates"
+
+    %% ================================================================
+    %%  LODGES
+    %% ================================================================
+    lodges {
+        uuid id PK
+        string name
+        text description
+        string location
+        float latitude
+        float longitude
+        string status
+        jsonb settings
+        timestamp created_at
+    }
+    reimbursements {
+        uuid id PK
+        uuid lodge_id FK"→lodges"
+        string type
+        float amount
+        string status "pending|approved|rejected|paid"
+        string receipt_url
+        text notes
+        uuid reviewed_by FK"→users"
+        timestamp reviewed_at
+        timestamp created_at
+    }
+    reimbursement_docs {
+        uuid id PK
+        uuid reimbursement_id FK"→reimbursements"
+        string file_url
+        string file_type
+        integer file_size
+        timestamp uploaded_at
+    }
+
+    lodges ||--o{ reimbursements : "submits"
+    reimbursements ||--o{ reimbursement_docs : "has"
+
+    %% ================================================================
+    %%  NURSERIES & SPECIES
+    %% ================================================================
+    nurseries {
+        uuid id PK
+        uuid organization_id FK"→organizations"
+        string name
+        string location
+        float latitude
+        float longitude
+        integer capacity
+        string status
+        timestamp created_at
+    }
+    nursery_species {
+        uuid id PK
+        uuid nursery_id FK"→nurseries"
+        uuid species_id FK"→seed_species"
+        integer available
+        integer max_capacity
+    }
+    seed_species {
+        uuid id PK
+        string scientific_name UK
+        string common_name
+        string local_name
+        text description
+        string growth_rate
+        integer years_to_maturity
+        jsonb ideal_conditions
+        boolean active
+    }
+    seedling_batches {
+        uuid id PK
+        uuid nursery_id FK"→nurseries"
+        uuid species_id FK"→seed_species"
+        string batch_code UK
+        date sown_date
+        integer quantity
+        integer germinated
+        string status
+        timestamp created_at
+    }
+    planting_records {
+        uuid id PK
+        uuid nursery_id FK"→nurseries"
+        uuid batch_id FK"→seedling_batches"
+        uuid species_id FK"→seed_species"
+        uuid beat_id FK"→mdm_location_beats"
+        integer quantity_planted
+        date planted_date
+        text notes
+        uuid recorded_by FK"→users"
+        timestamp created_at
+    }
+    monitoring_records {
+        uuid id PK
+        uuid planting_record_id FK"→planting_records"
+        string status
+        integer alive_count
+        integer dead_count
+        text notes
+        uuid recorded_by FK"→users"
+        timestamp recorded_at
+    }
+
+    organizations ||--o{ nurseries : "operates"
+    nurseries ||--o{ nursery_species : "stocks"
+    nurseries ||--o{ seedling_batches : "produces"
+    nurseries ||--o{ planting_records : "records"
+    nurseries ||--o{ monitoring_records : "records"
+    seed_species ||--o{ nursery_species : "listed in"
+    seed_species ||--o{ seedling_batches : "used in"
+    seedling_batches ||--o{ planting_records : "sourced from"
+    planting_records ||--o{ monitoring_records : "followed by"
+
+    %% ================================================================
+    %%  MDM LOCATIONS
+    %% ================================================================
+    mdm_location_counties {
+        uuid id PK
+        string name UK
+        string code UK
+        timestamp created_at
+    }
+    mdm_location_subcounties {
+        uuid id PK
+        uuid county_id FK"→mdm_location_counties"
+        string name UK
+        string code UK
+        timestamp created_at
+    }
+    mdm_location_blocks {
+        uuid id PK
+        uuid subcounty_id FK"→mdm_location_subcounties"
+        string name UK
+        string code UK
+        timestamp created_at
+    }
+    mdm_location_stations {
+        uuid id PK
+        uuid block_id FK"→mdm_location_blocks"
+        string name UK
+        string code UK
+        timestamp created_at
+    }
+    mdm_location_beats {
+        uuid id PK
+        uuid station_id FK"→mdm_location_stations"
+        string name UK
+        string code UK
+        float target_trees
+        float area_hectares
+        timestamp created_at
+    }
+    mdm_audit_log {
+        uuid id PK
+        uuid actor_id FK"→users"
+        string table_name
+        uuid record_id
+        string action "create|update|delete"
+        jsonb old_values
+        jsonb new_values
+        timestamp created_at
+    }
+
+    mdm_location_counties ||--o{ mdm_location_subcounties : "contains"
+    mdm_location_subcounties ||--o{ mdm_location_blocks : "contains"
+    mdm_location_blocks ||--o{ mdm_location_stations : "contains"
+    mdm_location_stations ||--o{ mdm_location_beats : "contains"
+    mdm_location_beats ||--o{ tree_planting_assignments : "assigned to"
+    org_users ||--o{ mdm_audit_log : "edits"
+    mdm_location_beats ||--o{ mdm_audit_log : "changes logged"
+
+    %% ================================================================
+    %%  DOCUMENTS & TEMPLATES
+    %% ================================================================
+    document_templates {
+        uuid id PK
+        string name
+        text description
+        uuid category_id FK"→template_categories"
+        string portal "tourist|agent|lodge|owner"
+        uuid org_id FK"→organizations"
+        string status "draft|approved|archived"
+        uuid engine_flags_id FK"→template_engine_flags"
+        integer version
+        timestamp created_at
+        timestamp updated_at
+    }
+    template_categories {
+        uuid id PK
+        string key UK
+        string name
+        jsonb merge_fields
+        string page_setup
+    }
+    template_designs {
+        uuid id PK
+        uuid template_id FK"→document_templates"
+        integer version
+        jsonb design_json
+        uuid created_by FK"→users"
+        timestamp created_at
+    }
+    template_assignments {
+        uuid id PK
+        uuid template_id FK"→document_templates"
+        uuid org_id FK"→organizations"
+        uuid module_id FK"→modules"
+        integer priority
+    }
+    template_engine_flags {
+        uuid id PK
+        string flag_key UK
+        boolean enabled
+        jsonb config
+    }
+    certificates {
+        uuid id PK
+        uuid user_id FK"→users"
+        uuid tree_id FK"→trees"
+        uuid template_id FK"→document_templates"
+        string certificate_number UK
+        string file_url
+        integer tree_count
+        date issued_date
+        date valid_until
+        timestamp created_at
+    }
+
+    document_templates }o--|| template_categories : "categorized"
+    document_templates }o--|| template_engine_flags : "configured"
+    document_templates ||--o{ template_designs : "versioned as"
+    document_templates ||--o{ template_assignments : "applied as"
+    template_assignments }o--|| organizations : "scoped to"
+    trees ||--o{ certificates : "certifies"
+    certificates }o--|| document_templates : "rendered from"
+
+    %% ================================================================
+    %%  ENGAGEMENT & IMPACT
+    %% ================================================================
+    impact_metrics {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        float co2_sequestered_kg
+        integer trees_planted
+        integer trees_surviving
+        float survival_rate
+        timestamp recorded_at
+    }
+    carbon_metrics_logs {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        float cumulative_co2_kg
+        string period "monthly|yearly|lifetime"
+        timestamp recorded_at
+    }
+    community_impact {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        integer jobs_created
+        integer communities_benefited
+        jsonb details
+        timestamp recorded_at
+    }
+    community_impact_logs {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        string event_type
+        text description
+        jsonb details
+        timestamp recorded_at
+    }
+    ecosystem_impact_logs {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        string metric_type
+        float value
+        string unit
+        timestamp recorded_at
+    }
+    monitoring_logs {
+        uuid id PK
+        uuid contribution_id FK"→contributions"
+        string event_type
+        text description
+        jsonb details
+        timestamp recorded_at
+    }
+    engagement_activities {
+        uuid id PK
+        uuid user_id FK"→users"
+        uuid contribution_id FK"→contributions"
+        string type "update|milestone|alert"
+        string subject
+        text body
+        string recipient_email
+        boolean sent
+        timestamp sent_at
+        timestamp created_at
+    }
+    tree_impact_records {
+        uuid id PK
+        uuid tree_id FK"→trees"
+        uuid contribution_id FK"→contributions"
+        float co2_absorbed_kg
+        float height_cm
+        timestamp recorded_at
+    }
+
+    contributions ||--o{ impact_metrics : "tracks"
+    contributions ||--o{ carbon_metrics_logs : "logs"
+    contributions ||--o{ community_impact : "measures"
+    contributions ||--o{ community_impact_logs : "logs"
+    contributions ||--o{ ecosystem_impact_logs : "logs"
+    contributions ||--o{ monitoring_logs : "logs"
+    contributions ||--o{ engagement_activities : "records"
+    contributions ||--o{ tree_impact_records : "tracks per tree"
+    users ||--o{ engagement_activities : "sends"
+
+    %% ================================================================
+    %%  PLATFORM CONFIG
+    %% ================================================================
+    notifications {
+        uuid id PK
+        uuid recipient_id FK"→users"
+        string recipient_type "user|lodge|agent"
+        string type
+        string title
+        text body
+        string data_json
+        boolean read
+        timestamp read_at
+        timestamp created_at
+    }
+    activity_logs {
+        uuid id PK
+        uuid actor_id FK"→users"
+        uuid organization_id FK"→organizations"
+        string action_type
+        string resource_type
+        uuid resource_id
+        jsonb changes
+        string ip_address
+        timestamp created_at
+    }
+    integration_logs {
+        uuid id PK
+        uuid api_key_id FK"→api_keys"
+        string event
+        string status
+        text request_body
+        text response_body
+        integer status_code
+        timestamp created_at
+    }
+    api_keys {
+        uuid id PK
+        uuid partner_type_id FK"→partner_types"
+        string name
+        string key_hash
+        jsonb scopes
+        integer rate_limit_per_hour
+        boolean active
+        timestamp last_used_at
+        timestamp created_at
+    }
+
+    users ||--o{ notifications : "receives"
+    users ||--o{ activity_logs : "performs"
+    users ||--o{ integration_logs : "generates"
+    api_keys ||--o{ integration_logs : "logged in"
+
+    %% ================================================================
+    %%  CROSS-DOMAIN (shown last to keep layout clean)
+    %% ================================================================
+    certificates ||--o{ template_assignments : "resolved via"
+    agent_tickets ||--o{ reimbursements : "- lodge reimbursement"
+    travel_agents ||--o{ agent_tickets : "creates"
+    agent_tickets ||--o{ contribution_tracking : "generates"
+    agent_tickets ||--o{ contributions : "generates"
+    partner_transactions ||--o{ contribution_tracking : "records"
+    tourist_purchases ||--o{ contribution_tracking : "generates"
+    tourist_purchases ||--o{ certificates : "triggers"
+</div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    er: {
+      layoutDirection: 'LR',
+      entityPadding: 10,
+      useMaxWidth: true,
+      fontSize: 12
+    },
+    theme: 'default',
+    themeVariables: {
+      primaryColor: '#eaf4ee',
+      primaryTextColor: '#1a2b23',
+      primaryBorderColor: '#1d6b45',
+      lineColor: '#5b6b62',
+      secondaryColor: '#f4f7f5',
+      tertiaryColor: '#f4f7f5'
+    }
+  });
+
+  function showAll() {
+    setActive('all');
+    var all = document.querySelectorAll('.er .entity, .er .relationship');
+    all.forEach(function(el) { el.style.display = ''; });
+  }
+
+  var domainMap = {
+    auth:     ['users','roles','user_roles','magic_tokens','ephemeral_sessions','lodge_credentials','lodge_sessions','auth_logs'],
+    org:      ['organizations','partner_types','partner_type_modules','modules','module_sub_actions','organization_modules','org_users','org_custom_roles','org_role_permissions','org_user_permissions','org_job_role_defaults','tourist_module_permissions'],
+    trip:     ['trips','carbon_offset_calculations','tree_sequestration_rates'],
+    pledge:   ['contribution_tiers','contribution_tier_visibility','tourist_purchases','planting_cost_configs','planting_cost_submissions','planting_cost_notifications','partner_transactions','wallet_settings'],
+    tree:     ['trees','tree_status_transitions','tree_geotags','tree_growth_metrics','tree_survival_tracking','tree_survival_records','tree_monitoring_logs','tree_planting_assignments','tree_carers'],
+    ledger:   ['contributions','contribution_tracking','owner_disbursements'],
+    agent:    ['travel_agents','agent_tickets'],
+    lodge:    ['lodges','reimbursements','reimbursement_docs'],
+    nursery:  ['nurseries','nursery_species','seed_species','seedling_batches','planting_records','monitoring_records'],
+    mdm:      ['mdm_location_counties','mdm_location_subcounties','mdm_location_blocks','mdm_location_stations','mdm_location_beats','mdm_audit_log'],
+    doc:      ['document_templates','template_categories','template_designs','template_assignments','template_engine_flags','certificates'],
+    impact:   ['impact_metrics','carbon_metrics_logs','community_impact','community_impact_logs','ecosystem_impact_logs','monitoring_logs','engagement_activities','tree_impact_records'],
+    platform: ['notifications','activity_logs','integration_logs','api_keys']
+  };
+
+  function showDomain(key) {
+    setActive(key);
+    var keep = domainMap[key] || [];
+    var keepSet = {};
+    keep.forEach(function(t) { keepSet[t] = true; });
+
+    document.querySelectorAll('.er .entity').forEach(function(el) {
+      var name = el.getAttribute('data-id') || el.textContent.split('\n')[0].trim();
+      el.style.display = keepSet[name] ? '' : 'none';
+    });
+
+    document.querySelectorAll('.er .relationship').forEach(function(el) {
+      var text = el.textContent || '';
+      var show = keep.some(function(t) { return text.indexOf(t) !== -1; });
+      el.style.display = show ? '' : 'none';
+    });
+  }
+
+  function setActive(key) {
+    document.querySelectorAll('.controls button').forEach(function(b) { b.classList.remove('active'); });
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
