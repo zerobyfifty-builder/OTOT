@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { roleLabel } from "@/lib/portal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,17 +11,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export default function AdminUsers() {
+export default function PartnerTeam() {
+  const { session } = useAuth();
   const { state } = useStore();
+  const members = state.users.filter((u) => u.vendorId === session?.vendorId);
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl">
+    <div className="p-6 md:p-8 space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-        <p className="text-muted-foreground mt-1">Tourist, ministry, and plantation partner accounts.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+        <p className="text-muted-foreground mt-1">Vendor admins and agents in this organisation.</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Directory</CardTitle>
+          <CardTitle>Members</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -32,7 +35,7 @@ export default function AdminUsers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {state.users.map((u) => (
+              {members.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell>{u.name}</TableCell>
                   <TableCell>{u.email}</TableCell>

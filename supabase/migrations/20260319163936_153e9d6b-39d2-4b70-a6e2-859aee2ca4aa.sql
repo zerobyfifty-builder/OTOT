@@ -1,1 +1,0 @@
-ALTER TABLE public.trees ADD COLUMN payment_method text DEFAULT 'Card';

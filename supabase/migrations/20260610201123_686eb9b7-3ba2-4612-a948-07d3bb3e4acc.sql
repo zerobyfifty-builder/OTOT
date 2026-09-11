@@ -1,1 +1,0 @@
-ALTER TABLE public.planting_locations ADD COLUMN IF NOT EXISTS show_in_tourist boolean NOT NULL DEFAULT false;

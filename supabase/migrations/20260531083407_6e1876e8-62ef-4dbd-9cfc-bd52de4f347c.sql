@@ -1,1 +1,0 @@
-ALTER TABLE public.tree_carers ADD COLUMN IF NOT EXISTS roles text[] NOT NULL DEFAULT ARRAY['Planter']::text[];

@@ -1,139 +1,106 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { createActivityLogEntry } from '@/hooks/useActivityLogger';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { DEMO_PASSWORD } from "@/data/seed";
+import { portalHomePath } from "@/lib/portal";
+import { useStore } from "@/contexts/StoreContext";
+import type { AppRole, MockSession } from "@/types/otot";
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any; alreadyRegistered?: boolean; needsEmailConfirmation?: boolean }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  resendConfirmation: (email: string) => Promise<{ error: any }>;
+const SESSION_KEY = "otot.mock-session";
+
+function readSession(): MockSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as MockSession) : null;
+  } catch {
+    return null;
+  }
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextValue {
+  session: MockSession | null;
+  signIn: (email: string, password: string) => { error?: string; home?: string };
+  signUpTourist: (name: string, email: string, password: string) => { error?: string; home?: string };
+  signOut: () => void;
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { state, createTourist } = useStore();
+  const [session, setSession] = useState<MockSession | null>(readSession);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+  const persist = (next: MockSession | null) => {
+    setSession(next);
+    if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    else localStorage.removeItem(SESSION_KEY);
+  };
 
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          void createActivityLogEntry({
-            userId: session.user.id,
-            action_type: 'login',
-            resource_type: 'auth',
-            description: 'Signed in to owner portal',
-            metadata: { event },
-          });
-        }
+  const toSession = (user: {
+    id: string;
+    email: string;
+    name: string;
+    role: AppRole;
+    vendorId?: string;
+  }): MockSession => ({
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    vendorId: user.vendorId,
+  });
+
+  const signIn = useCallback(
+    (email: string, password: string) => {
+      if (password !== DEMO_PASSWORD) {
+        return { error: "Invalid email or password." };
       }
-    );
+      const user = state.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+      if (!user) return { error: "Invalid email or password." };
+      const next = toSession(user);
+      persist(next);
+      return { home: portalHomePath(next.role) };
+    },
+    [state.users],
+  );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/auth/verify-email`;
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
+  const signUpTourist = useCallback(
+    (name: string, email: string, password: string) => {
+      if (password !== DEMO_PASSWORD) {
+        return { error: `Use the demo password ${DEMO_PASSWORD} for this frontend preview.` };
       }
-    });
+      const existing = state.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+      if (existing) {
+        if (existing.role !== "tourist") return { error: "That email is already in use." };
+        const next = toSession(existing);
+        persist(next);
+        return { home: portalHomePath(next.role) };
+      }
+      const user = createTourist(name, email);
+      const next = toSession(user);
+      persist(next);
+      return { home: portalHomePath(next.role) };
+    },
+    [createTourist, state.users],
+  );
 
-    // Supabase's email-enumeration protection: signing up with an email that is
-    // already registered returns NO error and a user whose `identities` array is
-    // empty (no new identity was created). Surface that so the UI can tell the
-    // user to sign in instead of pretending a brand-new account was created.
-    const alreadyRegistered =
-      !error &&
-      !!data?.user &&
-      Array.isArray(data.user.identities) &&
-      data.user.identities.length === 0;
+  const signOut = useCallback(() => persist(null), []);
 
-    // A fresh signup with no session means email confirmation is still pending.
-    const needsEmailConfirmation = !error && !alreadyRegistered && !data?.session;
-
-    return { error, alreadyRegistered, needsEmailConfirmation };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signOut = async () => {
-    if (user?.id) {
-      void createActivityLogEntry({
-        userId: user.id,
-        action_type: 'logout',
-        resource_type: 'auth',
-        description: 'Signed out of owner portal',
-      });
-    }
-    await supabase.auth.signOut();
-  };
-
-  const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/auth/reset-password`;
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
-    return { error };
-  };
-
-  const resendConfirmation = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/auth/verify-email`;
-
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: { emailRedirectTo: redirectUrl },
-    });
-    return { error };
-  };
-
-  const value = {
-    user,
-    session,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    resetPassword,
-    resendConfirmation,
-  };
+  const value = useMemo(
+    () => ({ session, signIn, signUpTourist, signOut }),
+    [session, signIn, signUpTourist, signOut],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

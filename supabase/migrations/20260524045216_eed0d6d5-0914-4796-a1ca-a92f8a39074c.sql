@@ -1,2 +1,0 @@
-UPDATE public.modules SET is_active = false WHERE name IN ('community_impact', 'outcomes');
-UPDATE public.organization_modules SET is_active = false WHERE module_id IN (SELECT id FROM public.modules WHERE name IN ('community_impact', 'outcomes'));

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TreePine, Plane, Heart, Award, Users, Globe, Play } from "lucide-react";
+import { TreePine, Plane, Heart, Award, Users, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import ktbLogo from "@/assets/ktb-logo.png";
@@ -54,14 +54,14 @@ const Landing = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/pledge">
+                <Link to="/auth/signup">
                   <Button size="lg" className="px-8 py-3 text-base">
-                    Take the Pledge
+                    Calculate my impact
                   </Button>
                 </Link>
-                <Link to="/auth/signup">
+                <Link to="/auth/login">
                   <Button variant="outline" size="lg" className="px-8 py-3 text-base">
-                    Calculate My Impact
+                    Sign in
                   </Button>
                 </Link>
               </div>
@@ -132,9 +132,9 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { icon: <Award className="h-8 w-8 text-primary" />, title: "1. Take the Pledge", desc: "Commit to responsible tourism with our 10-point Responsible Traveler Pledge and receive your digital certificate." },
-              { icon: <Plane className="h-8 w-8 text-primary" />, title: "2. Calculate Impact", desc: "Use our carbon calculator to measure your flight and accommodation emissions during your Kenya visit." },
-              { icon: <TreePine className="h-8 w-8 text-primary" />, title: "3. Plant Trees", desc: "Offset your carbon footprint by planting trees in Kenya's forests and track their growth with GPS coordinates." },
+              { icon: <Plane className="h-8 w-8 text-primary" />, title: "1. Calculate impact", desc: "Measure flight and stay emissions, then see a tree mix sized to the carbon you want to offset." },
+              { icon: <Heart className="h-8 w-8 text-primary" />, title: "2. Donate", desc: "Choose tree types and counts, then complete a donation. The ministry turns that into a plantation request." },
+              { icon: <TreePine className="h-8 w-8 text-primary" />, title: "3. Trees get planted", desc: "Plantation partners assign field agents, complete the work, and the ministry marks the request complete." },
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -172,7 +172,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {[
               { icon: <Globe className="h-6 w-6 text-primary" />, title: "Real Impact", desc: "Every tree is planted by local communities in Kenya's forests with GPS tracking and photo verification for complete transparency." },
-              { icon: <Users className="h-6 w-6 text-primary" />, title: "Community Partnership", desc: "Partner with local lodges and communities to ensure sustainable reforestation that benefits both environment and livelihoods." },
+              { icon: <Users className="h-6 w-6 text-primary" />, title: "Community partnership", desc: "Ministry teams assign plantation partners who plant with local communities across Kenya." },
               { icon: <Heart className="h-6 w-6 text-primary" />, title: "Simple & Affordable", desc: "Starting at just $1 minimum donation or $30 for a fully tracked tree. Make a meaningful impact without breaking the bank." },
               { icon: <Award className="h-6 w-6 text-primary" />, title: "Certified Impact", desc: "Receive official certificates for your pledge and tree planting contributions that you can share on social media." },
             ].map((item, i) => (
@@ -248,9 +248,9 @@ const Landing = () => {
             Join thousands of responsible travelers who are helping reforest Kenya while exploring its natural beauty.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/pledge">
+            <Link to="/auth/signup">
               <Button size="lg" className="bg-primary text-black hover:bg-primary/90 px-8 py-3">
-                Start Your Journey
+                Start your journey
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="border-accent-foreground text-black hover:bg-accent-foreground hover:text-black px-8 py-3">
@@ -276,9 +276,9 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold text-foreground mb-3">Get Started</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/pledge" className="text-muted-foreground hover:text-primary transition-colors">Take the Pledge</Link></li>
-                <li><Link to="/auth/signup" className="text-muted-foreground hover:text-primary transition-colors">Calculate Impact</Link></li>
-                <li><Link to="/auth/signup" className="text-muted-foreground hover:text-primary transition-colors">Plant Trees</Link></li>
+                <li><Link to="/auth/signup" className="text-muted-foreground hover:text-primary transition-colors">Create account</Link></li>
+                <li><Link to="/auth/login" className="text-muted-foreground hover:text-primary transition-colors">Sign in</Link></li>
+                <li><Link to="/carbon-calculator" className="text-muted-foreground hover:text-primary transition-colors">Carbon calculator</Link></li>
               </ul>
             </div>
             
