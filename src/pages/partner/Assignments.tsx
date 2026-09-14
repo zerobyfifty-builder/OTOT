@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { shortDate, treeCount, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -42,9 +43,13 @@ export default function PartnerAssignments() {
               {next && (
                 <Button
                   size="sm"
-                  onClick={() => {
-                    updateVendorRequestStatus(v.id, next);
-                    toast.success(`Marked ${next.replace(/_/g, " ")}`);
+                  onClick={async () => {
+                    try {
+                      await updateVendorRequestStatus(v.id, next);
+                      toast.success(`Marked ${next.replace(/_/g, " ")}`);
+                    } catch (err) {
+                      toast.error(apiErrorMessage(err));
+                    }
                   }}
                 >
                   Mark {next.replace(/_/g, " ")}

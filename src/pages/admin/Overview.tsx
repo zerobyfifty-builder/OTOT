@@ -1,6 +1,7 @@
 import { Building2, CreditCard, Trees, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { kg, usd } from "@/lib/format";
 import { KpiCard } from "@/components/shared/KpiCard";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,13 @@ export default function AdminOverview() {
         </div>
         <Button
           variant="outline"
-          onClick={() => {
-            resetDemo();
-            toast.success("Demo data reset");
+          onClick={async () => {
+            try {
+              await resetDemo();
+              toast.success("Demo data reset");
+            } catch (err) {
+              toast.error(apiErrorMessage(err));
+            }
           }}
         >
           Reset demo data

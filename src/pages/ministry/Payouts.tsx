@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { shortDate, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,13 @@ export default function MinistryPayouts() {
                     <span>{usd(r.amount)} request</span>
                     <Button
                       size="sm"
-                      onClick={() => {
-                        createPayout(r.id);
-                        toast.success("Payout recorded");
+                      onClick={async () => {
+                        try {
+                          await createPayout(r.id);
+                          toast.success("Payout recorded");
+                        } catch (err) {
+                          toast.error(apiErrorMessage(err));
+                        }
                       }}
                     >
                       Pay partner

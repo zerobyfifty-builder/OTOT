@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { nid } from "@/lib/ids";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { kg, usd } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,19 +54,23 @@ export default function AdminTreeTypes() {
             <Input type="number" value={costPerTree} onChange={(e) => setCostPerTree(e.target.value)} />
           </div>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!name.trim()) return;
-              upsertTreeType({
-                id: nid(),
-                name: name.trim(),
-                scientificName: scientificName.trim() || name.trim(),
-                offsetKg: Number(offsetKg) || 160,
-                costPerTree: Number(costPerTree) || 8,
-                active: true,
-              });
-              setName("");
-              setScientificName("");
-              toast.success("Tree type added");
+              try {
+                await upsertTreeType({
+                  id: nid(),
+                  name: name.trim(),
+                  scientificName: scientificName.trim() || name.trim(),
+                  offsetKg: Number(offsetKg) || 160,
+                  costPerTree: Number(costPerTree) || 8,
+                  active: true,
+                });
+                setName("");
+                setScientificName("");
+                toast.success("Tree type added");
+              } catch (err) {
+                toast.error(apiErrorMessage(err));
+              }
             }}
           >
             Add

@@ -48,7 +48,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     throw new ApiError(0, "Cannot reach the OTOT API. Confirm it is running.");
   }
 
-  const data: unknown = await res.json().catch(() => ({}));
+  const data: unknown =
+    res.status === 204 ? {} : await res.json().catch(() => ({}));
   if (!res.ok) {
     const message =
       data && typeof data === "object" && "error" in data && typeof data.error === "string"
@@ -57,4 +58,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     throw new ApiError(res.status, message);
   }
   return data as T;
+}
+
+export function apiErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return "Request failed";
 }

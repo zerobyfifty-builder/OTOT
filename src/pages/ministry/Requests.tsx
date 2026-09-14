@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { shortDate, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export default function MinistryRequests() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => {
+                              onClick={async () => {
                                 const pid = partnerPick[r.id];
                                 const admin = state.users.find(
                                   (u) => u.vendorId === pid && u.role === "partner_admin",
@@ -95,8 +96,12 @@ export default function MinistryRequests() {
                                   toast.error("Pick a partner with an admin");
                                   return;
                                 }
-                                assignPlantationRequest(r.id, pid, admin.id);
-                                toast.success("Assigned");
+                                try {
+                                  await assignPlantationRequest(r.id, pid, admin.id);
+                                  toast.success("Assigned");
+                                } catch (err) {
+                                  toast.error(apiErrorMessage(err));
+                                }
                               }}
                             >
                               Assign
@@ -106,9 +111,13 @@ export default function MinistryRequests() {
                         {r.status === "ready_for_review" && allDone && (
                           <Button
                             size="sm"
-                            onClick={() => {
-                              markPlantationComplete(r.id);
-                              toast.success("Marked complete");
+                            onClick={async () => {
+                              try {
+                                await markPlantationComplete(r.id);
+                                toast.success("Marked complete");
+                              } catch (err) {
+                                toast.error(apiErrorMessage(err));
+                              }
                             }}
                           >
                             Mark complete

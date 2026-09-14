@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { nid } from "@/lib/ids";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,12 +42,21 @@ export default function AdminVendors() {
             <Input value={region} onChange={(e) => setRegion(e.target.value)} />
           </div>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!name.trim()) return;
-              upsertVendor({ id: nid(), name: name.trim(), region: region.trim() || "Kenya", status: "active" });
-              setName("");
-              setRegion("");
-              toast.success("Vendor added");
+              try {
+                await upsertVendor({
+                  id: nid(),
+                  name: name.trim(),
+                  region: region.trim() || "Kenya",
+                  status: "active",
+                });
+                setName("");
+                setRegion("");
+                toast.success("Vendor added");
+              } catch (err) {
+                toast.error(apiErrorMessage(err));
+              }
             }}
           >
             Add

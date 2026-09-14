@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { kg, shortDate, treeCount, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -85,12 +86,16 @@ export default function MinistryDonations() {
                               </Select>
                               <Button
                                 size="sm"
-                                onClick={() => {
-                                  createPlantationRequest({
-                                    donationId: d.id,
-                                    partnerId: partnerByDonation[d.id] || undefined,
-                                  });
-                                  toast.success("Plantation request created");
+                                onClick={async () => {
+                                  try {
+                                    await createPlantationRequest({
+                                      donationId: d.id,
+                                      partnerId: partnerByDonation[d.id] || undefined,
+                                    });
+                                    toast.success("Plantation request created");
+                                  } catch (err) {
+                                    toast.error(apiErrorMessage(err));
+                                  }
                                 }}
                               >
                                 Create request

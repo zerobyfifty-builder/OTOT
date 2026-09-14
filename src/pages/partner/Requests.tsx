@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { shortDate, treeCount, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -79,14 +80,18 @@ export default function PartnerRequests() {
                           </Select>
                           <Button
                             size="sm"
-                            onClick={() => {
+                            onClick={async () => {
                               const agentId = agentPick[r.id];
                               if (!agentId) {
                                 toast.error("Pick an agent");
                                 return;
                               }
-                              createVendorPlantationRequest(r.id, agentId);
-                              toast.success("Assigned to agent");
+                              try {
+                                await createVendorPlantationRequest(r.id, agentId);
+                                toast.success("Assigned to agent");
+                              } catch (err) {
+                                toast.error(apiErrorMessage(err));
+                              }
                             }}
                           >
                             Assign

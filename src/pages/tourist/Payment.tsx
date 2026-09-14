@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { splitCharges } from "@/lib/charges";
 import { treeCount, usd } from "@/lib/format";
 import type { PaymentMode, TreeLine } from "@/types/otot";
@@ -33,18 +34,23 @@ export default function Payment() {
 
   const split = splitCharges(incoming.amount);
 
-  const pay = () => {
+  const pay = async () => {
     if (!session) return;
     setBusy(true);
-    const { donation } = checkoutDonation({
-      userId: session.userId,
-      carbonOffsetKg: incoming.carbonOffsetKg || 0,
-      trees: incoming.trees,
-      paymentMode: mode,
-    });
-    toast.success("Payment recorded (demo)");
-    setBusy(false);
-    navigate(`/donations/${donation.id}`);
+    try {
+      const { donation } = await checkoutDonation({
+        userId: session.userId,
+        carbonOffsetKg: incoming.carbonOffsetKg || 0,
+        trees: incoming.trees,
+        paymentMode: mode,
+      });
+      toast.success("Payment recorded (demo)");
+      navigate(`/donations/${donation.id}`);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

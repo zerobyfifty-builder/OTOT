@@ -63,6 +63,7 @@ export interface Donation {
   id: string;
   userId: string;
   carbonOffsetKg: number;
+  requestedCarbonOffsetKg?: number;
   amount: number;
   trees: TreeLine[];
   status: DonationStatus;
@@ -82,6 +83,7 @@ export interface Payment {
   status: PaymentStatus;
   amount: number;
   transactionChargesSplit: TransactionChargesSplit;
+  externalReference?: string;
   createdAt: string;
 }
 

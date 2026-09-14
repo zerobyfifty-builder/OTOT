@@ -4,7 +4,9 @@ Guidance for working in this repository.
 
 ## Project overview
 
-OTOT (One Tourist One Tree) is a Kenya Tourism Board tree-planting / carbon-offset SPA. It is **frontend-only**: Vite + React + TypeScript + shadcn/ui. There is no Supabase, no JWT, and no backend besides the optional carbon emission calculator HTTP API.
+OTOT (One Tourist One Tree) is a Kenya Tourism Board tree-planting / carbon-offset SPA: Vite + React + TypeScript + shadcn/ui. The browser authenticates with JWT against `VITE_API_URL` (the `bakend` Express API) and loads domain data from `GET /v1/store`. Flight CO₂ uses the optional `emission_calculator` HTTP API.
+
+Canonical schema, statuses, and API table: [`DATA_MODEL.md`](DATA_MODEL.md).
 
 The previous Supabase-backed app (lodges, travel agents, owner MDM, edge functions) lives on git branch `archive/supabase-full`.
 
@@ -18,7 +20,7 @@ npm run lint
 npm run preview
 ```
 
-There is no test suite.
+There is no test suite. The API must be running (`bakend` on port 4000) for login and dashboards.
 
 ## Demo login
 
@@ -33,19 +35,19 @@ Password for every seeded account: `Test1234!`
 | partneragent@demo.otot.app | Vendor agent | `/partner/assignments` |
 | superadmin@demo.otot.app | Super admin | `/admin` |
 
-Sessions are `localStorage` (`otot.mock-session`). Product data is `otot.mock-store.v1`. Super admin can reset the store.
+JWT is stored as `otot.jwt`. Super admin reset calls `POST /v1/admin/reset-demo`.
 
 ## Architecture
 
-- [`src/contexts/AuthContext.tsx`](src/contexts/AuthContext.tsx) — demo sign-in / tourist signup
-- [`src/contexts/StoreContext.tsx`](src/contexts/StoreContext.tsx) — shared in-memory/localStorage store for donations, payments, plantation requests, vendor requests, payouts
+- [`src/contexts/AuthContext.tsx`](src/contexts/AuthContext.tsx) — JWT login / tourist signup / `/v1/auth/me`
+- [`src/contexts/StoreContext.tsx`](src/contexts/StoreContext.tsx) — hydrates from `GET /v1/store` and mutates via `/v1/*`
 - [`src/lib/portal.ts`](src/lib/portal.ts) — hostname copy (`office.` / `partner.`) and `portalHomePath`
-- [`src/utils/emissionCalculatorApi.ts`](src/utils/emissionCalculatorApi.ts) — **only live network call**; uses `VITE_EMISSION_API_URL` / `VITE_EMISSION_API_KEY`, falls back locally
-- [`src/lib/treeMix.ts`](src/lib/treeMix.ts) — browser-side mix of tree types for a CO₂ volume and donation amount
+- [`src/utils/emissionCalculatorApi.ts`](src/utils/emissionCalculatorApi.ts) — flight CO₂; uses `VITE_EMISSION_API_URL` / `VITE_EMISSION_API_KEY`, falls back locally
+- [`src/lib/treeMix.ts`](src/lib/treeMix.ts) — local preview of tree mix; Donate also calls `POST /v1/tree-mix/quote`
 
 ### Product flow
 
-Tourist pays → donation + payment → ministry creates/assigns a plantation request (1:1 with donation) → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create a payout.
+Tourist mock-pays → donation + payment + unassigned plantation request → ministry assigns a vendor → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create a mock payout.
 
 ## Portals
 

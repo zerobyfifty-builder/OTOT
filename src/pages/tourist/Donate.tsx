@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 export default function Donate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useStore();
+  const { state, quoteTreeMix } = useStore();
   const incoming = location.state as { carbonOffsetKg?: number; trees?: TreeLine[] } | undefined;
 
   const [carbonOffsetKg, setCarbonOffsetKg] = useState(incoming?.carbonOffsetKg ?? 320);
@@ -66,7 +66,14 @@ export default function Donate() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setTrees(suggestTreeMix(carbonOffsetKg, state.treeTypes).trees)}
+            onClick={async () => {
+              try {
+                const mixQuote = await quoteTreeMix(carbonOffsetKg);
+                setTrees(mixQuote.trees);
+              } catch {
+                setTrees(suggestTreeMix(carbonOffsetKg, state.treeTypes).trees);
+              }
+            }}
           >
             Recalculate tree mix
           </Button>
