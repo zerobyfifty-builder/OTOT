@@ -11,7 +11,14 @@ export function RoleRoute({
   roles: AppRole[];
   children: ReactNode;
 }) {
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
   if (!session) return <Navigate to="/auth/login" replace />;
   if (!roles.includes(session.role)) {
     return <Navigate to={portalHomePath(session.role)} replace />;

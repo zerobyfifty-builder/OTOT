@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { detectPortal, PORTALS, portalHomePath } from "@/lib/portal";
-import { DEMO_PASSWORD } from "@/data/seed";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,37 +16,37 @@ const schema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const DEMO_ACCOUNTS = [
-  { email: "tourist@demo.otot.app", label: "Tourist" },
-  { email: "ministry@demo.otot.app", label: "Ministry" },
-  { email: "partner@demo.otot.app", label: "Partner admin" },
-  { email: "partneragent@demo.otot.app", label: "Partner agent" },
-  { email: "superadmin@demo.otot.app", label: "Super admin" },
-];
-
 export default function Login() {
   const portal = PORTALS[detectPortal()];
-  const { signIn, session } = useAuth();
+  const { signIn, session, loading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-secondary text-sm text-muted-foreground">
+        Restoring session…
+      </div>
+    );
+  }
 
   if (session) {
     return <Navigate to={portalHomePath(session.role)} replace />;
   }
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse({ email, password });
     if (!parsed.success) {
       toast.error(parsed.error.errors[0]?.message || "Check the form");
       return;
     }
-    setLoading(true);
-    const result = signIn(parsed.data.email, parsed.data.password);
-    setLoading(false);
+    setSubmitting(true);
+    const result = await signIn(parsed.data.email, parsed.data.password);
+    setSubmitting(false);
     if (result.error) {
       toast.error(result.error);
       return;
@@ -63,7 +62,7 @@ export default function Login() {
         <CardHeader>
           <CardTitle>{portal.name}</CardTitle>
           <CardDescription>
-            Demo login only — no real authentication. Password for every account is {DEMO_PASSWORD}.
+            Sign in with your OTOT account. Ministry and plantation partner accounts are issued by administrators.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,6 +73,7 @@ export default function Login() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
+                  type="email"
                   className="pl-9"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -102,29 +102,10 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              Sign in
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Signing in…" : "Sign in"}
             </Button>
           </form>
-          <div className="mt-6 space-y-2">
-            <p className="text-xs text-muted-foreground">Fill a demo account</p>
-            <div className="flex flex-wrap gap-2">
-              {DEMO_ACCOUNTS.map((a) => (
-                <Button
-                  key={a.email}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setEmail(a.email);
-                    setPassword(DEMO_PASSWORD);
-                  }}
-                >
-                  {a.label}
-                </Button>
-              ))}
-            </div>
-          </div>
         </CardContent>
         {portal.allowsSignup && (
           <CardFooter className="text-sm text-muted-foreground">

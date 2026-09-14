@@ -114,13 +114,26 @@ export interface VendorPlantationRequest {
   createdAt: string;
 }
 
-export interface MockSession {
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: AppRole;
+  vendorId?: string;
+  ministryRole?: MinistryRole;
+}
+
+export interface AuthSession {
   userId: string;
   email: string;
   name: string;
   role: AppRole;
   vendorId?: string;
+  ministryRole?: MinistryRole;
 }
+
+/** @deprecated Use AuthSession. Kept so existing imports keep compiling. */
+export type MockSession = AuthSession;
 
 export interface StoreState {
   version: number;

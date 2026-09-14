@@ -16,7 +16,7 @@ export default function Profile() {
           <div><span className="text-muted-foreground">Email</span> · {session.email}</div>
           <div><span className="text-muted-foreground">Role</span> · {roleLabel(session.role)}</div>
           <p className="text-muted-foreground pt-4">
-            Profile is a local demo session. JWT / OAuth can replace this later without changing the screens.
+            Signed in with a JWT issued by the OTOT API.
           </p>
         </CardContent>
       </Card>

@@ -2,98 +2,120 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import { DEMO_PASSWORD } from "@/data/seed";
+import { apiFetch, ApiError, getToken, setToken } from "@/lib/api";
 import { portalHomePath } from "@/lib/portal";
-import { useStore } from "@/contexts/StoreContext";
-import type { AppRole, MockSession } from "@/types/otot";
+import type { AuthSession, AuthUser } from "@/types/otot";
 
-const SESSION_KEY = "otot.mock-session";
-
-function readSession(): MockSession | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as MockSession) : null;
-  } catch {
-    return null;
-  }
+interface AuthResponse {
+  token: string;
+  user: AuthUser;
 }
 
 interface AuthContextValue {
-  session: MockSession | null;
-  signIn: (email: string, password: string) => { error?: string; home?: string };
-  signUpTourist: (name: string, email: string, password: string) => { error?: string; home?: string };
+  session: AuthSession | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error?: string; home?: string }>;
+  signUpTourist: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string; home?: string }>;
   signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const { state, createTourist } = useStore();
-  const [session, setSession] = useState<MockSession | null>(readSession);
-
-  const persist = (next: MockSession | null) => {
-    setSession(next);
-    if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    else localStorage.removeItem(SESSION_KEY);
-  };
-
-  const toSession = (user: {
-    id: string;
-    email: string;
-    name: string;
-    role: AppRole;
-    vendorId?: string;
-  }): MockSession => ({
+function toSession(user: AuthUser): AuthSession {
+  return {
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
     vendorId: user.vendorId,
-  });
+    ministryRole: user.ministryRole,
+  };
+}
 
-  const signIn = useCallback(
-    (email: string, password: string) => {
-      if (password !== DEMO_PASSWORD) {
-        return { error: "Invalid email or password." };
-      }
-      const user = state.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-      if (!user) return { error: "Invalid email or password." };
-      const next = toSession(user);
-      persist(next);
-      return { home: portalHomePath(next.role) };
-    },
-    [state.users],
-  );
+function errorMessage(err: unknown): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return "Something went wrong. Try again.";
+}
 
-  const signUpTourist = useCallback(
-    (name: string, email: string, password: string) => {
-      if (password !== DEMO_PASSWORD) {
-        return { error: `Use the demo password ${DEMO_PASSWORD} for this frontend preview.` };
-      }
-      const existing = state.users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-      if (existing) {
-        if (existing.role !== "tourist") return { error: "That email is already in use." };
-        const next = toSession(existing);
-        persist(next);
-        return { home: portalHomePath(next.role) };
-      }
-      const user = createTourist(name, email);
-      const next = toSession(user);
-      persist(next);
-      return { home: portalHomePath(next.role) };
-    },
-    [createTourist, state.users],
-  );
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [loading, setLoading] = useState(() => Boolean(getToken()));
 
-  const signOut = useCallback(() => persist(null), []);
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    apiFetch<{ user: AuthUser }>("/v1/auth/me")
+      .then((data) => {
+        if (!cancelled) setSession(toSession(data.user));
+      })
+      .catch(() => {
+        setToken(null);
+        if (!cancelled) setSession(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const finishAuth = (token: string, user: AuthUser) => {
+    setToken(token);
+    const next = toSession(user);
+    setSession(next);
+    return { home: portalHomePath(next.role) };
+  };
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    try {
+      const data = await apiFetch<AuthResponse>("/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      return finishAuth(data.token, data.user);
+    } catch (err) {
+      return { error: errorMessage(err) };
+    }
+  }, []);
+
+  const signUpTourist = useCallback(async (name: string, email: string, password: string) => {
+    try {
+      const data = await apiFetch<AuthResponse>("/v1/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ name, email, password }),
+      });
+      return finishAuth(data.token, data.user);
+    } catch (err) {
+      return { error: errorMessage(err) };
+    }
+  }, []);
+
+  const signOut = useCallback(() => {
+    void apiFetch("/v1/auth/logout", { method: "POST" }).catch(() => undefined);
+    setToken(null);
+    setSession(null);
+  }, []);
 
   const value = useMemo(
-    () => ({ session, signIn, signUpTourist, signOut }),
-    [session, signIn, signUpTourist, signOut],
+    () => ({ session, loading, signIn, signUpTourist, signOut }),
+    [session, loading, signIn, signUpTourist, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
