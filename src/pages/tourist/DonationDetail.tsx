@@ -1,7 +1,11 @@
-import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { kg, shortDate, treeCount, usd } from "@/lib/format";
+import { apiErrorMessage } from "@/lib/api";
+import { redirectToCheckout } from "@/lib/checkout";
+import { kg, kes, shortDate, treeCount, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
@@ -9,10 +13,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DonationDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { session } = useAuth();
-  const { state } = useStore();
+  const { state, retryDonationCheckout } = useStore();
+  const [retrying, setRetrying] = useState(false);
   const donation = state.donations.find((d) => d.id === id);
-  const payment = state.payments.find((p) => p.donationId === id);
+  const payment = state.payments
+    .filter((p) => p.donationId === id)
+    .slice()
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
   const request = state.plantationRequests.find((r) => r.donationId === id);
 
   if (!donation || (session?.role === "tourist" && donation.userId !== session.userId)) {
@@ -49,6 +58,12 @@ export default function DonationDetail() {
               <div>
                 Status: <StatusBadge status={payment.status} />
               </div>
+              {payment.amountKes != null && <div>Charged {kes(payment.amountKes)}</div>}
+              {payment.afrinetTransactionCode && (
+                <div className="font-mono text-xs text-muted-foreground">{payment.afrinetTransactionCode}</div>
+              )}
+              {payment.mpesaReceipt && <div>M-Pesa receipt {payment.mpesaReceipt}</div>}
+              {payment.failureMessage && <p className="text-destructive">{payment.failureMessage}</p>}
               <div>Plantation {usd(payment.transactionChargesSplit.plantation)} · Platform{" "}
                 {usd(payment.transactionChargesSplit.platform)} · Processor{" "}
                 {usd(payment.transactionChargesSplit.processor)}
@@ -59,6 +74,28 @@ export default function DonationDetail() {
             <div className="border-t pt-3">
               Plantation request <StatusBadge status={request.status} />
             </div>
+          )}
+          {payment?.status === "pending" && (
+            <Button asChild>
+              <Link to={`/donate/awaiting/${payment.id}`}>Awaiting confirmation</Link>
+            </Button>
+          )}
+          {payment?.status === "failed" && (
+            <Button
+              disabled={retrying}
+              onClick={async () => {
+                setRetrying(true);
+                try {
+                  const result = await retryDonationCheckout(donation.id);
+                  redirectToCheckout(result.checkoutUrl, navigate);
+                } catch (err) {
+                  toast.error(apiErrorMessage(err));
+                  setRetrying(false);
+                }
+              }}
+            >
+              {retrying ? "Opening Afrinet…" : "Try payment again"}
+            </Button>
           )}
           <Button asChild variant="outline">
             <Link to="/dashboard">Back to dashboard</Link>

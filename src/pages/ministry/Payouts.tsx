@@ -26,7 +26,7 @@ export default function MinistryPayouts() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Payouts</h1>
         <p className="text-muted-foreground mt-1">
-          Released against completed plantation requests. Amount is the plantation share of the donation.
+          Released against completed plantation requests. Amount is the plantation share, paid to the vendor’s M-Pesa number via Afrinet.
         </p>
       </div>
       {canWrite && (
@@ -43,13 +43,21 @@ export default function MinistryPayouts() {
                 .filter((r) => !state.plantationPayouts.some((p) => p.plantationRequestId === r.id))
                 .map((r) => (
                   <div key={r.id} className="flex items-center justify-between border rounded-md px-3 py-2">
-                    <span>{usd(r.amount)} request</span>
+                    <span>
+                      {usd(r.amount)} request
+                      {(() => {
+                        const vendor = state.vendors.find((v) => v.id === r.partnerId);
+                        return vendor?.mpesaPhone
+                          ? ` → ${vendor.mpesaPhone}`
+                          : " (set an M-Pesa number on the vendor first)";
+                      })()}
+                    </span>
                     <Button
                       size="sm"
                       onClick={async () => {
                         try {
                           await createPayout(r.id);
-                          toast.success("Payout recorded");
+                          toast.success("Payout submitted");
                         } catch (err) {
                           toast.error(apiErrorMessage(err));
                         }
@@ -76,6 +84,7 @@ export default function MinistryPayouts() {
                 <TableHead>Txn</TableHead>
                 <TableHead>Reference</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Note</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -87,6 +96,9 @@ export default function MinistryPayouts() {
                   <TableCell className="font-mono text-xs">{p.transactionReferenceNumber}</TableCell>
                   <TableCell>
                     <StatusBadge status={p.payoutStatus} />
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground max-w-[16rem] truncate">
+                    {p.failureMessage ?? ""}
                   </TableCell>
                 </TableRow>
               ))}

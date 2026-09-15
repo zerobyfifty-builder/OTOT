@@ -28,6 +28,7 @@ export default function MinistryPartners() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Region</TableHead>
+                <TableHead>M-Pesa</TableHead>
                 <TableHead>Agents</TableHead>
                 <TableHead>Open requests</TableHead>
                 <TableHead>Status</TableHead>
@@ -38,6 +39,7 @@ export default function MinistryPartners() {
                 <TableRow key={v.id}>
                   <TableCell>{v.name}</TableCell>
                   <TableCell>{v.region}</TableCell>
+                  <TableCell className="font-mono text-xs">{v.mpesaPhone || "—"}</TableCell>
                   <TableCell>{state.vendorAgents.filter((a) => a.vendorId === v.id).length}</TableCell>
                   <TableCell>
                     {

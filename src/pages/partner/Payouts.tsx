@@ -40,6 +40,7 @@ export default function PartnerPayouts() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Reference</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Note</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -50,6 +51,9 @@ export default function PartnerPayouts() {
                     <TableCell className="font-mono text-xs">{p.transactionReferenceNumber}</TableCell>
                     <TableCell>
                       <StatusBadge status={p.payoutStatus} />
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[14rem] truncate">
+                      {p.failureMessage ?? ""}
                     </TableCell>
                   </TableRow>
                 ))}

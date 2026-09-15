@@ -22,6 +22,7 @@ import MyTrees from "@/pages/tourist/MyTrees";
 import MyImpact from "@/pages/tourist/MyImpact";
 import Donate from "@/pages/tourist/Donate";
 import Payment from "@/pages/tourist/Payment";
+import AwaitingPayment from "@/pages/tourist/AwaitingPayment";
 import DonationDetail from "@/pages/tourist/DonationDetail";
 import Profile from "@/pages/tourist/Profile";
 import MinistryDashboard from "@/pages/ministry/Dashboard";
@@ -75,6 +76,7 @@ const App = () => (
                 <Route path="/carbon-calculator" element={wrap(["tourist"], TouristLayout, <CarbonCalculator />)} />
                 <Route path="/donate" element={wrap(["tourist"], TouristLayout, <Donate />)} />
                 <Route path="/donate/pay" element={wrap(["tourist"], TouristLayout, <Payment />)} />
+                <Route path="/donate/awaiting/:paymentId" element={wrap(["tourist"], TouristLayout, <AwaitingPayment />)} />
                 <Route path="/donations/:id" element={wrap(["tourist"], TouristLayout, <DonationDetail />)} />
                 <Route path="/profile" element={wrap(["tourist"], TouristLayout, <Profile />)} />
 

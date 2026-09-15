@@ -4,13 +4,13 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
+import { redirectToCheckout } from "@/lib/checkout";
 import { splitCharges } from "@/lib/charges";
 import { treeCount, usd } from "@/lib/format";
-import type { PaymentMode, TreeLine } from "@/types/otot";
+import type { TreeLine } from "@/types/otot";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function Payment() {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ export default function Payment() {
   const incoming = useLocation().state as
     | { carbonOffsetKg?: number; trees?: TreeLine[]; amount?: number; tripId?: string }
     | undefined;
-  const [mode, setMode] = useState<PaymentMode>("Card");
   const [busy, setBusy] = useState(false);
 
   if (!incoming?.trees?.length || !incoming.amount) {
@@ -36,24 +35,25 @@ export default function Payment() {
     if (!session) return;
     setBusy(true);
     try {
-      const { donation } = await checkoutDonation({
-        userId: session.userId,
+      const result = await checkoutDonation({
         carbonOffsetKg: incoming.carbonOffsetKg || 0,
         trees: incoming.trees,
-        paymentMode: mode,
         tripId: incoming.tripId,
       });
-      toast.success("Payment recorded (demo)");
-      navigate(`/donations/${donation.id}`);
+      redirectToCheckout(result.checkoutUrl, navigate);
     } catch (err) {
       toast.error(apiErrorMessage(err));
-    } finally {
       setBusy(false);
     }
   };
 
   return (
-    <TouristPage title="Payment" subtitle="Demo checkout. No money is moved." className="max-w-xl" purchase>
+    <TouristPage
+      title="Payment"
+      subtitle="Confirm to start an Afrinet card checkout. We confirm the payment on the next screen."
+      className="max-w-xl"
+      purchase
+    >
       <Card className="glass-card">
         <CardHeader>
           <CardTitle>{usd(incoming.amount)}</CardTitle>
@@ -62,24 +62,17 @@ export default function Payment() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <p className="text-sm font-medium mb-3">Payment mode</p>
-            <RadioGroup value={mode} onValueChange={(v) => setMode(v as PaymentMode)} className="gap-3">
-              {(["Card", "M-Pesa", "Bank Transfer"] as PaymentMode[]).map((m) => (
-                <label key={m} className="flex items-center gap-2 text-sm border rounded-md px-3 py-2">
-                  <RadioGroupItem value={m} /> {m}
-                </label>
-              ))}
-            </RadioGroup>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Afrinet starts a hosted card checkout. Stay on the next screen until we confirm the transfer.
+          </p>
           <div className="text-sm space-y-1 rounded-md bg-muted p-3">
             <div className="font-medium">Transaction charges split</div>
             <div className="flex justify-between"><span>Plantation</span><span>{usd(split.plantation)}</span></div>
             <div className="flex justify-between"><span>Platform (5%)</span><span>{usd(split.platform)}</span></div>
             <div className="flex justify-between"><span>Processor (2.9%)</span><span>{usd(split.processor)}</span></div>
           </div>
-          <Button className="w-full" onClick={pay} disabled={busy}>
-            Confirm payment
+          <Button className="w-full" onClick={() => void pay()} disabled={busy}>
+            {busy ? "Starting payment…" : "Confirm payment"}
           </Button>
         </CardContent>
       </Card>

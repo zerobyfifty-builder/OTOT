@@ -1,10 +1,18 @@
 import { format } from "date-fns";
 
-export const usd = (amount: number) =>
-  new Intl.NumberFormat("en-US", {
+export function usd(amount: number) {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
+  }).format(amount);
+}
+
+export const kes = (amount: number) =>
+  new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+    maximumFractionDigits: 0,
   }).format(amount);
 
 export const kg = (value: number) =>

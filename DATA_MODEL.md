@@ -16,7 +16,7 @@ erDiagram
   users ||--o{ vendor_agents : "member of"
   tree_types ||--o{ donation_trees : "used in"
   donations ||--o{ donation_trees : contains
-  donations ||--o| payments : "mock checkout"
+  donations ||--o{ payments : "Afrinet checkout"
   donations ||--o| plantation_requests : "1-1 now"
   plantation_requests }o--o| vendors : assigned
   plantation_requests ||--o| plantation_payouts : "1-1"
@@ -64,6 +64,7 @@ Plantation partner organisation (group).
 | `name` | TEXT | |
 | `region` | TEXT | |
 | `status` | TEXT | `active` \| `inactive` |
+| `mpesa_phone` | TEXT | B2C destination, `2547XXXXXXXX`. Required before ministry payout |
 
 ### `vendor_agents`
 
@@ -122,7 +123,7 @@ Delete is refused when a paid donation is linked. `trees_needed` vs trees on lin
 
 ### `donations`
 
-Tourist pledge after mock checkout.
+Tourist pledge. Starts `pending_payment` until Afrinet webhook/sync marks it `paid`.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -135,7 +136,7 @@ Tourist pledge after mock checkout.
 | `status` | TEXT | `pending_payment` \| `paid` \| `refunded` |
 | `created_at` | TIMESTAMPTZ | |
 
-Mock checkout always inserts `paid`. `pending_payment` / `refunded` are reserved for a later processor.
+Checkout inserts `pending_payment`. `paid` is set only after Afrinet reports `COMPLETED`. `refunded` is unused.
 
 The API still returns `trees: TreeLine[]` by joining `donation_trees`.
 
@@ -154,26 +155,37 @@ Unique `(donation_id, tree_type_id)`.
 
 ### `payments`
 
-One payment per donation in the current implementation. **Mock only** — no Stripe, M-Pesa, or bank integration.
+Afrinet hosted checkout. Several attempts per donation are allowed. `external_reference` is the Afrinet idempotency key (`DON-…-n`).
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | TEXT PK | |
 | `donation_id` | TEXT FK → donations | |
-| `payment_mode` | TEXT | Label only: `Card` \| `M-Pesa` \| `Bank Transfer` |
-| `status` | TEXT | `pending` \| `success` \| `failed` — mock checkout writes `success` |
-| `amount` | NUMERIC(12,2) | Same as donation amount |
+| `payment_mode` | TEXT | Updated from webhook: `Card` \| `M-Pesa` \| `Bank Transfer` |
+| `status` | TEXT | `pending` until webhook/`sync`; then `success` or `failed` |
+| `amount` | NUMERIC(12,2) | USD catalog total |
 | `plantation` | NUMERIC(12,2) | Charge split |
 | `platform` | NUMERIC(12,2) | 5% |
 | `processor` | NUMERIC(12,2) | 2.9% |
-| `external_reference` | TEXT NULL | Mock: `MOCK-…`. Later: processor charge id |
+| `external_reference` | TEXT UNIQUE | Afrinet `reference` |
+| `afrinet_transaction_code` | TEXT | Engine transaction code |
+| `afrinet_status` | TEXT | Last provider status |
+| `checkout_url` | TEXT | Redirect target from `charges.create` |
+| `mpesa_receipt` | TEXT | From webhook if M-Pesa |
+| `failure_message` | TEXT | |
+| `currency` | TEXT | Charged currency (`KES` after checkout) |
+| `amount_kes` | INTEGER | Whole shillings sent to Afrinet |
 | `created_at` | TIMESTAMPTZ | |
 
 `plantation = amount − platform − processor`.
 
+### `webhook_events`
+
+Audit log of Afrinet callbacks (`POST /webhooks/afrinet`). Idempotent settle uses `reference` / `transaction_code` on payments and payouts.
+
 ### `plantation_requests`
 
-Ministry work order. **1:1 with donation today** (`donation_id` UNIQUE). Paid checkout auto-creates a row with status `unassigned`. Ministry assigns a vendor. Manual `POST /v1/plantation-requests` is idempotent (returns the existing row).
+Ministry work order. **1:1 with donation today** (`donation_id` UNIQUE). Paid checkout (Afrinet `COMPLETED`) auto-creates a row with status `unassigned`. Ministry assigns a vendor. Manual `POST /v1/plantation-requests` is idempotent (returns the existing row) and requires a paid donation.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -206,16 +218,17 @@ Agents may only PATCH their own row. Partner admins may PATCH any row for their 
 
 ### `plantation_payouts`
 
-Mock partner payout after ministry completes the request. **1:1 with plantation_request**.
+Partner B2C payout via Afrinet after ministry completes the request. **1:1 with plantation_request**.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | TEXT PK | |
 | `plantation_request_id` | TEXT UNIQUE FK | |
-| `amount` | NUMERIC(12,2) | Plantation share of the request amount (not the gross donation) |
-| `payout_status` | TEXT | `pending` \| `processing` \| `paid` \| `failed` — mock writes `paid` |
-| `transaction_id` | TEXT | Invented `TXN-*` |
-| `transaction_reference_number` | TEXT | Invented `KTB-PAY-*` |
+| `amount` | NUMERIC(12,2) | Plantation share (USD) |
+| `payout_status` | TEXT | `pending` \| `processing` \| `paid` \| `failed` |
+| `transaction_id` | TEXT | Afrinet transaction code |
+| `transaction_reference_number` | TEXT | Our `PO-…` idempotency key |
+| `failure_message` | TEXT | |
 | `created_at` | TIMESTAMPTZ | |
 
 ## Carbon offset → donation amount
@@ -227,11 +240,12 @@ Mock partner payout after ministry completes the request. **1:1 with plantation_
 
 ## Live flow
 
-1. Tourist mock-pays → `donations` (`paid`) + `payments` (`success`, `MOCK-…`) + unassigned `plantation_requests`.
-2. Ministry admin assigns a vendor (`assigned_to` = that vendor’s partner admin).
-3. Partner admin creates `vendor_plantation_requests` for an agent → parent status `in_progress`.
-4. Agent (or vendor admin) moves vendor status to `completed`. When all sibling vendor jobs are complete, parent becomes `ready_for_review`.
-5. Ministry admin marks the plantation request `completed`, then may create a mock `plantation_payouts` row.
+1. Tourist confirms payment → pending donation + pending payment → redirect to Afrinet hosted checkout (card, M-Pesa, bank).
+2. Afrinet returns the browser to `/donate/awaiting/:paymentId`. Webhook `POST /webhooks/afrinet` (and optional `/v1/payments/:id/sync`) settles `COMPLETED` → donation `paid` + unassigned `plantation_requests`.
+3. Ministry admin assigns a vendor (`assigned_to` = that vendor’s partner admin).
+4. Partner admin creates `vendor_plantation_requests` for an agent → parent status `in_progress`.
+5. Agent (or vendor admin) moves vendor status to `completed`. When all sibling vendor jobs are complete, parent becomes `ready_for_review`.
+6. Ministry admin marks the plantation request `completed`, then may create an Afrinet B2C `plantation_payouts` row (vendor `mpesa_phone` required).
 
 ## API (authenticated unless noted)
 
@@ -247,7 +261,11 @@ Mock partner payout after ministry completes the request. **1:1 with plantation_
 | `POST` | `/v1/tree-mix/quote` | signed-in |
 | `POST` | `/v1/trips` | tourist |
 | `DELETE` | `/v1/trips/:id` | tourist (own trip; blocked if paid trees exist) |
-| `POST` | `/v1/donations/checkout` | tourist (optional `tripId`) |
+| `POST` | `/v1/donations/checkout` | tourist — pending donation, returns `checkoutUrl` |
+| `GET` | `/v1/payments/:id` | owner / staff |
+| `POST` | `/v1/payments/:id/sync` | tourist — local mock completes when Afrinet is off; live waits on webhook |
+| `POST` | `/v1/donations/:id/retry` | tourist — new pending payment + checkout URL |
+| `POST` | `/webhooks/afrinet` | public, HMAC |
 | `POST` | `/v1/plantation-requests` | ministry admin (idempotent) |
 | `POST` | `/v1/plantation-requests/:id/assign` | ministry admin |
 | `POST` | `/v1/plantation-requests/:id/complete` | ministry admin |
@@ -260,12 +278,19 @@ Mock partner payout after ministry completes the request. **1:1 with plantation_
 
 ## Intentionally not built yet
 
-- Real payment processors (keep `external_reference` and `pending` / `failed` statuses for that)
 - OAuth / SSO
 - Combining several donations into one plantation request (drop `plantation_requests.donation_id` UNIQUE and add a join table)
 - Several vendor jobs per ministry request (drop `vendor_plantation_requests.plantation_request_id` UNIQUE)
 - Ministry / vendor user-invite CRUD
 - Proof-of-planting uploads
+
+## Afrinet ops
+
+- Portal callback is `https://onetouristonetree.com/webhooks/afrinet` (this API). Must return 2xx.
+- Checkout is SDK `charges.create` with `HOSTED_CHECKOUT` + `returnUrl` / `cancelUrl`.
+- Use sandbox until live `api.afrinet.global` accepts the merchant key.
+- Fund the merchant wallet before B2C payouts (`INSUFFICIENT_FUNDS` otherwise).
+- Secrets on the API service only. Never `VITE_*`.
 
 ## Demo accounts
 

@@ -16,11 +16,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { Vendor } from "@/types/otot";
+
+function VendorMpesaEditor({ vendor }: { vendor: Vendor }) {
+  const { upsertVendor } = useStore();
+  const [phone, setPhone] = useState(vendor.mpesaPhone ?? "");
+  const [saving, setSaving] = useState(false);
+
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        className="h-8 font-mono text-xs w-40"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        placeholder="2547XXXXXXXX"
+      />
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={saving || phone.trim() === (vendor.mpesaPhone ?? "")}
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await upsertVendor({ ...vendor, mpesaPhone: phone.trim() || undefined });
+            toast.success("M-Pesa number saved");
+          } catch (err) {
+            toast.error(apiErrorMessage(err));
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        Save
+      </Button>
+    </div>
+  );
+}
 
 export default function AdminVendors() {
   const { state, upsertVendor } = useStore();
   const [name, setName] = useState("");
   const [region, setRegion] = useState("");
+  const [mpesaPhone, setMpesaPhone] = useState("");
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-5xl">
@@ -41,6 +78,10 @@ export default function AdminVendors() {
             <Label>Region</Label>
             <Input value={region} onChange={(e) => setRegion(e.target.value)} />
           </div>
+          <div className="space-y-2 flex-1 w-full">
+            <Label>M-Pesa number</Label>
+            <Input value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} placeholder="2547XXXXXXXX" />
+          </div>
           <Button
             onClick={async () => {
               if (!name.trim()) return;
@@ -50,9 +91,11 @@ export default function AdminVendors() {
                   name: name.trim(),
                   region: region.trim() || "Kenya",
                   status: "active",
+                  mpesaPhone: mpesaPhone.trim() || undefined,
                 });
                 setName("");
                 setRegion("");
+                setMpesaPhone("");
                 toast.success("Vendor added");
               } catch (err) {
                 toast.error(apiErrorMessage(err));
@@ -73,6 +116,7 @@ export default function AdminVendors() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Region</TableHead>
+                <TableHead>M-Pesa</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -81,6 +125,9 @@ export default function AdminVendors() {
                 <TableRow key={v.id}>
                   <TableCell>{v.name}</TableCell>
                   <TableCell>{v.region}</TableCell>
+                  <TableCell>
+                    <VendorMpesaEditor vendor={v} />
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={v.status} />
                   </TableCell>

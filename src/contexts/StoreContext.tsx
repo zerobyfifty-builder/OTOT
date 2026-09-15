@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import type {
   Donation,
-  PaymentMode,
+  Payment,
   PlantationPayout,
   PlantationRequest,
   StoreState,
@@ -53,12 +53,13 @@ interface StoreContextValue {
   createTrip: (input: CreateTripInput) => Promise<Trip>;
   deleteTrip: (tripId: string) => Promise<void>;
   checkoutDonation: (input: {
-    userId: string;
     carbonOffsetKg: number;
     trees: TreeLine[];
-    paymentMode: PaymentMode;
     tripId?: string;
-  }) => Promise<{ donation: Donation }>;
+  }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
+  getPayment: (paymentId: string) => Promise<Payment>;
+  syncPayment: (paymentId: string) => Promise<Payment>;
+  retryDonationCheckout: (donationId: string) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   createPlantationRequest: (input: {
     donationId: string;
     partnerId?: string;
@@ -154,24 +155,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const checkoutDonation = useCallback(
-    async (input: {
-      userId: string;
-      carbonOffsetKg: number;
-      trees: TreeLine[];
-      paymentMode: PaymentMode;
-      tripId?: string;
-    }) => {
-      const data = await apiFetch<{ donation: Donation }>("/v1/donations/checkout", {
-        method: "POST",
-        body: JSON.stringify({
-          carbonOffsetKg: input.carbonOffsetKg,
-          trees: input.trees,
-          paymentMode: input.paymentMode,
-          tripId: input.tripId,
-        }),
-      });
+    async (input: { carbonOffsetKg: number; trees: TreeLine[]; tripId?: string }) => {
+      const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
+        "/v1/donations/checkout",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            carbonOffsetKg: input.carbonOffsetKg,
+            trees: input.trees,
+            tripId: input.tripId,
+          }),
+        },
+      );
       await afterWrite();
-      return { donation: data.donation };
+      return data;
+    },
+    [afterWrite],
+  );
+
+  const getPayment = useCallback(async (paymentId: string) => {
+    const data = await apiFetch<{ payment: Payment }>(`/v1/payments/${paymentId}`);
+    return data.payment;
+  }, []);
+
+  const syncPayment = useCallback(async (paymentId: string) => {
+    const data = await apiFetch<{ payment: Payment }>(`/v1/payments/${paymentId}/sync`, { method: "POST" });
+    return data.payment;
+  }, []);
+
+  const retryDonationCheckout = useCallback(
+    async (donationId: string) => {
+      const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
+        `/v1/donations/${donationId}/retry`,
+        { method: "POST" },
+      );
+      await afterWrite();
+      return data;
     },
     [afterWrite],
   );
@@ -274,6 +293,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createTrip,
       deleteTrip,
       checkoutDonation,
+      getPayment,
+      syncPayment,
+      retryDonationCheckout,
       createPlantationRequest,
       assignPlantationRequest,
       markPlantationComplete,
@@ -293,6 +315,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createTrip,
       deleteTrip,
       checkoutDonation,
+      getPayment,
+      syncPayment,
+      retryDonationCheckout,
       createPlantationRequest,
       assignPlantationRequest,
       markPlantationComplete,

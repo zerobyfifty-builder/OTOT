@@ -53,6 +53,7 @@ export interface Vendor {
   name: string;
   region: string;
   status: "active" | "inactive";
+  mpesaPhone?: string;
 }
 
 export interface VendorAgent {
@@ -111,6 +112,13 @@ export interface Payment {
   amount: number;
   transactionChargesSplit: TransactionChargesSplit;
   externalReference?: string;
+  afrinetTransactionCode?: string;
+  afrinetStatus?: string;
+  checkoutUrl?: string;
+  mpesaReceipt?: string;
+  failureMessage?: string;
+  currency?: string;
+  amountKes?: number;
   createdAt: string;
 }
 
@@ -131,6 +139,7 @@ export interface PlantationPayout {
   payoutStatus: PayoutStatus;
   transactionId: string;
   transactionReferenceNumber: string;
+  failureMessage?: string;
   createdAt: string;
 }
 
