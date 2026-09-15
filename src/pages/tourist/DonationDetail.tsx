@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { kg, shortDate, treeCount, usd } from "@/lib/format";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,16 +16,16 @@ export default function DonationDetail() {
   const request = state.plantationRequests.find((r) => r.donationId === id);
 
   if (!donation || (session?.role === "tourist" && donation.userId !== session.userId)) {
-    return <div className="p-8 text-muted-foreground">Donation not found.</div>;
+    return (
+      <TouristPage title="Donation">
+        <p className="text-muted-foreground">Donation not found.</p>
+      </TouristPage>
+    );
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Donation</h1>
-        <p className="text-muted-foreground">{shortDate(donation.createdAt)}</p>
-      </div>
-      <Card>
+    <TouristPage title="Donation" subtitle={shortDate(donation.createdAt)} className="max-w-2xl">
+      <Card className="glass-card">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{usd(donation.amount)}</CardTitle>
           <StatusBadge status={donation.status} />
@@ -64,6 +65,6 @@ export default function DonationDetail() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </TouristPage>
   );
 }

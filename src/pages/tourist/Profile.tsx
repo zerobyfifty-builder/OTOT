@@ -1,15 +1,16 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { roleLabel } from "@/lib/portal";
+import { TouristPage } from "@/components/layout/TouristPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Profile() {
   const { session } = useAuth();
   if (!session) return null;
   return (
-    <div className="p-6 md:p-8 max-w-xl">
-      <Card>
+    <TouristPage title="Profile" subtitle="Your traveler account" className="max-w-xl">
+      <Card className="glass-card">
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
+          <CardTitle>Account</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div><span className="text-muted-foreground">Name</span> · {session.name}</div>
@@ -20,6 +21,6 @@ export default function Profile() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </TouristPage>
   );
 }

@@ -7,6 +7,7 @@ import { apiErrorMessage } from "@/lib/api";
 import { splitCharges } from "@/lib/charges";
 import { treeCount, usd } from "@/lib/format";
 import type { PaymentMode, TreeLine } from "@/types/otot";
+import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,19 +17,16 @@ export default function Payment() {
   const { session } = useAuth();
   const { checkoutDonation } = useStore();
   const incoming = useLocation().state as
-    | { carbonOffsetKg?: number; trees?: TreeLine[]; amount?: number }
+    | { carbonOffsetKg?: number; trees?: TreeLine[]; amount?: number; tripId?: string }
     | undefined;
   const [mode, setMode] = useState<PaymentMode>("Card");
   const [busy, setBusy] = useState(false);
 
   if (!incoming?.trees?.length || !incoming.amount) {
     return (
-      <div className="p-8">
-        <p className="text-muted-foreground">Start from the donation screen.</p>
-        <Button className="mt-4" onClick={() => navigate("/donate")}>
-          Go to donate
-        </Button>
-      </div>
+      <TouristPage title="Payment" subtitle="Start from the donation screen.">
+        <Button onClick={() => navigate("/donate")}>Go to donate</Button>
+      </TouristPage>
     );
   }
 
@@ -43,6 +41,7 @@ export default function Payment() {
         carbonOffsetKg: incoming.carbonOffsetKg || 0,
         trees: incoming.trees,
         paymentMode: mode,
+        tripId: incoming.tripId,
       });
       toast.success("Payment recorded (demo)");
       navigate(`/donations/${donation.id}`);
@@ -54,12 +53,8 @@ export default function Payment() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Payment</h1>
-        <p className="text-muted-foreground mt-1">Demo checkout — no money is moved.</p>
-      </div>
-      <Card>
+    <TouristPage title="Payment" subtitle="Demo checkout. No money is moved." className="max-w-xl" purchase>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle>{usd(incoming.amount)}</CardTitle>
           <CardDescription>
@@ -88,6 +83,6 @@ export default function Payment() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </TouristPage>
   );
 }

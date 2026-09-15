@@ -3,13 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, Leaf, Loader2, Plane } from "lucide-react";
+import { addDays, format } from "date-fns";
+import { ArrowRight, Leaf, Loader2, Plane, Save } from "lucide-react";
 import { toast } from "sonner";
 import { airports } from "@/data/airports";
 import { EMISSION_FACTORS, getFlightEmissions, type CabinClass } from "@/utils/emissionCalculatorApi";
 import { useStore } from "@/contexts/StoreContext";
 import { suggestTreeMix } from "@/lib/treeMix";
-import { kg, usd } from "@/lib/format";
+import { apiErrorMessage } from "@/lib/api";
+import { kg, treeCount, usd } from "@/lib/format";
+import type { AccommodationType, TravelClass } from "@/types/otot";
+import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -25,6 +29,7 @@ const schema = z.object({
   destination: z.string(),
   flightHours: z.coerce.number().min(0.5).max(24),
   nights: z.coerce.number().min(0).max(60),
+  fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   accommodationType: z.enum(["none", "hotel", "rental", "cruise", "service_apartment"]),
   numTravelers: z.coerce.number().min(1).max(20),
 });
@@ -33,8 +38,9 @@ type FormData = z.infer<typeof schema>;
 
 export default function CarbonCalculator() {
   const navigate = useNavigate();
-  const { state } = useStore();
+  const { state, createTrip } = useStore();
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{
     totalCO2: number;
     flightCO2: number;
@@ -53,6 +59,7 @@ export default function CarbonCalculator() {
       destination: "NBO",
       flightHours: 8,
       nights: 7,
+      fromDate: format(new Date(), "yyyy-MM-dd"),
       accommodationType: "hotel",
       numTravelers: 1,
     },
@@ -99,16 +106,59 @@ export default function CarbonCalculator() {
     }
   };
 
-  return (
-    <div className="p-6 md:p-8 max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Carbon calculator</h1>
-        <p className="text-muted-foreground mt-1">
-          Flight emissions come from the carbon offset API when it is available, then we suggest a tree mix and donation amount.
-        </p>
-      </div>
+  const persistTrip = async () => {
+    if (!result || !mix) throw new Error("Calculate the trip first");
+    const data = form.getValues();
+    const fromDate = data.fromDate;
+    const toDate = format(addDays(new Date(`${fromDate}T00:00:00`), data.nights), "yyyy-MM-dd");
+    return createTrip({
+      originAirport: data.origin,
+      destinationAirport: data.destination,
+      travelClass: data.travelClass as TravelClass,
+      isReturn: data.tripType === "return",
+      fromDate,
+      toDate,
+      accommodationType: data.accommodationType as AccommodationType,
+      numTravelers: data.numTravelers,
+      flightCo2: result.flightCO2,
+      accommodationCo2: result.accommodationCO2,
+      totalCo2: result.totalCO2,
+      treesNeeded: treeCount(mix.trees),
+      distanceKm: result.distance || undefined,
+    });
+  };
 
-      <Card>
+  const saveTrip = async (thenDonate: boolean) => {
+    setSaving(true);
+    try {
+      const trip = await persistTrip();
+      toast.success("Trip saved");
+      if (thenDonate) {
+        navigate("/donate", {
+          state: {
+            carbonOffsetKg: result?.totalCO2,
+            trees: mix?.trees,
+            tripId: trip.id,
+          },
+        });
+      } else {
+        navigate("/my-trips");
+      }
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <TouristPage
+      title="Carbon Calculator"
+      subtitle="Flight emissions come from the carbon offset API when it is available, then we suggest a tree mix and donation amount."
+      className="max-w-4xl"
+    >
+
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plane className="h-5 w-5" /> Trip details
@@ -251,7 +301,7 @@ export default function CarbonCalculator() {
                 />
               )}
 
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="numTravelers"
@@ -272,6 +322,18 @@ export default function CarbonCalculator() {
                       <FormLabel>Nights</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="fromDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -311,7 +373,7 @@ export default function CarbonCalculator() {
       </Card>
 
       {result && mix && (
-        <Card className="border-accent/30">
+        <Card className="glass-card border-accent/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Leaf className="h-5 w-5" /> Suggested offset
@@ -331,21 +393,19 @@ export default function CarbonCalculator() {
               ))}
             </ul>
             <p className="text-lg font-semibold">{usd(mix.amount)} suggested donation</p>
-            <Button
-              onClick={() =>
-                navigate("/donate", {
-                  state: {
-                    carbonOffsetKg: result.totalCO2,
-                    trees: mix.trees,
-                  },
-                })
-              }
-            >
-              Continue to donate <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button variant="outline" disabled={saving} onClick={() => void saveTrip(false)}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Save trip
+              </Button>
+              <Button disabled={saving} onClick={() => void saveTrip(true)}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Continue to donate <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
-    </div>
+    </TouristPage>
   );
 }

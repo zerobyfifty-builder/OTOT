@@ -5,6 +5,7 @@ import { useStore } from "@/contexts/StoreContext";
 import { scoreMix, suggestTreeMix } from "@/lib/treeMix";
 import { kg, usd } from "@/lib/format";
 import type { TreeLine } from "@/types/otot";
+import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,11 +15,15 @@ export default function Donate() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, quoteTreeMix } = useStore();
-  const incoming = location.state as { carbonOffsetKg?: number; trees?: TreeLine[] } | undefined;
+  const incoming = location.state as
+    | { carbonOffsetKg?: number; trees?: TreeLine[]; tripId?: string }
+    | undefined;
 
   const [carbonOffsetKg, setCarbonOffsetKg] = useState(incoming?.carbonOffsetKg ?? 320);
   const [trees, setTrees] = useState<TreeLine[]>(
-    incoming?.trees?.length ? incoming.trees : suggestTreeMix(320, state.treeTypes).trees,
+    incoming?.trees?.length
+      ? incoming.trees
+      : suggestTreeMix(incoming?.carbonOffsetKg ?? 320, state.treeTypes).trees,
   );
 
   const mix = useMemo(() => scoreMix(trees, state.treeTypes), [trees, state.treeTypes]);
@@ -39,18 +44,21 @@ export default function Donate() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Donation</h1>
-        <p className="text-muted-foreground mt-1">
-          Choose tree types and counts. Amount is plantation cost × trees. Carbon offset is the volume you intend to cover.
-        </p>
-      </div>
+    <TouristPage
+      title="Plant Trees"
+      subtitle="Choose tree types and counts. Amount is plantation cost times trees. Carbon offset is the volume you intend to cover."
+      className="max-w-3xl"
+      purchase
+    >
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle>Offset volume</CardTitle>
-          <CardDescription>From the calculator, or enter a target yourself.</CardDescription>
+          <CardDescription>
+            {incoming?.tripId
+              ? "This donation will be linked to the trip you chose to offset."
+              : "From the calculator, or enter a target yourself."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -80,7 +88,7 @@ export default function Donate() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle>Trees</CardTitle>
           <CardDescription>Nested field: tree type and count.</CardDescription>
@@ -126,7 +134,7 @@ export default function Donate() {
             disabled={mix.trees.length === 0}
             onClick={() =>
               navigate("/donate/pay", {
-                state: { carbonOffsetKg, trees: mix.trees, amount: mix.amount },
+                state: { carbonOffsetKg, trees: mix.trees, amount: mix.amount, tripId: incoming?.tripId },
               })
             }
           >
@@ -134,6 +142,6 @@ export default function Donate() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </TouristPage>
   );
 }

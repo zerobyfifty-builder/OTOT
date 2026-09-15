@@ -19,6 +19,9 @@ export type VendorRequestStatus = "assigned" | "in_progress" | "completed";
 export type PayoutStatus = "pending" | "processing" | "paid" | "failed";
 export type MinistryRole = "admin" | "user";
 export type VendorAgentRole = "admin" | "agent";
+export type TravelClass = "economy" | "premium_economy" | "business" | "first";
+export type AccommodationType = "none" | "hotel" | "rental" | "cruise" | "service_apartment";
+export type TripEntrySource = "Manual" | "Partner";
 
 export interface TreeLine {
   treeTypeId: string;
@@ -59,9 +62,33 @@ export interface VendorAgent {
   role: VendorAgentRole;
 }
 
+export interface Trip {
+  id: string;
+  userId: string;
+  originAirport: string;
+  destinationAirport: string;
+  travelClass: TravelClass;
+  isReturn: boolean;
+  fromDate: string;
+  toDate: string;
+  accommodationType: AccommodationType;
+  numTravelers: number;
+  flightCo2: number;
+  accommodationCo2: number;
+  totalCo2: number;
+  treesNeeded: number;
+  distanceKm?: number;
+  entrySource: TripEntrySource;
+  friendlyTripId: string;
+  createdAt: string;
+}
+
+export type CreateTripInput = Omit<Trip, "id" | "userId" | "entrySource" | "friendlyTripId" | "createdAt">;
+
 export interface Donation {
   id: string;
   userId: string;
+  tripId?: string;
   carbonOffsetKg: number;
   requestedCarbonOffsetKg?: number;
   amount: number;
@@ -143,6 +170,7 @@ export interface StoreState {
   vendors: Vendor[];
   vendorAgents: VendorAgent[];
   treeTypes: TreeType[];
+  trips: Trip[];
   donations: Donation[];
   payments: Payment[];
   plantationRequests: PlantationRequest[];

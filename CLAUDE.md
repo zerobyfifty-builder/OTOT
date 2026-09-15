@@ -47,13 +47,13 @@ JWT is stored as `otot.jwt`. Super admin reset calls `POST /v1/admin/reset-demo`
 
 ### Product flow
 
-Tourist mock-pays → donation + payment + unassigned plantation request → ministry assigns a vendor → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create a mock payout.
+Tourist mock-pays → donation + payment + unassigned plantation request (optionally linked to a trip) → ministry assigns a vendor → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create a mock payout.
 
 ## Portals
 
 | Portal | Prefix | Roles |
 |---|---|---|
-| Tourist | `/dashboard`, `/carbon-calculator`, `/donate` | tourist |
+| Tourist | `/dashboard`, `/my-trips`, `/my-trees`, `/my-impact`, `/carbon-calculator`, `/donate` | tourist |
 | Ministry | `/ministry/*` | ministry_admin, ministry_user |
 | Partner | `/partner/*` | partner_admin, partner_agent |
 | Super admin | `/admin/*` | super_admin |

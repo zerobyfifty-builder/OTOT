@@ -672,3 +672,52 @@
   text-shadow: 0 1px 0 hsl(0 0% 100% / 0.35) !important;
 }
 
+/* Light tourist canvas matching archived/main production dashboard */
+.tourist-glass .tourist-glass-main {
+  background-color: hsl(120 28% 97%) !important;
+  background-image:
+    radial-gradient(70rem 40rem at 12% -8%, hsl(96 40% 92% / 0.7), transparent 62%),
+    radial-gradient(50rem 36rem at 100% 8%, hsl(150 35% 90% / 0.55), transparent 60%) !important;
+}
+
+.tourist-glass .tourist-dashboard-glass {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: hsl(var(--foreground));
+}
+
+.tourist-glass .tourist-dashboard-glass::before {
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+  animation: none;
+}
+
+.tourist-glass .tourist-dashboard-glass section:not(:has(.glass-card--featured)) h2,
+.tourist-glass .tourist-dashboard-glass .faq-heading,
+.tourist-glass .tourist-dashboard-glass .tourist-page-heading {
+  color: hsl(var(--foreground)) !important;
+  text-shadow: none !important;
+}
+
+.tourist-glass .tourist-dashboard-glass .tourist-page-subheading {
+  color: hsl(var(--muted-foreground)) !important;
+  text-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+.tourist-glass .tourist-dashboard-glass .container .glass-card p:not([class*="bg-"]):not(.text-2xl):not(.text-3xl),
+.tourist-glass .tourist-dashboard-glass .container .glass-card [class*="text-muted-foreground"] {
+  color: hsl(132 28% 22%) !important;
+  text-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+.tourist-glass .tourist-dashboard-glass .glass-card h2,
+.tourist-glass .tourist-dashboard-glass .glass-card h3,
+.tourist-glass .tourist-dashboard-glass .glass-card .font-semibold,
+.tourist-glass .tourist-dashboard-glass .glass-card .font-bold,
+.tourist-glass .tourist-dashboard-glass .glass-card [class*="text-foreground"] {
+  color: hsl(126 54% 10%) !important;
+  text-shadow: none !important;
+}
+

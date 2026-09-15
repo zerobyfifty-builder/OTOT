@@ -17,6 +17,8 @@ import type {
   StoreState,
   TreeLine,
   TreeType,
+  Trip,
+  CreateTripInput,
   Vendor,
   VendorRequestStatus,
 } from "@/types/otot";
@@ -27,6 +29,7 @@ const emptyStore = (): StoreState => ({
   vendors: [],
   vendorAgents: [],
   treeTypes: [],
+  trips: [],
   donations: [],
   payments: [],
   plantationRequests: [],
@@ -47,11 +50,14 @@ interface StoreContextValue {
   refresh: () => Promise<void>;
   resetDemo: () => Promise<void>;
   quoteTreeMix: (carbonOffsetKg: number) => Promise<TreeMixQuote>;
+  createTrip: (input: CreateTripInput) => Promise<Trip>;
+  deleteTrip: (tripId: string) => Promise<void>;
   checkoutDonation: (input: {
     userId: string;
     carbonOffsetKg: number;
     trees: TreeLine[];
     paymentMode: PaymentMode;
+    tripId?: string;
   }) => Promise<{ donation: Donation }>;
   createPlantationRequest: (input: {
     donationId: string;
@@ -127,12 +133,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const createTrip = useCallback(
+    async (input: CreateTripInput) => {
+      const data = await apiFetch<{ trip: Trip }>("/v1/trips", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+      await afterWrite();
+      return data.trip;
+    },
+    [afterWrite],
+  );
+
+  const deleteTrip = useCallback(
+    async (tripId: string) => {
+      await apiFetch(`/v1/trips/${tripId}`, { method: "DELETE" });
+      await afterWrite();
+    },
+    [afterWrite],
+  );
+
   const checkoutDonation = useCallback(
     async (input: {
       userId: string;
       carbonOffsetKg: number;
       trees: TreeLine[];
       paymentMode: PaymentMode;
+      tripId?: string;
     }) => {
       const data = await apiFetch<{ donation: Donation }>("/v1/donations/checkout", {
         method: "POST",
@@ -140,6 +167,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           carbonOffsetKg: input.carbonOffsetKg,
           trees: input.trees,
           paymentMode: input.paymentMode,
+          tripId: input.tripId,
         }),
       });
       await afterWrite();
@@ -243,6 +271,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       refresh,
       resetDemo,
       quoteTreeMix,
+      createTrip,
+      deleteTrip,
       checkoutDonation,
       createPlantationRequest,
       assignPlantationRequest,
@@ -260,6 +290,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       refresh,
       resetDemo,
       quoteTreeMix,
+      createTrip,
+      deleteTrip,
       checkoutDonation,
       createPlantationRequest,
       assignPlantationRequest,

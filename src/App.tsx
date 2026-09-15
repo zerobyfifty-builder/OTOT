@@ -17,6 +17,9 @@ import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import TouristDashboard from "@/pages/tourist/Dashboard";
 import CarbonCalculator from "@/pages/tourist/CarbonCalculator";
+import MyTrips from "@/pages/tourist/MyTrips";
+import MyTrees from "@/pages/tourist/MyTrees";
+import MyImpact from "@/pages/tourist/MyImpact";
 import Donate from "@/pages/tourist/Donate";
 import Payment from "@/pages/tourist/Payment";
 import DonationDetail from "@/pages/tourist/DonationDetail";
@@ -66,6 +69,9 @@ const App = () => (
 
                 <Route path="/dashboard" element={wrap(["tourist"], TouristLayout, <TouristDashboard />)} />
                 <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/my-trips" element={wrap(["tourist"], TouristLayout, <MyTrips />)} />
+                <Route path="/my-trees" element={wrap(["tourist"], TouristLayout, <MyTrees />)} />
+                <Route path="/my-impact" element={wrap(["tourist"], TouristLayout, <MyImpact />)} />
                 <Route path="/carbon-calculator" element={wrap(["tourist"], TouristLayout, <CarbonCalculator />)} />
                 <Route path="/donate" element={wrap(["tourist"], TouristLayout, <Donate />)} />
                 <Route path="/donate/pay" element={wrap(["tourist"], TouristLayout, <Payment />)} />
