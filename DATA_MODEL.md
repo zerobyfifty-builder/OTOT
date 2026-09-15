@@ -1,6 +1,6 @@
 # OTOT data model
 
-Canonical schema for One Tourist One Tree after the domain-hardening migration (`bakend/src/db/migrations/002_domain_hardening.sql`). The SPA talks only to the Express API (`bakend`); Postgres is owned by that service. Authorization is application-layer JWT, not Supabase RLS.
+Canonical schema for One Tourist One Tree (`bakend/src/db/migrations/`). The SPA talks only to the Express API (`bakend`); Postgres is owned by that service. Authorization is application-layer JWT, not Supabase RLS.
 
 Flight CO₂ is calculated by `emission_calculator`. Tree mix, donation amount, payments, and plantation ops live in `bakend`.
 
@@ -8,6 +8,8 @@ Flight CO₂ is calculated by `emission_calculator`. Tree mix, donation amount, 
 
 ```mermaid
 erDiagram
+  users ||--o{ trips : logs
+  trips ||--o{ donations : offsets
   users ||--o{ donations : makes
   users }o--o| vendors : "partner staff"
   vendors ||--o{ vendor_agents : employs
@@ -45,7 +47,7 @@ Tourists self-signup. Ministry and partner accounts are provisioned (seeded in d
 
 | Role | Reads | Writes |
 |---|---|---|
-| `tourist` | Own donations / payments / related requests | Signup, checkout, tree-mix quote |
+| `tourist` | Own trips / donations / payments / related requests | Signup, checkout, create/delete trips, tree-mix quote |
 | `ministry_user` | Full store | None |
 | `ministry_admin` | Full store | Create/assign/complete plantation requests, mock payouts |
 | `partner_admin` | Vendor-scoped store | Create vendor plantation request, update any assignment for that vendor |
@@ -91,6 +93,33 @@ Catalog used to turn a CO₂ volume into a donation amount.
 
 Seeded: Acacia 160 kg / $8, Croton 140 kg / $7, African Cedar 200 kg / $12.
 
+### `trips`
+
+Tourist calculator result. Optional parent of a donation when the traveler offsets that trip.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT PK | UUID (or seeded demo id) |
+| `user_id` | TEXT FK → users | Tourist |
+| `origin_airport` | TEXT | IATA |
+| `destination_airport` | TEXT | IATA |
+| `travel_class` | TEXT | `economy` \| `premium_economy` \| `business` \| `first` |
+| `is_return` | BOOLEAN | |
+| `from_date` | DATE | |
+| `to_date` | DATE | |
+| `accommodation_type` | TEXT | `none` \| `hotel` \| `rental` \| `cruise` \| `service_apartment` |
+| `num_travelers` | INTEGER | ≥ 1 |
+| `flight_co2` | NUMERIC(12,2) | kg |
+| `accommodation_co2` | NUMERIC(12,2) | kg |
+| `total_co2` | NUMERIC(12,2) | kg |
+| `trees_needed` | INTEGER | Suggested mix count at save time |
+| `distance_km` | NUMERIC(12,2) | Optional |
+| `entry_source` | TEXT | `Manual` \| `Partner` |
+| `friendly_trip_id` | TEXT | Display id, e.g. `OT-1001` |
+| `created_at` | TIMESTAMPTZ | |
+
+Delete is refused when a paid donation is linked. `trees_needed` vs trees on linked paid donations drives Fully / Partially / Not Offset.
+
 ### `donations`
 
 Tourist pledge after mock checkout.
@@ -99,6 +128,7 @@ Tourist pledge after mock checkout.
 |---|---|---|
 | `id` | TEXT PK | |
 | `user_id` | TEXT FK → users | Tourist |
+| `trip_id` | TEXT FK → trips | Optional; SET NULL if the trip is removed |
 | `requested_carbon_offset_kg` | NUMERIC(12,2) | Target from the trip calculator (client input) |
 | `carbon_offset_kg` | NUMERIC(12,2) | **Server-computed** mix offset: Σ count × `tree_types.offset_kg` |
 | `amount` | NUMERIC(12,2) | **Server-computed** mix cost: Σ count × `cost_per_tree` |
@@ -215,7 +245,9 @@ Mock partner payout after ministry completes the request. **1:1 with plantation_
 | `POST` | `/v1/auth/logout` | client-side; server no-op |
 | `GET` | `/v1/store` | signed-in; role-scoped snapshot |
 | `POST` | `/v1/tree-mix/quote` | signed-in |
-| `POST` | `/v1/donations/checkout` | tourist |
+| `POST` | `/v1/trips` | tourist |
+| `DELETE` | `/v1/trips/:id` | tourist (own trip; blocked if paid trees exist) |
+| `POST` | `/v1/donations/checkout` | tourist (optional `tripId`) |
 | `POST` | `/v1/plantation-requests` | ministry admin (idempotent) |
 | `POST` | `/v1/plantation-requests/:id/assign` | ministry admin |
 | `POST` | `/v1/plantation-requests/:id/complete` | ministry admin |
