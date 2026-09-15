@@ -4,9 +4,11 @@ import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { redirectToCheckout } from "@/lib/checkout";
+import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { kes, usd } from "@/lib/format";
 import type { Payment } from "@/types/otot";
 import { TouristPage } from "@/components/layout/TouristPage";
+import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +22,7 @@ export default function AwaitingPayment() {
   const [payment, setPayment] = useState<Payment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const ticks = useRef(0);
 
   useEffect(() => {
@@ -67,9 +70,13 @@ export default function AwaitingPayment() {
 
   const retry = async () => {
     if (!payment) return;
+    if (!looksLikeMpesaPhone(phoneNumber)) {
+      toast.error("Enter a Kenyan M-Pesa number (07… or 2547…).");
+      return;
+    }
     setRetrying(true);
     try {
-      const result = await retryDonationCheckout(payment.donationId);
+      const result = await retryDonationCheckout(payment.donationId, phoneNumber);
       redirectToCheckout(result.checkoutUrl, navigate);
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -78,14 +85,14 @@ export default function AwaitingPayment() {
   };
 
   return (
-    <TouristPage title="Awaiting confirmation" subtitle="Afrinet is confirming your payment." className="max-w-xl" purchase>
+    <TouristPage title="Awaiting confirmation" subtitle="Approve the M-Pesa prompt on your phone." className="max-w-xl" purchase>
       <Card className="glass-card">
         <CardHeader>
           <CardTitle>{payment ? usd(payment.amount) : "Confirming…"}</CardTitle>
           <CardDescription>
             {cancelled
-              ? "If you cancelled on Afrinet, you can try again. If you paid, stay on this page."
-              : "You can close Afrinet. This page updates when the webhook settles."}
+              ? "If you cancelled the M-Pesa prompt, you can send another one. If you paid, stay on this page."
+              : "This page updates when M-Pesa confirms the payment."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
@@ -102,11 +109,16 @@ export default function AwaitingPayment() {
             </div>
           )}
           {error && <p className="text-destructive">{error}</p>}
-          {payment?.status === "pending" && <p className="text-muted-foreground">Waiting for Afrinet…</p>}
+          {payment?.status === "pending" && (
+            <p className="text-muted-foreground">Waiting for you to approve the M-Pesa prompt…</p>
+          )}
           {payment?.status === "failed" && (
-            <Button onClick={() => void retry()} disabled={retrying}>
-              Try again
-            </Button>
+            <div className="space-y-3">
+              <MpesaPhoneField value={phoneNumber} onChange={setPhoneNumber} disabled={retrying} />
+              <Button onClick={() => void retry()} disabled={retrying || !phoneNumber.trim()}>
+                {retrying ? "Sending M-Pesa prompt…" : "Try M-Pesa again"}
+              </Button>
+            </div>
           )}
           <Button asChild variant="outline">
             <Link to="/donate">Back to donate</Link>

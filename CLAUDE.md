@@ -47,7 +47,7 @@ JWT is stored as `otot.jwt`. Super admin reset calls `POST /v1/admin/reset-demo`
 
 ### Product flow
 
-Tourist confirms payment → Afrinet hosted checkout → return to `/donate/awaiting/:paymentId` → webhook (or `/sync`) marks paid and creates an unassigned plantation request → ministry assigns a vendor → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create an Afrinet B2C payout.
+Tourist pays with M-Pesa → Afrinet C2B STK prompt → `/donate/awaiting/:paymentId` → webhook (or `/sync`) marks paid and creates an unassigned plantation request → ministry assigns a vendor → partner admin creates a vendor plantation request and assigns an agent → agent updates status → when vendor work is complete, ministry marks the plantation request complete and can create an Afrinet B2C payout.
 
 ## Portals
 

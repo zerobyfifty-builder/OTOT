@@ -56,10 +56,14 @@ interface StoreContextValue {
     carbonOffsetKg: number;
     trees: TreeLine[];
     tripId?: string;
+    phoneNumber: string;
   }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   getPayment: (paymentId: string) => Promise<Payment>;
   syncPayment: (paymentId: string) => Promise<Payment>;
-  retryDonationCheckout: (donationId: string) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
+  retryDonationCheckout: (
+    donationId: string,
+    phoneNumber: string,
+  ) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   createPlantationRequest: (input: {
     donationId: string;
     partnerId?: string;
@@ -155,7 +159,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const checkoutDonation = useCallback(
-    async (input: { carbonOffsetKg: number; trees: TreeLine[]; tripId?: string }) => {
+    async (input: { carbonOffsetKg: number; trees: TreeLine[]; tripId?: string; phoneNumber: string }) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
         "/v1/donations/checkout",
         {
@@ -164,6 +168,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             carbonOffsetKg: input.carbonOffsetKg,
             trees: input.trees,
             tripId: input.tripId,
+            phoneNumber: input.phoneNumber,
           }),
         },
       );
@@ -184,10 +189,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const retryDonationCheckout = useCallback(
-    async (donationId: string) => {
+    async (donationId: string, phoneNumber: string) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
         `/v1/donations/${donationId}/retry`,
-        { method: "POST" },
+        { method: "POST", body: JSON.stringify({ phoneNumber }) },
       );
       await afterWrite();
       return data;

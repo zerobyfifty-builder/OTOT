@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { redirectToCheckout } from "@/lib/checkout";
+import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { kg, kes, shortDate, treeCount, usd } from "@/lib/format";
+import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ export default function DonationDetail() {
   const { session } = useAuth();
   const { state, retryDonationCheckout } = useStore();
   const [retrying, setRetrying] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const donation = state.donations.find((d) => d.id === id);
   const payment = state.payments
     .filter((p) => p.donationId === id)
@@ -81,21 +84,28 @@ export default function DonationDetail() {
             </Button>
           )}
           {payment?.status === "failed" && (
-            <Button
-              disabled={retrying}
-              onClick={async () => {
-                setRetrying(true);
-                try {
-                  const result = await retryDonationCheckout(donation.id);
-                  redirectToCheckout(result.checkoutUrl, navigate);
-                } catch (err) {
-                  toast.error(apiErrorMessage(err));
-                  setRetrying(false);
-                }
-              }}
-            >
-              {retrying ? "Opening Afrinet…" : "Try payment again"}
-            </Button>
+            <div className="space-y-3">
+              <MpesaPhoneField value={phoneNumber} onChange={setPhoneNumber} disabled={retrying} />
+              <Button
+                disabled={retrying || !phoneNumber.trim()}
+                onClick={async () => {
+                  if (!looksLikeMpesaPhone(phoneNumber)) {
+                    toast.error("Enter a Kenyan M-Pesa number (07… or 2547…).");
+                    return;
+                  }
+                  setRetrying(true);
+                  try {
+                    const result = await retryDonationCheckout(donation.id, phoneNumber);
+                    redirectToCheckout(result.checkoutUrl, navigate);
+                  } catch (err) {
+                    toast.error(apiErrorMessage(err));
+                    setRetrying(false);
+                  }
+                }}
+              >
+                {retrying ? "Sending M-Pesa prompt…" : "Try M-Pesa again"}
+              </Button>
+            </div>
           )}
           <Button asChild variant="outline">
             <Link to="/dashboard">Back to dashboard</Link>
