@@ -8,13 +8,9 @@ import { redirectToCheckout } from "@/lib/checkout";
 import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { splitCharges } from "@/lib/charges";
 import { treeCount, usd } from "@/lib/format";
-import type { CheckoutMethod, TreeLine } from "@/types/otot";
-import {
-  CheckoutMethodFields,
-  checkoutActionLabel,
-  checkoutReady,
-} from "@/components/shared/CheckoutMethodFields";
+import type { TreeLine } from "@/types/otot";
 import { TouristPage } from "@/components/layout/TouristPage";
+import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -26,7 +22,6 @@ export default function Payment() {
     | { carbonOffsetKg?: number; trees?: TreeLine[]; amount?: number; tripId?: string }
     | undefined;
   const [busy, setBusy] = useState(false);
-  const [method, setMethod] = useState<CheckoutMethod>("mpesa");
   const [phoneNumber, setPhoneNumber] = useState("");
 
   if (!incoming?.trees?.length || !incoming.amount) {
@@ -41,7 +36,7 @@ export default function Payment() {
 
   const pay = async () => {
     if (!session) return;
-    if (method === "mpesa" && !looksLikeMpesaPhone(phoneNumber)) {
+    if (!looksLikeMpesaPhone(phoneNumber)) {
       toast.error("Enter a Kenyan M-Pesa number (07… or 2547…).");
       return;
     }
@@ -51,8 +46,7 @@ export default function Payment() {
         carbonOffsetKg: incoming.carbonOffsetKg || 0,
         trees: incoming.trees,
         tripId: incoming.tripId,
-        paymentMethod: method,
-        phoneNumber: method === "mpesa" ? phoneNumber : undefined,
+        phoneNumber,
       });
       redirectToCheckout(result.checkoutUrl, navigate);
     } catch (err) {
@@ -64,11 +58,7 @@ export default function Payment() {
   return (
     <TouristPage
       title="Payment"
-      subtitle={
-        method === "card"
-          ? "Pay by card on Afrinet's checkout page. We confirm the transfer when you return."
-          : "Pay with M-Pesa. We confirm the transfer on the next screen."
-      }
+      subtitle="Pay with M-Pesa. We confirm the transfer on the next screen."
       className="max-w-xl"
       purchase
     >
@@ -80,21 +70,18 @@ export default function Payment() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <CheckoutMethodFields
-            method={method}
-            onMethodChange={setMethod}
-            phoneNumber={phoneNumber}
-            onPhoneNumberChange={setPhoneNumber}
-            disabled={busy}
-          />
+          <p className="text-sm text-muted-foreground">
+            Enter the Safaricom number that will pay. Approve the prompt on that phone, then stay on the next screen until we confirm the transfer.
+          </p>
+          <MpesaPhoneField value={phoneNumber} onChange={setPhoneNumber} disabled={busy} />
           <div className="text-sm space-y-1 rounded-md bg-muted p-3">
             <div className="font-medium">Transaction charges split</div>
             <div className="flex justify-between"><span>Plantation</span><span>{usd(split.plantation)}</span></div>
             <div className="flex justify-between"><span>Platform (5%)</span><span>{usd(split.platform)}</span></div>
             <div className="flex justify-between"><span>Processor (2.9%)</span><span>{usd(split.processor)}</span></div>
           </div>
-          <Button className="w-full" onClick={() => void pay()} disabled={busy || !checkoutReady(method, phoneNumber)}>
-            {checkoutActionLabel(method, { busy })}
+          <Button className="w-full" onClick={() => void pay()} disabled={busy || !phoneNumber.trim()}>
+            {busy ? "Sending M-Pesa prompt…" : "Pay with M-Pesa"}
           </Button>
         </CardContent>
       </Card>

@@ -9,7 +9,6 @@ export type AppRole =
 export type DonationStatus = "pending_payment" | "paid" | "refunded";
 export type PaymentStatus = "pending" | "success" | "failed";
 export type PaymentMode = "Card" | "M-Pesa" | "Bank Transfer";
-export type CheckoutMethod = "mpesa" | "card";
 export type PlantationRequestStatus =
   | "unassigned"
   | "assigned"

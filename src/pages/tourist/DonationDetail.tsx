@@ -7,13 +7,7 @@ import { apiErrorMessage } from "@/lib/api";
 import { redirectToCheckout } from "@/lib/checkout";
 import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { kg, kes, shortDate, treeCount, usd } from "@/lib/format";
-import type { CheckoutMethod } from "@/types/otot";
-import {
-  CheckoutMethodFields,
-  checkoutActionLabel,
-  checkoutMethodFromMode,
-  checkoutReady,
-} from "@/components/shared/CheckoutMethodFields";
+import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
@@ -25,7 +19,6 @@ export default function DonationDetail() {
   const { session } = useAuth();
   const { state, retryDonationCheckout } = useStore();
   const [retrying, setRetrying] = useState(false);
-  const [method, setMethod] = useState<CheckoutMethod | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const donation = state.donations.find((d) => d.id === id);
   const payment = state.payments
@@ -33,7 +26,6 @@ export default function DonationDetail() {
     .slice()
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
   const request = state.plantationRequests.find((r) => r.donationId === id);
-  const retryMethod = method ?? checkoutMethodFromMode(payment?.paymentMode);
 
   if (!donation || (session?.role === "tourist" && donation.userId !== session.userId)) {
     return (
@@ -93,27 +85,17 @@ export default function DonationDetail() {
           )}
           {payment?.status === "failed" && (
             <div className="space-y-3">
-              <CheckoutMethodFields
-                method={retryMethod}
-                onMethodChange={setMethod}
-                phoneNumber={phoneNumber}
-                onPhoneNumberChange={setPhoneNumber}
-                disabled={retrying}
-                phoneId="donation-retry-mpesa-phone"
-              />
+              <MpesaPhoneField value={phoneNumber} onChange={setPhoneNumber} disabled={retrying} />
               <Button
-                disabled={retrying || !checkoutReady(retryMethod, phoneNumber)}
+                disabled={retrying || !phoneNumber.trim()}
                 onClick={async () => {
-                  if (retryMethod === "mpesa" && !looksLikeMpesaPhone(phoneNumber)) {
+                  if (!looksLikeMpesaPhone(phoneNumber)) {
                     toast.error("Enter a Kenyan M-Pesa number (07… or 2547…).");
                     return;
                   }
                   setRetrying(true);
                   try {
-                    const result = await retryDonationCheckout(donation.id, {
-                      paymentMethod: retryMethod,
-                      phoneNumber: retryMethod === "mpesa" ? phoneNumber : undefined,
-                    });
+                    const result = await retryDonationCheckout(donation.id, phoneNumber);
                     redirectToCheckout(result.checkoutUrl, navigate);
                   } catch (err) {
                     toast.error(apiErrorMessage(err));
@@ -121,7 +103,7 @@ export default function DonationDetail() {
                   }
                 }}
               >
-                {checkoutActionLabel(retryMethod, { busy: retrying, retry: true })}
+                {retrying ? "Sending M-Pesa prompt…" : "Try M-Pesa again"}
               </Button>
             </div>
           )}

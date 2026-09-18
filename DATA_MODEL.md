@@ -240,10 +240,8 @@ Partner B2C payout via Afrinet after ministry completes the request. **1:1 with 
 
 ## Live flow
 
-1. Tourist picks Card or M-Pesa.
-   - M-Pesa: STK prompt, then `/donate/awaiting/:paymentId`.
-   - Card: redirect to Afrinet `HOSTED_CHECKOUT`; `returnUrl` / `cancelUrl` land back on awaiting.
-2. Webhook `POST /webhooks/afrinet` (and optional `/v1/payments/:id/sync`) settles `COMPLETED` → donation `paid` + unassigned `plantation_requests`.
+1. Tourist confirms payment → pending donation + pending payment → redirect to Afrinet hosted checkout (card, M-Pesa, bank).
+2. Afrinet returns the browser to `/donate/awaiting/:paymentId`. Webhook `POST /webhooks/afrinet` (and optional `/v1/payments/:id/sync`) settles `COMPLETED` → donation `paid` + unassigned `plantation_requests`.
 3. Ministry admin assigns a vendor (`assigned_to` = that vendor’s partner admin).
 4. Partner admin creates `vendor_plantation_requests` for an agent → parent status `in_progress`.
 5. Agent (or vendor admin) moves vendor status to `completed`. When all sibling vendor jobs are complete, parent becomes `ready_for_review`.
@@ -289,9 +287,7 @@ Partner B2C payout via Afrinet after ministry completes the request. **1:1 with 
 ## Afrinet ops
 
 - Portal callback is `https://onetouristonetree.com/webhooks/afrinet` (this API). Must return 2xx.
-- M-Pesa: SDK `charges.create` with `paymentType: "mpesa"` C2B STK.
-- Card: SDK `charges.create` with `paymentType: "card"`, `mode: "HOSTED_CHECKOUT"`, `returnUrl` / `cancelUrl`.
-- Sandbox card may still fail with `CARD_PROVIDER_ERROR`; tourists can switch to M-Pesa.
+- Checkout is SDK `charges.create` with `HOSTED_CHECKOUT` + `returnUrl` / `cancelUrl`.
 - Use sandbox until live `api.afrinet.global` accepts the merchant key.
 - Fund the merchant wallet before B2C payouts (`INSUFFICIENT_FUNDS` otherwise).
 - Secrets on the API service only. Never `VITE_*`.
