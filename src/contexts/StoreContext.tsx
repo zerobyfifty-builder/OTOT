@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import type {
+  CheckoutMethod,
   Donation,
   Payment,
   PlantationPayout,
@@ -56,13 +57,14 @@ interface StoreContextValue {
     carbonOffsetKg: number;
     trees: TreeLine[];
     tripId?: string;
-    phoneNumber: string;
+    paymentMethod: CheckoutMethod;
+    phoneNumber?: string;
   }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   getPayment: (paymentId: string) => Promise<Payment>;
   syncPayment: (paymentId: string) => Promise<Payment>;
   retryDonationCheckout: (
     donationId: string,
-    phoneNumber: string,
+    input: { paymentMethod: CheckoutMethod; phoneNumber?: string },
   ) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   createPlantationRequest: (input: {
     donationId: string;
@@ -159,7 +161,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const checkoutDonation = useCallback(
-    async (input: { carbonOffsetKg: number; trees: TreeLine[]; tripId?: string; phoneNumber: string }) => {
+    async (input: {
+      carbonOffsetKg: number;
+      trees: TreeLine[];
+      tripId?: string;
+      paymentMethod: CheckoutMethod;
+      phoneNumber?: string;
+    }) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
         "/v1/donations/checkout",
         {
@@ -168,6 +176,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             carbonOffsetKg: input.carbonOffsetKg,
             trees: input.trees,
             tripId: input.tripId,
+            paymentMethod: input.paymentMethod,
             phoneNumber: input.phoneNumber,
           }),
         },
@@ -189,10 +198,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const retryDonationCheckout = useCallback(
-    async (donationId: string, phoneNumber: string) => {
+    async (donationId: string, input: { paymentMethod: CheckoutMethod; phoneNumber?: string }) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
         `/v1/donations/${donationId}/retry`,
-        { method: "POST", body: JSON.stringify({ phoneNumber }) },
+        { method: "POST", body: JSON.stringify(input) },
       );
       await afterWrite();
       return data;
