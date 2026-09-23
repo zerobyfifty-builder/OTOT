@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { shortDate, treeCount, usd } from "@/lib/format";
+import { ClipboardList } from "lucide-react";
+import { EmptyState, PortalPage, TableFrame } from "@/components/portal/PortalUI";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,18 +28,21 @@ export default function PartnerRequests() {
   const agents = state.users.filter((u) => u.vendorId === vendorId && u.role === "partner_agent");
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Assigned plantation requests</h1>
-        <p className="text-muted-foreground mt-1">
-          Create a vendor plantation request (1:1) and assign it to an agent.
-        </p>
-      </div>
+    <PortalPage
+      tone="partner"
+      icon={ClipboardList}
+      title="Plantation Requests"
+      subtitle="Create a vendor plantation request (1:1) and assign it to an agent."
+    >
       <Card>
-        <CardHeader>
-          <CardTitle>Queue</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Queue</CardTitle>
         </CardHeader>
         <CardContent>
+          {requests.length === 0 ? (
+            <EmptyState icon={ClipboardList} message="No plantation requests assigned yet." />
+          ) : (
+          <TableFrame>
           <Table>
             <TableHeader>
               <TableRow>
@@ -104,8 +109,10 @@ export default function PartnerRequests() {
               })}
             </TableBody>
           </Table>
+          </TableFrame>
+          )}
         </CardContent>
       </Card>
-    </div>
+    </PortalPage>
   );
 }

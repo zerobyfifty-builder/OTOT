@@ -1,4 +1,6 @@
+import { Building2, MapPin, Phone } from "lucide-react";
 import { useStore } from "@/contexts/StoreContext";
+import { EmptyState, PortalPage, TableFrame } from "@/components/portal/PortalUI";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,50 +15,78 @@ import {
 export default function MinistryPartners() {
   const { state } = useStore();
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Plantation partners</h1>
-        <p className="text-muted-foreground mt-1">Vendors that receive assigned plantation requests.</p>
-      </div>
+    <PortalPage
+      tone="ministry"
+      title="Plantation Partners"
+      subtitle="Vendors that receive assigned plantation requests."
+    >
       <Card>
         <CardHeader>
-          <CardTitle>Vendors</CardTitle>
+          <CardTitle>Partners</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Region</TableHead>
-                <TableHead>M-Pesa</TableHead>
-                <TableHead>Agents</TableHead>
-                <TableHead>Open requests</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {state.vendors.map((v) => (
-                <TableRow key={v.id}>
-                  <TableCell>{v.name}</TableCell>
-                  <TableCell>{v.region}</TableCell>
-                  <TableCell className="font-mono text-xs">{v.mpesaPhone || "—"}</TableCell>
-                  <TableCell>{state.vendorAgents.filter((a) => a.vendorId === v.id).length}</TableCell>
-                  <TableCell>
-                    {
-                      state.plantationRequests.filter(
-                        (r) => r.partnerId === v.id && r.status !== "completed",
-                      ).length
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={v.status} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {state.vendors.length === 0 ? (
+            <EmptyState icon={Building2} message="No plantation partners found." />
+          ) : (
+            <TableFrame>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>M-Pesa</TableHead>
+                    <TableHead>Agents</TableHead>
+                    <TableHead>Open requests</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {state.vendors.map((v) => (
+                    <TableRow key={v.id}>
+                      <TableCell>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{v.name}</p>
+                            <p className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {v.region}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {v.mpesaPhone ? (
+                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            <span className="font-mono text-xs">{v.mpesaPhone}</span>
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {state.vendorAgents.filter((a) => a.vendorId === v.id).length}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {
+                          state.plantationRequests.filter(
+                            (r) => r.partnerId === v.id && r.status !== "completed",
+                          ).length
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={v.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableFrame>
+          )}
         </CardContent>
       </Card>
-    </div>
+    </PortalPage>
   );
 }

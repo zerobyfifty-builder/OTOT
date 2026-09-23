@@ -32,7 +32,6 @@ import {
 import reduceFootprintImg from "@/assets/climate-reduce-footprint.jpg";
 import carbonOffsetsImg from "@/assets/climate-carbon-offsets.jpg";
 import offsetTravelImg from "@/assets/climate-offset-travel.jpg";
-import ktbDualLogo from "@/assets/ktb-dual-logo.png";
 
 const PLEDGE_KEY = "otot.travelerPledge";
 
@@ -109,29 +108,24 @@ export default function TouristDashboard() {
     <TouristPage
       title={`Welcome ${name}!`}
       subtitle="Your responsible travel dashboard"
-      headerRight={
-        <img
-          src={ktbDualLogo}
-          alt="Magical Kenya and Kenya Tourism Board"
-          className="hidden sm:block h-12 sm:h-20 object-contain self-start sm:self-auto"
-        />
-      }
     >
       <section className="glass-card glass-card--featured glass-card--leafy relative py-8 px-4 sm:py-10 sm:px-6 md:py-12 md:px-8 rounded-2xl sm:rounded-3xl overflow-hidden">
         <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10 gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-10 gap-6">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Take Action Today</h2>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="flex items-center gap-2 text-base px-6 py-6"
-              onClick={() => navigate("/donate")}
-            >
-              <Sprout className="h-5 w-5" />
-              Plant Trees
-            </Button>
+            <div className="flex flex-wrap gap-4">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="flex items-center gap-2 text-base px-6 py-6"
+                onClick={() => navigate("/donate")}
+              >
+                <Sprout className="h-5 w-5" />
+                Plant Trees
+              </Button>
+            </div>
           </div>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
             <StatsCard
               icon={Plane}
               title="Calculate"
@@ -289,7 +283,7 @@ export default function TouristDashboard() {
         <h2 className="tourist-page-heading text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-left">
           Step up Your Climate Action
         </h2>
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ClimateActionCard
             image={reduceFootprintImg}
             title="Reduce your footprint"
@@ -312,7 +306,7 @@ export default function TouristDashboard() {
       </section>
 
       <section className="faq-section">
-        <h2 className="faq-heading tourist-page-heading text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">
+        <h2 className="faq-heading text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">
           Frequently Asked Questions
         </h2>
         <Card className="glass-card max-w-3xl mx-auto">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   AlertCircle,
@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { kg, treeCount, usd } from "@/lib/format";
+import { kg } from "@/lib/format";
 import {
   ACCOMMODATION_LABELS,
   TRAVEL_CLASS_LABELS,
@@ -28,12 +28,12 @@ import {
   remainingCarbonKg,
   remainingTrees,
   treesPlantedForTrip,
+  tripNights,
 } from "@/lib/trips";
 import type { Trip } from "@/types/otot";
-import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,13 +50,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { TripDetailsDialog } from "@/components/tourist/TripDetailsDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Filter = "all" | "fully" | "partially" | "not";
@@ -131,40 +125,43 @@ export default function MyTrips() {
   ];
 
   return (
-    <TouristPage
-      title="My Trips"
-      subtitle="If your trip does not appear here, please add it manually."
-      headerRight={
-        <Button onClick={() => navigate("/carbon-calculator")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Trip
-        </Button>
-      }
-    >
-      <p className="text-sm text-muted-foreground italic -mt-4 sm:-mt-8">
-        Add a trip from the carbon calculator.
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer inline align-middle ml-0.5" />
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p className="max-w-[220px]">
-                Travel partners can add trips automatically when you book with the same email. Until then, add them here.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </p>
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-7xl py-8">
+      <div className="mb-8">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold text-foreground mb-2">My Trips</h1>
+            <p className="text-sm text-muted-foreground italic w-full">
+              If your trip does not appear here, please add it manually.
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer inline align-middle ml-0.5" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p className="max-w-[220px]">
+                      Travel partners can add trips automatically when you book with the same email. Until then, add them here.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+          </div>
+          <Button onClick={() => navigate("/carbon-calculator")} className="ml-4 shrink-0">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Trip
+          </Button>
+        </div>
+      </div>
 
       {trips.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {filterCards.map((card) => {
             const Icon = card.icon;
             return (
               <Card
                 key={card.key}
-                className={`glass-card cursor-pointer transition-all hover:shadow-md ${statusFilter === card.key ? `ring-2 ${card.ring}` : ""}`}
+                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === card.key ? `ring-2 ${card.ring}` : ""}`}
                 onClick={() => setStatusFilter(card.key)}
               >
                 <CardContent className="pt-6 pb-4 flex items-center justify-between">
@@ -186,7 +183,7 @@ export default function MyTrips() {
       )}
 
       {trips.length === 0 ? (
-        <Card className="glass-card py-12">
+        <Card className="py-12">
           <CardContent className="text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Plane className="h-8 w-8 text-primary" />
@@ -204,11 +201,11 @@ export default function MyTrips() {
       ) : (
         <>
           {statusFilter !== "all" && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
                 Showing <span className="font-medium text-foreground">{filtered.length}</span> of {trips.length} trips
               </p>
-              <Button variant="ghost" size="sm" onClick={() => setStatusFilter("all")}>
+              <Button variant="ghost" size="sm" onClick={() => setStatusFilter("all")} className="text-primary hover:text-primary">
                 <XCircle className="h-4 w-4 mr-1" />
                 Clear filter
               </Button>
@@ -216,7 +213,7 @@ export default function MyTrips() {
           )}
 
           <div className="hidden lg:block">
-            <Card className="glass-card">
+            <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -237,19 +234,23 @@ export default function MyTrips() {
                         return (
                           <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
                             <td className="px-6 py-6 whitespace-nowrap">
-                              <div className="text-sm font-semibold text-foreground">{trip.friendlyTripId}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {format(new Date(trip.createdAt), "dd MMM yyyy, h:mm a")}
+                              <div className="space-y-1">
+                                <div className="text-sm font-semibold text-foreground">{trip.friendlyTripId}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(new Date(trip.createdAt), "dd MMM yyyy, h:mm a")}
+                                </div>
+                                <Badge variant={trip.entrySource === "Manual" ? "secondary" : "default"} className="text-xs mt-1">
+                                  {trip.entrySource}
+                                </Badge>
                               </div>
-                              <Badge variant={trip.entrySource === "Manual" ? "secondary" : "default"} className="text-xs mt-1">
-                                {trip.entrySource}
-                              </Badge>
                             </td>
                             <td className="px-6 py-6 whitespace-nowrap">
-                              <div className="font-medium text-foreground">{range.dateText}</div>
-                              <div className="text-xs text-muted-foreground">{range.daysText}</div>
+                              <div className="text-sm">
+                                <div className="font-medium text-foreground">{range.dateText}</div>
+                                <div className="text-xs text-muted-foreground">{range.daysText}</div>
+                              </div>
                             </td>
-                            <td className="px-6 py-6">
+                            <td className="px-6 py-6 space-y-1">
                               <div className="font-medium text-foreground">
                                 {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
                               </div>
@@ -260,7 +261,7 @@ export default function MyTrips() {
                                 <div className="text-xs text-muted-foreground">{ACCOMMODATION_LABELS[trip.accommodationType]}</div>
                               )}
                             </td>
-                            <td className="px-6 py-6 whitespace-nowrap text-sm">
+                            <td className="px-6 py-6 whitespace-nowrap text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">Flight: </span>
                                 <span className="font-semibold">{kg(trip.flightCo2)}</span>
@@ -342,41 +343,102 @@ export default function MyTrips() {
           <div className="lg:hidden space-y-4">
             {filtered.map(({ trip, planted }) => {
               const range = formatDateRange(trip.fromDate, trip.toDate);
+              const nights = tripNights(trip.fromDate, trip.toDate);
               return (
-                <Card key={trip.id} className="glass-card">
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
+                <Card key={trip.id}>
+                  <CardHeader className="pb-1.5">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-semibold text-foreground">{trip.friendlyTripId}</p>
-                        <p className="text-sm text-foreground">
-                          {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{range.dateText}</p>
+                        <div className="text-sm font-semibold text-muted-foreground">{trip.friendlyTripId}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {format(new Date(trip.createdAt), "dd MMM yyyy, h:mm a")}
+                        </div>
+                        <Badge variant={trip.entrySource === "Manual" ? "secondary" : "default"} className="mt-1.5">
+                          {trip.entrySource}
+                        </Badge>
                       </div>
-                      <OffsetBadge planted={planted} needed={trip.treesNeeded} />
+                      <div className="flex gap-2">
+                        <OffsetBadge planted={planted} needed={trip.treesNeeded} />
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">CO₂</span>
-                      <span className="font-semibold">{kg(trip.totalCo2)}</span>
+                    <CardTitle className="text-lg">
+                      {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
+                    </CardTitle>
+                    <CardDescription>
+                      {range.dateText} ({range.daysText})
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-sm">
+                      <div className="text-muted-foreground mb-1">
+                        {TRAVEL_CLASS_LABELS[trip.travelClass]}, {trip.isReturn ? "Return" : "One-way"}
+                      </div>
+                      <div className="text-muted-foreground">{ACCOMMODATION_LABELS[trip.accommodationType]}</div>
+                      {trip.numTravelers > 1 && <div className="text-muted-foreground">{trip.numTravelers} travelers</div>}
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Trees</span>
-                      <span className="font-semibold">
-                        {planted}/{trip.treesNeeded}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button className="flex-1" size="sm" onClick={() => offsetTrip(trip)} disabled={planted >= trip.treesNeeded}>
-                        Offset
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => setDetails(trip)}>
-                        Details
-                      </Button>
-                      {planted === 0 && (
-                        <Button size="sm" variant="ghost" onClick={() => setDeletingId(trip.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Flight:</span>
+                        <span className="font-medium">{kg(trip.flightCo2)} CO₂</span>
+                      </div>
+                      {trip.accommodationCo2 > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Stay ({nights} {nights === 1 ? "night" : "nights"}):
+                          </span>
+                          <span className="font-medium">{kg(trip.accommodationCo2)} CO₂</span>
+                        </div>
                       )}
+                      <div className="flex justify-between pt-1 border-t">
+                        <span className="text-muted-foreground">Total:</span>
+                        <span className="font-semibold">{kg(trip.totalCo2)} CO₂</span>
+                      </div>
+                      <div className="flex justify-between items-center text-primary font-medium">
+                        <span className="flex items-center gap-1">
+                          <Leaf className="h-3 w-3" />
+                          Trees needed:
+                        </span>
+                        <span>{trip.treesNeeded}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-accent font-medium">
+                        <span className="flex items-center gap-1">
+                          <Leaf className="h-3 w-3" />
+                          Trees planted:
+                        </span>
+                        <span>{planted}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" onClick={() => offsetTrip(trip)} className="flex-1" disabled={planted >= trip.treesNeeded}>
+                        <Leaf className="h-3 w-3 mr-1" />
+                        Offset Emissions
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-9 w-9 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setDetails(trip)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Trip Details
+                          </DropdownMenuItem>
+                          {planted === 0 ? (
+                            <DropdownMenuItem onClick={() => setDeletingId(trip.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Trip
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem disabled className="text-muted-foreground opacity-60">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Trip
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </CardContent>
                 </Card>
@@ -386,71 +448,7 @@ export default function MyTrips() {
         </>
       )}
 
-      <Dialog open={Boolean(details)} onOpenChange={(open) => !open && setDetails(null)}>
-        <DialogContent className="max-w-lg">
-          {details && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{details.friendlyTripId}</DialogTitle>
-                <DialogDescription>
-                  {airportCity(details.originAirport)} → {airportCity(details.destinationAirport)}
-                </DialogDescription>
-              </DialogHeader>
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-muted-foreground">Cabin</dt>
-                  <dd className="font-medium">{TRAVEL_CLASS_LABELS[details.travelClass]}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Trip</dt>
-                  <dd className="font-medium">{details.isReturn ? "Return" : "One-way"}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Dates</dt>
-                  <dd className="font-medium">{formatDateRange(details.fromDate, details.toDate).dateText}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Stay</dt>
-                  <dd className="font-medium">{ACCOMMODATION_LABELS[details.accommodationType]}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Travelers</dt>
-                  <dd className="font-medium">{details.numTravelers}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Trees needed</dt>
-                  <dd className="font-medium">{details.treesNeeded}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Flight CO₂</dt>
-                  <dd className="font-medium">{kg(details.flightCo2)}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Stay CO₂</dt>
-                  <dd className="font-medium">{kg(details.accommodationCo2)}</dd>
-                </div>
-              </dl>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold">Contributions</p>
-                {state.donations.filter((d) => d.tripId === details.id).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No donations linked yet.</p>
-                ) : (
-                  state.donations
-                    .filter((d) => d.tripId === details.id)
-                    .map((d) => (
-                      <Link key={d.id} to={`/donations/${d.id}`} className="flex justify-between text-sm border rounded-md px-3 py-2 hover:bg-muted/40">
-                        <span>
-                          {treeCount(d.trees)} trees · {kg(d.carbonOffsetKg)}
-                        </span>
-                        <span className="font-semibold">{usd(d.amount)}</span>
-                      </Link>
-                    ))
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <TripDetailsDialog trip={details} donations={state.donations} onClose={() => setDetails(null)} />
 
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
         <AlertDialogContent>
@@ -466,6 +464,7 @@ export default function MyTrips() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </TouristPage>
+      </div>
+    </div>
   );
 }

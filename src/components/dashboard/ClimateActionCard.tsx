@@ -11,7 +11,7 @@ interface ClimateActionCardProps {
 export function ClimateActionCard({ image, title, description, onClick }: ClimateActionCardProps) {
   return (
     <Card
-      className="glass-card group cursor-pointer transition-all duration-300 hover:shadow-lg overflow-hidden border-none"
+      className="group cursor-pointer transition-all duration-300 hover:shadow-lg overflow-hidden"
       onClick={onClick}
     >
       <CardContent className="p-0">

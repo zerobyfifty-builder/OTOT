@@ -24,6 +24,10 @@ export function airportCity(code: string) {
   return airports.find((a) => a.code === code)?.city ?? code;
 }
 
+export function airportCountry(code: string) {
+  return airports.find((a) => a.code === code)?.country ?? code;
+}
+
 export function parseDay(iso: string) {
   return parseISO(iso.slice(0, 10));
 }

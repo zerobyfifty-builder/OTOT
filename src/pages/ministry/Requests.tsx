@@ -3,6 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { shortDate, usd } from "@/lib/format";
+import { ClipboardList } from "lucide-react";
+import { EmptyState, PortalPage, TableFrame } from "@/components/portal/PortalUI";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,18 +26,20 @@ export default function MinistryRequests() {
   const [partnerPick, setPartnerPick] = useState<Record<string, string>>({});
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-6xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Plantation requests</h1>
-        <p className="text-muted-foreground mt-1">
-          Mark complete only after every vendor plantation request is completed.
-        </p>
-      </div>
+    <PortalPage
+      tone="ministry"
+      title="Plantation Requests"
+      subtitle="Mark complete only after every vendor plantation request is completed."
+    >
       <Card>
         <CardHeader>
           <CardTitle>All requests</CardTitle>
         </CardHeader>
         <CardContent>
+          {state.plantationRequests.length === 0 ? (
+            <EmptyState icon={ClipboardList} message="No plantation requests yet." />
+          ) : (
+          <TableFrame>
           <Table>
             <TableHeader>
               <TableRow>
@@ -56,7 +60,7 @@ export default function MinistryRequests() {
                   <TableRow key={r.id}>
                     <TableCell>{shortDate(r.createdAt)}</TableCell>
                     <TableCell>{usd(r.amount)}</TableCell>
-                    <TableCell>{vendor?.name || "Unassigned"}</TableCell>
+                    <TableCell className="font-medium">{vendor?.name || "Unassigned"}</TableCell>
                     <TableCell>
                       {vprs.length === 0
                         ? "None yet"
@@ -130,8 +134,10 @@ export default function MinistryRequests() {
               })}
             </TableBody>
           </Table>
+          </TableFrame>
+          )}
         </CardContent>
       </Card>
-    </div>
+    </PortalPage>
   );
 }

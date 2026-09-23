@@ -4,6 +4,7 @@ import { nid } from "@/lib/ids";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { kg, usd } from "@/lib/format";
+import { PortalPage, TableFrame } from "@/components/portal/PortalUI";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,14 +26,12 @@ export default function AdminTreeTypes() {
   const [costPerTree, setCostPerTree] = useState("8");
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tree types</h1>
-        <p className="text-muted-foreground mt-1">
-          Offset capacity and plantation cost drive the calculator mix and donation amount.
-        </p>
-      </div>
-      <Card>
+    <PortalPage
+      tone="admin"
+      title="Tree Types"
+      subtitle="Offset capacity and plantation cost drive the calculator mix and donation amount."
+    >
+      <Card className="bg-white border-admin-primary/10">
         <CardHeader>
           <CardTitle>Add type</CardTitle>
         </CardHeader>
@@ -77,11 +76,12 @@ export default function AdminTreeTypes() {
           </Button>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="bg-white border-admin-primary/10">
         <CardHeader>
           <CardTitle>Catalog</CardTitle>
         </CardHeader>
         <CardContent>
+          <TableFrame>
           <Table>
             <TableHeader>
               <TableRow>
@@ -103,8 +103,9 @@ export default function AdminTreeTypes() {
               ))}
             </TableBody>
           </Table>
+          </TableFrame>
         </CardContent>
       </Card>
-    </div>
+    </PortalPage>
   );
 }

@@ -1,4 +1,4 @@
-import { ClipboardList, Home, Landmark, ListChecks, Users } from "lucide-react";
+import { DollarSign, FileText, Home, ListChecks, Trees, Users } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ReactNode } from "react";
@@ -9,14 +9,14 @@ export function PartnerLayout({ children }: { children: ReactNode }) {
   const nav = isAdmin
     ? [
         { title: "Dashboard", url: "/partner/dashboard", icon: Home },
-        { title: "Requests", url: "/partner/requests", icon: ClipboardList },
+        { title: "Tree Orders", url: "/partner/requests", icon: Trees },
         { title: "Team", url: "/partner/team", icon: Users },
-        { title: "Payouts", url: "/partner/payouts", icon: Landmark },
+        { title: "Climate Funding", url: "/partner/payouts", icon: DollarSign },
       ]
-    : [{ title: "My assignments", url: "/partner/assignments", icon: ListChecks }];
+    : [{ title: "My Tickets", url: "/partner/assignments", icon: FileText }];
 
   return (
-    <AppShell items={nav} brand="Plantation partner" mainClassName="bg-background">
+    <AppShell items={nav} brand="Plantation partner" tone={isAdmin ? "partner" : "agent"}>
       {children}
     </AppShell>
   );

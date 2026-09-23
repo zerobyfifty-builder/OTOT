@@ -67,7 +67,7 @@ export function StatsCard({
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+        <div className="flex-1 flex items-center gap-4 sm:gap-5">
           <div className="flex-shrink-0 relative w-20 h-20 sm:w-24 sm:h-24">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
               <circle cx="40" cy="40" r="36" fill="none" stroke="hsl(var(--border))" strokeWidth="6" />

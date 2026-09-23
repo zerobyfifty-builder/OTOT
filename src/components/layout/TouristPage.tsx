@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import ktbDualLogo from "@/assets/ktb-dual-logo.png";
+import ktbLogo from "@/assets/ktb-logo.png";
 
 export function TouristPage({
   title,
@@ -37,8 +37,8 @@ export function TouristPage({
             </div>
             {headerRight ?? (
               <img
-                src={ktbDualLogo}
-                alt="Magical Kenya and Kenya Tourism Board"
+                src={ktbLogo}
+                alt="Kenya Tourism Board"
                 className="hidden sm:block h-12 sm:h-20 object-contain self-start sm:self-auto"
               />
             )}

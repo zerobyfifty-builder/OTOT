@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { nid } from "@/lib/ids";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
+import { PortalPage, TableFrame } from "@/components/portal/PortalUI";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,12 +61,8 @@ export default function AdminVendors() {
   const [mpesaPhone, setMpesaPhone] = useState("");
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-5xl">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Vendors</h1>
-        <p className="text-muted-foreground mt-1">Plantation partner organisations.</p>
-      </div>
-      <Card>
+    <PortalPage tone="admin" title="Vendors" subtitle="Plantation partner organisations.">
+      <Card className="bg-white border-admin-primary/10">
         <CardHeader>
           <CardTitle>Add vendor</CardTitle>
         </CardHeader>
@@ -106,11 +103,12 @@ export default function AdminVendors() {
           </Button>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="bg-white border-admin-primary/10">
         <CardHeader>
           <CardTitle>All vendors</CardTitle>
         </CardHeader>
         <CardContent>
+          <TableFrame>
           <Table>
             <TableHeader>
               <TableRow>
@@ -123,7 +121,7 @@ export default function AdminVendors() {
             <TableBody>
               {state.vendors.map((v) => (
                 <TableRow key={v.id}>
-                  <TableCell>{v.name}</TableCell>
+                  <TableCell className="font-medium">{v.name}</TableCell>
                   <TableCell>{v.region}</TableCell>
                   <TableCell>
                     <VendorMpesaEditor vendor={v} />
@@ -135,8 +133,9 @@ export default function AdminVendors() {
               ))}
             </TableBody>
           </Table>
+          </TableFrame>
         </CardContent>
       </Card>
-    </div>
+    </PortalPage>
   );
 }
