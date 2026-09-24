@@ -105,7 +105,9 @@ export default function MyTrees() {
 
   const requestByDonation = useMemo(() => {
     const map = new Map<string, PlantationRequest>();
-    for (const req of state.plantationRequests) map.set(req.donationId, req);
+    for (const req of state.plantationRequests) {
+      for (const donationId of req.donationIds) map.set(donationId, req);
+    }
     return map;
   }, [state.plantationRequests]);
 

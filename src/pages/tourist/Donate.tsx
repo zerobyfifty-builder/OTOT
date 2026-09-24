@@ -100,7 +100,8 @@ export default function Donate() {
       : carbonOffsetKg;
 
   const split = splitCharges(mix.amount);
-  const ready = committed > 0 && (method === "card" || looksLikeMpesaPhone(phoneNumber));
+  const ready = committed > 0 && mix.offsetKg + 0.005 >= offsetForCheckout
+    && (method === "card" || looksLikeMpesaPhone(phoneNumber));
 
   const setFlexibleCount = (count: number) => setTrees(scaleMix(baseMix, count));
 

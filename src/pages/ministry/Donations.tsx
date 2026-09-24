@@ -30,7 +30,7 @@ export default function MinistryDonations() {
     <PortalPage
       tone="ministry"
       title="Donations"
-      subtitle="Each plantation request maps 1:1 to a donation in this preview."
+      subtitle="Paid donations are automatically queued and can be grouped before partner assignment."
     >
       <Card>
         <CardHeader>
@@ -54,7 +54,7 @@ export default function MinistryDonations() {
                 </TableHeader>
                 <TableBody>
                   {paid.map((d) => {
-                    const request = state.plantationRequests.find((r) => r.donationId === d.id);
+                    const request = state.plantationRequests.find((r) => r.donationIds.includes(d.id));
                     return (
                       <TableRow key={d.id}>
                         <TableCell>{shortDate(d.createdAt)}</TableCell>

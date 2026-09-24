@@ -70,6 +70,7 @@ interface StoreContextValue {
     donationId: string;
     partnerId?: string;
   }) => Promise<PlantationRequest>;
+  combinePlantationRequests: (requestIds: string[]) => Promise<PlantationRequest>;
   assignPlantationRequest: (requestId: string, partnerId: string, assignedTo: string) => Promise<void>;
   markPlantationComplete: (requestId: string) => Promise<void>;
   createPayout: (plantationRequestId: string) => Promise<PlantationPayout>;
@@ -221,6 +222,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [afterWrite],
   );
 
+  const combinePlantationRequests = useCallback(async (requestIds: string[]) => {
+    const data = await apiFetch<{ request: PlantationRequest }>("/v1/plantation-requests/combine", {
+      method: "POST",
+      body: JSON.stringify({ requestIds }),
+    });
+    await afterWrite();
+    return data.request;
+  }, [afterWrite]);
+
   const assignPlantationRequest = useCallback(
     async (requestId: string, partnerId: string, assignedTo: string) => {
       await apiFetch(`/v1/plantation-requests/${requestId}/assign`, {
@@ -311,6 +321,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncPayment,
       retryDonationCheckout,
       createPlantationRequest,
+      combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
       createPayout,
@@ -333,6 +344,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncPayment,
       retryDonationCheckout,
       createPlantationRequest,
+      combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
       createPayout,

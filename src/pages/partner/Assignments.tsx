@@ -20,10 +20,14 @@ const NEXT: Record<VendorRequestStatus, VendorRequestStatus | null> = {
 export default function PartnerAssignments() {
   const { session } = useAuth();
   const { state, updateVendorRequestStatus } = useStore();
-  const mine = state.vendorPlantationRequests.filter((v) => v.assignedAgentId === session?.userId);
+  const mine = state.vendorPlantationRequests.filter((v) =>
+    session?.role === "partner_admin"
+      ? v.vendorId === session.vendorId
+      : v.assignedAgentId === session?.userId,
+  );
 
   return (
-    <PortalPage tone="partner" icon={ListChecks} title="My assignments" subtitle="Update status as planting work moves.">
+    <PortalPage tone="partner" icon={ListChecks} title={session?.role === "partner_admin" ? "Team assignments" : "My assignments"} subtitle="Update status as planting work moves.">
       <div className="grid grid-cols-3 gap-3">
         <KpiTile label="Assigned" value={mine.filter((v) => v.status === "assigned").length} tint={KPI_TINTS[0]} />
         <KpiTile label="In progress" value={mine.filter((v) => v.status === "in_progress").length} tint={KPI_TINTS[1]} delay={80} />
@@ -40,7 +44,7 @@ export default function PartnerAssignments() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mine.map((v) => {
             const request = state.plantationRequests.find((r) => r.id === v.plantationRequestId);
-            const donation = state.donations.find((d) => d.id === request?.donationId);
+            const donations = state.donations.filter((d) => request?.donationIds.includes(d.id));
             const next = NEXT[v.status];
             return (
               <Card key={v.id} className="hover:shadow-md transition-shadow">
@@ -51,10 +55,11 @@ export default function PartnerAssignments() {
                     </div>
                     <div>
                       <CardTitle className="text-lg">
-                        {donation ? `${treeCount(donation.trees)} trees` : "Plantation"}
+                        {donations.length ? `${donations.reduce((total, d) => total + treeCount(d.trees), 0)} trees` : "Plantation"}
                       </CardTitle>
                       <CardDescription>
                         {request ? usd(request.amount) : ""} · Assigned {shortDate(v.createdAt)}
+                        {session?.role === "partner_admin" && ` · ${state.users.find((u) => u.id === v.assignedAgentId)?.name ?? "Agent"}`}
                       </CardDescription>
                     </div>
                   </div>
@@ -62,7 +67,7 @@ export default function PartnerAssignments() {
                 </CardHeader>
                 <CardContent className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-muted-foreground truncate">
-                    {donation?.trees.map((t) => `${t.count} × ${t.treeType}`).join(", ")}
+                    {donations.flatMap((d) => d.trees.map((t) => `${t.count} × ${t.treeType}`)).join(", ")}
                   </span>
                   {next && (
                     <Button

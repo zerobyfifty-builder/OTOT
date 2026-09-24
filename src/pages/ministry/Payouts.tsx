@@ -22,7 +22,10 @@ export default function MinistryPayouts() {
   const { state, createPayout } = useStore();
   const canWrite = session?.role === "ministry_admin";
   const completed = state.plantationRequests.filter((r) => r.status === "completed");
-  const waiting = completed.filter((r) => !state.plantationPayouts.some((p) => p.plantationRequestId === r.id));
+  const waiting = completed.filter((r) => {
+    const payout = state.plantationPayouts.find((p) => p.plantationRequestId === r.id);
+    return !payout || payout.payoutStatus === "failed";
+  });
   const totalPaid = state.plantationPayouts
     .filter((p) => p.payoutStatus === "paid")
     .reduce((s, p) => s + p.amount, 0);
@@ -45,7 +48,7 @@ export default function MinistryPayouts() {
       {canWrite && (
         <Card>
           <CardHeader>
-            <CardTitle>Create payout</CardTitle>
+                    <CardTitle>Create or retry payout</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {waiting.length === 0 ? (
@@ -73,7 +76,9 @@ export default function MinistryPayouts() {
                       }
                     }}
                   >
-                    Pay partner
+                    {state.plantationPayouts.some((p) => p.plantationRequestId === r.id && p.payoutStatus === "failed")
+                      ? "Retry payout"
+                      : "Pay partner"}
                   </Button>
                 </div>
               ))

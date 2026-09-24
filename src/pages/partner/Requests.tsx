@@ -32,7 +32,7 @@ export default function PartnerRequests() {
       tone="partner"
       icon={ClipboardList}
       title="Plantation Requests"
-      subtitle="Create a vendor plantation request (1:1) and assign it to an agent."
+      subtitle="Create a vendor plantation request and assign it to an agent."
     >
       <Card>
         <CardHeader className="pb-3">
@@ -55,12 +55,12 @@ export default function PartnerRequests() {
             </TableHeader>
             <TableBody>
               {requests.map((r) => {
-                const donation = state.donations.find((d) => d.id === r.donationId);
+                const donations = state.donations.filter((d) => r.donationIds.includes(d.id));
                 const vpr = state.vendorPlantationRequests.find((v) => v.plantationRequestId === r.id);
                 return (
                   <TableRow key={r.id}>
                     <TableCell>{shortDate(r.createdAt)}</TableCell>
-                    <TableCell>{donation ? treeCount(donation.trees) : "—"}</TableCell>
+                    <TableCell>{donations.reduce((total, d) => total + treeCount(d.trees), 0)}</TableCell>
                     <TableCell>{usd(r.amount)}</TableCell>
                     <TableCell>
                       {vpr ? <StatusBadge status={vpr.status} /> : "Not created"}

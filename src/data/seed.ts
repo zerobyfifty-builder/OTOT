@@ -85,6 +85,7 @@ export function createSeed(): StoreState {
   const reqAssigned = {
     id: "pr-assigned",
     donationId: donationAssigned.id,
+    donationIds: [donationAssigned.id],
     status: "in_progress" as const,
     assignedTo: partnerAdminId,
     partnerId: vendor1,
@@ -95,6 +96,7 @@ export function createSeed(): StoreState {
   const reqComplete = {
     id: "pr-complete",
     donationId: donationComplete.id,
+    donationIds: [donationComplete.id],
     status: "completed" as const,
     assignedTo: partnerAdminId,
     partnerId: vendor1,

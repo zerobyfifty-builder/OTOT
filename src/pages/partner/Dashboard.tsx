@@ -18,8 +18,8 @@ export default function PartnerDashboard() {
     requests.some((r) => r.id === p.plantationRequestId),
   );
   const treesInQueue = requests.reduce((s, r) => {
-    const d = state.donations.find((x) => x.id === r.donationId);
-    return s + (d?.trees.reduce((n, t) => n + t.count, 0) || 0);
+    return s + state.donations.filter((d) => r.donationIds.includes(d.id))
+      .reduce((total, d) => total + treeCount(d.trees), 0);
   }, 0);
 
   return (
@@ -69,11 +69,11 @@ export default function PartnerDashboard() {
                   </TableHeader>
                   <TableBody>
                     {requests.map((r) => {
-                      const donation = state.donations.find((d) => d.id === r.donationId);
+                      const donations = state.donations.filter((d) => r.donationIds.includes(d.id));
                       return (
                         <TableRow key={r.id}>
                           <TableCell>{shortDate(r.createdAt)}</TableCell>
-                          <TableCell className="font-medium">{donation ? treeCount(donation.trees) : "—"}</TableCell>
+                          <TableCell className="font-medium">{donations.reduce((total, d) => total + treeCount(d.trees), 0)}</TableCell>
                           <TableCell>{usd(r.amount)}</TableCell>
                           <TableCell>
                             <StatusBadge status={r.status} />

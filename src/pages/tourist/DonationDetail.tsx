@@ -32,7 +32,7 @@ export default function DonationDetail() {
     .filter((p) => p.donationId === id)
     .slice()
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
-  const request = state.plantationRequests.find((r) => r.donationId === id);
+  const request = state.plantationRequests.find((r) => r.donationIds.includes(id ?? ""));
   const retryMethod = method ?? checkoutMethodFromMode(payment?.paymentMode);
 
   if (!donation || (session?.role === "tourist" && donation.userId !== session.userId)) {

@@ -21,9 +21,10 @@ import { useState } from "react";
 
 export default function MinistryRequests() {
   const { session } = useAuth();
-  const { state, assignPlantationRequest, markPlantationComplete } = useStore();
+  const { state, assignPlantationRequest, markPlantationComplete, combinePlantationRequests } = useStore();
   const canWrite = session?.role === "ministry_admin";
   const [partnerPick, setPartnerPick] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<string[]>([]);
 
   return (
     <PortalPage
@@ -33,7 +34,20 @@ export default function MinistryRequests() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>All requests</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>All requests</CardTitle>
+            {canWrite && selected.length >= 2 && (
+              <Button size="sm" variant="outline" onClick={async () => {
+                try {
+                  await combinePlantationRequests(selected);
+                  setSelected([]);
+                  toast.success("Requests combined");
+                } catch (err) {
+                  toast.error(apiErrorMessage(err));
+                }
+              }}>Combine {selected.length} requests</Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {state.plantationRequests.length === 0 ? (
@@ -43,7 +57,9 @@ export default function MinistryRequests() {
           <Table>
             <TableHeader>
               <TableRow>
+                {canWrite && <TableHead>Combine</TableHead>}
                 <TableHead>Created</TableHead>
+                <TableHead>Donations</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Partner</TableHead>
                 <TableHead>Vendor work</TableHead>
@@ -58,7 +74,11 @@ export default function MinistryRequests() {
                 const allDone = vprs.length > 0 && vprs.every((v) => v.status === "completed");
                 return (
                   <TableRow key={r.id}>
+                    {canWrite && <TableCell>
+                      {r.status === "unassigned" && <input type="checkbox" aria-label={`Select request ${r.id}`} checked={selected.includes(r.id)} onChange={(e) => setSelected((prev) => e.target.checked ? [...prev, r.id] : prev.filter((id) => id !== r.id))} />}
+                    </TableCell>}
                     <TableCell>{shortDate(r.createdAt)}</TableCell>
+                    <TableCell>{r.donationIds.length}</TableCell>
                     <TableCell>{usd(r.amount)}</TableCell>
                     <TableCell className="font-medium">{vendor?.name || "Unassigned"}</TableCell>
                     <TableCell>

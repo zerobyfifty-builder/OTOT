@@ -126,6 +126,7 @@ export interface Payment {
 export interface PlantationRequest {
   id: string;
   donationId: string;
+  donationIds: string[];
   status: PlantationRequestStatus;
   assignedTo?: string;
   partnerId?: string;
