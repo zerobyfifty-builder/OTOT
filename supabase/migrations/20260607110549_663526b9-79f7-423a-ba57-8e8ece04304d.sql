@@ -1,1 +1,0 @@
-DELETE FROM partner_types WHERE id='52a7e090-a398-489d-ac08-dc17b360ae82' AND name='ktb';

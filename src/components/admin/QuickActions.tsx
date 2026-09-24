@@ -1,40 +1,33 @@
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Activity, ShieldCheck } from "lucide-react";
 
-export function QuickActions() {
+export interface QuickAction {
+  title: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  primary?: boolean;
+}
+
+export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
     <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-50">
-      <Button
-        size="lg"
-        className="h-14 w-14 rounded-full shadow-lg bg-admin-accent hover:bg-admin-accent/90 text-white"
-        title="Create New Partner"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
-      <Button
-        size="lg"
-        variant="secondary"
-        className="h-14 w-14 rounded-full shadow-lg"
-        title="Generate Report"
-      >
-        <FileText className="h-5 w-5" />
-      </Button>
-      <Button
-        size="lg"
-        variant="secondary"
-        className="h-14 w-14 rounded-full shadow-lg"
-        title="View All Activity"
-      >
-        <Activity className="h-5 w-5" />
-      </Button>
-      <Button
-        size="lg"
-        variant="secondary"
-        className="h-14 w-14 rounded-full shadow-lg"
-        title="System Health Check"
-      >
-        <ShieldCheck className="h-5 w-5" />
-      </Button>
+      {actions.map((action) => (
+        <Button
+          key={action.title}
+          size="lg"
+          variant={action.primary ? "default" : "secondary"}
+          className={
+            action.primary
+              ? "h-14 w-14 rounded-full shadow-lg bg-admin-accent hover:bg-admin-accent/90 text-white"
+              : "h-14 w-14 rounded-full shadow-lg"
+          }
+          title={action.title}
+          aria-label={action.title}
+          onClick={action.onClick}
+        >
+          <action.icon className={action.primary ? "h-6 w-6" : "h-5 w-5"} />
+        </Button>
+      ))}
     </div>
   );
 }

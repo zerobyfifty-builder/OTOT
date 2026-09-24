@@ -1,7 +1,7 @@
 /* =====================================================================
    Tourist Portal — Liquid Glass (glassmorphism) layer
    All rules are scoped under `.tourist-glass` so other portals
-   (admin, owner, institutional, lodge, agent) are unaffected.
+   (ministry, partner, and super admin) are unaffected.
    ===================================================================== */
 
 .tourist-glass {
@@ -364,4 +364,3 @@
   }
   .tourist-glass::before { display: none; }
 }
-

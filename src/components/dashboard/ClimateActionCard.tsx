@@ -1,6 +1,5 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 
 interface ClimateActionCardProps {
   image: string;
@@ -9,22 +8,17 @@ interface ClimateActionCardProps {
   onClick?: () => void;
 }
 
-export const ClimateActionCard: React.FC<ClimateActionCardProps> = ({
-  image,
-  title,
-  description,
-  onClick
-}) => {
+export function ClimateActionCard({ image, title, description, onClick }: ClimateActionCardProps) {
   return (
-    <Card 
+    <Card
       className="group cursor-pointer transition-all duration-300 hover:shadow-lg overflow-hidden"
       onClick={onClick}
     >
       <CardContent className="p-0">
         <div className="relative h-48 overflow-hidden">
-          <img 
-            src={image} 
-            alt={title}
+          <img
+            src={image}
+            alt=""
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>
@@ -38,4 +32,4 @@ export const ClimateActionCard: React.FC<ClimateActionCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

@@ -1,139 +1,134 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { createActivityLogEntry } from '@/hooks/useActivityLogger';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { apiFetch, ApiError, getToken, setToken } from "@/lib/api";
+import { portalHomePath } from "@/lib/portal";
+import type { AuthSession, AuthUser } from "@/types/otot";
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any; alreadyRegistered?: boolean; needsEmailConfirmation?: boolean }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  resendConfirmation: (email: string) => Promise<{ error: any }>;
+interface AuthResponse {
+  token: string;
+  user: AuthUser;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextValue {
+  session: AuthSession | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error?: string; home?: string }>;
+  signUpTourist: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string; home?: string }>;
+  signOut: () => void;
+  applyUpdatedAuth: (token: string, user: AuthUser) => void;
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+function toSession(user: AuthUser): AuthSession {
+  return {
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    vendorId: user.vendorId,
+    ministryRole: user.ministryRole,
+  };
+}
+
+function errorMessage(err: unknown): string {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof Error) return err.message;
+  return "Something went wrong. Try again.";
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [loading, setLoading] = useState(() => Boolean(getToken()));
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          void createActivityLogEntry({
-            userId: session.user.id,
-            action_type: 'login',
-            resource_type: 'auth',
-            description: 'Signed in to owner portal',
-            metadata: { event },
-          });
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const token = getToken();
+    if (!token) {
       setLoading(false);
-    });
+      return;
+    }
 
-    return () => subscription.unsubscribe();
+    let cancelled = false;
+    apiFetch<{ user: AuthUser }>("/v1/auth/me")
+      .then((data) => {
+        if (!cancelled) setSession(toSession(data.user));
+      })
+      .catch(() => {
+        setToken(null);
+        if (!cancelled) setSession(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/auth/verify-email`;
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
-    });
-
-    // Supabase's email-enumeration protection: signing up with an email that is
-    // already registered returns NO error and a user whose `identities` array is
-    // empty (no new identity was created). Surface that so the UI can tell the
-    // user to sign in instead of pretending a brand-new account was created.
-    const alreadyRegistered =
-      !error &&
-      !!data?.user &&
-      Array.isArray(data.user.identities) &&
-      data.user.identities.length === 0;
-
-    // A fresh signup with no session means email confirmation is still pending.
-    const needsEmailConfirmation = !error && !alreadyRegistered && !data?.session;
-
-    return { error, alreadyRegistered, needsEmailConfirmation };
+  const finishAuth = (token: string, user: AuthUser) => {
+    setToken(token);
+    const next = toSession(user);
+    setSession(next);
+    return { home: portalHomePath(next.role) };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signOut = async () => {
-    if (user?.id) {
-      void createActivityLogEntry({
-        userId: user.id,
-        action_type: 'logout',
-        resource_type: 'auth',
-        description: 'Signed out of owner portal',
+  const signIn = useCallback(async (email: string, password: string) => {
+    try {
+      const data = await apiFetch<AuthResponse>("/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
       });
+      return finishAuth(data.token, data.user);
+    } catch (err) {
+      return { error: errorMessage(err) };
     }
-    await supabase.auth.signOut();
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/auth/reset-password`;
+  const signUpTourist = useCallback(async (name: string, email: string, password: string) => {
+    try {
+      const data = await apiFetch<AuthResponse>("/v1/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ name, email, password }),
+      });
+      return finishAuth(data.token, data.user);
+    } catch (err) {
+      return { error: errorMessage(err) };
+    }
+  }, []);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
-    return { error };
-  };
+  const signOut = useCallback(() => {
+    void apiFetch("/v1/auth/logout", { method: "POST" }).catch(() => undefined);
+    setToken(null);
+    setSession(null);
+  }, []);
 
-  const resendConfirmation = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/auth/verify-email`;
+  const applyUpdatedAuth = useCallback((token: string, user: AuthUser) => {
+    setToken(token);
+    setSession(toSession(user));
+  }, []);
 
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: { emailRedirectTo: redirectUrl },
-    });
-    return { error };
-  };
-
-  const value = {
-    user,
-    session,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    resetPassword,
-    resendConfirmation,
-  };
+  const value = useMemo(
+    () => ({ session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth }),
+    [session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

@@ -1,6 +1,18 @@
-import { useEffect, useState } from "react";
-import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
+import { roleLabel } from "@/lib/portal";
+import { shortDate, usd } from "@/lib/format";
+import { PortalPage } from "@/components/portal/PortalUI";
+import { AdminSpinner, TablePagination } from "@/components/admin/TablePagination";
+import { usePagination } from "@/components/admin/usePagination";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -9,185 +21,90 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Trash2, Search, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
+import type { AppRole } from "@/types/otot";
 
-interface User {
-  id: string;
-  user_id: string;
-  email: string;
-  created_at: string;
-  pledge_status: boolean;
-  total_donation: number;
-  roles?: {
-    name: string;
-    display_name: string;
-  };
+const ROLE_FILTERS: { value: string; label: string; roles?: AppRole[] }[] = [
+  { value: "all", label: "All Roles" },
+  { value: "tourist", label: "Tourists", roles: ["tourist"] },
+  { value: "ministry", label: "Ministry", roles: ["ministry_admin", "ministry_user"] },
+  { value: "partner", label: "Plantation Partners", roles: ["partner_admin", "partner_agent"] },
+  { value: "super_admin", label: "Super Admins", roles: ["super_admin"] },
+];
+
+const PAGE_SIZES = [10, 25, 50, 100];
+
+function roleVariant(role: AppRole): "default" | "secondary" | "outline" | "destructive" {
+  if (role === "super_admin") return "destructive";
+  if (role === "tourist") return "secondary";
+  return "default";
 }
 
-export default function Users() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [deleting, setDeleting] = useState(false);
+export default function AdminUsers() {
+  const { state, loading, refresh } = useStore();
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, pageSize, searchTerm, roleFilter]);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      let query = supabase
-        .from("users")
-        .select(
-          `
-          id,
-          user_id,
-          email,
-          created_at,
-          pledge_status,
-          total_donation,
-          roles!inner(name, display_name)
-        `,
-          { count: "exact" }
-        );
-
-      if (searchTerm) {
-        query = query.ilike("email", `%${searchTerm}%`);
-      }
-
-      if (roleFilter && roleFilter !== "all") {
-        query = query.eq("roles.name", roleFilter);
-      }
-
-      const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
-
-      if (error) throw error;
-
-      setUsers(data || []);
-      setTotalCount(count || 0);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
-    } finally {
-      setLoading(false);
+  const contributions = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const d of state.donations) {
+      if (d.status === "paid") totals.set(d.userId, (totals.get(d.userId) ?? 0) + d.amount);
     }
-  };
+    return totals;
+  }, [state.donations]);
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+  const users = useMemo(() => {
+    const roles = ROLE_FILTERS.find((f) => f.value === roleFilter)?.roles;
+    const q = search.trim().toLowerCase();
+    return state.users
+      .filter(
+        (u) =>
+          (!roles || roles.includes(u.role)) &&
+          (!q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)),
+      )
+      .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  }, [state.users, search, roleFilter]);
 
-    setDeleting(true);
-    try {
-      // Call edge function to delete user (requires super admin privileges)
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/delete-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: userToDelete.user_id }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to delete user');
-      }
-
-      toast.success("User and all related data deleted successfully");
-      setUserToDelete(null);
-      fetchUsers();
-    } catch (error: any) {
-      console.error("Error deleting user:", error);
-      toast.error(error.message || "Failed to delete user");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "super_admin":
-        return "destructive";
-      case "government_partner":
-      case "business_partner":
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const pager = usePagination(users, 10);
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-admin-primary">All Users</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage all users across the platform
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={fetchUsers} variant="outline" size="icon" title="Refresh">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
+    <PortalPage
+      tone="admin"
+      title="All Users"
+      subtitle="Manage tourist, ministry, and plantation partner accounts across the platform"
+      actions={
+        <Button
+          variant="outline"
+          size="icon"
+          title="Refresh"
+          aria-label="Refresh"
+          disabled={refreshing}
+          onClick={async () => {
+            setRefreshing(true);
+            try {
+              await refresh();
+            } catch (err) {
+              toast.error(apiErrorMessage(err));
+            } finally {
+              setRefreshing(false);
+            }
+          }}
+        >
+          <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+        </Button>
+      }
+    >
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by email..."
-                value={searchTerm}
+                placeholder="Search by name or email..."
+                value={search}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
+                  setSearch(e.target.value);
+                  pager.resetPage();
                 }}
                 className="pl-10"
               />
@@ -196,189 +113,78 @@ export default function Users() {
               value={roleFilter}
               onValueChange={(value) => {
                 setRoleFilter(value);
-                setCurrentPage(1);
+                pager.resetPage();
               }}
             >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="tourist">Tourists</SelectItem>
-                <SelectItem value="business_partner">Business Partners</SelectItem>
-                <SelectItem value="government_partner">
-                  Government Partners
-                </SelectItem>
-                <SelectItem value="super_admin">Super Admins</SelectItem>
+                {ROLE_FILTERS.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>
+                    {f.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select
-              value={pageSize.toString()}
-              onValueChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-            >
+            <Select value={pager.pageSize.toString()} onValueChange={(value) => pager.setPageSize(Number(value))}>
               <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
-                <SelectItem value="25">25 / page</SelectItem>
-                <SelectItem value="50">50 / page</SelectItem>
-                <SelectItem value="100">100 / page</SelectItem>
+                {PAGE_SIZES.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} / page
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary"></div>
-            </div>
+            <AdminSpinner />
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No users found.
-            </div>
+            <div className="text-center py-12 text-muted-foreground">No users found.</div>
           ) : (
             <>
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Email</TableHead>
+                      <TableHead>Name</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Pledge Status</TableHead>
                       <TableHead>Total Contribution</TableHead>
                       <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.email}
-                        </TableCell>
+                    {pager.pageRows.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">{u.email}</TableCell>
+                        <TableCell>{u.name || "—"}</TableCell>
                         <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.roles?.name || "")}>
-                            {user.roles?.display_name || "Unknown"}
-                          </Badge>
+                          <Badge variant={roleVariant(u.role)}>{roleLabel(u.role)}</Badge>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={user.pledge_status ? "default" : "secondary"}>
-                            {user.pledge_status ? "Pledged" : "No Pledge"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${user.total_donation.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setUserToDelete(user)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        <TableCell>{usd(contributions.get(u.id) ?? 0)}</TableCell>
+                        <TableCell>{u.createdAt ? shortDate(u.createdAt) : "—"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                  {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
-                  users
-                </p>
-                {totalPages > 1 && (
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage((prev) => Math.max(1, prev - 1))
-                          }
-                          className={
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                      {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                        const pageNum = i + 1;
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(pageNum)}
-                              isActive={currentPage === pageNum}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(totalPages, prev + 1)
-                            )
-                          }
-                          className={
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </div>
+              <TablePagination
+                currentPage={pager.currentPage}
+                pageSize={pager.pageSize}
+                totalCount={pager.totalCount}
+                noun="users"
+                onPageChange={pager.setPage}
+              />
             </>
           )}
         </CardContent>
       </Card>
-
-      <AlertDialog
-        open={!!userToDelete}
-        onOpenChange={() => setUserToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the user <strong>{userToDelete?.email}</strong> and
-              all their associated data including:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>All trips</li>
-                <li>All trees</li>
-                <li>All transactions</li>
-                <li>All certificates</li>
-              </ul>
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteUser}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Deleting..." : "Delete User"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </PortalPage>
   );
 }

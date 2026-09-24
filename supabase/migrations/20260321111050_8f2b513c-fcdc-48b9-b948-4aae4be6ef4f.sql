@@ -1,2 +1,0 @@
-INSERT INTO public.partner_types (name, category, description, is_active, requires_api, transaction_enabled)
-VALUES ('Technology Partner', 'stakeholder', 'Technology partner managing the platform', true, false, false);

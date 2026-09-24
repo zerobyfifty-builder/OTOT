@@ -1,1 +1,0 @@
-UPDATE public.modules SET audience = 'partner' WHERE name IN ('partner_management', 'travel_agents');

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 
 // Disable hyphenation to prevent word breaks with hyphens
@@ -211,7 +212,7 @@ export const TreeCertificate = ({
             <Text style={styles.impactValue}>{numTrees} {numTrees === 1 ? 'tree' : 'trees'}</Text>
           </View>
           <View style={[styles.impactRow, styles.impactDivider]}>
-            <Text style={styles.impactLabel}>Estimated Annual CO₂ Offset:</Text>
+            <Text style={styles.impactLabel}>Estimated CO2 Offset:</Text>
             <Text style={styles.impactValue}>{co2Offset.toFixed(2)} kg</Text>
           </View>
           <View style={styles.impactRow}>

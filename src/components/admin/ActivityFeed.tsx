@@ -1,116 +1,45 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { Activity, Building2, ExternalLink, Shield, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
-import { Activity, User, Building2, Shield, ExternalLink } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface ActivityLog {
+export type ActivityCategory = "tourist" | "partner" | "admin";
+
+export interface ActivityEntry {
   id: string;
-  action_type: string;
-  resource_type: string;
+  category: ActivityCategory;
+  action: string;
+  tone: "create" | "update" | "delete" | "neutral";
+  resource: string;
+  description: string;
   timestamp: string;
-  user_id: string;
-  organization_id: string | null;
-  metadata: any;
+  actor?: string;
+  href?: string;
 }
 
-export function ActivityFeed() {
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [filter, setFilter] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
+const ICONS = { tourist: User, partner: Building2, admin: Shield } as const;
 
-  useEffect(() => {
-    fetchActivities();
-    
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('activity-feed')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'activity_logs'
-        },
-        (payload) => {
-          setActivities(prev => [payload.new as ActivityLog, ...prev].slice(0, 50));
-        }
-      )
-      .subscribe();
+const TONES = {
+  create: "bg-green-100 text-green-800",
+  update: "bg-blue-100 text-blue-800",
+  delete: "bg-red-100 text-red-800",
+  neutral: "bg-gray-100 text-gray-800",
+} as const;
 
-    // Refresh every 5 seconds
-    const interval = setInterval(fetchActivities, 5000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const fetchActivities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setActivities(data || []);
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getActionIcon = (actionType: string) => {
-    if (actionType.includes('user')) return User;
-    if (actionType.includes('partner') || actionType.includes('organization')) return Building2;
-    if (actionType.includes('admin')) return Shield;
-    return Activity;
-  };
-
-  const getActionColor = (actionType: string) => {
-    if (actionType.includes('create')) return 'bg-green-100 text-green-800';
-    if (actionType.includes('update')) return 'bg-blue-100 text-blue-800';
-    if (actionType.includes('delete')) return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  const filteredActivities = filter === 'all' 
-    ? activities 
-    : activities.filter(a => a.action_type.includes(filter));
-
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-admin-primary">Real-Time Activity Feed</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-admin-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+export function ActivityFeed({ activities }: { activities: ActivityEntry[] }) {
+  const [filter, setFilter] = useState("all");
+  const filtered = filter === "all" ? activities : activities.filter((a) => a.category === filter);
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-admin-primary">Real-Time Activity Feed</CardTitle>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-muted-foreground">Live</span>
-            </div>
-          </div>
+          <CardTitle className="text-admin-primary">Activity Feed</CardTitle>
+          <span className="text-xs text-muted-foreground">Latest {activities.length} events</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -124,13 +53,11 @@ export function ActivityFeed() {
         </Tabs>
 
         <div className="mt-4 space-y-3 max-h-[500px] overflow-y-auto">
-          {filteredActivities.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No activities yet
-            </div>
+          {filtered.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No activities yet</div>
           ) : (
-            filteredActivities.map((activity) => {
-              const ActionIcon = getActionIcon(activity.action_type);
+            filtered.map((activity) => {
+              const ActionIcon = ICONS[activity.category] ?? Activity;
               return (
                 <div
                   key={activity.id}
@@ -141,26 +68,24 @@ export function ActivityFeed() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge className={getActionColor(activity.action_type)}>
-                        {activity.action_type}
-                      </Badge>
+                      <Badge className={TONES[activity.tone]}>{activity.action}</Badge>
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                       </span>
                     </div>
                     <p className="text-sm text-admin-primary">
-                      {activity.resource_type && `${activity.resource_type} - `}
-                      {activity.metadata?.description || 'Activity performed'}
+                      {activity.resource && `${activity.resource} - `}
+                      {activity.description}
                     </p>
-                    {activity.user_id && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        User ID: {activity.user_id.substring(0, 8)}...
-                      </p>
-                    )}
+                    {activity.actor && <p className="text-xs text-muted-foreground mt-1">{activity.actor}</p>}
                   </div>
-                  <Button variant="ghost" size="icon" className="flex-shrink-0">
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                  {activity.href && (
+                    <Button variant="ghost" size="icon" className="flex-shrink-0" asChild>
+                      <Link to={activity.href} aria-label="Open">
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               );
             })

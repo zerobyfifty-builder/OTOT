@@ -1,235 +1,68 @@
-import { pdf } from '@react-pdf/renderer';
-import QRCode from 'qrcode';
-import { supabase } from '@/integrations/supabase/client';
-import { PledgeCertificate } from '@/components/certificates/PledgeCertificate';
-import { TreeCertificate } from '@/components/certificates/TreeCertificate';
-import { imageToBase64 } from '@/utils/imageToBase64';
-import ktbDualLogo from '@/assets/ktb-dual-logo.png';
-import kfsLogo2 from '@/assets/mau-forest-complex-logo.jpeg';
-import { isTemplateEngineEnabled } from '@/lib/templates/flags';
-import { resolveTemplate } from '@/lib/templates/resolveTemplate';
-import { renderTemplateDocument } from '@/lib/templates/renderTemplate';
+import { pdf } from "@react-pdf/renderer";
+import QRCode from "qrcode";
+import { PledgeCertificate } from "@/components/certificates/PledgeCertificate";
+import { TreeCertificate } from "@/components/certificates/TreeCertificate";
+import type { CertificateRecord } from "@/types/otot";
+import ktbLogo from "@/assets/ktb-dual-logo.png";
+import kfsLogo from "@/assets/mau-forest-complex-logo.jpeg";
 
-type GlobalWithBuffer = typeof globalThis & {
-  Buffer?: typeof import('buffer').Buffer;
-};
-
-const ensureBuffer = async () => {
-  const globalWithBuffer = globalThis as GlobalWithBuffer;
-
-  if (!globalWithBuffer.Buffer) {
-    const { Buffer } = await import('buffer');
-    globalWithBuffer.Buffer = Buffer;
-  }
-};
-
-interface GeneratePledgeCertificateParams {
-  userName: string;
-  userId: string;
-  ototId?: string;
+async function imageDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Could not load certificate artwork.");
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not load certificate artwork."));
+    reader.readAsDataURL(blob);
+  });
 }
 
-interface GenerateTreeCertificateParams {
-  userName: string;
-  userId: string;
-  numTrees: number;
-  co2Offset: number;
-  ototId: string;
-  location?: string;
-}
-
-const generateQRCode = async (data: string): Promise<string> => {
-  try {
-    return await QRCode.toDataURL(data, {
-      width: 200,
-      margin: 1,
-      color: {
-        dark: '#2f7c49',
-        light: '#ffffff',
-      },
-    });
-  } catch (error) {
-    console.error('Error generating QR code:', error);
-    return '';
+export async function generateCertificate(certificate: CertificateRecord): Promise<Blob> {
+  if (!globalThis.Buffer) {
+    const { Buffer } = await import("buffer");
+    globalThis.Buffer = Buffer;
   }
-};
-
-let cachedKtbLogo: string | null = null;
-let cachedKfsLogo: string | null = null;
-
-const getLogos = async () => {
-  if (!cachedKtbLogo) {
-    cachedKtbLogo = await imageToBase64(ktbDualLogo).catch(() => '');
-  }
-  if (!cachedKfsLogo) {
-    cachedKfsLogo = await imageToBase64(kfsLogo2).catch(() => '');
-  }
-  return { ktbLogoDataUrl: cachedKtbLogo, kfsLogoDataUrl: cachedKfsLogo };
-};
-
-export const generatePledgeCertificate = async ({
-  userName,
-  userId,
-  ototId,
-}: GeneratePledgeCertificateParams): Promise<Blob> => {
-  await ensureBuffer();
-
-  const date = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  
-  const certificateId = `PLD-${Date.now()}-${userId.substring(0, 8)}`;
-  const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
-  const [qrCodeDataUrl, logos] = await Promise.all([
-    generateQRCode(verificationUrl),
-    getLogos(),
+  const [ktbLogoDataUrl, kfsLogoDataUrl] = await Promise.all([
+    imageDataUrl(ktbLogo),
+    imageDataUrl(kfsLogo),
   ]);
-
-  // Save certificate record to database
-  try {
-    await supabase.from('certificates').insert({
-      user_id: userId,
-      certificate_type: 'Pledge',
-      certificate_url: verificationUrl,
-      issued_date: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error saving certificate to database:', error);
-  }
-
-  // Templates Studio: try approved template first, fall back silently on any issue.
-  try {
-    if (await isTemplateEngineEnabled('pledge_certificate')) {
-      const tpl = await resolveTemplate('pledge_certificate');
-      if (tpl) {
-        const doc = renderTemplateDocument(tpl.design, {
-          userName, date, certificateId, ototId: ototId ?? '',
-          qrCodeUrl: qrCodeDataUrl,
-          ktbLogoUrl: logos.ktbLogoDataUrl,
-          partnerLogoUrl: logos.kfsLogoDataUrl,
-        });
-        return await pdf(doc).toBlob();
-      }
-    }
-  } catch (e) {
-    console.warn('[templates] pledge template render failed, falling back', e);
-  }
-
-  const blob = await pdf(
-    <PledgeCertificate
-      userName={userName}
-      date={date}
-      certificateId={certificateId}
-      ototId={ototId}
-      qrCodeDataUrl={qrCodeDataUrl}
-      ktbLogoDataUrl={logos.ktbLogoDataUrl}
-      kfsLogoDataUrl={logos.kfsLogoDataUrl}
-    />
-  ).toBlob();
-  
-  return blob;
-};
-
-export const generateTreeCertificate = async ({
-  userName,
-  userId,
-  numTrees,
-  co2Offset,
-  ototId,
-  location,
-}: GenerateTreeCertificateParams): Promise<Blob> => {
-  await ensureBuffer();
-
-  const date = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const date = new Date(certificate.issuedDate).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
-  
-  const certificateId = `TRE-${Date.now()}-${userId.substring(0, 8)}`;
-  const verificationUrl = `${window.location.origin}/verify/${certificateId}`;
-
-  // Resolve planting location: prefer explicit param, else active tourist planting location.
-  let resolvedLocation = location;
-  if (!resolvedLocation) {
-    try {
-      const { data } = await supabase
-        .from('planting_locations')
-        .select('site_name')
-        .eq('is_active', true)
-        .eq('show_in_tourist', true)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (data?.site_name) resolvedLocation = data.site_name;
-    } catch (e) {
-      console.warn('Could not fetch active planting location', e);
-    }
+  const appUrl = (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, "") || window.location.origin;
+  const qrCodeDataUrl = await QRCode.toDataURL(`${appUrl}/verify/${encodeURIComponent(certificate.id)}`, {
+    width: 200,
+    margin: 1,
+    color: { dark: "#2f7c49", light: "#ffffff" },
+  });
+  if (certificate.certificateType === "Pledge") {
+    return pdf(
+      <PledgeCertificate
+        userName={certificate.userName}
+        date={date}
+        certificateId={certificate.id}
+        ototId={certificate.userId}
+        qrCodeDataUrl={qrCodeDataUrl}
+        ktbLogoDataUrl={ktbLogoDataUrl}
+        kfsLogoDataUrl={kfsLogoDataUrl}
+      />,
+    ).toBlob();
   }
-
-  const [qrCodeDataUrl, logos] = await Promise.all([
-    generateQRCode(verificationUrl),
-    getLogos(),
-  ]);
-
-  // Save certificate record to database
-  try {
-    await supabase.from('certificates').insert({
-      user_id: userId,
-      certificate_type: 'Tree Planting',
-      certificate_url: verificationUrl,
-      issued_date: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('Error saving certificate to database:', error);
-  }
-
-  try {
-    if (await isTemplateEngineEnabled('tree_certificate')) {
-      const tpl = await resolveTemplate('tree_certificate');
-      if (tpl) {
-        const doc = renderTemplateDocument(tpl.design, {
-          userName, date, certificateId, ototId: ototId ?? '',
-          numTrees, co2Offset, location: resolvedLocation ?? '',
-          qrCodeUrl: qrCodeDataUrl,
-          ktbLogoUrl: logos.ktbLogoDataUrl,
-          partnerLogoUrl: logos.kfsLogoDataUrl,
-        });
-        return await pdf(doc).toBlob();
-      }
-    }
-  } catch (e) {
-    console.warn('[templates] tree template render failed, falling back', e);
-  }
-
-  const blob = await pdf(
+  return pdf(
     <TreeCertificate
-      userName={userName}
-      numTrees={numTrees}
+      userName={certificate.userName}
+      numTrees={certificate.numTrees ?? 0}
       date={date}
-      certificateId={certificateId}
-      ototId={ototId}
-      co2Offset={co2Offset}
-      location={resolvedLocation}
+      certificateId={certificate.id}
+      ototId={certificate.userId}
+      co2Offset={certificate.co2Offset ?? 0}
+      location={certificate.location ?? "Kenya"}
       qrCodeDataUrl={qrCodeDataUrl}
-      ktbLogoDataUrl={logos.ktbLogoDataUrl}
-      kfsLogoDataUrl={logos.kfsLogoDataUrl}
-    />
+      ktbLogoDataUrl={ktbLogoDataUrl}
+      kfsLogoDataUrl={kfsLogoDataUrl}
+    />,
   ).toBlob();
-  
-  return blob;
-};
-
-export const downloadCertificate = (blob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+}
