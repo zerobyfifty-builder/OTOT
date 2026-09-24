@@ -51,6 +51,7 @@ type PanelTheme = {
   footerButton: string;
   name: string;
   meta: string;
+  footerMeta: "email" | "role";
 };
 
 function sidebarVars(background: string, foreground: string, accent: string, border: string): CSSProperties {
@@ -78,6 +79,7 @@ const PANEL_THEMES: Record<"ministry" | "partner", PanelTheme> = {
     footerButton: "hover:bg-gray-200",
     name: "text-black",
     meta: "text-gray-600",
+    footerMeta: "email",
   },
   partner: {
     vars: sidebarVars("138 70% 22%", "0 0% 100%", "0 0% 100% / 0.1", "0 0% 100% / 0.2"),
@@ -92,6 +94,7 @@ const PANEL_THEMES: Record<"ministry" | "partner", PanelTheme> = {
     footerButton: "hover:bg-white/10",
     name: "text-white",
     meta: "text-white/60",
+    footerMeta: "role",
   },
 };
 
@@ -349,7 +352,9 @@ function PanelNav({ items, brand, theme }: { items: NavItem[]; brand: string; th
               {!collapsed && (
                 <div className="flex flex-col items-start overflow-hidden text-left">
                   <span className={cn("text-sm font-medium truncate w-full", theme.name)}>{session?.name || brand}</span>
-                  <span className={cn("text-xs truncate w-full", theme.meta)}>{roleText}</span>
+                  <span className={cn("text-xs truncate w-full", theme.meta)}>
+                    {theme.footerMeta === "email" ? session?.email : roleText}
+                  </span>
                 </div>
               )}
             </button>

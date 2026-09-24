@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { RefreshCw, Search } from "lucide-react";
+import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage } from "@/lib/api";
 import { roleLabel } from "@/lib/portal";
-import { shortDate } from "@/lib/format";
-import { PortalPage, TableFrame } from "@/components/portal/PortalUI";
+import { shortDate, usd } from "@/lib/format";
+import { PortalPage } from "@/components/portal/PortalUI";
+import { AdminSpinner, TablePagination } from "@/components/admin/TablePagination";
+import { usePagination } from "@/components/admin/usePagination";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,6 +31,8 @@ const ROLE_FILTERS: { value: string; label: string; roles?: AppRole[] }[] = [
   { value: "super_admin", label: "Super Admins", roles: ["super_admin"] },
 ];
 
+const PAGE_SIZES = [10, 25, 50, 100];
+
 function roleVariant(role: AppRole): "default" | "secondary" | "outline" | "destructive" {
   if (role === "super_admin") return "destructive";
   if (role === "tourist") return "secondary";
@@ -33,22 +40,60 @@ function roleVariant(role: AppRole): "default" | "secondary" | "outline" | "dest
 }
 
 export default function AdminUsers() {
-  const { state } = useStore();
+  const { state, loading, refresh } = useStore();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const contributions = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const d of state.donations) {
+      if (d.status === "paid") totals.set(d.userId, (totals.get(d.userId) ?? 0) + d.amount);
+    }
+    return totals;
+  }, [state.donations]);
 
   const users = useMemo(() => {
     const roles = ROLE_FILTERS.find((f) => f.value === roleFilter)?.roles;
     const q = search.trim().toLowerCase();
-    return state.users.filter(
-      (u) =>
-        (!roles || roles.includes(u.role)) &&
-        (!q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)),
-    );
+    return state.users
+      .filter(
+        (u) =>
+          (!roles || roles.includes(u.role)) &&
+          (!q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)),
+      )
+      .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
   }, [state.users, search, roleFilter]);
 
+  const pager = usePagination(users, 10);
+
   return (
-    <PortalPage tone="admin" title="All Users" subtitle="Tourist, ministry, and plantation partner accounts.">
+    <PortalPage
+      tone="admin"
+      title="All Users"
+      subtitle="Manage tourist, ministry, and plantation partner accounts across the platform"
+      actions={
+        <Button
+          variant="outline"
+          size="icon"
+          title="Refresh"
+          aria-label="Refresh"
+          disabled={refreshing}
+          onClick={async () => {
+            setRefreshing(true);
+            try {
+              await refresh();
+            } catch (err) {
+              toast.error(apiErrorMessage(err));
+            } finally {
+              setRefreshing(false);
+            }
+          }}
+        >
+          <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+        </Button>
+      }
+    >
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -57,11 +102,20 @@ export default function AdminUsers() {
               <Input
                 placeholder="Search by name or email..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  pager.resetPage();
+                }}
                 className="pl-10"
               />
             </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select
+              value={roleFilter}
+              onValueChange={(value) => {
+                setRoleFilter(value);
+                pager.resetPage();
+              }}
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -73,36 +127,61 @@ export default function AdminUsers() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={pager.pageSize.toString()} onValueChange={(value) => pager.setPageSize(Number(value))}>
+              <SelectTrigger className="w-full sm:w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZES.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} / page
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
-          {users.length === 0 ? (
+          {loading ? (
+            <AdminSpinner />
+          ) : users.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">No users found.</div>
           ) : (
-            <TableFrame>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={roleVariant(u.role)}>{roleLabel(u.role)}</Badge>
-                      </TableCell>
-                      <TableCell>{u.createdAt ? shortDate(u.createdAt) : "—"}</TableCell>
+            <>
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Total Contribution</TableHead>
+                      <TableHead>Joined</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableFrame>
+                  </TableHeader>
+                  <TableBody>
+                    {pager.pageRows.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">{u.email}</TableCell>
+                        <TableCell>{u.name || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant={roleVariant(u.role)}>{roleLabel(u.role)}</Badge>
+                        </TableCell>
+                        <TableCell>{usd(contributions.get(u.id) ?? 0)}</TableCell>
+                        <TableCell>{u.createdAt ? shortDate(u.createdAt) : "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <TablePagination
+                currentPage={pager.currentPage}
+                pageSize={pager.pageSize}
+                totalCount={pager.totalCount}
+                noun="users"
+                onPageChange={pager.setPage}
+              />
+            </>
           )}
         </CardContent>
       </Card>
