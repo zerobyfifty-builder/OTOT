@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import ktbLogo from "@/assets/ktb-logo.png";
 
 const schema = z.object({
   email: z.string().trim().email("Enter a valid email"),
@@ -56,14 +55,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary flex flex-col items-center justify-center px-4 py-10">
-      <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 mb-8 object-contain" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{portal.name}</CardTitle>
-          <CardDescription>
-            Sign in with your OTOT account. Ministry and plantation partner accounts are issued by administrators.
-          </CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">Sign in to your account to continue your carbon offset journey</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
@@ -74,7 +70,8 @@ export default function Login() {
                 <Input
                   id="email"
                   type="email"
-                  className="pl-9"
+                  className="pl-10"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="username"
@@ -88,31 +85,33 @@ export default function Login() {
                 <Input
                   id="password"
                   type={show ? "text" : "password"}
-                  className="pl-9 pr-9"
+                  className="pl-10 pr-10"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                 />
-                <button
+                <Button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1 h-8 w-8 p-0"
                   onClick={() => setShow((s) => !s)}
+                  aria-label={show ? "Hide password" : "Show password"}
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "Signing in…" : "Sign in"}
+              {submitting ? "Signing In..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
         {portal.allowsSignup && (
-          <CardFooter className="text-sm text-muted-foreground">
-            New traveler?{" "}
-            <Link to="/auth/signup" className="ml-1 text-accent hover:underline">
-              Create an account
-            </Link>
+          <CardFooter className="justify-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link to="/auth/signup" className="ml-1 text-primary hover:underline">Sign up</Link>
           </CardFooter>
         )}
       </Card>

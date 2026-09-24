@@ -171,10 +171,10 @@ const Landing = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {[
-              { icon: <Globe className="h-6 w-6 text-primary" />, title: "Real Impact", desc: "Every tree is planted by local communities in Kenya's forests with GPS tracking and photo verification for complete transparency." },
+              { icon: <Globe className="h-6 w-6 text-primary" />, title: "Real Impact", desc: "Follow your donations and see how many trees they fund as planting requests move through the program." },
               { icon: <Users className="h-6 w-6 text-primary" />, title: "Community partnership", desc: "Ministry teams assign plantation partners who plant with local communities across Kenya." },
               { icon: <Heart className="h-6 w-6 text-primary" />, title: "Simple & Affordable", desc: "Starting at just $1 minimum donation or $30 for a fully tracked tree. Make a meaningful impact without breaking the bank." },
-              { icon: <Award className="h-6 w-6 text-primary" />, title: "Certified Impact", desc: "Receive official certificates for your pledge and tree planting contributions that you can share on social media." },
+              { icon: <Award className="h-6 w-6 text-primary" />, title: "Your Impact", desc: "View your trips, funded trees, and carbon offset progress together in your traveler dashboard." },
             ].map((item, i) => (
               <motion.div
                 key={i}

@@ -3,12 +3,11 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
-import { portalHomePath } from "@/lib/portal";
+import { detectPortal, PORTALS, portalHomePath } from "@/lib/portal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import ktbLogo from "@/assets/ktb-logo.png";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Enter your name"),
@@ -17,6 +16,7 @@ const schema = z.object({
 });
 
 export default function Signup() {
+  const portal = PORTALS[detectPortal()];
   const { signUpTourist, session, loading } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -34,6 +34,10 @@ export default function Signup() {
 
   if (session) {
     return <Navigate to={portalHomePath(session.role)} replace />;
+  }
+
+  if (!portal.allowsSignup) {
+    return <Navigate to="/auth/login" replace />;
   }
 
   const submit = async (e: React.FormEvent) => {
@@ -55,26 +59,24 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary flex flex-col items-center justify-center px-4 py-10">
-      <img src={ktbLogo} alt="Kenya Tourism Board" className="h-16 mb-8 object-contain" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create a tourist account</CardTitle>
-          <CardDescription>
-            Travelers can sign up here. Ministry and plantation partner accounts are provisioned separately.
-          </CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+          <CardDescription className="text-center">Join us in making a positive impact on the environment</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+              <Input id="name" placeholder="Enter your full name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -85,19 +87,20 @@ export default function Signup() {
               <Input
                 id="password"
                 type="password"
+                placeholder="Create a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "Creating account…" : "Get started"}
+              {submitting ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-sm text-muted-foreground">
+        <CardFooter className="justify-center text-sm">
           Already have an account?{" "}
-          <Link to="/auth/login" className="ml-1 text-accent hover:underline">
+          <Link to="/auth/login" className="ml-1 text-primary hover:underline">
             Sign in
           </Link>
         </CardFooter>

@@ -86,7 +86,6 @@ const App = () => (
                 <Route path="/ministry/partners" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryPartners />)} />
                 <Route path="/ministry/payouts" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryPayouts />)} />
                 <Route path="/ministry/users" element={wrap(["ministry_admin"], MinistryLayout, <MinistryUsers />)} />
-                <Route path="/institutional/dashboard" element={<Navigate to="/ministry/dashboard" replace />} />
 
                 <Route path="/partner/dashboard" element={wrap(["partner_admin"], PartnerLayout, <PartnerDashboard />)} />
                 <Route path="/partner/requests" element={wrap(["partner_admin"], PartnerLayout, <PartnerRequests />)} />

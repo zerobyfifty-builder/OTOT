@@ -84,7 +84,6 @@ All colors MUST be HSL.
 
     /* Stakeholder sidebar themes */
     --stakeholder-plantation: 138 70% 22%;     /* Forest green - current */
-    --stakeholder-institutional: 348 70% 30%;  /* KTB maroon/dark red */
     --stakeholder-tech: 212 100% 50%;          /* Azure blue #007FFF */
   }
 
