@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Award,
@@ -13,6 +13,8 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
+import { apiErrorMessage, apiFetch } from "@/lib/api";
+import type { TouristProfile } from "@/types/otot";
 import { treeCount } from "@/lib/format";
 import { offsetStatus, treesPlantedForTrip } from "@/lib/trips";
 import { TouristPage } from "@/components/layout/TouristPage";
@@ -32,8 +34,6 @@ import {
 import reduceFootprintImg from "@/assets/climate-reduce-footprint.jpg";
 import carbonOffsetsImg from "@/assets/climate-carbon-offsets.jpg";
 import offsetTravelImg from "@/assets/climate-offset-travel.jpg";
-
-const PLEDGE_KEY = "otot.travelerPledge";
 
 const PLEDGE_POINTS = [
   "Respect nature by following marked paths and protecting natural surroundings",
@@ -58,11 +58,22 @@ function firstName(name?: string, email?: string) {
 
 export default function TouristDashboard() {
   const { session } = useAuth();
+  const userId = session?.userId;
   const { state } = useStore();
   const navigate = useNavigate();
   const [pledgeOpen, setPledgeOpen] = useState(false);
-  const [hasPledged, setHasPledged] = useState(() => localStorage.getItem(PLEDGE_KEY) === "1");
+  const [hasPledged, setHasPledged] = useState(false);
+  const [savingPledge, setSavingPledge] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    apiFetch<{ profile: TouristProfile }>("/v1/auth/profile")
+      .then(({ profile }) => { if (!cancelled) setHasPledged(Boolean(profile.pledgeAt)); })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [userId]);
 
   const stats = useMemo(() => {
     const trips = state.trips.filter((t) => t.userId === session?.userId);
@@ -97,11 +108,15 @@ export default function TouristDashboard() {
     "I just took the Responsible Traveler Pledge with One Tourist One Tree. Join me in making tourism sustainable. #OneTouristOneTree #SustainableTravel #Kenya";
   const shareUrl = window.location.origin;
 
-  const takePledge = () => {
-    localStorage.setItem(PLEDGE_KEY, "1");
-    setHasPledged(true);
-    setPledgeOpen(false);
-    toast.success("Pledge recorded. Thank you for traveling responsibly.");
+  const takePledge = async () => {
+    setSavingPledge(true);
+    try {
+      await apiFetch("/v1/auth/pledge", { method: "POST" });
+      setHasPledged(true);
+      setPledgeOpen(false);
+      toast.success("Pledge recorded. Thank you for traveling responsibly.");
+    } catch (err) { toast.error(apiErrorMessage(err)); }
+    finally { setSavingPledge(false); }
   };
 
   return (
@@ -331,8 +346,8 @@ export default function TouristDashboard() {
               </li>
             ))}
           </ol>
-          <Button className="w-full" onClick={takePledge}>
-            {hasPledged ? "I still pledge" : "I take this pledge"}
+          <Button className="w-full" onClick={takePledge} disabled={savingPledge}>
+            {savingPledge ? "Saving..." : hasPledged ? "I still pledge" : "I take this pledge"}
           </Button>
         </DialogContent>
       </Dialog>

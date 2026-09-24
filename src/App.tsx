@@ -25,6 +25,7 @@ import Payment from "@/pages/tourist/Payment";
 import AwaitingPayment from "@/pages/tourist/AwaitingPayment";
 import DonationDetail from "@/pages/tourist/DonationDetail";
 import Profile from "@/pages/tourist/Profile";
+import VerifyCertificate from "@/pages/VerifyCertificate";
 import MinistryDashboard from "@/pages/ministry/Dashboard";
 import MinistryDonations from "@/pages/ministry/Donations";
 import MinistryRequests from "@/pages/ministry/Requests";
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<Signup />} />
+                <Route path="/verify/:id" element={<VerifyCertificate />} />
 
                 <Route path="/dashboard" element={wrap(["tourist"], TouristLayout, <TouristDashboard />)} />
                 <Route path="/home" element={<Navigate to="/dashboard" replace />} />

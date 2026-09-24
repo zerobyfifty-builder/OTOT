@@ -172,6 +172,31 @@ export interface AuthSession {
   ministryRole?: MinistryRole;
 }
 
+export interface TouristProfile {
+  id: string;
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  phoneNumber: string;
+  dateOfBirth: string;
+  pledgeAt: string | null;
+  createdAt: string;
+  totalContributions: number;
+}
+
+export interface CertificateRecord {
+  id: string;
+  certificateType: "Pledge" | "Tree Planting";
+  issuedDate: string;
+  userName: string;
+  userId: string;
+  numTrees?: number;
+  co2Offset?: number;
+  location?: string;
+}
+
 /** @deprecated Use AuthSession. Kept so existing imports keep compiling. */
 export type MockSession = AuthSession;
 

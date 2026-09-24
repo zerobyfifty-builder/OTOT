@@ -26,6 +26,7 @@ interface AuthContextValue {
     password: string,
   ) => Promise<{ error?: string; home?: string }>;
   signOut: () => void;
+  applyUpdatedAuth: (token: string, user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -113,9 +114,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   }, []);
 
+  const applyUpdatedAuth = useCallback((token: string, user: AuthUser) => {
+    setToken(token);
+    setSession(toSession(user));
+  }, []);
+
   const value = useMemo(
-    () => ({ session, loading, signIn, signUpTourist, signOut }),
-    [session, loading, signIn, signUpTourist, signOut],
+    () => ({ session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth }),
+    [session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
