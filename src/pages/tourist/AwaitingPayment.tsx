@@ -13,6 +13,7 @@ import {
   checkoutMethodFromMode,
   checkoutReady,
 } from "@/components/shared/CheckoutMethodFields";
+import { SimulatePaymentButton } from "@/components/shared/SimulatePaymentButton";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -23,10 +24,11 @@ export default function AwaitingPayment() {
   const [params] = useSearchParams();
   const cancelled = params.get("cancelled") === "1";
   const navigate = useNavigate();
-  const { getPayment, syncPayment, retryDonationCheckout, refresh } = useStore();
+  const { getPayment, syncPayment, simulatePaymentSuccess, retryDonationCheckout, refresh } = useStore();
   const [payment, setPayment] = useState<Payment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [method, setMethod] = useState<CheckoutMethod>("mpesa");
   const [phoneNumber, setPhoneNumber] = useState("");
   const ticks = useRef(0);
@@ -100,6 +102,20 @@ export default function AwaitingPayment() {
     }
   };
 
+  const markPaid = async () => {
+    if (!paymentId) return;
+    setSimulating(true);
+    try {
+      const next = await simulatePaymentSuccess(paymentId);
+      await refresh();
+      toast.success("Payment marked as done");
+      navigate(`/donations/${next.donationId}`, { replace: true });
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+      setSimulating(false);
+    }
+  };
+
   return (
     <TouristPage
       title="Awaiting confirmation"
@@ -135,9 +151,16 @@ export default function AwaitingPayment() {
           )}
           {error && <p className="text-destructive">{error}</p>}
           {payment?.status === "pending" && (
-            <p className="text-muted-foreground">
-              {card ? "Waiting for the card payment to complete…" : "Waiting for you to approve the M-Pesa prompt…"}
-            </p>
+            <div className="space-y-3">
+              <p className="text-muted-foreground">
+                {card ? "Waiting for the card payment to complete…" : "Waiting for you to approve the M-Pesa prompt…"}
+              </p>
+              <SimulatePaymentButton
+                disabled={simulating}
+                busy={simulating}
+                onClick={() => void markPaid()}
+              />
+            </div>
           )}
           {payment?.status === "failed" && (
             <div className="space-y-3">
@@ -146,10 +169,17 @@ export default function AwaitingPayment() {
                 onMethodChange={setMethod}
                 phoneNumber={phoneNumber}
                 onPhoneNumberChange={setPhoneNumber}
-                disabled={retrying}
+                disabled={retrying || simulating}
                 phoneId="retry-mpesa-phone"
+                extra={
+                  <SimulatePaymentButton
+                    disabled={simulating}
+                    busy={simulating}
+                    onClick={() => void markPaid()}
+                  />
+                }
               />
-              <Button onClick={() => void retry()} disabled={retrying || !checkoutReady(method, phoneNumber)}>
+              <Button onClick={() => void retry()} disabled={retrying || simulating || !checkoutReady(method, phoneNumber)}>
                 {checkoutActionLabel(method, { busy: retrying, retry: true })}
               </Button>
             </div>

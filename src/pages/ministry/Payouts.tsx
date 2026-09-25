@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { shortDate, usd } from "@/lib/format";
+import { useSimulationAllowed } from "@/hooks/useSimulationAllowed";
 import { MinistryStatusBadge } from "@/components/ministry/TableControls";
 import { partnerTreeStats, requestTrees } from "@/components/ministry/utils";
 import { Button } from "@/components/ui/button";
@@ -16,11 +17,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default function MinistryPayouts() {
   const { session } = useAuth();
-  const { state, loading, createPayout, refresh } = useStore();
+  const { state, loading, createPayout, simulatePayoutSuccess, refresh } = useStore();
   const canWrite = session?.role === "ministry_admin";
+  const canSimulate = useSimulationAllowed() && (canWrite || session?.role === "super_admin");
   const [open, setOpen] = useState(false);
   const [requestId, setRequestId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
   const waiting = state.plantationRequests
     .filter((r) => r.status === "completed")
@@ -55,6 +58,18 @@ export default function MinistryPayouts() {
       toast.error(apiErrorMessage(err));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const markPayoutPaid = async (payoutId: string) => {
+    setSimulatingId(payoutId);
+    try {
+      await simulatePayoutSuccess(payoutId);
+      toast.success("Payout marked successful");
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setSimulatingId(null);
     }
   };
 
@@ -236,6 +251,7 @@ export default function MinistryPayouts() {
                     <TableHead>Reference</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Notes</TableHead>
+                    {canSimulate && canWrite ? <TableHead className="text-right">Test</TableHead> : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -253,6 +269,20 @@ export default function MinistryPayouts() {
                           <MinistryStatusBadge status={p.payoutStatus} />
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate">{p.failureMessage || "-"}</TableCell>
+                        {canSimulate && canWrite ? (
+                          <TableCell className="text-right">
+                            {p.payoutStatus === "paid" ? null : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={simulatingId === p.id}
+                                onClick={() => void markPayoutPaid(p.id)}
+                              >
+                                {simulatingId === p.id ? "Marking…" : "Mark this payout successful"}
+                              </Button>
+                            )}
+                          </TableCell>
+                        ) : null}
                       </TableRow>
                     );
                   })}

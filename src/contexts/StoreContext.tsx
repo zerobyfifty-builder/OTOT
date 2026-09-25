@@ -60,8 +60,15 @@ interface StoreContextValue {
     paymentMethod: CheckoutMethod;
     phoneNumber?: string;
   }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
+  simulateDonationPayment: (input: {
+    carbonOffsetKg: number;
+    trees: TreeLine[];
+    tripId?: string;
+    paymentMethod: CheckoutMethod;
+  }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   getPayment: (paymentId: string) => Promise<Payment>;
   syncPayment: (paymentId: string) => Promise<Payment>;
+  simulatePaymentSuccess: (paymentId: string) => Promise<Payment>;
   retryDonationCheckout: (
     donationId: string,
     input: { paymentMethod: CheckoutMethod; phoneNumber?: string },
@@ -74,6 +81,7 @@ interface StoreContextValue {
   assignPlantationRequest: (requestId: string, partnerId: string, assignedTo: string) => Promise<void>;
   markPlantationComplete: (requestId: string) => Promise<void>;
   createPayout: (plantationRequestId: string) => Promise<PlantationPayout>;
+  simulatePayoutSuccess: (payoutId: string) => Promise<PlantationPayout>;
   createVendorPlantationRequest: (plantationRequestId: string, assignedAgentId: string) => Promise<void>;
   updateVendorRequestStatus: (id: string, status: VendorRequestStatus) => Promise<void>;
   upsertTreeType: (tree: TreeType) => Promise<void>;
@@ -188,6 +196,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [afterWrite],
   );
 
+  const simulateDonationPayment = useCallback(
+    async (input: {
+      carbonOffsetKg: number;
+      trees: TreeLine[];
+      tripId?: string;
+      paymentMethod: CheckoutMethod;
+    }) => {
+      const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
+        "/v1/donations/simulate-payment",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            carbonOffsetKg: input.carbonOffsetKg,
+            trees: input.trees,
+            tripId: input.tripId,
+            paymentMethod: input.paymentMethod,
+          }),
+        },
+      );
+      await afterWrite();
+      return data;
+    },
+    [afterWrite],
+  );
+
   const getPayment = useCallback(async (paymentId: string) => {
     const data = await apiFetch<{ payment: Payment }>(`/v1/payments/${paymentId}`);
     return data.payment;
@@ -197,6 +230,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const data = await apiFetch<{ payment: Payment }>(`/v1/payments/${paymentId}/sync`, { method: "POST" });
     return data.payment;
   }, []);
+
+  const simulatePaymentSuccess = useCallback(
+    async (paymentId: string) => {
+      const data = await apiFetch<{ payment: Payment }>(`/v1/payments/${paymentId}/simulate-success`, {
+        method: "POST",
+      });
+      await afterWrite();
+      return data.payment;
+    },
+    [afterWrite],
+  );
 
   const retryDonationCheckout = useCallback(
     async (donationId: string, input: { paymentMethod: CheckoutMethod; phoneNumber?: string }) => {
@@ -262,6 +306,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [afterWrite],
   );
 
+  const simulatePayoutSuccess = useCallback(
+    async (payoutId: string) => {
+      const data = await apiFetch<{ payout: PlantationPayout }>(`/v1/payouts/${payoutId}/simulate-success`, {
+        method: "POST",
+      });
+      await afterWrite();
+      return data.payout;
+    },
+    [afterWrite],
+  );
+
   const createVendorPlantationRequest = useCallback(
     async (plantationRequestId: string, assignedAgentId: string) => {
       await apiFetch("/v1/vendor-plantation-requests", {
@@ -317,14 +372,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createTrip,
       deleteTrip,
       checkoutDonation,
+      simulateDonationPayment,
       getPayment,
       syncPayment,
+      simulatePaymentSuccess,
       retryDonationCheckout,
       createPlantationRequest,
       combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
       createPayout,
+      simulatePayoutSuccess,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,
@@ -340,14 +398,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createTrip,
       deleteTrip,
       checkoutDonation,
+      simulateDonationPayment,
       getPayment,
       syncPayment,
+      simulatePaymentSuccess,
       retryDonationCheckout,
       createPlantationRequest,
       combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
       createPayout,
+      simulatePayoutSuccess,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,

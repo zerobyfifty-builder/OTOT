@@ -14,6 +14,7 @@ import {
   checkoutActionLabel,
   checkoutReady,
 } from "@/components/shared/CheckoutMethodFields";
+import { SimulatePaymentButton } from "@/components/shared/SimulatePaymentButton";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function Payment() {
   const navigate = useNavigate();
   const { session } = useAuth();
-  const { checkoutDonation } = useStore();
+  const { checkoutDonation, simulateDonationPayment } = useStore();
   const incoming = useLocation().state as
     | { carbonOffsetKg?: number; trees?: TreeLine[]; amount?: number; tripId?: string }
     | undefined;
@@ -61,6 +62,24 @@ export default function Payment() {
     }
   };
 
+  const markPaid = async () => {
+    if (!session) return;
+    setBusy(true);
+    try {
+      const result = await simulateDonationPayment({
+        carbonOffsetKg: incoming.carbonOffsetKg || 0,
+        trees: incoming.trees,
+        tripId: incoming.tripId,
+        paymentMethod: method,
+      });
+      toast.success("Payment marked as done");
+      navigate(`/donations/${result.donation.id}`, { replace: true });
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+      setBusy(false);
+    }
+  };
+
   return (
     <TouristPage
       title="Payment"
@@ -86,6 +105,9 @@ export default function Payment() {
             phoneNumber={phoneNumber}
             onPhoneNumberChange={setPhoneNumber}
             disabled={busy}
+            extra={
+              <SimulatePaymentButton disabled={busy} busy={busy} className="w-full" onClick={() => void markPaid()} />
+            }
           />
           <div className="text-sm space-y-1 rounded-md bg-muted p-3">
             <div className="font-medium">Transaction charges split</div>

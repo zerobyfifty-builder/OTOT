@@ -14,6 +14,7 @@ import {
   checkoutMethodFromMode,
   checkoutReady,
 } from "@/components/shared/CheckoutMethodFields";
+import { SimulatePaymentButton } from "@/components/shared/SimulatePaymentButton";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,9 @@ export default function DonationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { session } = useAuth();
-  const { state, retryDonationCheckout } = useStore();
+  const { state, retryDonationCheckout, simulatePaymentSuccess } = useStore();
   const [retrying, setRetrying] = useState(false);
+  const [simulating, setSimulating] = useState(false);
   const [method, setMethod] = useState<CheckoutMethod | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const donation = state.donations.find((d) => d.id === id);
@@ -87,9 +89,25 @@ export default function DonationDetail() {
             </div>
           )}
           {payment?.status === "pending" && (
-            <Button asChild>
-              <Link to={`/donate/awaiting/${payment.id}`}>Awaiting confirmation</Link>
-            </Button>
+            <div className="space-y-3">
+              <Button asChild>
+                <Link to={`/donate/awaiting/${payment.id}`}>Awaiting confirmation</Link>
+              </Button>
+              <SimulatePaymentButton
+                disabled={simulating}
+                busy={simulating}
+                onClick={async () => {
+                  setSimulating(true);
+                  try {
+                    await simulatePaymentSuccess(payment.id);
+                    toast.success("Payment marked as done");
+                  } catch (err) {
+                    toast.error(apiErrorMessage(err));
+                    setSimulating(false);
+                  }
+                }}
+              />
+            </div>
           )}
           {payment?.status === "failed" && (
             <div className="space-y-3">
@@ -98,11 +116,27 @@ export default function DonationDetail() {
                 onMethodChange={setMethod}
                 phoneNumber={phoneNumber}
                 onPhoneNumberChange={setPhoneNumber}
-                disabled={retrying}
+                disabled={retrying || simulating}
                 phoneId="donation-retry-mpesa-phone"
+                extra={
+                  <SimulatePaymentButton
+                    disabled={simulating}
+                    busy={simulating}
+                    onClick={async () => {
+                      setSimulating(true);
+                      try {
+                        await simulatePaymentSuccess(payment.id);
+                        toast.success("Payment marked as done");
+                      } catch (err) {
+                        toast.error(apiErrorMessage(err));
+                        setSimulating(false);
+                      }
+                    }}
+                  />
+                }
               />
               <Button
-                disabled={retrying || !checkoutReady(retryMethod, phoneNumber)}
+                disabled={retrying || simulating || !checkoutReady(retryMethod, phoneNumber)}
                 onClick={async () => {
                   if (retryMethod === "mpesa" && !looksLikeMpesaPhone(phoneNumber)) {
                     toast.error("Enter a Kenyan M-Pesa number (07… or 2547…).");

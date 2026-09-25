@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -31,6 +32,7 @@ type CheckoutMethodFieldsProps = {
   onPhoneNumberChange: (value: string) => void;
   disabled?: boolean;
   phoneId?: string;
+  extra?: ReactNode;
 };
 
 export function CheckoutMethodFields({
@@ -40,6 +42,7 @@ export function CheckoutMethodFields({
   onPhoneNumberChange,
   disabled,
   phoneId,
+  extra,
 }: CheckoutMethodFieldsProps) {
   return (
     <div className="space-y-4">
@@ -62,6 +65,7 @@ export function CheckoutMethodFields({
             Card
           </ToggleGroupItem>
         </ToggleGroup>
+        {extra}
       </div>
       {method === "mpesa" ? (
         <MpesaPhoneField id={phoneId} value={phoneNumber} onChange={onPhoneNumberChange} disabled={disabled} />

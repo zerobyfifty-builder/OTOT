@@ -13,6 +13,7 @@ import { kg, treeCount, usd } from "@/lib/format";
 import { treesPlantedForTrip } from "@/lib/trips";
 import type { CheckoutMethod, TreeLine } from "@/types/otot";
 import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
+import { SimulatePaymentButton } from "@/components/shared/SimulatePaymentButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,7 +51,7 @@ export default function Donate() {
   const navigate = useNavigate();
   const location = useLocation();
   const { session } = useAuth();
-  const { state, quoteTreeMix, checkoutDonation } = useStore();
+  const { state, quoteTreeMix, checkoutDonation, simulateDonationPayment } = useStore();
   const incoming = location.state as
     | { carbonOffsetKg?: number; trees?: TreeLine[]; treesNeeded?: number; tripId?: string }
     | undefined;
@@ -144,6 +145,24 @@ export default function Donate() {
         phoneNumber: method === "mpesa" ? phoneNumber : undefined,
       });
       redirectToCheckout(result.checkoutUrl, navigate);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+      setBusy(false);
+    }
+  };
+
+  const markPaid = async () => {
+    if (!session || committed === 0) return;
+    setBusy(true);
+    try {
+      const result = await simulateDonationPayment({
+        carbonOffsetKg: offsetForCheckout || 0,
+        trees: mix.trees,
+        tripId,
+        paymentMethod: method,
+      });
+      toast.success("Payment marked as done");
+      navigate(`/donations/${result.donation.id}`, { replace: true });
     } catch (err) {
       toast.error(apiErrorMessage(err));
       setBusy(false);
@@ -423,6 +442,12 @@ export default function Donate() {
                     <span>{label}</span>
                   </button>
                 ))}
+                <SimulatePaymentButton
+                  className="min-h-11"
+                  disabled={busy || committed === 0}
+                  busy={busy}
+                  onClick={() => void markPaid()}
+                />
               </div>
               {method === "mpesa" && (
                 <div className="pt-2">
