@@ -56,8 +56,8 @@ export default function AdminConfig() {
             <div>
               <CardTitle className="text-base">Contribution Split Configuration</CardTitle>
               <CardDescription className="mt-1.5">
-                A platform fee and a payment processor fee are deducted from each contribution. The balance funds
-                the plantation partner.
+                The estimated Afrinet fee is deducted first. The remaining amount is split between OTOT,
+                the Ministry, and the plantation partner.
               </CardDescription>
             </div>
             <Badge variant="outline" className="shrink-0">
@@ -67,14 +67,14 @@ export default function AdminConfig() {
         </CardHeader>
         <CardContent className="space-y-6">
           <RateBox
-            label="(1) Platform Fee"
-            hint="Percentage of the total contribution retained by the platform."
-            value={pct(example.platform)}
+            label="(1) Afrinet transaction fee"
+            hint="Estimated at 2.9% of the gross contribution."
+            value={pct(example.processor)}
           />
           <RateBox
-            label="(2) Payment Processor Fee"
-            hint="Percentage of the total contribution charged by the payment processor."
-            value={pct(example.processor)}
+            label="(2) OTOT share"
+            hint="15% of the amount remaining after the Afrinet fee."
+            value={usd(example.platform)}
           />
 
           <Separator />
@@ -82,29 +82,32 @@ export default function AdminConfig() {
           <div className="bg-muted/50 rounded-lg p-4 space-y-1">
             <p className="text-sm font-medium flex items-center gap-1.5">
               <Info className="h-4 w-4 text-muted-foreground" />
-              Remaining balance after fees: <span className="font-bold">{pct(example.plantation)}</span> of contribution
+              Amount to split after Afrinet fee: <span className="font-bold">{usd(EXAMPLE_CONTRIBUTION - example.processor)}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              The remaining balance is allocated to the plantation partner as shown below.
+              OTOT receives 15%, the Ministry 15%, and the partner 70% of this amount.
             </p>
           </div>
 
           <RateBox
-            label="(3) Tree Plantation & Growing Fee"
-            hint="Auto-calculated as the balance of the contribution."
-            value={pct(example.plantation)}
-            note="Auto-calculated"
+            label="(3) Ministry share"
+            hint="15% of the amount after the Afrinet fee."
+            value={usd(example.ministry)}
           />
+
+          <RateBox label="(4) Partner share" hint="70% of the amount after the Afrinet fee."
+            value={usd(example.plantation)} />
 
           <Separator />
 
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
             <p className="text-sm font-semibold">Example: {usd(EXAMPLE_CONTRIBUTION)} Contribution Breakdown</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
               {[
-                { label: "Platform", amount: example.platform },
-                { label: "Payment Processor", amount: example.processor },
-                { label: "Plantation Partner", amount: example.plantation },
+                { label: "Afrinet fee", amount: example.processor },
+                { label: "OTOT", amount: example.platform },
+                { label: "Ministry", amount: example.ministry },
+                { label: "Partner", amount: example.plantation },
               ].map((row) => (
                 <div key={row.label} className="bg-background rounded p-3 text-center">
                   <p className="text-xs text-muted-foreground">{row.label}</p>

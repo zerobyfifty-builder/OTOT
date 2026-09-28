@@ -206,17 +206,19 @@ function buildCharts(state: StoreState): DashboardChartData {
   }
   const treeTrends = days.map((date) => ({ date, trees: treesByDay.get(date) ?? 0 }));
 
-  const split = { plantation: 0, platform: 0, processor: 0 };
+  const split = { plantation: 0, platform: 0, ministry: 0, processor: 0 };
   for (const p of state.payments) {
     if (p.status !== "success") continue;
     split.plantation += p.transactionChargesSplit.plantation;
     split.platform += p.transactionChargesSplit.platform;
+    split.ministry += p.transactionChargesSplit.ministry;
     split.processor += p.transactionChargesSplit.processor;
   }
   const revenue = [
-    { name: "Plantation", value: split.plantation, color: "#1a5d1a" },
-    { name: "Platform", value: split.platform, color: "#d4704b" },
-    { name: "Processor", value: split.processor, color: "#8b4513" },
+    { name: "Partner", value: split.plantation, color: "#1a5d1a" },
+    { name: "OTOT", value: split.platform, color: "#d4704b" },
+    { name: "Ministry", value: split.ministry, color: "#a77a27" },
+    { name: "Afrinet fee", value: split.processor, color: "#8b4513" },
   ];
 
   const donationTrees = new Map(state.donations.map((d) => [d.id, treeCount(d.trees)]));

@@ -1,11 +1,17 @@
 import type { TransactionChargesSplit } from "@/types/otot";
 
-const PLATFORM_RATE = 0.05;
 const PROCESSOR_RATE = 0.029;
 
 export function splitCharges(amount: number): TransactionChargesSplit {
-  const platform = Math.round(amount * PLATFORM_RATE * 100) / 100;
-  const processor = Math.round(amount * PROCESSOR_RATE * 100) / 100;
-  const plantation = Math.round((amount - platform - processor) * 100) / 100;
-  return { plantation, platform, processor };
+  const grossCents = Math.round(amount * 100);
+  const processorCents = Math.round(grossCents * PROCESSOR_RATE);
+  const netCents = grossCents - processorCents;
+  const platformCents = Math.round(netCents * 0.15);
+  const ministryCents = Math.round(netCents * 0.15);
+  return {
+    plantation: (netCents - platformCents - ministryCents) / 100,
+    platform: platformCents / 100,
+    ministry: ministryCents / 100,
+    processor: processorCents / 100,
+  };
 }

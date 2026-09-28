@@ -111,9 +111,10 @@ export default function Payment() {
           />
           <div className="text-sm space-y-1 rounded-md bg-muted p-3">
             <div className="font-medium">Transaction charges split</div>
-            <div className="flex justify-between"><span>Plantation</span><span>{usd(split.plantation)}</span></div>
-            <div className="flex justify-between"><span>Platform (5%)</span><span>{usd(split.platform)}</span></div>
-            <div className="flex justify-between"><span>Processor (2.9%)</span><span>{usd(split.processor)}</span></div>
+            <div className="flex justify-between"><span>Partner (70% after fee)</span><span>{usd(split.plantation)}</span></div>
+            <div className="flex justify-between"><span>Ministry (15% after fee)</span><span>{usd(split.ministry)}</span></div>
+            <div className="flex justify-between"><span>OTOT (15% after fee)</span><span>{usd(split.platform)}</span></div>
+            <div className="flex justify-between"><span>Afrinet fee (2.9%)</span><span>{usd(split.processor)}</span></div>
           </div>
           <Button className="w-full" onClick={() => void pay()} disabled={busy || !checkoutReady(method, phoneNumber)}>
             {checkoutActionLabel(method, { busy })}

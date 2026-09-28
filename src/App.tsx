@@ -42,6 +42,7 @@ import AdminUsers from "@/pages/admin/Users";
 import AdminVendors from "@/pages/admin/Vendors";
 import AdminTreeTypes from "@/pages/admin/TreeTypes";
 import AdminFinance from "@/pages/admin/Finance";
+import AdminPayouts from "@/pages/admin/Payouts";
 import AdminConfig from "@/pages/admin/Config";
 import type { ReactNode } from "react";
 
@@ -100,6 +101,7 @@ const App = () => (
                 <Route path="/admin/vendors" element={wrap(["super_admin"], AdminLayout, <AdminVendors />)} />
                 <Route path="/admin/tree-types" element={wrap(["super_admin"], AdminLayout, <AdminTreeTypes />)} />
                 <Route path="/admin/finance" element={wrap(["super_admin"], AdminLayout, <AdminFinance />)} />
+                <Route path="/admin/payouts" element={wrap(["super_admin"], AdminLayout, <AdminPayouts />)} />
                 <Route path="/admin/config" element={wrap(["super_admin"], AdminLayout, <AdminConfig />)} />
 
                 <Route path="*" element={<NotFound />} />

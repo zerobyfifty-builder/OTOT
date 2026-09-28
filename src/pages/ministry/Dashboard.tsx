@@ -74,7 +74,7 @@ export default function MinistryDashboard() {
       ready: requests.filter((r) => r.status === "ready_for_review").length,
       plantationShare: successPayments.reduce((s, p) => s + p.transactionChargesSplit.plantation, 0),
       retained: successPayments.reduce(
-        (s, p) => s + p.transactionChargesSplit.platform + p.transactionChargesSplit.processor,
+        (s, p) => s + p.transactionChargesSplit.platform + p.transactionChargesSplit.ministry,
         0,
       ),
       paidOut: payouts.filter((p) => p.payoutStatus === "paid").reduce((s, p) => s + p.amount, 0),

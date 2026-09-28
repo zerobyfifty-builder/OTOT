@@ -458,9 +458,10 @@ export default function Donate() {
 
             {committed > 0 && (
               <div className="mb-6 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                <div>Plantation <span className="block font-medium text-foreground">{usd(split.plantation)}</span></div>
-                <div>Platform (5%) <span className="block font-medium text-foreground">{usd(split.platform)}</span></div>
-                <div>Processor (2.9%) <span className="block font-medium text-foreground">{usd(split.processor)}</span></div>
+                <div>Partner (70% after fee) <span className="block font-medium text-foreground">{usd(split.plantation)}</span></div>
+                <div>Ministry (15% after fee) <span className="block font-medium text-foreground">{usd(split.ministry)}</span></div>
+                <div>OTOT (15% after fee) <span className="block font-medium text-foreground">{usd(split.platform)}</span></div>
+                <div>Afrinet fee (2.9%) <span className="block font-medium text-foreground">{usd(split.processor)}</span></div>
               </div>
             )}
 

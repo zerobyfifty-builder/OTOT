@@ -77,8 +77,8 @@ export default function DonationDetail() {
               )}
               {payment.mpesaReceipt && <div>M-Pesa receipt {payment.mpesaReceipt}</div>}
               {payment.failureMessage && <p className="text-destructive">{payment.failureMessage}</p>}
-              <div>Plantation {usd(payment.transactionChargesSplit.plantation)} · Platform{" "}
-                {usd(payment.transactionChargesSplit.platform)} · Processor{" "}
+              <div>Partner {usd(payment.transactionChargesSplit.plantation)} · Ministry {usd(payment.transactionChargesSplit.ministry)} · OTOT{" "}
+                {usd(payment.transactionChargesSplit.platform)} · Afrinet fee{" "}
                 {usd(payment.transactionChargesSplit.processor)}
               </div>
             </div>

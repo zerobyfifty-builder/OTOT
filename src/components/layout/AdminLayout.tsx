@@ -1,4 +1,4 @@
-import { Building2, CreditCard, Home, Leaf, Settings, Users } from "lucide-react";
+import { Building2, CreditCard, Home, Leaf, Settings, Users, Wallet } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import type { ReactNode } from "react";
 
@@ -8,6 +8,7 @@ const NAV = [
   { title: "Partners", url: "/admin/vendors", icon: Building2 },
   { title: "Tree Types", url: "/admin/tree-types", icon: Leaf },
   { title: "Financial Transactions", url: "/admin/finance", icon: CreditCard },
+  { title: "Payouts", url: "/admin/payouts", icon: Wallet },
   { title: "Configuration", url: "/admin/config", icon: Settings },
 ];
 

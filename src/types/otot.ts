@@ -102,6 +102,7 @@ export interface Donation {
 export interface TransactionChargesSplit {
   plantation: number;
   platform: number;
+  ministry: number;
   processor: number;
 }
 
