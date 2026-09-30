@@ -1,4 +1,5 @@
 import type { PayoutStatus, PlantationRequestStatus, VendorRequestStatus } from "@/types/otot";
+import { PAYOUT_STATUS_LABEL } from "@/lib/payouts";
 
 export const C = {
   green: "#3B6D11",
@@ -72,17 +73,12 @@ export const VENDOR_STATUS_COLORS: Record<VendorRequestStatus, string> = {
   completed: "bg-green-500/10 text-green-700 border-green-500/20",
 };
 
-export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  paid: "Paid",
-  failed: "Failed",
-};
+export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = PAYOUT_STATUS_LABEL;
 
 export const PAYOUT_STATUS_COLORS: Record<PayoutStatus, string> = {
-  pending: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50",
-  processing: "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-50",
-  paid: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50",
+  initiated: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50",
+  in_progress: "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-50",
+  transferred: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50",
   failed: "bg-red-50 text-red-700 border-red-200 hover:bg-red-50",
 };
 

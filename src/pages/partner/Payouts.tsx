@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { usd } from "@/lib/format";
+import { kes } from "@/lib/format";
+import { isOpenPayout } from "@/lib/payouts";
 import {
   DateTimeCell,
   PartnerPageHeader,
@@ -32,28 +33,29 @@ export default function PartnerPayouts() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const requestIds = state.plantationRequests
-    .filter((r) => r.partnerId === session?.vendorId)
-    .map((r) => r.id);
-  const payouts = state.plantationPayouts.filter((p) => requestIds.includes(p.plantationRequestId));
-  const totalAmount = payouts.reduce((s, p) => s + p.amount, 0);
-  const paidRows = payouts.filter((p) => p.payoutStatus === "paid");
-  const pendingRows = payouts.filter((p) => p.payoutStatus === "pending" || p.payoutStatus === "processing");
-  const paidTotal = paidRows.reduce((s, p) => s + p.amount, 0);
-  const pendingTotal = pendingRows.reduce((s, p) => s + p.amount, 0);
-  const balance = totalAmount - paidTotal;
+  const vendorId = session?.vendorId;
+  const payouts = state.payouts.filter((p) => p.recipientType === "partner" && p.partnerId === vendorId);
+  const shares = state.paymentAllocations.filter((a) => a.recipientType === "partner" && a.partnerId === vendorId);
+  const sum = (rows: { amountKes: number }[]) => rows.reduce((s, r) => s + r.amountKes, 0);
+  const allocatedTotal = sum(shares);
+  const paidRows = payouts.filter((p) => p.status === "transferred");
+  const pendingRows = payouts.filter((p) => isOpenPayout(p.status));
+  const paidTotal = sum(paidRows);
+  const pendingTotal = sum(pendingRows);
+  const owedShares = shares.filter((a) => a.status === "pending" || a.status === "failed");
+  const balance = sum(owedShares);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return [...payouts]
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .filter((p) => {
-        if (statusFilter !== "all" && p.payoutStatus !== statusFilter) return false;
+        if (statusFilter !== "all" && p.status !== statusFilter) return false;
         if (!q) return true;
         return (
           shortRef(p.id).toLowerCase().includes(q) ||
-          p.transactionReferenceNumber.toLowerCase().includes(q) ||
-          p.transactionId.toLowerCase().includes(q)
+          p.reference.toLowerCase().includes(q) ||
+          (p.transactionCode ?? "").toLowerCase().includes(q)
         );
       });
   }, [payouts, search, statusFilter]);
@@ -74,26 +76,26 @@ export default function PartnerPayouts() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryStatCard
           label="Total Allocated"
-          value={usd(totalAmount)}
-          sub={`${payouts.length} batches`}
+          value={kes(allocatedTotal)}
+          sub={`${shares.length} donations assigned by the Ministry`}
         />
         <SummaryStatCard
           label="Transferred"
-          value={usd(paidTotal)}
+          value={kes(paidTotal)}
+          valueClassName="text-emerald-600"
+          sub={`${paidRows.length} M-Pesa transfers`}
+        />
+        <SummaryStatCard
+          label="In Progress"
+          value={kes(pendingTotal)}
           valueClassName="text-violet-600"
-          sub={`${paidRows.length} contributions`}
+          sub={`${pendingRows.length} transfers awaiting M-Pesa`}
         />
         <SummaryStatCard
-          label="Funds Received"
-          value={usd(paidTotal)}
+          label="Still Owed"
+          value={kes(balance)}
           valueClassName="text-amber-600"
-          sub={`${paidRows.length} contributions`}
-        />
-        <SummaryStatCard
-          label="Balance"
-          value={usd(balance)}
-          valueClassName={balance >= 0 ? "text-emerald-600" : "text-red-600"}
-          sub={`${pendingRows.length} contributions`}
+          sub={`${owedShares.length} donations not yet paid`}
         />
       </div>
 
@@ -160,13 +162,13 @@ export default function PartnerPayouts() {
                       <TableCell>
                         <DateTimeCell value={p.createdAt} />
                       </TableCell>
-                      <TableCell className="font-medium tabular-nums">{usd(p.amount)}</TableCell>
-                      <TableCell className="font-mono text-xs">{p.transactionReferenceNumber || "—"}</TableCell>
-                      <TableCell className="font-mono text-xs">{p.transactionId || "—"}</TableCell>
+                      <TableCell className="font-medium tabular-nums">{kes(p.amountKes)}</TableCell>
+                      <TableCell className="font-mono text-xs">{p.reference}</TableCell>
+                      <TableCell className="font-mono text-xs">{p.transactionCode || "—"}</TableCell>
                       <TableCell>
                         <StatusPill
-                          label={PAYOUT_STATUS_LABELS[p.payoutStatus]}
-                          className={PAYOUT_STATUS_COLORS[p.payoutStatus]}
+                          label={PAYOUT_STATUS_LABELS[p.status]}
+                          className={PAYOUT_STATUS_COLORS[p.status]}
                         />
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">

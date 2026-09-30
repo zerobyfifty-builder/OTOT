@@ -13,8 +13,9 @@ import type {
   CheckoutMethod,
   Donation,
   Payment,
-  PlantationPayout,
+  Payout,
   PlantationRequest,
+  RecipientType,
   StoreState,
   TreeLine,
   TreeType,
@@ -34,7 +35,8 @@ const emptyStore = (): StoreState => ({
   donations: [],
   payments: [],
   plantationRequests: [],
-  plantationPayouts: [],
+  paymentAllocations: [],
+  payouts: [],
   vendorPlantationRequests: [],
 });
 
@@ -80,12 +82,19 @@ interface StoreContextValue {
   combinePlantationRequests: (requestIds: string[]) => Promise<PlantationRequest>;
   assignPlantationRequest: (requestId: string, partnerId: string, assignedTo: string) => Promise<void>;
   markPlantationComplete: (requestId: string) => Promise<void>;
-  createPayout: (plantationRequestId: string) => Promise<PlantationPayout>;
-  simulatePayoutSuccess: (payoutId: string) => Promise<PlantationPayout>;
+  createPayout: (plantationRequestId: string) => Promise<Payout>;
+  simulatePayoutSuccess: (payoutId: string) => Promise<Payout>;
+  payDonationShares: (input: { recipientType: RecipientType; donationIds?: string[] }) => Promise<PayoutBatchResult>;
+  resolvePayout: (payoutId: string, input: { status: "transferred" | "failed"; transactionCode?: string; note?: string }) => Promise<Payout>;
   createVendorPlantationRequest: (plantationRequestId: string, assignedAgentId: string) => Promise<void>;
   updateVendorRequestStatus: (id: string, status: VendorRequestStatus) => Promise<void>;
   upsertTreeType: (tree: TreeType) => Promise<void>;
   upsertVendor: (vendor: Vendor) => Promise<void>;
+}
+
+export interface PayoutBatchResult {
+  payouts: Payout[];
+  errors: { recipientType: RecipientType; partnerId?: string; message: string }[];
 }
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -296,7 +305,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const createPayout = useCallback(
     async (plantationRequestId: string) => {
-      const data = await apiFetch<{ payout: PlantationPayout }>("/v1/payouts", {
+      const data = await apiFetch<{ payout: Payout }>("/v1/payouts", {
         method: "POST",
         body: JSON.stringify({ plantationRequestId }),
       });
@@ -308,8 +317,35 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const simulatePayoutSuccess = useCallback(
     async (payoutId: string) => {
-      const data = await apiFetch<{ payout: PlantationPayout }>(`/v1/payouts/${payoutId}/simulate-success`, {
+      const data = await apiFetch<{ payout: Payout }>(`/v1/payouts/${payoutId}/simulate-success`, {
         method: "POST",
+      });
+      await afterWrite();
+      return data.payout;
+    },
+    [afterWrite],
+  );
+
+  const payDonationShares = useCallback(
+    async (input: { recipientType: RecipientType; donationIds?: string[] }) => {
+      try {
+        return await apiFetch<PayoutBatchResult>("/v1/admin/payouts", {
+          method: "POST",
+          body: JSON.stringify(input),
+        });
+      } finally {
+        // A failed transfer still changes share status, so always reload.
+        await afterWrite();
+      }
+    },
+    [afterWrite],
+  );
+
+  const resolvePayout = useCallback(
+    async (payoutId: string, input: { status: "transferred" | "failed"; transactionCode?: string; note?: string }) => {
+      const data = await apiFetch<{ payout: Payout }>(`/v1/admin/payouts/${payoutId}/resolve`, {
+        method: "POST",
+        body: JSON.stringify(input),
       });
       await afterWrite();
       return data.payout;
@@ -383,6 +419,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       markPlantationComplete,
       createPayout,
       simulatePayoutSuccess,
+      payDonationShares,
+      resolvePayout,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,
@@ -409,6 +447,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       markPlantationComplete,
       createPayout,
       simulatePayoutSuccess,
+      payDonationShares,
+      resolvePayout,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,

@@ -16,7 +16,8 @@ import {
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { kg, treeCount, usd } from "@/lib/format";
+import { kes, kg, treeCount, usd } from "@/lib/format";
+import { isOpenPayout, PAYOUT_STATUS_LABEL, RECIPIENT_LABEL } from "@/lib/payouts";
 import { roleLabel } from "@/lib/portal";
 import { AdminStatCard } from "@/components/portal/PortalUI";
 import { ActivityFeed, type ActivityCategory, type ActivityEntry } from "@/components/admin/ActivityFeed";
@@ -73,24 +74,23 @@ function buildAlerts(state: StoreState): AlertItem[] {
     message: plural(failedPayments, "failed payment"),
     href: "/admin/finance",
   });
-  const failedPayouts = count(state.plantationPayouts, (p) => p.payoutStatus === "failed");
+  const failedPayouts = count(state.payouts, (p) => p.status === "failed");
   push({
     id: "failed-payouts",
     type: "payout",
     severity: "error",
     count: failedPayouts,
-    message: plural(failedPayouts, "failed partner payout"),
+    message: plural(failedPayouts, "failed payout"),
+    href: "/admin/finance",
   });
-  const pendingPayouts = count(
-    state.plantationPayouts,
-    (p) => p.payoutStatus === "pending" || p.payoutStatus === "processing",
-  );
+  const pendingPayouts = count(state.payouts, (p) => isOpenPayout(p.status));
   push({
     id: "pending-payouts",
     type: "payout",
     severity: "warning",
     count: pendingPayouts,
-    message: `${plural(pendingPayouts, "partner payout")} in progress`,
+    message: `${plural(pendingPayouts, "payout")} in progress`,
+    href: "/admin/finance",
   });
 
   if (alerts.length === 0) {
@@ -171,14 +171,14 @@ function buildActivity(state: StoreState): ActivityEntry[] {
       href: "/admin/vendors",
     });
   }
-  for (const p of state.plantationPayouts) {
+  for (const p of state.payouts) {
     entries.push({
       id: `payout-${p.id}`,
       category: "admin",
-      action: `payout ${p.payoutStatus}`,
-      tone: p.payoutStatus === "failed" ? "delete" : p.payoutStatus === "paid" ? "create" : "update",
-      resource: "Partner payout",
-      description: usd(p.amount),
+      action: `payout ${PAYOUT_STATUS_LABEL[p.status].toLowerCase()}`,
+      tone: p.status === "failed" ? "delete" : p.status === "transferred" ? "create" : "update",
+      resource: `${RECIPIENT_LABEL[p.recipientType]} payout · ${p.recipientName}`,
+      description: kes(p.amountKes),
       timestamp: p.createdAt,
     });
   }
@@ -349,7 +349,7 @@ export default function AdminOverview() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <AdminStatCard title="Plantation requests" value={state.plantationRequests.length} icon={ClipboardList} />
             <AdminStatCard title="Partner work orders" value={state.vendorPlantationRequests.length} icon={ListChecks} />
-            <AdminStatCard title="Payouts" value={state.plantationPayouts.length} icon={Landmark} />
+            <AdminStatCard title="Payouts" value={state.payouts.length} icon={Landmark} />
           </div>
         </div>
 

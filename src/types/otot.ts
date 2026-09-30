@@ -17,7 +17,10 @@ export type PlantationRequestStatus =
   | "ready_for_review"
   | "completed";
 export type VendorRequestStatus = "assigned" | "in_progress" | "completed";
-export type PayoutStatus = "pending" | "processing" | "paid" | "failed";
+export type PayoutStatus = "initiated" | "in_progress" | "transferred" | "failed";
+export type AllocationStatus = "pending" | PayoutStatus;
+export type RecipientType = "otot" | "ministry" | "partner";
+export type PayoutSource = "manual" | "ministry" | "auto_per_transaction" | "auto_daily" | "legacy";
 export type MinistryRole = "admin" | "user";
 export type VendorAgentRole = "admin" | "agent";
 export type TravelClass = "economy" | "premium_economy" | "business" | "first";
@@ -121,6 +124,7 @@ export interface Payment {
   failureMessage?: string;
   currency?: string;
   amountKes?: number;
+  feeKes?: number;
   createdAt: string;
 }
 
@@ -135,15 +139,43 @@ export interface PlantationRequest {
   createdAt: string;
 }
 
-export interface PlantationPayout {
+/** One recipient's whole-KES share of a successful payment. */
+export interface PaymentAllocation {
   id: string;
-  plantationRequestId: string;
-  amount: number;
-  payoutStatus: PayoutStatus;
-  transactionId: string;
-  transactionReferenceNumber: string;
+  paymentId: string;
+  donationId: string;
+  recipientType: RecipientType;
+  partnerId?: string;
+  amountKes: number;
+  status: AllocationStatus;
+  payoutId?: string;
+  createdAt: string;
+}
+
+/** One M-Pesa B2C transfer that settles one or more allocations. */
+export interface Payout {
+  id: string;
+  recipientType: RecipientType;
+  partnerId?: string;
+  recipientName: string;
+  mpesaPhone?: string;
+  amountKes: number;
+  status: PayoutStatus;
+  source: PayoutSource;
+  reference: string;
+  transactionCode?: string;
   failureMessage?: string;
   createdAt: string;
+  settledAt?: string;
+}
+
+export interface Wallet {
+  id: string;
+  ownerType: RecipientType;
+  partnerId?: string;
+  label: string;
+  mpesaPhone: string;
+  updatedAt: string;
 }
 
 export interface VendorPlantationRequest {
@@ -211,6 +243,7 @@ export interface StoreState {
   donations: Donation[];
   payments: Payment[];
   plantationRequests: PlantationRequest[];
-  plantationPayouts: PlantationPayout[];
+  paymentAllocations: PaymentAllocation[];
+  payouts: Payout[];
   vendorPlantationRequests: VendorPlantationRequest[];
 }

@@ -3,7 +3,8 @@ import { AlertCircle, AlertTriangle, Info, RefreshCw, TreePine } from "lucide-re
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, treeCount, usd } from "@/lib/format";
+import { isOpenPayout } from "@/lib/payouts";
 import { GlobalDateRangeFilter } from "@/components/partner/GlobalDateRangeFilter";
 import { CardEmpty, CrosshairTooltip, DCard, KpiTile, StatusPill, ThinBar } from "@/components/partner/PartnerUI";
 import { SpeciesDonut } from "@/components/partner/SpeciesDonut";
@@ -42,9 +43,7 @@ export default function PartnerDashboard() {
   const vendor = state.vendors.find((v) => v.id === vendorId);
   const requests = state.plantationRequests.filter((r) => r.partnerId === vendorId);
   const vprs = state.vendorPlantationRequests.filter((v) => v.vendorId === vendorId);
-  const payouts = state.plantationPayouts.filter((p) =>
-    requests.some((r) => r.id === p.plantationRequestId),
-  );
+  const payouts = state.payouts.filter((p) => p.recipientType === "partner" && p.partnerId === vendorId);
   const agents = state.users.filter((u) => u.vendorId === vendorId && u.role === "partner_agent");
 
   const treesFor = (donationIds: string[]) =>
@@ -114,12 +113,12 @@ export default function PartnerDashboard() {
       sub: `Oldest received ${shortDate(awaitingAgent.reduce((a, b) => (a.createdAt < b.createdAt ? a : b)).createdAt)}`,
     });
   }
-  const failedPayouts = payouts.filter((p) => p.payoutStatus === "failed");
+  const failedPayouts = payouts.filter((p) => p.status === "failed");
   if (failedPayouts.length > 0) {
     alerts.push({
       level: "red",
       title: `Failed payouts (${failedPayouts.length})`,
-      sub: failedPayouts.map((p) => p.failureMessage || p.transactionReferenceNumber).filter(Boolean).slice(0, 2).join(", "),
+      sub: failedPayouts.map((p) => p.failureMessage || p.reference).filter(Boolean).slice(0, 2).join(", "),
     });
   }
   const notStarted = vprs.filter((v) => v.status === "assigned");
@@ -195,9 +194,9 @@ export default function PartnerDashboard() {
             <KpiTile label="Trees in queue" value={treesInQueue} tint={KPI_TINTS[2]} delay={160} />
             <KpiTile
               label="Payouts"
-              value={rangedPayouts.reduce((s, p) => s + p.amount, 0)}
-              prefix="$"
-              decimals={2}
+              value={rangedPayouts.filter((p) => p.status === "transferred").reduce((s, p) => s + p.amountKes, 0)}
+              prefix="KES "
+              decimals={0}
               tint={KPI_TINTS[3]}
               delay={240}
             />
@@ -467,16 +466,16 @@ export default function PartnerDashboard() {
                       <div key={p.id} className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[13px] font-medium text-foreground font-mono truncate">
-                            {p.transactionReferenceNumber || "—"}
+                            {p.transactionCode || p.reference}
                           </p>
                           <p className="text-[11px] text-[#6B7280] dark:text-gray-400">
-                            {PAYOUT_STATUS_LABELS[p.payoutStatus]} · {shortDate(p.createdAt)}
+                            {PAYOUT_STATUS_LABELS[p.status]} · {shortDate(p.createdAt)}
                           </p>
                         </div>
                         <span
-                          className={`font-semibold text-[13px] tabular-nums ${p.payoutStatus === "failed" ? "text-[#A32D2D]" : "text-[#3B6D11]"}`}
+                          className={`font-semibold text-[13px] tabular-nums ${p.status === "failed" ? "text-[#A32D2D]" : "text-[#3B6D11]"}`}
                         >
-                          {usd(p.amount)}
+                          {kes(p.amountKes)}
                         </span>
                       </div>
                     ))}
@@ -484,15 +483,15 @@ export default function PartnerDashboard() {
                   <hr className="my-3 border-[#E5E7EB] dark:border-gray-700" />
                   <div className="space-y-1 text-[11px] text-[#6B7280] dark:text-gray-400">
                     <p>
-                      Total paid:{" "}
+                      Total transferred:{" "}
                       <strong className="text-foreground">
-                        {usd(payouts.filter((p) => p.payoutStatus === "paid").reduce((s, p) => s + p.amount, 0))}
+                        {kes(payouts.filter((p) => p.status === "transferred").reduce((s, p) => s + p.amountKes, 0))}
                       </strong>
                     </p>
                     <p>
                       Pending payouts:{" "}
                       <strong className="text-foreground">
-                        {payouts.filter((p) => p.payoutStatus === "pending" || p.payoutStatus === "processing").length}
+                        {payouts.filter((p) => isOpenPayout(p.status)).length}
                       </strong>
                     </p>
                   </div>
@@ -502,8 +501,8 @@ export default function PartnerDashboard() {
               )}
               {recentPayouts.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {(["pending", "processing", "paid", "failed"] as const).map((s) => {
-                    const n = payouts.filter((p) => p.payoutStatus === s).length;
+                  {(["initiated", "in_progress", "transferred", "failed"] as const).map((s) => {
+                    const n = payouts.filter((p) => p.status === s).length;
                     return n > 0 ? <StatusPill key={s} label={`${PAYOUT_STATUS_LABELS[s]} · ${n}`} className={PAYOUT_STATUS_COLORS[s]} /> : null;
                   })}
                 </div>

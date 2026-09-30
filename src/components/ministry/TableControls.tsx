@@ -157,6 +157,8 @@ export function TablePagination({
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   completed: "default",
   paid: "default",
+  transferred: "default",
+  initiated: "secondary",
   active: "default",
   assigned: "secondary",
   unassigned: "secondary",

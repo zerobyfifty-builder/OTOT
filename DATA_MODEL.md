@@ -19,7 +19,13 @@ erDiagram
   donations ||--o{ payments : "Afrinet checkout"
   donations ||--o| plantation_requests : "1-1 now"
   plantation_requests }o--o| vendors : assigned
-  plantation_requests ||--o| plantation_payouts : "1-1"
+  payments ||--o{ payment_allocations : "OTOT / Ministry / partner share"
+  payment_allocations }o--o| vendors : "partner share"
+  payment_allocations }o--o| payouts : "latest attempt"
+  payouts ||--o{ payout_items : settles
+  payment_allocations ||--o{ payout_items : "every attempt"
+  wallets }o--o| vendors : "partner wallet"
+  payouts }o--o| wallets : "sent to"
   plantation_requests ||--o| vendor_plantation_requests : "1-1 now"
   vendor_plantation_requests }o--o| users : "assigned agent"
 ```
@@ -49,10 +55,10 @@ Tourists self-signup. Ministry and partner accounts are provisioned (seeded in d
 |---|---|---|
 | `tourist` | Own trips / donations / payments / related requests | Signup, checkout, create/delete trips, tree-mix quote |
 | `ministry_user` | Full store | None |
-| `ministry_admin` | Full store | Create/assign/complete plantation requests, mock payouts |
-| `partner_admin` | Vendor-scoped store | Create vendor plantation request, update any assignment for that vendor |
+| `ministry_admin` | Full store | Create/assign/complete plantation requests, pay the partner share of completed requests |
+| `partner_admin` | Vendor-scoped store (own partner shares and payouts only) | Create vendor plantation request, update any assignment for that vendor |
 | `partner_agent` | Vendor-scoped store | PATCH own vendor plantation request |
-| `super_admin` | Full store | All of the above + tree types, vendors, reset-demo |
+| `super_admin` | Full store | All of the above + tree types, vendors, wallets, Ministry/partner payouts, OTOT sweep, reset-demo |
 
 ### `vendors`
 
@@ -64,7 +70,8 @@ Plantation partner organisation (group).
 | `name` | TEXT | |
 | `region` | TEXT | |
 | `status` | TEXT | `active` \| `inactive` |
-| `mpesa_phone` | TEXT | B2C destination, `2547XXXXXXXX`. Required before ministry payout |
+
+The partner's M-Pesa number lives in `wallets` (migration 010 moved `vendors.mpesa_phone` there). The API still returns it as `Vendor.mpesaPhone` to staff and to that partner.
 
 ### `vendor_agents`
 
@@ -164,9 +171,7 @@ Afrinet hosted checkout. Several attempts per donation are allowed. `external_re
 | `payment_mode` | TEXT | Updated from webhook: `Card` \| `M-Pesa` \| `Bank Transfer` |
 | `status` | TEXT | `pending` until webhook/`sync`; then `success` or `failed` |
 | `amount` | NUMERIC(12,2) | USD catalog total |
-| `plantation` | NUMERIC(12,2) | Charge split |
-| `platform` | NUMERIC(12,2) | 5% |
-| `processor` | NUMERIC(12,2) | 2.9% |
+| `plantation` / `platform` / `ministry` / `processor` | NUMERIC(12,2) | USD split shown to tourists (2.9% fee, then 15/15/70) |
 | `external_reference` | TEXT UNIQUE | Afrinet `reference` |
 | `afrinet_transaction_code` | TEXT | Engine transaction code |
 | `afrinet_status` | TEXT | Last provider status |
@@ -175,9 +180,86 @@ Afrinet hosted checkout. Several attempts per donation are allowed. `external_re
 | `failure_message` | TEXT | |
 | `currency` | TEXT | Charged currency (`KES` after checkout) |
 | `amount_kes` | INTEGER | Whole shillings sent to Afrinet |
+| `fee_kes` | INTEGER | Afrinet processing fee in KES (2.9%), set when the payment succeeds |
 | `created_at` | TIMESTAMPTZ | |
 
-`plantation = amount − platform − processor`.
+Money actually moved is tracked in KES by `payment_allocations`, not by the USD split columns.
+
+### `payment_allocations`
+
+One row per recipient for every successful payment (`{payment_id}:{recipient}`), created in the same transaction that marks the payment `success`. This is the per-donation ledger behind Financial Transactions.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT PK | `{payment_id}:otot` / `:ministry` / `:partner` |
+| `payment_id` | TEXT FK → payments | Unique with `recipient_type` |
+| `donation_id` | TEXT FK → donations | |
+| `recipient_type` | TEXT | `otot` \| `ministry` \| `partner` |
+| `partner_id` | TEXT FK → vendors | Partner share only. NULL until the Ministry assigns the request; unpaid shares follow reassignment, shares already sent block it |
+| `amount_kes` | INTEGER | See split below |
+| `status` | TEXT | `pending` → `initiated` → `in_progress` → `transferred` \| `failed` (follows its payout) |
+| `payout_id` | TEXT FK → payouts | Latest payout attempt; NULL only while `pending` |
+
+**Split (whole KES, `splitKes()` in `src/lib/charges.ts`):** `fee = round(gross × 2.9%)`, `net = gross − fee`, `otot = round(net × 15%)`, `ministry = round(net × 15%)`, `partner = net − otot − ministry`. The four parts always add up to `amount_kes`.
+
+A share is payable when it is `pending` or `failed`, is above 0, and (for partners) has a `partner_id`.
+
+### `payouts`
+
+One M-Pesa B2C transfer through the Afrinet SDK (`payouts.create`) to one recipient, covering one or more shares.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT PK | |
+| `recipient_type` | TEXT | `otot` \| `ministry` \| `partner` |
+| `partner_id` | TEXT FK → vendors | Partner payouts only |
+| `wallet_id` | TEXT FK → wallets | Wallet used; the number is also copied to `mpesa_phone` |
+| `recipient_name` / `mpesa_phone` | TEXT | Snapshot at send time |
+| `amount_kes` | INTEGER | Σ covered shares; ≥ KES 10 (M-Pesa B2C minimum) |
+| `status` | TEXT | `initiated` (reserved, before Afrinet answers) → `in_progress` (accepted) → `transferred` \| `failed` |
+| `source` | TEXT | `manual` (Super Admin) \| `ministry` \| `auto_per_transaction` \| `auto_daily` \| `legacy` |
+| `provider_reference` | TEXT UNIQUE | Our `PO-{OTOT\|MIN\|PTR}-…` Afrinet reference |
+| `transaction_code` | TEXT | Afrinet transaction code |
+| `failure_message` | TEXT | |
+| `created_by` | TEXT FK → users | |
+| `settled_at` | TIMESTAMPTZ | When it became `transferred` / `failed` |
+
+Webhook `COMPLETED` → `transferred`; `FAILED` / `PROVIDER_ERROR` → `failed` (its shares become payable again); other statuses → `in_progress`. A definite 4xx rejection from the SDK fails the payout immediately. A timeout or 5xx leaves it `initiated` with a note, because Afrinet may have accepted it; Super Admin resolves it from the Payouts tab after checking the merchant portal. Payout creation takes an advisory lock and refuses to exceed the calculated merchant balance (successful `amount_kes` − `fee_kes` − payouts not `failed`). Afrinet has no balance endpoint.
+
+### `payout_items`
+
+`(payout_id, allocation_id, amount_kes)`. Every attempt that carried a share, including failed ones, so each donation can be traced to every transfer.
+
+### `wallets`
+
+M-Pesa destinations. One per owner: `wallet-otot`, `wallet-ministry`, `wallet-partner-{vendor_id}`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | TEXT PK | Deterministic per owner |
+| `owner_type` | TEXT | `otot` \| `ministry` \| `partner` |
+| `partner_id` | TEXT FK → vendors | Partner wallets only |
+| `label` | TEXT | |
+| `mpesa_phone` | TEXT | Normalised `254XXXXXXXXX` (CHECK) |
+| `updated_by` / `updated_at` | | |
+
+### OTOT sweep (Tech Processing Fee)
+
+The OTOT tech processing fee goes to the OTOT wallet. Super Admin picks the mode on **Wallets** (stored in `app_settings`; `OTOT_SWEEP_MODE` / `OTOT_SWEEP_HOUR_EAT` are only the defaults until then). Changes apply without a restart.
+
+- **End of day** (`daily`, default): one transfer per day at the chosen hour (EAT) covering every pending OTOT fee. M-Pesa B2C charges a flat fee per transfer, so this pays that fee once instead of once per donation.
+- **Every transaction** (`per_transaction`): transfer after each successful payment. Use this only if the per-payout fee is a pure percentage, which gives the same net result either way.
+- **Manual only** (`manual`): nothing automatic.
+
+In every mode Super Admin can transfer manually: **Transfer now** on the Financial Transactions OTOT card (all pending fees in the current date filter), **Transfer OTOT fee** for ticked donations, or **Transfer now** on Wallets (all pending). Amounts below KES 10 wait for the next transfer.
+
+### `app_settings`
+
+`key` TEXT PK, `value` TEXT, `updated_by`, `updated_at`. Keys: `otot_sweep_mode`, `otot_sweep_hour_eat`.
+
+### Legacy tables
+
+Migration 010 copied `plantation_payouts` and `admin_disbursements` into `payouts` (as `legacy` / `manual`), linked them to shares, and renamed the originals to `legacy_plantation_payouts` / `legacy_admin_disbursements` for audit. Per-request payouts cover every partner share of that request. Lump-sum disbursements cover the oldest shares they fully pay. Any remainder is listed on the Wallets screen as "not matched to donations".
 
 ### `webhook_events`
 
@@ -216,21 +298,6 @@ Vendor-side job. **1:1 with plantation_request today** (`plantation_request_id` 
 
 Agents may only PATCH their own row. Partner admins may PATCH any row for their vendor.
 
-### `plantation_payouts`
-
-Partner B2C payout via Afrinet after ministry completes the request. **1:1 with plantation_request**.
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | TEXT PK | |
-| `plantation_request_id` | TEXT UNIQUE FK | |
-| `amount` | NUMERIC(12,2) | Plantation share (USD) |
-| `payout_status` | TEXT | `pending` \| `processing` \| `paid` \| `failed` |
-| `transaction_id` | TEXT | Afrinet transaction code |
-| `transaction_reference_number` | TEXT | Our `PO-…` idempotency key |
-| `failure_message` | TEXT | |
-| `created_at` | TIMESTAMPTZ | |
-
 ## Carbon offset → donation amount
 
 1. Tourist calculates trip CO₂ via `emission_calculator` (`POST /api/v1/carbon-calculator/calculate`). That service’s generic `$10` / 840 kg tree estimate is **not** used.
@@ -243,11 +310,12 @@ Partner B2C payout via Afrinet after ministry completes the request. **1:1 with 
 1. Tourist picks Card or M-Pesa.
    - M-Pesa: STK prompt, then `/donate/awaiting/:paymentId`.
    - Card: redirect to Afrinet `HOSTED_CHECKOUT`; `returnUrl` / `cancelUrl` land back on awaiting.
-2. Webhook `POST /webhooks/afrinet` (and optional `/v1/payments/:id/sync`) settles `COMPLETED` → donation `paid` + unassigned `plantation_requests`.
-3. Ministry admin assigns a vendor (`assigned_to` = that vendor’s partner admin).
+2. Webhook `POST /webhooks/afrinet` (and optional `/v1/payments/:id/sync`) settles `COMPLETED` → donation `paid` + unassigned `plantation_requests` + three `payment_allocations`. The OTOT share is swept to the OTOT wallet (see OTOT sweep).
+3. Ministry admin assigns a vendor (`assigned_to` = that vendor’s partner admin). This sets `partner_id` on the partner shares and makes them payable.
 4. Partner admin creates `vendor_plantation_requests` for an agent → parent status `in_progress`.
 5. Agent (or vendor admin) moves vendor status to `completed`. When all sibling vendor jobs are complete, parent becomes `ready_for_review`.
-6. Ministry admin marks the plantation request `completed`, then may create an Afrinet B2C `plantation_payouts` row (vendor `mpesa_phone` required).
+6. Ministry admin marks the plantation request `completed`, then may pay that request's partner share (`POST /v1/payouts`).
+7. Super Admin selects donations on Financial Transactions and pays Ministry fees or vendor payouts (one transfer per recipient). Vendors can be paid once assigned, even before completion.
 
 ## API (authenticated unless noted)
 
@@ -271,7 +339,14 @@ Partner B2C payout via Afrinet after ministry completes the request. **1:1 with 
 | `POST` | `/v1/plantation-requests` | ministry admin (idempotent) |
 | `POST` | `/v1/plantation-requests/:id/assign` | ministry admin |
 | `POST` | `/v1/plantation-requests/:id/complete` | ministry admin |
-| `POST` | `/v1/payouts` | ministry admin |
+| `POST` | `/v1/payouts` | ministry admin — partner share of a completed request |
+| `POST` | `/v1/payouts/:id/simulate-success` | ministry admin (non-production) |
+| `GET` | `/v1/admin/wallets` | super admin — wallets, calculated balance, amounts owed, sweep status |
+| `PUT` | `/v1/admin/wallets` | super admin — `{ ownerType, partnerId?, mpesaPhone }` |
+| `POST` | `/v1/admin/wallets/otot/sweep` | super admin — transfer pending OTOT fee now; optional `{ donationIds }` |
+| `PUT` | `/v1/admin/wallets/otot/sweep-settings` | super admin — `{ mode: daily \| per_transaction \| manual, hourEat }` |
+| `POST` | `/v1/admin/payouts` | super admin — `{ recipientType, donationIds? }`; partner shares grouped per vendor |
+| `POST` | `/v1/admin/payouts/:id/resolve` | super admin — `{ status: transferred \| failed, transactionCode?, note? }` for stuck payouts |
 | `POST` | `/v1/vendor-plantation-requests` | partner admin |
 | `PATCH` | `/v1/vendor-plantation-requests/:id` | partner admin / assigned agent |
 | `PUT` | `/v1/tree-types` | super admin |
@@ -294,6 +369,7 @@ Partner B2C payout via Afrinet after ministry completes the request. **1:1 with 
 - Sandbox card may still fail with `CARD_PROVIDER_ERROR`; tourists can switch to M-Pesa.
 - Use sandbox until live `api.afrinet.global` accepts the merchant key.
 - Fund the merchant wallet before B2C payouts (`INSUFFICIENT_FUNDS` otherwise).
+- Charges accept an optional `transfer[]` split to Afrinet settlement account numbers (`accountNo`, not M-Pesa numbers). If OTOT gets its own Afrinet settlement account, the OTOT share could be split at charge time instead of swept.
 - Secrets on the API service only. Never `VITE_*`.
 
 ## Demo accounts

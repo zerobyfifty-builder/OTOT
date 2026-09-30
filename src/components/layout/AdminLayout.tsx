@@ -8,7 +8,7 @@ const NAV = [
   { title: "Partners", url: "/admin/vendors", icon: Building2 },
   { title: "Tree Types", url: "/admin/tree-types", icon: Leaf },
   { title: "Financial Transactions", url: "/admin/finance", icon: CreditCard },
-  { title: "Payouts", url: "/admin/payouts", icon: Wallet },
+  { title: "Wallets", url: "/admin/wallets", icon: Wallet },
   { title: "Configuration", url: "/admin/config", icon: Settings },
 ];
 

@@ -13,13 +13,14 @@ const TONES: Record<string, string> = {
   ready_for_review: "bg-violet-100 text-violet-800 border-violet-200",
   unassigned: "bg-stone-100 text-stone-700 border-stone-200",
   failed: "bg-red-100 text-red-800 border-red-200",
+  initiated: "bg-sky-100 text-sky-800 border-sky-200",
+  transferred: "bg-emerald-100 text-emerald-800 border-emerald-200",
   refunded: "bg-red-100 text-red-800 border-red-200",
   inactive: "bg-stone-100 text-stone-600 border-stone-200",
   active: "bg-emerald-100 text-emerald-800 border-emerald-200",
 };
 
-export function StatusBadge({ status }: { status: string }) {
-  const label = status.replace(/_/g, " ");
+export function StatusBadge({ status, label = status.replace(/_/g, " ") }: { status: string; label?: string }) {
   return (
     <Badge variant="outline" className={cn("capitalize", TONES[status] || "bg-muted")}>
       {label}

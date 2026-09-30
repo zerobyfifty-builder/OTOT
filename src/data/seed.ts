@@ -294,17 +294,8 @@ export function createSeed(): StoreState {
       },
     ],
     plantationRequests: [reqAssigned, reqComplete],
-    plantationPayouts: [
-      {
-        id: "payout-1",
-        plantationRequestId: reqComplete.id,
-        amount: splitCharges(donationComplete.amount).plantation,
-        payoutStatus: "paid",
-        transactionId: "TXN-88421",
-        transactionReferenceNumber: "KTB-PAY-1029",
-        createdAt: daysAgo(4),
-      },
-    ],
+    paymentAllocations: [],
+    payouts: [],
     vendorPlantationRequests: [vprActive, vprDone],
   };
 }

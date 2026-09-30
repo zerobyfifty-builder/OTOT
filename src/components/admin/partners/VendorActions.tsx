@@ -64,7 +64,8 @@ function VendorFormBody({
         status: vendor?.status ?? "active",
         name: form.name.trim(),
         region: form.region.trim() || vendor?.region || "Kenya",
-        mpesaPhone: form.mpesaPhone.trim() || undefined,
+        // An empty string removes the partner's wallet.
+        mpesaPhone: form.mpesaPhone.trim(),
       });
       toast.success(vendor ? "Partner updated successfully" : "Partner created successfully");
       onDone();
@@ -97,7 +98,7 @@ function VendorFormBody({
           onChange={(e) => setForm({ ...form, mpesaPhone: e.target.value })}
           placeholder="2547XXXXXXXX"
         />
-        <p className="text-xs text-muted-foreground mt-1">Used for plantation payouts to this partner.</p>
+        <p className="text-xs text-muted-foreground mt-1">This partner's payout wallet. Also editable under Wallets.</p>
       </div>
       <div className="flex gap-2 pt-4">
         <Button type="submit" className="flex-1" disabled={saving || !dirty}>

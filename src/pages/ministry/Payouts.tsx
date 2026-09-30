@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { shortDate, usd } from "@/lib/format";
+import { kes, shortDate, treeCount, usd } from "@/lib/format";
+import { isOpenPayout, isPayable } from "@/lib/payouts";
 import { useSimulationAllowed } from "@/hooks/useSimulationAllowed";
 import { MinistryStatusBadge } from "@/components/ministry/TableControls";
-import { partnerTreeStats, requestTrees } from "@/components/ministry/utils";
+import { partnerTreeStats } from "@/components/ministry/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -25,24 +26,30 @@ export default function MinistryPayouts() {
   const [submitting, setSubmitting] = useState(false);
   const [simulatingId, setSimulatingId] = useState<string | null>(null);
 
-  const waiting = state.plantationRequests
-    .filter((r) => r.status === "completed")
-    .filter((r) => {
-      const payout = state.plantationPayouts.find((p) => p.plantationRequestId === r.id);
-      return !payout || payout.payoutStatus === "failed";
-    });
-  const totalPaid = state.plantationPayouts
-    .filter((p) => p.payoutStatus === "paid")
-    .reduce((s, p) => s + p.amount, 0);
-  const pendingCount = state.plantationPayouts.filter(
-    (p) => p.payoutStatus === "pending" || p.payoutStatus === "processing",
-  ).length;
+  const partnerShares = state.paymentAllocations.filter((a) => a.recipientType === "partner");
+  const partnerPayouts = state.payouts.filter((p) => p.recipientType === "partner");
+  const sharesFor = (requestId: string) => {
+    const request = state.plantationRequests.find((r) => r.id === requestId);
+    const ids = new Set(request?.donationIds.length ? request.donationIds : [request?.donationId]);
+    return partnerShares.filter((a) => ids.has(a.donationId));
+  };
+  const payableKes = (requestId: string) =>
+    sharesFor(requestId).filter(isPayable).reduce((s, a) => s + a.amountKes, 0);
+  const waiting = state.plantationRequests.filter((r) => r.status === "completed" && payableKes(r.id) > 0);
+  const totalPaid = partnerPayouts
+    .filter((p) => p.status === "transferred")
+    .reduce((s, p) => s + p.amountKes, 0);
+  const pendingCount = partnerPayouts.filter((p) => isOpenPayout(p.status)).length;
+  const donationTrees = new Map(state.donations.map((d) => [d.id, treeCount(d.trees)]));
+  const payoutTrees = (payoutId: string) =>
+    partnerShares
+      .filter((a) => a.payoutId === payoutId)
+      .reduce((s, a) => s + (donationTrees.get(a.donationId) ?? 0), 0);
   const allocations = useMemo(() => partnerTreeStats(state), [state]);
   const allocatedPartners = state.vendors.filter((v) => allocations[v.id]);
 
   const vendorFor = (partnerId?: string) => state.vendors.find((v) => v.id === partnerId);
-  const isRetry = (id: string) =>
-    state.plantationPayouts.some((p) => p.plantationRequestId === id && p.payoutStatus === "failed");
+  const isRetry = (id: string) => sharesFor(id).some((a) => a.status === "failed");
   const selectedRequest = waiting.find((r) => r.id === requestId);
   const selectedVendor = vendorFor(selectedRequest?.partnerId);
 
@@ -79,7 +86,7 @@ export default function MinistryPayouts() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Disbursements</h1>
           <p className="text-muted-foreground mt-1">
-            Plantation share paid to partners’ M-Pesa numbers via Afrinet against completed requests
+            Partner share (after the Afrinet fee, OTOT and Ministry shares) paid to M-Pesa via Afrinet for completed requests
           </p>
         </div>
         <div className="flex gap-2">
@@ -116,7 +123,7 @@ export default function MinistryPayouts() {
                         <SelectContent>
                           {waiting.map((r) => (
                             <SelectItem key={r.id} value={r.id}>
-                              {vendorFor(r.partnerId)?.name ?? "Unassigned"} · {usd(r.amount)}
+                              {vendorFor(r.partnerId)?.name ?? "Unassigned"} · {kes(payableKes(r.id))}
                               {isRetry(r.id) ? " (retry)" : ""}
                             </SelectItem>
                           ))}
@@ -127,7 +134,7 @@ export default function MinistryPayouts() {
                       <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
                         {selectedVendor?.mpesaPhone ? (
                           <>
-                            Pays <span className="font-medium">{usd(selectedRequest.amount)}</span> to{" "}
+                            Pays <span className="font-medium">{kes(payableKes(selectedRequest.id))}</span> to{" "}
                             <span className="font-mono text-xs">{selectedVendor.mpesaPhone}</span>
                           </>
                         ) : (
@@ -159,7 +166,7 @@ export default function MinistryPayouts() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Disbursed</p>
-                <p className="text-2xl font-bold">{usd(totalPaid)}</p>
+                <p className="text-2xl font-bold">{kes(totalPaid)}</p>
               </div>
             </div>
           </CardContent>
@@ -233,7 +240,7 @@ export default function MinistryPayouts() {
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : state.plantationPayouts.length === 0 ? (
+          ) : partnerPayouts.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No disbursements recorded yet.</p>
@@ -255,23 +262,22 @@ export default function MinistryPayouts() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {state.plantationPayouts.map((p) => {
-                    const request = state.plantationRequests.find((r) => r.id === p.plantationRequestId);
+                  {partnerPayouts.map((p) => {
                     return (
                       <TableRow key={p.id}>
                         <TableCell className="whitespace-nowrap">{shortDate(p.createdAt)}</TableCell>
-                        <TableCell className="font-medium">{vendorFor(request?.partnerId)?.name || "-"}</TableCell>
-                        <TableCell>{usd(p.amount)}</TableCell>
-                        <TableCell>{request ? requestTrees(state, request) || "-" : "-"}</TableCell>
-                        <TableCell className="font-mono text-xs">{p.transactionId || "-"}</TableCell>
-                        <TableCell className="font-mono text-xs">{p.transactionReferenceNumber || "-"}</TableCell>
+                        <TableCell className="font-medium">{vendorFor(p.partnerId)?.name || p.recipientName}</TableCell>
+                        <TableCell>{kes(p.amountKes)}</TableCell>
+                        <TableCell>{payoutTrees(p.id) || "-"}</TableCell>
+                        <TableCell className="font-mono text-xs">{p.transactionCode || "-"}</TableCell>
+                        <TableCell className="font-mono text-xs">{p.reference}</TableCell>
                         <TableCell>
-                          <MinistryStatusBadge status={p.payoutStatus} />
+                          <MinistryStatusBadge status={p.status} />
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate">{p.failureMessage || "-"}</TableCell>
                         {canSimulate && canWrite ? (
                           <TableCell className="text-right">
-                            {p.payoutStatus === "paid" ? null : (
+                            {p.status === "transferred" ? null : (
                               <Button
                                 variant="outline"
                                 size="sm"

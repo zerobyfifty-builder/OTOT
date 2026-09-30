@@ -21,7 +21,8 @@ import {
 } from "lucide-react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { useStore } from "@/contexts/StoreContext";
-import { shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, treeCount, usd } from "@/lib/format";
+import { isOpenPayout } from "@/lib/payouts";
 import { airportCountry } from "@/lib/trips";
 import { AccentStatCard, EmptyState, TableFrame } from "@/components/portal/PortalUI";
 import { ChartDateRangePicker } from "@/components/ministry/ChartDateRangePicker";
@@ -50,7 +51,8 @@ export default function MinistryDashboard() {
   const stats = useMemo(() => {
     const paid = state.donations.filter((d) => d.status === "paid");
     const requests = state.plantationRequests;
-    const payouts = state.plantationPayouts;
+    const payouts = state.payouts.filter((p) => p.recipientType === "partner");
+    const shares = state.paymentAllocations;
     const successPayments = state.payments.filter((p) => p.status === "success");
     const trips = state.trips;
     const totalVisitors = trips.reduce((s, t) => s + t.numTravelers, 0);
@@ -72,15 +74,14 @@ export default function MinistryDashboard() {
       unassigned: requests.filter((r) => r.status === "unassigned").length,
       inProgress: requests.filter((r) => r.status === "assigned" || r.status === "in_progress").length,
       ready: requests.filter((r) => r.status === "ready_for_review").length,
-      plantationShare: successPayments.reduce((s, p) => s + p.transactionChargesSplit.plantation, 0),
-      retained: successPayments.reduce(
-        (s, p) => s + p.transactionChargesSplit.platform + p.transactionChargesSplit.ministry,
-        0,
-      ),
-      paidOut: payouts.filter((p) => p.payoutStatus === "paid").reduce((s, p) => s + p.amount, 0),
-      paidOutCount: payouts.filter((p) => p.payoutStatus === "paid").length,
-      inFlight: payouts.filter((p) => p.payoutStatus === "pending" || p.payoutStatus === "processing"),
-      failedPayouts: payouts.filter((p) => p.payoutStatus === "failed").length,
+      plantationShareKes: shares.filter((a) => a.recipientType === "partner").reduce((s, a) => s + a.amountKes, 0),
+      retainedKes:
+        shares.filter((a) => a.recipientType !== "partner").reduce((s, a) => s + a.amountKes, 0) +
+        successPayments.reduce((s, p) => s + (p.feeKes ?? 0), 0),
+      paidOutKes: payouts.filter((p) => p.status === "transferred").reduce((s, p) => s + p.amountKes, 0),
+      paidOutCount: payouts.filter((p) => p.status === "transferred").length,
+      inFlight: payouts.filter((p) => isOpenPayout(p.status)),
+      failedPayouts: payouts.filter((p) => p.status === "failed").length,
       activePartners: state.vendors.filter((v) => v.status === "active").length,
     };
   }, [state]);
@@ -126,7 +127,7 @@ export default function MinistryDashboard() {
       .sort((a, b) => a.period.localeCompare(b.period));
   }, [state.trips, revenueByTrip, tripsDateRange]);
 
-  const inFlightAmount = stats.inFlight.reduce((s, p) => s + p.amount, 0);
+  const inFlightKes = stats.inFlight.reduce((s, p) => s + p.amountKes, 0);
   const recentRequests = state.plantationRequests.slice(0, 8);
 
   return (
@@ -210,10 +211,10 @@ export default function MinistryDashboard() {
           ) : (
             <>
               <MiniStatCard label="Gross Contributions" value={usd(stats.totalRevenue)} icon={Receipt} color="text-foreground" />
-              <MiniStatCard label="Plantation Share" value={usd(stats.plantationShare)} icon={CheckCircle2} color="text-primary" />
-              <MiniStatCard label="Retained (Platform & Fees)" value={usd(stats.retained)} icon={Building} color="text-violet-500" />
-              <MiniStatCard label="Transferred to Plantation" value={usd(stats.paidOut)} icon={ArrowUpRight} color="text-emerald-500" />
-              <MiniStatCard label="Pending Processing" value={usd(inFlightAmount)} icon={Clock} color="text-amber-500" />
+              <MiniStatCard label="Plantation Share" value={kes(stats.plantationShareKes)} icon={CheckCircle2} color="text-primary" />
+              <MiniStatCard label="Retained (Platform, Ministry & Fees)" value={kes(stats.retainedKes)} icon={Building} color="text-violet-500" />
+              <MiniStatCard label="Transferred to Plantation" value={kes(stats.paidOutKes)} icon={ArrowUpRight} color="text-emerald-500" />
+              <MiniStatCard label="Pending Processing" value={kes(inFlightKes)} icon={Clock} color="text-amber-500" />
             </>
           )}
         </div>
@@ -397,7 +398,7 @@ export default function MinistryDashboard() {
             />
             <ActivityRow
               title="Disbursements"
-              description={`${stats.paidOutCount} paid, ${stats.inFlight.length} in flight, ${stats.failedPayouts} failed`}
+              description={`${stats.paidOutCount} transferred, ${stats.inFlight.length} in flight, ${stats.failedPayouts} failed`}
               icon={Wallet}
               iconClass="text-violet-500"
             />
