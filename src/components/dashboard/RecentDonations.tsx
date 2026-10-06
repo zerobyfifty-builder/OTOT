@@ -9,7 +9,8 @@ import { DonationPaymentBadge } from "@/components/tourist/StatusBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const SHOWN = 3;
+/** The list scrolls inside the card, so it can hold more than fits at once. */
+const SHOWN = 10;
 
 /** Latest donations, including unpaid ones, so an open or failed payment can be finished. */
 export function RecentDonations() {
@@ -22,16 +23,28 @@ export function RecentDonations() {
   // An open charge stays visible even when newer donations push it down.
   const open = newestFirst.filter((d) => donationPaymentState(d, state.payments) === "pending");
   const mine = [...open, ...newestFirst.filter((d) => !open.includes(d))].slice(0, Math.max(SHOWN, open.length));
+  const scrolls = mine.length > 3;
 
   return (
     <Card className="glass-card h-full flex flex-col">
       <CardHeader>
         <CardTitle className="text-xl">Recent donations</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 flex-1 flex flex-col">
+      <CardContent className="space-y-3 flex-1 flex flex-col min-h-0">
         {mine.length > 0 ? (
           <>
-            <div className="space-y-3 flex-1">
+            {/* A labelled <section> is a landmark region without role="region",
+                which glass-dashboard.css repaints in light text. */}
+            <section
+              className={
+                scrolls
+                  ? "space-y-3 flex-1 max-h-[26rem] overflow-y-auto overscroll-contain -mr-2 pr-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  : "space-y-3 flex-1"
+              }
+              // A scroll area must be reachable by keyboard.
+              tabIndex={scrolls ? 0 : undefined}
+              aria-label="Recent donations list"
+            >
               {mine.map((donation) => {
                 const trees = treeCount(donation.trees);
                 const paymentState = donationPaymentState(donation, state.payments);
@@ -77,7 +90,7 @@ export function RecentDonations() {
                   </div>
                 );
               })}
-            </div>
+            </section>
             <Button variant="default" className="w-full mt-4" asChild>
               <Link to="/my-trees">See all my trees</Link>
             </Button>
