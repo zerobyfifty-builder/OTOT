@@ -1,6 +1,7 @@
 import { Download, Eye, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PLANTED_HERE } from "@/lib/treeStages";
 import type { CertificateRecord } from "@/types/otot";
 
 export function CertificateSelectionDialog({
@@ -33,7 +34,10 @@ export function CertificateSelectionDialog({
               <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><FileText className="h-7 w-7" /></div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-lg font-semibold text-foreground">{certificate.certificateType === "Pledge" ? "Pledge Certificate" : "Tree Planting Certificate"}</p>
-                <p className="text-sm text-muted-foreground">{new Date(certificate.issuedDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(certificate.issuedDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  {certificate.certificateType === "Tree Planting" && ` · ${certificate.numTrees ?? 0} ${certificate.numTrees === 1 ? "tree" : "trees"} in ${certificate.location ?? PLANTED_HERE}`}
+                </p>
               </div>
               <div className="flex flex-shrink-0 items-center gap-2">
                 <Button size="icon" variant="ghost" className="h-10 w-10 rounded-full" disabled={previewLoading === certificate.id} onClick={() => onPreview(certificate)} aria-label="Preview certificate">

@@ -15,7 +15,10 @@ export default function MinistryPartners() {
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Plantation Partners</h1>
-        <p className="text-muted-foreground mt-1">All registered plantation partners with planting progress</p>
+        <p className="text-muted-foreground mt-1">
+          All registered plantation partners. Reported planted = the partner says it's done; verified = the Ministry has
+          checked it.
+        </p>
       </div>
 
       <Card>
@@ -38,8 +41,9 @@ export default function MinistryPartners() {
                     <TableHead>Category</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Agents</TableHead>
-                    <TableHead>Trees Allocated</TableHead>
-                    <TableHead>Trees Planted</TableHead>
+                    <TableHead>Trees Assigned</TableHead>
+                    <TableHead>Reported Planted</TableHead>
+                    <TableHead>Verified Planted</TableHead>
                     <TableHead>Open Requests</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -75,7 +79,7 @@ export default function MinistryPartners() {
                         <TableCell>
                           <div className="space-y-1 text-sm">
                             {contact && <p className="font-medium">{contact.name}</p>}
-                            {contact && (
+                            {contact?.email && (
                               <div className="flex items-center gap-1 text-muted-foreground">
                                 <Mail className="h-3 w-3" />
                                 <span className="text-xs">{contact.email}</span>
@@ -94,6 +98,7 @@ export default function MinistryPartners() {
                           {state.vendorAgents.filter((a) => a.vendorId === partner.id).length}
                         </TableCell>
                         <TableCell className="font-medium">{treeStats[partner.id]?.allocated || 0}</TableCell>
+                        <TableCell className="font-medium">{treeStats[partner.id]?.reported || 0}</TableCell>
                         <TableCell className="font-medium">{treeStats[partner.id]?.planted || 0}</TableCell>
                         <TableCell className="font-medium">
                           {

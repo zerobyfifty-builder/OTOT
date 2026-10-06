@@ -16,11 +16,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { kes } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface DashboardChartData {
   userGrowth: { date: string; tourists: number; partners: number }[];
   treeTrends: { date: string; trees: number }[];
+  /** KES by recipient, plus Afrinet fees. */
   revenue: { name: string; value: number; color: string }[];
   topPartners: { name: string; trees: number }[];
 }
@@ -70,7 +72,7 @@ export function DashboardCharts({ data }: { data: DashboardChartData }) {
           </LineChart>
         </ChartCard>
 
-        <ChartCard title="Tree Planting Trends">
+        <ChartCard title="Trees Funded (Last 30 Days)">
           <AreaChart data={data.treeTrends}>
             <defs>
               <linearGradient id="colorTrees" x1="0" y1="0" x2="0" y2="1">
@@ -95,7 +97,7 @@ export function DashboardCharts({ data }: { data: DashboardChartData }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Revenue Distribution" empty={revenueTotal === 0}>
+        <ChartCard title="Where the Money Went (KES)" empty={revenueTotal === 0}>
           <PieChart>
             <Pie
               data={data.revenue}
@@ -110,7 +112,7 @@ export function DashboardCharts({ data }: { data: DashboardChartData }) {
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value: number) => kes(value)} />
           </PieChart>
         </ChartCard>
 

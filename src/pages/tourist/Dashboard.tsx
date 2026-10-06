@@ -16,10 +16,12 @@ import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import type { TouristProfile } from "@/types/otot";
 import { treeCount } from "@/lib/format";
-import { offsetStatus, treesPlantedForTrip } from "@/lib/trips";
+import { OFFSET_LABELS } from "@/lib/offsetLabels";
+import { offsetStatus, remainingCarbonKg } from "@/lib/trips";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentTrips } from "@/components/dashboard/RecentTrips";
+import { RecentDonations } from "@/components/dashboard/RecentDonations";
 import { ClimateActionCard } from "@/components/dashboard/ClimateActionCard";
 import { FAQAccordion } from "@/components/dashboard/FAQAccordion";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,15 @@ const PLEDGE_POINTS = [
   "Care for our global environment through responsible tourism",
 ];
 
+async function copyText(text: string, success: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(success);
+  } catch {
+    toast.error("Couldn't copy to your clipboard. Select the text and copy it instead.");
+  }
+}
+
 function firstName(name?: string, email?: string) {
   const fromName = name?.trim().split(/\s+/)[0];
   if (fromName) return fromName;
@@ -62,7 +73,8 @@ export default function TouristDashboard() {
   const { state } = useStore();
   const navigate = useNavigate();
   const [pledgeOpen, setPledgeOpen] = useState(false);
-  const [hasPledged, setHasPledged] = useState(false);
+  // null until the profile loads, so the pledge card doesn't flash the wrong state.
+  const [hasPledged, setHasPledged] = useState<boolean | null>(null);
   const [savingPledge, setSavingPledge] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -71,22 +83,26 @@ export default function TouristDashboard() {
     let cancelled = false;
     apiFetch<{ profile: TouristProfile }>("/v1/auth/profile")
       .then(({ profile }) => { if (!cancelled) setHasPledged(Boolean(profile.pledgeAt)); })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setHasPledged(false); });
     return () => { cancelled = true; };
   }, [userId]);
 
   const stats = useMemo(() => {
     const trips = state.trips.filter((t) => t.userId === session?.userId);
     const paid = state.donations.filter((d) => d.userId === session?.userId && d.status === "paid");
-    const treesPlanted = paid.reduce((s, d) => s + treeCount(d.trees), 0);
-    const treesNeeded = trips.reduce((s, t) => s + t.treesNeeded, 0);
-    const co2Offset = paid.reduce((s, d) => s + d.carbonOffsetKg, 0);
+    const tripPaid = paid.filter((d) => d.tripId);
+    const directPaid = paid.filter((d) => !d.tripId);
+    const completed = new Set(
+      state.plantationRequests.filter((r) => r.status === "completed").flatMap((r) => r.donationIds),
+    );
     const co2Total = trips.reduce((s, t) => s + t.totalCo2, 0);
+    // Per trip, so extra CO₂ on one trip doesn't hide what another still needs.
+    const co2Remaining = trips.reduce((s, t) => s + remainingCarbonKg(t, state.donations), 0);
     let fully = 0;
     let partial = 0;
     let open = 0;
     for (const trip of trips) {
-      const status = offsetStatus(trip, treesPlantedForTrip(trip.id, state.donations));
+      const status = offsetStatus(trip, state.donations);
       if (status === "fully") fully += 1;
       else if (status === "partially") partial += 1;
       else open += 1;
@@ -96,12 +112,16 @@ export default function TouristDashboard() {
       fully,
       partial,
       open,
-      treesPlanted,
-      treesNeeded,
-      co2Offset: Math.round(co2Offset),
+      treesFunded: paid.reduce((s, d) => s + treeCount(d.trees), 0),
+      treesPlanted: paid.filter((d) => completed.has(d.id)).reduce((s, d) => s + treeCount(d.trees), 0),
+      tripTrees: tripPaid.reduce((s, d) => s + treeCount(d.trees), 0),
+      directTrees: directPaid.reduce((s, d) => s + treeCount(d.trees), 0),
+      directCo2: Math.round(directPaid.reduce((s, d) => s + d.carbonOffsetKg, 0)),
+      co2Offset: Math.round(co2Total - co2Remaining),
+      co2Remaining: Math.round(co2Remaining),
       co2Total: Math.round(co2Total),
     };
-  }, [session?.userId, state.donations, state.trips]);
+  }, [session?.userId, state.donations, state.plantationRequests, state.trips]);
 
   const name = firstName(session?.name, session?.email);
   const shareMessage =
@@ -147,19 +167,19 @@ export default function TouristDashboard() {
               subtitle="your travel emissions"
               stats={[
                 {
-                  label: "Fully Offset",
+                  label: OFFSET_LABELS.fully,
                   value: stats.fully,
                   total: stats.tripCount,
                   color: "hsl(142, 70%, 45%)",
                 },
                 {
-                  label: "Partially Offset",
+                  label: OFFSET_LABELS.partially,
                   value: stats.partial,
                   total: stats.tripCount,
                   color: "hsl(45, 93%, 47%)",
                 },
                 {
-                  label: "Needs Offset",
+                  label: OFFSET_LABELS.not,
                   value: stats.open,
                   total: stats.tripCount,
                   color: "hsl(0, 84%, 60%)",
@@ -176,18 +196,23 @@ export default function TouristDashboard() {
               subtitle="your carbon footprint"
               stats={[
                 {
-                  label: "Trees Planted",
+                  label: "Trees planted",
                   value: stats.treesPlanted,
-                  total: stats.treesNeeded,
+                  total: stats.treesFunded,
                   color: "hsl(142, 70%, 45%)",
                 },
                 {
-                  label: "Trees Needed",
-                  value: Math.max(stats.treesNeeded - stats.treesPlanted, 0),
+                  label: "Funded for trips",
+                  value: stats.tripTrees,
+                  color: "hsl(142, 70%, 70%)",
+                },
+                {
+                  label: "Direct donations",
+                  value: stats.directTrees,
                   color: "hsl(142, 70%, 70%)",
                 },
               ]}
-              buttonText="Plant a Tree"
+              buttonText="See My Trees"
               href="/my-trees"
               colorVariant="green"
             />
@@ -197,15 +222,20 @@ export default function TouristDashboard() {
               subtitle="your environmental impact"
               stats={[
                 {
-                  label: "CO₂ Offset",
+                  label: "CO₂ offset (kg)",
                   value: stats.co2Offset,
                   total: stats.co2Total,
                   color: "hsl(142, 70%, 45%)",
                 },
                 {
-                  label: "CO₂ Remaining",
-                  value: Math.max(stats.co2Total - stats.co2Offset, 0),
+                  label: "CO₂ left (kg)",
+                  value: stats.co2Remaining,
                   color: "hsl(30, 60%, 50%)",
+                },
+                {
+                  label: "Direct (kg)",
+                  value: stats.directCo2,
+                  color: "hsl(142, 70%, 70%)",
                 },
               ]}
               buttonText="View Details"
@@ -217,10 +247,16 @@ export default function TouristDashboard() {
       </section>
 
       <section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="glass-card relative overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <Card className="glass-card relative overflow-hidden lg:col-span-2 xl:col-span-1">
             <CardContent className="p-4 sm:p-6 md:p-8">
-              {!hasPledged ? (
+              {hasPledged === null ? (
+                <div className="space-y-3" aria-busy="true" aria-label="Loading your pledge">
+                  <div className="h-7 w-2/3 rounded-md bg-muted/60 animate-pulse" />
+                  <div className="h-4 w-full rounded-md bg-muted/50 animate-pulse" />
+                  <div className="h-4 w-5/6 rounded-md bg-muted/50 animate-pulse" />
+                </div>
+              ) : !hasPledged ? (
                 <>
                   <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Take the Responsible Traveler Pledge</h2>
                   <p className="text-muted-foreground mb-6">
@@ -258,10 +294,7 @@ export default function TouristDashboard() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${shareMessage}\n\n${shareUrl}`);
-                        toast.success("Invite message copied");
-                      }}
+                      onClick={() => void copyText(`${shareMessage}\n\n${shareUrl}`, "Invite message copied")}
                       className="w-full flex items-center gap-4 px-4 py-3 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors"
                     >
                       <div className="h-9 w-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
@@ -291,6 +324,7 @@ export default function TouristDashboard() {
             </CardContent>
           </Card>
           <RecentTrips />
+          <RecentDonations />
         </div>
       </section>
 
@@ -367,10 +401,7 @@ export default function TouristDashboard() {
           <Button
             variant="secondary"
             className="w-full"
-            onClick={() => {
-              navigator.clipboard.writeText(`${shareMessage}\n${shareUrl}`);
-              toast.success("Message and link copied");
-            }}
+            onClick={() => void copyText(`${shareMessage}\n${shareUrl}`, "Message and link copied")}
           >
             <Copy className="mr-2 h-4 w-4" /> Copy Link
           </Button>

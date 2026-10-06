@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { differenceInDays, format } from "date-fns";
+import { format } from "date-fns";
 import {
   ArrowRight,
   Calendar as CalIcon,
@@ -28,7 +28,7 @@ import { useStore } from "@/contexts/StoreContext";
 import { suggestTreeMix } from "@/lib/treeMix";
 import { apiErrorMessage } from "@/lib/api";
 import { treeCount, usd } from "@/lib/format";
-import { ACCOMMODATION_LABELS } from "@/lib/trips";
+import { ACCOMMODATION_LABELS, offsetTripState, tripNights } from "@/lib/trips";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,9 +42,22 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import ktbLogo from "@/assets/ktb-logo.png";
 
-// Trips need airport codes; flight-time entries keep the previous default route.
+// Trips need airport codes; flight-time entries store these and show routeLabel instead.
 const FLIGHT_TIME_ORIGIN = "LHR";
 const FLIGHT_TIME_DESTINATION = "NBO";
+
+const isoDay = (date: Date) => format(date, "yyyy-MM-dd");
+const roundKg = (value: number) => Math.round(value * 100) / 100;
+
+/** "LHR → DXB → NBO"; a leg that doesn't start where the last ended adds its own origin. */
+function multiCityLabel(legs: { originAirport?: string; destinationAirport?: string }[]) {
+  const stops: string[] = [];
+  for (const leg of legs) {
+    if (stops[stops.length - 1] !== leg.originAirport) stops.push(leg.originAirport ?? "");
+    stops.push(leg.destinationAirport ?? "");
+  }
+  return stops.join(" → ");
+}
 
 const flightSchema = z.object({
   originAirport: z.string(),
@@ -64,6 +77,16 @@ const formSchema = z
     numTravelers: z.number().min(1).max(20),
   })
   .superRefine((data, ctx) => {
+    if (data.accommodationType !== "none" && data.fromDate) {
+      const nights = data.toDate ? tripNights(isoDay(data.fromDate), isoDay(data.toDate)) : 0;
+      if (nights < 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Choose an end date after your start date so we can count your nights of accommodation.",
+          path: ["toDate"],
+        });
+      }
+    }
     if (data.inputMode !== "airports") return;
     (data.flights ?? []).forEach((flight, index) => {
       if (!flight.originAirport) {
@@ -71,6 +94,13 @@ const formSchema = z
       }
       if (!flight.destinationAirport) {
         ctx.addIssue({ code: "custom", message: "Please select arrival airport", path: ["flights", index, "destinationAirport"] });
+      }
+      if (flight.originAirport && flight.originAirport === flight.destinationAirport) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Choose a different arrival airport",
+          path: ["flights", index, "destinationAirport"],
+        });
       }
     });
   });
@@ -122,6 +152,14 @@ export default function CarbonCalculator() {
     return () => sub.unsubscribe();
   }, [form]);
 
+  const tripType = form.watch("tripType");
+
+  useEffect(() => {
+    // Only multi-city trips have extra legs; drop them when switching back.
+    if (tripType === "multicity" || fields.length <= 1) return;
+    remove(fields.map((_, index) => index).slice(1));
+  }, [fields, remove, tripType]);
+
   const mix = useMemo(
     () => (calculation ? suggestTreeMix(calculation.totalCO2, state.treeTypes) : null),
     [calculation, state.treeTypes],
@@ -145,13 +183,16 @@ export default function CarbonCalculator() {
               isReturn,
               distanceKm: data.flightHours * 850,
             });
-      const nights = data.toDate ? Math.max(1, differenceInDays(data.toDate, data.fromDate)) : 0;
-      const accommodationCO2 = EMISSION_FACTORS.accommodation[data.accommodationType] * nights * data.numTravelers;
+      // Same night count My Trips shows for the saved dates.
+      const nights =
+        data.accommodationType === "none" ? 0 : tripNights(isoDay(data.fromDate), isoDay(data.toDate ?? data.fromDate));
+      const flightCO2 = roundKg(flight.flightCO2);
+      const accommodationCO2 = roundKg(EMISSION_FACTORS.accommodation[data.accommodationType] * nights * data.numTravelers);
       const result = {
         distance: flight.distance,
-        flightCO2: flight.flightCO2,
+        flightCO2,
         accommodationCO2,
-        totalCO2: flight.flightCO2 + accommodationCO2,
+        totalCO2: roundKg(flightCO2 + accommodationCO2),
         nights,
       };
       setTimeout(() => {
@@ -165,37 +206,50 @@ export default function CarbonCalculator() {
     }
   };
 
+  const treesForTrip = mix ? treeCount(mix.trees) : 0;
+  const saveBlockedReason = !calculation
+    ? null
+    : calculation.totalCO2 <= 0
+      ? "This trip has no CO₂ to offset, so there's nothing to save. Check the airports or flight time."
+      : treesForTrip < 1
+        ? "We couldn't suggest trees for this trip because no tree species are available. Try again later."
+        : null;
+
   const saveTrip = async (thenPlant: boolean) => {
     if (!calculation || !mix) return;
+    if (saveBlockedReason) {
+      toast.error(saveBlockedReason);
+      return;
+    }
     setIsSaving(true);
     try {
       const data = form.getValues();
       const legs = data.inputMode === "airports" ? data.flights ?? [] : [];
+      const routeLabel =
+        data.inputMode === "flighttime"
+          ? `Flight time: ${data.flightHours}h`
+          : data.tripType === "multicity" && legs.length > 1
+            ? multiCityLabel(legs)
+            : undefined;
       const trip = await createTrip({
         originAirport: legs[0]?.originAirport || FLIGHT_TIME_ORIGIN,
         destinationAirport: legs[legs.length - 1]?.destinationAirport || FLIGHT_TIME_DESTINATION,
         travelClass: data.travelClass,
         isReturn: data.tripType === "return",
-        fromDate: format(data.fromDate, "yyyy-MM-dd"),
-        toDate: format(data.toDate ?? data.fromDate, "yyyy-MM-dd"),
+        fromDate: isoDay(data.fromDate),
+        toDate: isoDay(data.toDate ?? data.fromDate),
         accommodationType: data.accommodationType,
         numTravelers: data.numTravelers,
         flightCo2: calculation.flightCO2,
         accommodationCo2: calculation.accommodationCO2,
         totalCo2: calculation.totalCO2,
-        treesNeeded: treeCount(mix.trees),
-        distanceKm: calculation.distance || undefined,
+        treesNeeded: treesForTrip,
+        distanceKm: calculation.distance > 0 ? Math.round(calculation.distance) : undefined,
+        routeLabel,
       });
       toast.success("Trip saved");
       if (thenPlant) {
-        navigate("/donate", {
-          state: {
-            carbonOffsetKg: calculation.totalCO2,
-            trees: mix.trees,
-            treesNeeded: treeCount(mix.trees),
-            tripId: trip.id,
-          },
-        });
+        navigate("/donate", { state: offsetTripState(trip, state.donations) });
       } else {
         navigate("/my-trips");
       }
@@ -206,16 +260,16 @@ export default function CarbonCalculator() {
     }
   };
 
-  const tripType = form.watch("tripType");
   const inputMode = form.watch("inputMode");
   const fromDate = form.watch("fromDate");
   const toDate = form.watch("toDate");
-  const dateError = form.formState.errors.fromDate?.message;
+  const dateError = form.formState.errors.fromDate?.message ?? form.formState.errors.toDate?.message;
 
   const clearDates = () => {
     form.setValue("fromDate", undefined as unknown as Date);
     form.setValue("toDate", undefined);
   };
+  const selectedNights = fromDate && toDate ? tripNights(isoDay(fromDate), isoDay(toDate)) : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -351,7 +405,14 @@ export default function CarbonCalculator() {
                         )}
                       />
                       {tripType === "multicity" && index > 0 && (
-                        <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => remove(index)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mt-8"
+                          aria-label={`Remove flight ${index + 1}`}
+                          onClick={() => remove(index)}
+                        >
                           <X className="h-4 w-4" />
                         </Button>
                       )}
@@ -428,6 +489,7 @@ export default function CarbonCalculator() {
                           type="button"
                           size="icon"
                           className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-20"
+                          aria-label="One traveler fewer"
                           onClick={() => field.onChange(Math.max(1, field.value - 1))}
                         >
                           <Minus className="h-4 w-4" />
@@ -436,6 +498,7 @@ export default function CarbonCalculator() {
                           type="button"
                           size="icon"
                           className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-20"
+                          aria-label="One traveler more"
                           onClick={() => field.onChange(Math.min(20, field.value + 1))}
                         >
                           <Plus className="h-4 w-4" />
@@ -510,32 +573,41 @@ export default function CarbonCalculator() {
                     Dates/Days
                   </FormLabel>
                   <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal", !fromDate && "text-muted-foreground")}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {fromDate && toDate ? (
-                          <>
-                            {format(fromDate, "EEE dd MMM")} - {format(toDate, "EEE dd MMM")} (
-                            {differenceInDays(toDate, fromDate)} days)
-                            <X
-                              className="ml-auto h-4 w-4"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                clearDates();
-                              }}
-                            />
-                          </>
-                        ) : fromDate ? (
-                          <span>{format(fromDate, "EEE dd MMM")}</span>
-                        ) : (
-                          <span>Select date range</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
+                    <div className="relative">
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            fromDate && "pr-10",
+                            !fromDate && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {fromDate && toDate ? (
+                            <span className="truncate">
+                              {format(fromDate, "EEE dd MMM")} - {format(toDate, "EEE dd MMM")} ({selectedNights}{" "}
+                              {selectedNights === 1 ? "night" : "nights"})
+                            </span>
+                          ) : fromDate ? (
+                            <span>{format(fromDate, "EEE dd MMM")}</span>
+                          ) : (
+                            <span>Select date range</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      {fromDate && (
+                        <button
+                          type="button"
+                          aria-label="Clear dates"
+                          onClick={clearDates}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <X className="h-4 w-4" aria-hidden />
+                        </button>
+                      )}
+                    </div>
                     <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
                       {isMobile ? (
                         <div className="p-4 w-[min(360px,calc(100vw-2rem))]">
@@ -641,7 +713,7 @@ export default function CarbonCalculator() {
                 ) : calculation ? (
                   <>
                     <Check className="mr-2 h-5 w-5" />
-                    CO2 Calculated
+                    CO₂ calculated
                   </>
                 ) : (
                   "Calculate My Footprint"
@@ -697,7 +769,8 @@ export default function CarbonCalculator() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground truncate">
-                              {ACCOMMODATION_LABELS[form.getValues("accommodationType")]} · {calculation.nights} nights
+                              {ACCOMMODATION_LABELS[form.getValues("accommodationType")]} · {calculation.nights}{" "}
+                              {calculation.nights === 1 ? "night" : "nights"}
                             </p>
                             <p className="text-base font-semibold tabular-nums">
                               {calculation.accommodationCO2.toFixed(1)}{" "}
@@ -774,19 +847,25 @@ export default function CarbonCalculator() {
                       )}
                     </div>
 
+                    {saveBlockedReason && (
+                      <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        {saveBlockedReason}
+                      </div>
+                    )}
+
                     <div className="mt-4 flex flex-row gap-3">
                       <Button
                         variant="outline"
                         className="flex-1 h-12 rounded-xl border-2"
                         onClick={() => void saveTrip(false)}
-                        disabled={isSaving}
+                        disabled={isSaving || Boolean(saveBlockedReason)}
                       >
                         {isSaving ? "Saving..." : "Save Trip"}
                       </Button>
                       <Button
                         className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover-scale group"
                         onClick={() => void saveTrip(true)}
-                        disabled={isSaving || mix.trees.length === 0}
+                        disabled={isSaving || Boolean(saveBlockedReason)}
                       >
                         <TreePine className="h-5 w-5 mr-2 transition-transform group-hover:-rotate-6" />
                         Plant Trees

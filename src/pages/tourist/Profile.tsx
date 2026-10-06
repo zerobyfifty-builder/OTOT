@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { usd } from "@/lib/format";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { CountrySelector } from "@/components/CountrySelector";
 import { CertificateSelectionDialog } from "@/components/certificates/CertificateSelectionDialog";
@@ -18,10 +19,13 @@ import { Label } from "@/components/ui/label";
 import { downloadCertificate } from "@/utils/downloadCertificate";
 import type { AuthUser, CertificateRecord, TouristProfile } from "@/types/otot";
 
-const emailSchema = z.string().trim().email("Enter a valid email address").max(255);
+const emailSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address").max(255),
+  currentPassword: z.string().min(1, "Enter your current password to change your email"),
+});
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Enter your current password"),
-  newPassword: z.string().min(6, "Use at least 6 characters"),
+  newPassword: z.string().min(8, "Use at least 8 characters").max(128, "Use at most 128 characters"),
   confirmPassword: z.string(),
 }).refine((value) => value.newPassword === value.confirmPassword, {
   path: ["confirmPassword"],
@@ -31,7 +35,7 @@ const passwordSchema = z.object({
 type AuthUpdate = { token: string; user: AuthUser };
 
 export default function Profile() {
-  const { session, applyUpdatedAuth } = useAuth();
+  const { session, applyUpdatedAuth, changePassword } = useAuth();
   const userId = session?.userId;
   const [profile, setProfile] = useState<TouristProfile | null>(null);
   const [firstName, setFirstName] = useState("");
@@ -40,6 +44,7 @@ export default function Profile() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [email, setEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -94,15 +99,16 @@ export default function Profile() {
 
   const saveEmail = async (event: FormEvent) => {
     event.preventDefault();
-    const parsed = emailSchema.safeParse(email);
+    const parsed = emailSchema.safeParse({ email, currentPassword: emailPassword });
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message || "Enter a valid email"); return; }
     setSavingEmail(true);
     try {
       const result = await apiFetch<AuthUpdate>("/v1/auth/email", {
-        method: "PATCH", body: JSON.stringify({ email: parsed.data }),
+        method: "PATCH", body: JSON.stringify(parsed.data),
       });
       applyUpdatedAuth(result.token, result.user);
       setProfile((current) => current ? { ...current, email: result.user.email } : current);
+      setEmailPassword("");
       toast.success("Email updated successfully");
     } catch (err) { toast.error(apiErrorMessage(err)); }
     finally { setSavingEmail(false); }
@@ -114,10 +120,8 @@ export default function Profile() {
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message || "Check your password"); return; }
     setSavingPassword(true);
     try {
-      await apiFetch("/v1/auth/password", {
-        method: "PATCH",
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+      // Signs out other sessions; this one gets a fresh token.
+      await changePassword(currentPassword, newPassword);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -206,7 +210,7 @@ export default function Profile() {
                 <div><p className="text-muted-foreground">Account Created</p><p className="font-medium">{profile ? new Date(profile.createdAt).toLocaleDateString() : "—"}</p></div>
               </div>
               <div className="flex items-center gap-2 text-sm"><span className="text-muted-foreground">Pledge Status:</span><Badge variant={profile?.pledgeAt ? "default" : "secondary"}>{profile?.pledgeAt ? `Active since ${new Date(profile.pledgeAt).toLocaleDateString()}` : "Not Active"}</Badge></div>
-              <div className="text-sm"><p className="text-muted-foreground">Total Contributions</p><p className="font-medium">${(profile?.totalContributions ?? 0).toLocaleString()}</p></div>
+              <div className="text-sm"><p className="text-muted-foreground">Total Contributions</p><p className="font-medium">{usd(profile?.totalContributions ?? 0)}</p></div>
               <Button onClick={openCertificates} variant="outline" className="w-full" disabled={loadingCertificates}>
                 <Download className="h-4 w-4 mr-2" />{loadingCertificates ? "Loading certificates..." : "Download Certificates"}
               </Button>
@@ -217,13 +221,17 @@ export default function Profile() {
         <div className="space-y-6">
           <Card className="glass-card">
             <CardHeader><CardTitle>Update Email</CardTitle><CardDescription>Change your account email address</CardDescription></CardHeader>
-            <CardContent><form onSubmit={saveEmail} className="space-y-4"><div className="space-y-2"><Label htmlFor="email">New Email</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div><Button type="submit" disabled={savingEmail}>{savingEmail ? "Updating..." : "Update Email"}</Button></form></CardContent>
+            <CardContent><form onSubmit={saveEmail} className="space-y-4">
+              <div className="space-y-2"><Label htmlFor="email">New Email</Label><Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required /></div>
+              <div className="space-y-2"><Label htmlFor="emailPassword">Current Password</Label><Input id="emailPassword" type="password" value={emailPassword} onChange={(e) => setEmailPassword(e.target.value)} autoComplete="current-password" required /><p className="text-xs text-muted-foreground">We ask for your password before changing the email you sign in with.</p></div>
+              <Button type="submit" disabled={savingEmail}>{savingEmail ? "Updating..." : "Update Email"}</Button>
+            </form></CardContent>
           </Card>
           <Card className="glass-card">
             <CardHeader><CardTitle>Change Password</CardTitle><CardDescription>Update your account password</CardDescription></CardHeader>
             <CardContent><form onSubmit={savePassword} className="space-y-4">
               <div className="space-y-2"><Label htmlFor="currentPassword">Current Password</Label><Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" required /></div>
-              <div className="space-y-2"><Label htmlFor="newPassword">New Password</Label><Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" required /></div>
+              <div className="space-y-2"><Label htmlFor="newPassword">New Password</Label><Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" minLength={8} required /><p className="text-xs text-muted-foreground">At least 8 characters. Other devices will be signed out.</p></div>
               <div className="space-y-2"><Label htmlFor="confirmPassword">Confirm New Password</Label><Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" required /></div>
               <Button type="submit" disabled={savingPassword}>{savingPassword ? "Updating..." : "Update Password"}</Button>
             </form></CardContent>

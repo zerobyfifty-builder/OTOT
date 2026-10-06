@@ -7,7 +7,9 @@ export type AppRole =
   | "partner_agent";
 
 export type DonationStatus = "pending_payment" | "paid" | "refunded";
-export type PaymentStatus = "pending" | "success" | "failed";
+export type PaymentStatus = "pending" | "success" | "failed" | "refunded";
+/** A payment that needs a Super Admin decision. */
+export type PaymentIssue = "duplicate" | "amount_mismatch" | "reversed";
 export type PaymentMode = "Card" | "M-Pesa" | "Bank Transfer";
 export type CheckoutMethod = "mpesa" | "card";
 export type PlantationRequestStatus =
@@ -18,7 +20,8 @@ export type PlantationRequestStatus =
   | "completed";
 export type VendorRequestStatus = "assigned" | "in_progress" | "completed";
 export type PayoutStatus = "initiated" | "in_progress" | "transferred" | "failed";
-export type AllocationStatus = "pending" | PayoutStatus;
+/** `void`: never payable (test money, refunded or reversed payments). */
+export type AllocationStatus = "pending" | "void" | PayoutStatus;
 export type RecipientType = "otot" | "ministry" | "partner";
 export type PayoutSource = "manual" | "ministry" | "auto_per_transaction" | "auto_daily" | "legacy";
 export type MinistryRole = "admin" | "user";
@@ -49,6 +52,8 @@ export interface AppUser {
   role: AppRole;
   vendorId?: string;
   ministryRole?: MinistryRole;
+  active: boolean;
+  mustChangePassword: boolean;
   createdAt: string;
 }
 
@@ -83,6 +88,8 @@ export interface Trip {
   totalCo2: number;
   treesNeeded: number;
   distanceKm?: number;
+  /** Shown instead of origin → destination, e.g. "Flight time: 8h" or a multi-city route. */
+  routeLabel?: string;
   entrySource: TripEntrySource;
   friendlyTripId: string;
   createdAt: string;
@@ -99,6 +106,8 @@ export interface Donation {
   amount: number;
   trees: TreeLine[];
   status: DonationStatus;
+  /** When the payment that funded it was confirmed. */
+  paidAt?: string;
   createdAt: string;
 }
 
@@ -125,6 +134,11 @@ export interface Payment {
   currency?: string;
   amountKes?: number;
   feeKes?: number;
+  payoutFeeKes?: number;
+  kesPerUsd?: number;
+  simulated: boolean;
+  issue?: PaymentIssue;
+  resolutionNote?: string;
   createdAt: string;
 }
 
@@ -136,6 +150,8 @@ export interface PlantationRequest {
   assignedTo?: string;
   partnerId?: string;
   amount: number;
+  /** Why the Ministry sent reported work back. */
+  reviewNote?: string;
   createdAt: string;
 }
 
@@ -165,6 +181,11 @@ export interface Payout {
   reference: string;
   transactionCode?: string;
   failureMessage?: string;
+  /** Super Admin's note when the payout was resolved by hand. */
+  resolutionNote?: string;
+  /** A late success arrived after its shares were re-sent: possible double payment. */
+  needsReview: boolean;
+  reviewNote?: string;
   createdAt: string;
   settledAt?: string;
 }
@@ -194,6 +215,7 @@ export interface AuthUser {
   role: AppRole;
   vendorId?: string;
   ministryRole?: MinistryRole;
+  mustChangePassword?: boolean;
 }
 
 export interface AuthSession {
@@ -203,6 +225,19 @@ export interface AuthSession {
   role: AppRole;
   vendorId?: string;
   ministryRole?: MinistryRole;
+  /** Staff on a temporary password must set their own before anything else. */
+  mustChangePassword: boolean;
+}
+
+/** Server settings the browser needs to price and label things. */
+export interface StoreSettings {
+  kesPerUsd: number;
+  /** Afrinet collection fee, % of each payment. */
+  chargeFeePct: number;
+  /** Reserve for M-Pesa B2C transfer fees, % of each payment. */
+  payoutFeePct: number;
+  simulationAllowed: boolean;
+  demoResetAllowed: boolean;
 }
 
 export interface TouristProfile {
@@ -235,6 +270,7 @@ export type MockSession = AuthSession;
 
 export interface StoreState {
   version: number;
+  settings: StoreSettings;
   users: AppUser[];
   vendors: Vendor[];
   vendorAgents: VendorAgent[];

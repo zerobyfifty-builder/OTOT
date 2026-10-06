@@ -27,6 +27,8 @@ interface AuthContextValue {
   ) => Promise<{ error?: string; home?: string }>;
   signOut: () => void;
   applyUpdatedAuth: (token: string, user: AuthUser) => void;
+  /** Any role. Other sessions end; this one gets a fresh token. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -39,6 +41,7 @@ function toSession(user: AuthUser): AuthSession {
     role: user.role,
     vendorId: user.vendorId,
     ministryRole: user.ministryRole,
+    mustChangePassword: Boolean(user.mustChangePassword),
   };
 }
 
@@ -119,9 +122,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(toSession(user));
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const data = await apiFetch<AuthResponse>("/v1/auth/password", {
+      method: "PATCH",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    setToken(data.token);
+    setSession(toSession(data.user));
+  }, []);
+
   const value = useMemo(
-    () => ({ session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth }),
-    [session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth],
+    () => ({ session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth, changePassword }),
+    [session, loading, signIn, signUpTourist, signOut, applyUpdatedAuth, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

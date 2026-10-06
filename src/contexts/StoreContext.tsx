@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import type {
+  AppUser,
   CheckoutMethod,
   Donation,
   Payment,
@@ -27,6 +28,13 @@ import type {
 
 const emptyStore = (): StoreState => ({
   version: 1,
+  settings: {
+    kesPerUsd: 130,
+    chargeFeePct: 2.9,
+    payoutFeePct: 0,
+    simulationAllowed: false,
+    demoResetAllowed: false,
+  },
   users: [],
   vendors: [],
   vendorAgents: [],
@@ -61,6 +69,8 @@ interface StoreContextValue {
     tripId?: string;
     paymentMethod: CheckoutMethod;
     phoneNumber?: string;
+    /** One id per Pay attempt; a repeated request returns the first donation. */
+    clientRequestId?: string;
   }) => Promise<{ donation: Donation; payment: Payment; checkoutUrl: string }>;
   simulateDonationPayment: (input: {
     carbonOffsetKg: number;
@@ -71,6 +81,13 @@ interface StoreContextValue {
   getPayment: (paymentId: string) => Promise<Payment>;
   syncPayment: (paymentId: string) => Promise<Payment>;
   simulatePaymentSuccess: (paymentId: string) => Promise<Payment>;
+  /** Tourist returned from card checkout with ?cancelled=1. */
+  cancelPayment: (paymentId: string) => Promise<Payment>;
+  resolvePayment: (
+    paymentId: string,
+    input: { status: "success" | "failed"; receipt?: string; note: string },
+  ) => Promise<Payment>;
+  refundPayment: (paymentId: string, reason: string) => Promise<Payment>;
   retryDonationCheckout: (
     donationId: string,
     input: { paymentMethod: CheckoutMethod; phoneNumber?: string },
@@ -82,15 +99,30 @@ interface StoreContextValue {
   combinePlantationRequests: (requestIds: string[]) => Promise<PlantationRequest>;
   assignPlantationRequest: (requestId: string, partnerId: string, assignedTo: string) => Promise<void>;
   markPlantationComplete: (requestId: string) => Promise<void>;
+  /** Ministry sends ready_for_review work back to the partner. */
+  reopenPlantationRequest: (requestId: string, reason: string) => Promise<void>;
   createPayout: (plantationRequestId: string) => Promise<Payout>;
   simulatePayoutSuccess: (payoutId: string) => Promise<Payout>;
   payDonationShares: (input: { recipientType: RecipientType; donationIds?: string[] }) => Promise<PayoutBatchResult>;
   resolvePayout: (payoutId: string, input: { status: "transferred" | "failed"; transactionCode?: string; note?: string }) => Promise<Payout>;
+  acknowledgePayoutReview: (payoutId: string, note: string) => Promise<Payout>;
+  updateFeeSettings: (input: { chargeFeePct: number; payoutFeePct: number }) => Promise<void>;
+  createStaffUser: (input: {
+    name: string;
+    email: string;
+    role: StaffRole;
+    vendorId?: string;
+  }) => Promise<{ user: AppUser; temporaryPassword: string }>;
+  setUserActive: (userId: string, active: boolean) => Promise<AppUser>;
+  resetUserPassword: (userId: string) => Promise<{ user: AppUser; temporaryPassword: string }>;
   createVendorPlantationRequest: (plantationRequestId: string, assignedAgentId: string) => Promise<void>;
   updateVendorRequestStatus: (id: string, status: VendorRequestStatus) => Promise<void>;
   upsertTreeType: (tree: TreeType) => Promise<void>;
-  upsertVendor: (vendor: Vendor) => Promise<void>;
+  /** `confirmMpesaPhone` must repeat `vendor.mpesaPhone` when a payout number is set. */
+  upsertVendor: (vendor: Vendor, confirmMpesaPhone?: string) => Promise<void>;
 }
+
+export type StaffRole = "super_admin" | "ministry_admin" | "ministry_user" | "partner_admin" | "partner_agent";
 
 export interface PayoutBatchResult {
   payouts: Payout[];
@@ -142,8 +174,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const loading = authLoading || Boolean(session && loadedUserId !== session.userId);
 
+  // The write already succeeded; a failed reload must not report it as failed
+  // (a retried Pay would charge twice). The next refresh picks it up.
   const afterWrite = useCallback(async () => {
-    await refresh();
+    try {
+      await refresh();
+    } catch (err) {
+      console.warn("Store refresh after write failed", err);
+    }
   }, [refresh]);
 
   const resetDemo = useCallback(async () => {
@@ -185,6 +223,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       tripId?: string;
       paymentMethod: CheckoutMethod;
       phoneNumber?: string;
+      clientRequestId?: string;
     }) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
         "/v1/donations/checkout",
@@ -196,6 +235,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             tripId: input.tripId,
             paymentMethod: input.paymentMethod,
             phoneNumber: input.phoneNumber,
+            clientRequestId: input.clientRequestId,
           }),
         },
       );
@@ -251,6 +291,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [afterWrite],
   );
 
+  const paymentAction = useCallback(
+    async (path: string, body?: unknown) => {
+      const data = await apiFetch<{ payment: Payment }>(path, {
+        method: "POST",
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      await afterWrite();
+      return data.payment;
+    },
+    [afterWrite],
+  );
+
+  const cancelPayment = useCallback(
+    (paymentId: string) => paymentAction(`/v1/payments/${paymentId}/cancel`),
+    [paymentAction],
+  );
+
+  const resolvePayment = useCallback(
+    (paymentId: string, input: { status: "success" | "failed"; receipt?: string; note: string }) =>
+      paymentAction(`/v1/admin/payments/${paymentId}/resolve`, input),
+    [paymentAction],
+  );
+
+  const refundPayment = useCallback(
+    (paymentId: string, reason: string) => paymentAction(`/v1/admin/payments/${paymentId}/refund`, { reason }),
+    [paymentAction],
+  );
+
   const retryDonationCheckout = useCallback(
     async (donationId: string, input: { paymentMethod: CheckoutMethod; phoneNumber?: string }) => {
       const data = await apiFetch<{ donation: Donation; payment: Payment; checkoutUrl: string }>(
@@ -298,6 +366,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const markPlantationComplete = useCallback(
     async (requestId: string) => {
       await apiFetch(`/v1/plantation-requests/${requestId}/complete`, { method: "POST" });
+      await afterWrite();
+    },
+    [afterWrite],
+  );
+
+  const reopenPlantationRequest = useCallback(
+    async (requestId: string, reason: string) => {
+      await apiFetch(`/v1/plantation-requests/${requestId}/reopen`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      });
       await afterWrite();
     },
     [afterWrite],
@@ -353,6 +432,61 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [afterWrite],
   );
 
+  const acknowledgePayoutReview = useCallback(
+    async (payoutId: string, note: string) => {
+      const data = await apiFetch<{ payout: Payout }>(`/v1/admin/payouts/${payoutId}/review`, {
+        method: "POST",
+        body: JSON.stringify({ note }),
+      });
+      await afterWrite();
+      return data.payout;
+    },
+    [afterWrite],
+  );
+
+  const updateFeeSettings = useCallback(
+    async (input: { chargeFeePct: number; payoutFeePct: number }) => {
+      await apiFetch("/v1/admin/settings/fees", { method: "PUT", body: JSON.stringify(input) });
+      await afterWrite();
+    },
+    [afterWrite],
+  );
+
+  const createStaffUser = useCallback(
+    async (input: { name: string; email: string; role: StaffRole; vendorId?: string }) => {
+      const data = await apiFetch<{ user: AppUser; temporaryPassword: string }>("/v1/users", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+      await afterWrite();
+      return data;
+    },
+    [afterWrite],
+  );
+
+  const setUserActive = useCallback(
+    async (userId: string, active: boolean) => {
+      const data = await apiFetch<{ user: AppUser }>(`/v1/users/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ active }),
+      });
+      await afterWrite();
+      return data.user;
+    },
+    [afterWrite],
+  );
+
+  const resetUserPassword = useCallback(
+    async (userId: string) => {
+      const data = await apiFetch<{ user: AppUser; temporaryPassword: string }>(`/v1/users/${userId}/reset-password`, {
+        method: "POST",
+      });
+      await afterWrite();
+      return data;
+    },
+    [afterWrite],
+  );
+
   const createVendorPlantationRequest = useCallback(
     async (plantationRequestId: string, assignedAgentId: string) => {
       await apiFetch("/v1/vendor-plantation-requests", {
@@ -387,10 +521,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const upsertVendor = useCallback(
-    async (vendor: Vendor) => {
+    async (vendor: Vendor, confirmMpesaPhone?: string) => {
       await apiFetch("/v1/vendors", {
         method: "PUT",
-        body: JSON.stringify(vendor),
+        body: JSON.stringify({ ...vendor, confirmMpesaPhone }),
       });
       await afterWrite();
     },
@@ -412,15 +546,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       getPayment,
       syncPayment,
       simulatePaymentSuccess,
+      cancelPayment,
+      resolvePayment,
+      refundPayment,
       retryDonationCheckout,
       createPlantationRequest,
       combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
+      reopenPlantationRequest,
       createPayout,
       simulatePayoutSuccess,
       payDonationShares,
       resolvePayout,
+      acknowledgePayoutReview,
+      updateFeeSettings,
+      createStaffUser,
+      setUserActive,
+      resetUserPassword,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,
@@ -440,15 +583,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       getPayment,
       syncPayment,
       simulatePaymentSuccess,
+      cancelPayment,
+      resolvePayment,
+      refundPayment,
       retryDonationCheckout,
       createPlantationRequest,
       combinePlantationRequests,
       assignPlantationRequest,
       markPlantationComplete,
+      reopenPlantationRequest,
       createPayout,
       simulatePayoutSuccess,
       payDonationShares,
       resolvePayout,
+      acknowledgePayoutReview,
+      updateFeeSettings,
+      createStaffUser,
+      setUserActive,
+      resetUserPassword,
       createVendorPlantationRequest,
       updateVendorRequestStatus,
       upsertTreeType,

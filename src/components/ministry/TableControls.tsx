@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableHead } from "@/components/ui/table";
+import { REQUEST_STATUS_LABEL } from "@/lib/plantingStatus";
 import { cn } from "@/lib/utils";
 
 export function SortableHead({
@@ -168,12 +169,16 @@ const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline" | "des
   ready_for_review: "outline",
   pending: "outline",
   failed: "destructive",
+  needs_review: "destructive",
 };
 
-export function MinistryStatusBadge({ status }: { status: string }) {
+/** Request statuses read as planting stages; other statuses show as written. */
+const STATUS_LABELS: Record<string, string> = { ...REQUEST_STATUS_LABEL, needs_review: "Needs review" };
+
+export function MinistryStatusBadge({ status, label }: { status: string; label?: string }) {
   return (
     <Badge variant={STATUS_VARIANTS[status] ?? "secondary"} className="capitalize whitespace-nowrap">
-      {status.replace(/_/g, " ")}
+      {label ?? STATUS_LABELS[status] ?? status.replace(/_/g, " ")}
     </Badge>
   );
 }

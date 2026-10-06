@@ -158,7 +158,7 @@ interface TreeCertificateProps {
   certificateId: string;
   ototId: string;
   co2Offset: number;
-  location?: string;
+  location: string;
   qrCodeDataUrl?: string;
   ktbLogoDataUrl?: string;
   kfsLogoDataUrl?: string;
@@ -195,14 +195,14 @@ export const TreeCertificate = ({
 
         {/* Header */}
         <Text style={styles.initiativeText}>One Tourist One Tree Initiative</Text>
-        <Text style={styles.title}>Certificate of Environmental Action-</Text>
+        <Text style={styles.title}>Certificate of Environmental Action</Text>
         <Text style={styles.titleLine2}>Kenya</Text>
 
         {/* Presentation */}
         <Text style={styles.presentedText}>This certificate is proudly presented to</Text>
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.plantingText}>
-          for planting {numTrees} {numTrees === 1 ? 'tree' : 'trees'} in <Text style={styles.plantingLocation}>{location || ''}</Text> on {date}
+          for planting {numTrees} {numTrees === 1 ? 'tree' : 'trees'} in <Text style={styles.plantingLocation}>{location}</Text> on {date}
         </Text>
 
         {/* Impact Box */}

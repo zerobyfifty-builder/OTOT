@@ -1,17 +1,20 @@
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { CheckCircle2, Leaf, Plane, TreePine } from "lucide-react";
+import { Leaf, Plane, TreePine } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { airports } from "@/data/airports";
-import { parseDay, paidDonationsForTrip, treesPlantedForTrip } from "@/lib/trips";
+import { kg, usd } from "@/lib/format";
+import {
+  offsetStatus,
+  paidDonationsForTrip,
+  parseDay,
+  remainingCarbonKg,
+  treesFundedForTrip,
+  tripRouteLabel,
+} from "@/lib/trips";
+import { OffsetBadge } from "@/components/tourist/StatusBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const airportName = (code: string) => {
-  const airport = airports.find((a) => a.code === code);
-  return airport ? `${airport.city} (${code})` : code;
-};
 
 export function RecentTrips() {
   const { session } = useAuth();
@@ -32,10 +35,10 @@ export function RecentTrips() {
           <>
             <div className="space-y-3 flex-1">
               {mine.map((trip) => {
-                const planted = treesPlantedForTrip(trip.id, state.donations);
+                const funded = treesFundedForTrip(trip.id, state.donations);
                 const amountPaid = paidDonationsForTrip(trip.id, state.donations).reduce((sum, d) => sum + d.amount, 0);
-                const isFullyOffset = planted >= trip.treesNeeded && trip.treesNeeded > 0;
-                const isPartial = planted > 0 && planted < trip.treesNeeded;
+                const status = offsetStatus(trip, state.donations);
+                const remaining = remainingCarbonKg(trip, state.donations);
                 return (
                   <div
                     key={trip.id}
@@ -44,43 +47,30 @@ export function RecentTrips() {
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
                         <Plane className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-semibold text-sm text-foreground truncate">
-                          {airportName(trip.originAirport)} → {airportName(trip.destinationAirport)}
-                        </span>
+                        <span className="font-semibold text-sm text-foreground truncate">{tripRouteLabel(trip)}</span>
                       </div>
                       <span className="text-xs text-muted-foreground shrink-0">
                         {format(parseDay(trip.fromDate), "dd MMM yyyy")}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1">
-                          <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-muted-foreground">{Number(trip.totalCo2).toLocaleString()} kg</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <TreePine className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="flex items-center justify-between gap-2 mt-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
+                        <div className="flex items-center gap-1" title="Trip CO₂">
+                          <Leaf className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
                           <span className="text-muted-foreground">
-                            {planted}/{trip.treesNeeded}
+                            {status === "partially" ? `${kg(remaining)} left of ${kg(trip.totalCo2)}` : kg(trip.totalCo2)}
                           </span>
                         </div>
-                        {isFullyOffset ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Offset
+                        <div className="flex items-center gap-1" title="Trees funded">
+                          <TreePine className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+                          <span className="text-muted-foreground">
+                            {funded} {funded === 1 ? "tree" : "trees"} funded
                           </span>
-                        ) : isPartial ? (
-                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent text-accent-foreground">
-                            Partial
-                          </span>
-                        ) : (
-                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
-                            Not Offset
-                          </span>
-                        )}
+                        </div>
+                        <OffsetBadge status={status} className="text-[10px] px-2 py-0" />
                       </div>
-                      <span className="text-lg font-bold text-foreground">${amountPaid.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-foreground">{usd(amountPaid)}</span>
                     </div>
                   </div>
                 );

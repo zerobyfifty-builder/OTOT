@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Building2, Landmark, Pencil, RefreshCw, Send, Smartphone } from "lucide-react";
+import { AlertTriangle, Building2, History, Landmark, Pencil, RefreshCw, Send, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { format } from "date-fns";
 import { kes, shortDate } from "@/lib/format";
 import {
   PAYOUT_STATUS_LABEL,
@@ -38,11 +39,24 @@ type Owed = {
   transferredKes: number;
 };
 
+type WalletChange = {
+  id: string;
+  walletId: string;
+  ownerType: RecipientType;
+  partnerId?: string;
+  oldPhone?: string;
+  newPhone: string;
+  changedBy?: string;
+  changedByName?: string;
+  changedAt: string;
+};
+
 type Overview = {
   wallets: Wallet[];
   balance: {
     grossKes: number;
     afrinetFeeKes: number;
+    payoutFeeReserveKes: number;
     creditedKes: number;
     committedKes: number;
     availableKes: number;
@@ -57,14 +71,30 @@ type Overview = {
   minPayoutKes: number;
   kesPerUsd: number;
   sdkConfigured: boolean;
+  /** Most recent first. */
+  changes: WalletChange[];
+  /** Demo numbers the API refuses for live payouts. */
+  placeholderPhones: string[];
+  live: boolean;
 };
 
 type Editing = {
   ownerType: RecipientType;
   partnerId?: string;
   name: string;
+  current?: string;
   phone: string;
+  confirmPhone: string;
 };
+
+/** Rough client-side normalisation (07… / 7… / 2547…); the API does the real check. */
+function digits(value: string): string {
+  const d = value.replace(/\D/g, "");
+  if (d.length === 10 && d.startsWith("0")) return `254${d.slice(1)}`;
+  if (d.length === 9) return `254${d}`;
+  return d;
+}
+const changedAt = (iso: string) => format(new Date(iso), "d MMM yyyy, HH:mm");
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 
@@ -114,6 +144,22 @@ export default function AdminWallets() {
     );
   };
   const unassignedKes = data?.owed.reduce((s, o) => s + o.unassignedKes, 0) ?? 0;
+  const isPlaceholder = (phone?: string) => Boolean(phone && data?.placeholderPhones.includes(phone));
+  const lastChange = (w?: Wallet) => (w ? data?.changes.find((c) => c.walletId === w.id) : undefined);
+  const placeholderCount = data?.wallets.filter((w) => isPlaceholder(w.mpesaPhone)).length ?? 0;
+  const vendorName = new Map(state.vendors.map((v) => [v.id, v.name]));
+  const changeLabel = (c: WalletChange) =>
+    c.ownerType === "partner" ? (vendorName.get(c.partnerId ?? "") ?? "Partner") : RECIPIENT_LABEL[c.ownerType];
+  const startEdit = (ownerType: RecipientType, name: string, partnerId?: string) =>
+    setEditing({
+      ownerType,
+      partnerId,
+      name,
+      current: wallet(ownerType, partnerId)?.mpesaPhone,
+      phone: "",
+      confirmPhone: "",
+    });
+  const phonesMatch = Boolean(editing && digits(editing.phone) && digits(editing.phone) === digits(editing.confirmPhone));
   const unmatched = (type: RecipientType, partnerId?: string) =>
     data?.unmatchedLegacy
       .filter((u) => u.recipientType === type && (type !== "partner" || u.partnerId === partnerId))
@@ -129,6 +175,7 @@ export default function AdminWallets() {
           ownerType: editing.ownerType,
           partnerId: editing.partnerId,
           mpesaPhone: editing.phone,
+          confirmMpesaPhone: editing.confirmPhone,
         }),
       });
       toast.success(`${editing.name} wallet saved`);
@@ -208,6 +255,22 @@ export default function AdminWallets() {
         </Button>
       </div>
 
+      {placeholderCount > 0 && (
+        <p
+          className={
+            data?.live
+              ? "flex gap-2 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+              : "flex gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          }
+        >
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          {placeholderCount} {placeholderCount === 1 ? "wallet still has a demo number" : "wallets still have demo numbers"}.
+          {data?.live
+            ? " Live payouts to them are refused. Replace them with the real M-Pesa numbers before paying anyone."
+            : " Replace them with the real M-Pesa numbers before going live; live payouts to demo numbers are refused."}
+        </p>
+      )}
+
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
@@ -223,12 +286,13 @@ export default function AdminWallets() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Received after Afrinet fee</CardTitle>
+            <CardTitle className="text-sm">Received after Afrinet fees</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tabular-nums">{kes(data?.balance.creditedKes ?? 0)}</div>
             <p className="text-xs text-muted-foreground mt-2">
-              {kes(data?.balance.grossKes ?? 0)} collected − {kes(data?.balance.afrinetFeeKes ?? 0)} fee (2.9%)
+              {kes(data?.balance.grossKes ?? 0)} collected − {kes(data?.balance.afrinetFeeKes ?? 0)} collection fee −{" "}
+              {kes(data?.balance.payoutFeeReserveKes ?? 0)} reserved for payout transfer fees
             </p>
           </CardContent>
         </Card>
@@ -260,13 +324,10 @@ export default function AdminWallets() {
               : ""
           }
           wallet={wallet("otot")}
-          onEdit={() =>
-            setEditing({
-              ownerType: "otot",
-              name: "OTOT Platform",
-              phone: wallet("otot")?.mpesaPhone ?? "",
-            })
-          }
+          placeholder={isPlaceholder(wallet("otot")?.mpesaPhone)}
+          live={Boolean(data?.live)}
+          lastChange={lastChange(wallet("otot"))}
+          onEdit={() => startEdit("otot", "OTOT Platform")}
           stats={[
             { label: "Pending", value: otot.payableKes },
             { label: "In progress", value: otot.inFlightKes },
@@ -356,15 +417,12 @@ export default function AdminWallets() {
         <WalletCard
           icon={Landmark}
           title="Ministry wallet"
-          description="Receives the Ministry admin fee (15% after the Afrinet fee)."
+          description="Receives the Ministry admin fee (15% after Afrinet fees)."
           wallet={wallet("ministry")}
-          onEdit={() =>
-            setEditing({
-              ownerType: "ministry",
-              name: "Ministry",
-              phone: wallet("ministry")?.mpesaPhone ?? "",
-            })
-          }
+          placeholder={isPlaceholder(wallet("ministry")?.mpesaPhone)}
+          live={Boolean(data?.live)}
+          lastChange={lastChange(wallet("ministry"))}
+          onEdit={() => startEdit("ministry", "Ministry")}
           stats={[
             { label: "Pending", value: ministry.payableKes },
             { label: "In progress", value: ministry.inFlightKes },
@@ -388,7 +446,7 @@ export default function AdminWallets() {
             Partner wallets
           </CardTitle>
           <CardDescription>
-            Vendors receive their payout only for donations the Ministry assigned to them.{" "}
+            A partner's share becomes payable as soon as the Ministry assigns them a request.{" "}
             {unassignedKes > 0 && <>{kes(unassignedKes)} is still awaiting Ministry assignment.</>}
           </CardDescription>
         </CardHeader>
@@ -399,6 +457,7 @@ export default function AdminWallets() {
                 <TableRow>
                   <TableHead>Partner</TableHead>
                   <TableHead>M-Pesa number</TableHead>
+                  <TableHead>Last changed</TableHead>
                   <TableHead className="text-right">Pending</TableHead>
                   <TableHead className="text-right">In progress</TableHead>
                   <TableHead className="text-right">Transferred</TableHead>
@@ -408,7 +467,7 @@ export default function AdminWallets() {
               <TableBody>
                 {state.vendors.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No partners yet.
                     </TableCell>
                   </TableRow>
@@ -417,6 +476,7 @@ export default function AdminWallets() {
                     const w = wallet("partner", v.id);
                     const o = owed("partner", v.id);
                     const legacy = unmatched("partner", v.id);
+                    const change = lastChange(w);
                     return (
                       <TableRow key={v.id}>
                         <TableCell>
@@ -432,6 +492,25 @@ export default function AdminWallets() {
                         </TableCell>
                         <TableCell className="font-mono text-sm">
                           {w?.mpesaPhone ?? <span className="font-sans text-destructive">Not set</span>}
+                          {isPlaceholder(w?.mpesaPhone) && (
+                            <div
+                              className={`font-sans text-xs mt-1 ${data?.live ? "text-destructive font-medium" : "text-amber-700"}`}
+                            >
+                              Demo number — replace before live payouts
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {change ? (
+                            <>
+                              <div>{change.changedByName ?? "System"}</div>
+                              <div>{changedAt(change.changedAt)}</div>
+                            </>
+                          ) : w ? (
+                            shortDate(w.updatedAt)
+                          ) : (
+                            "—"
+                          )}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">{kes(o.payableKes)}</TableCell>
                         <TableCell className="text-right tabular-nums">{kes(o.inFlightKes)}</TableCell>
@@ -440,14 +519,7 @@ export default function AdminWallets() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              setEditing({
-                                ownerType: "partner",
-                                partnerId: v.id,
-                                name: v.name,
-                                phone: w?.mpesaPhone ?? "",
-                              })
-                            }
+                            onClick={() => startEdit("partner", v.name, v.id)}
                           >
                             <Pencil className="h-4 w-4 mr-1" />
                             {w ? "Edit" : "Add"}
@@ -463,31 +535,98 @@ export default function AdminWallets() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Recent wallet changes
+          </CardTitle>
+          <CardDescription>Every change to a payout number, newest first (last 50).</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!data?.changes.length ? (
+            <p className="text-sm text-muted-foreground">No wallet changes recorded yet.</p>
+          ) : (
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>When</TableHead>
+                    <TableHead>Wallet</TableHead>
+                    <TableHead>From</TableHead>
+                    <TableHead>To</TableHead>
+                    <TableHead>Changed by</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.changes.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="whitespace-nowrap text-sm">{changedAt(c.changedAt)}</TableCell>
+                      <TableCell className="font-medium">{changeLabel(c)}</TableCell>
+                      <TableCell className="font-mono text-xs">{c.oldPhone ?? "— (new wallet)"}</TableCell>
+                      <TableCell className="font-mono text-xs">{c.newPhone}</TableCell>
+                      <TableCell className="text-sm">{c.changedByName ?? "System"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog open={editing !== null} onOpenChange={(open) => !open && !saving && setEditing(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{editing?.name} M-Pesa wallet</DialogTitle>
             <DialogDescription>
-              Future {editing ? RECIPIENT_LABEL[editing.ownerType].toLowerCase() : ""} payouts go to this number. Past
-              payouts keep the number they were sent to.
+              Future {editing ? RECIPIENT_LABEL[editing.ownerType].toLowerCase() : ""} payouts go to this number. A wrong
+              number sends real money to a stranger, so it is typed twice. Past payouts keep the number they were sent
+              to.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="wallet-phone">M-Pesa number</Label>
-            <Input
-              id="wallet-phone"
-              inputMode="tel"
-              placeholder="2547XXXXXXXX"
-              value={editing?.phone ?? ""}
-              onChange={(e) => editing && setEditing({ ...editing, phone: e.target.value })}
-            />
+          <div className="space-y-4">
+            {editing?.current && (
+              <p className="text-sm">
+                Current number: <span className="font-mono">{editing.current}</span>
+              </p>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="wallet-phone">New M-Pesa number</Label>
+              <Input
+                id="wallet-phone"
+                inputMode="tel"
+                autoComplete="off"
+                placeholder="2547XXXXXXXX"
+                value={editing?.phone ?? ""}
+                onChange={(e) => editing && setEditing({ ...editing, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wallet-phone-confirm">Type it again</Label>
+              <Input
+                id="wallet-phone-confirm"
+                inputMode="tel"
+                autoComplete="off"
+                placeholder="2547XXXXXXXX"
+                value={editing?.confirmPhone ?? ""}
+                onPaste={(e) => e.preventDefault()}
+                onChange={(e) => editing && setEditing({ ...editing, confirmPhone: e.target.value })}
+              />
+              {editing?.confirmPhone && !phonesMatch && (
+                <p className="text-xs text-destructive">The two numbers don't match.</p>
+              )}
+              {editing && phonesMatch && isPlaceholder(digits(editing.phone)) && (
+                <p className="text-xs text-amber-700">This is a demo number. Live payouts to it are refused.</p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" disabled={saving} onClick={() => setEditing(null)}>
               Cancel
             </Button>
-            <Button disabled={saving || !editing?.phone.trim()} onClick={() => void save()}>
-              {saving ? "Saving…" : "Save"}
+            <Button disabled={saving || !phonesMatch} onClick={() => void save()}>
+              {saving ? "Saving…" : "Save number"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -501,6 +640,9 @@ function WalletCard({
   title,
   description,
   wallet,
+  placeholder,
+  live,
+  lastChange,
   onEdit,
   stats,
   footer,
@@ -509,6 +651,9 @@ function WalletCard({
   title: string;
   description: string;
   wallet?: Wallet;
+  placeholder: boolean;
+  live: boolean;
+  lastChange?: WalletChange;
   onEdit: () => void;
   stats: { label: string; value: number }[];
   footer?: ReactNode;
@@ -531,8 +676,22 @@ function WalletCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="font-mono text-lg">
-          {wallet?.mpesaPhone ?? <span className="font-sans text-sm text-destructive">No M-Pesa number set</span>}
+        <div>
+          <div className="font-mono text-lg">
+            {wallet?.mpesaPhone ?? <span className="font-sans text-sm text-destructive">No M-Pesa number set</span>}
+          </div>
+          {placeholder && (
+            <p className={`text-xs mt-1 ${live ? "text-destructive font-medium" : "text-amber-700"}`}>
+              Demo number — replace before live payouts
+            </p>
+          )}
+          {wallet && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {lastChange
+                ? `Last changed by ${lastChange.changedByName ?? "System"} on ${changedAt(lastChange.changedAt)}`
+                : `Last updated ${shortDate(wallet.updatedAt)}`}
+            </p>
+          )}
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
           {stats.map((s) => (

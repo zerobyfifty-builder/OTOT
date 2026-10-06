@@ -21,7 +21,6 @@ import MyTrips from "@/pages/tourist/MyTrips";
 import MyTrees from "@/pages/tourist/MyTrees";
 import MyImpact from "@/pages/tourist/MyImpact";
 import Donate from "@/pages/tourist/Donate";
-import Payment from "@/pages/tourist/Payment";
 import AwaitingPayment from "@/pages/tourist/AwaitingPayment";
 import DonationDetail from "@/pages/tourist/DonationDetail";
 import Profile from "@/pages/tourist/Profile";
@@ -78,17 +77,16 @@ const App = () => (
                 <Route path="/my-impact" element={wrap(["tourist"], TouristLayout, <MyImpact />)} />
                 <Route path="/carbon-calculator" element={wrap(["tourist"], TouristLayout, <CarbonCalculator />)} />
                 <Route path="/donate" element={wrap(["tourist"], TouristLayout, <Donate />)} />
-                <Route path="/donate/pay" element={wrap(["tourist"], TouristLayout, <Payment />)} />
                 <Route path="/donate/awaiting/:paymentId" element={wrap(["tourist"], TouristLayout, <AwaitingPayment />)} />
                 <Route path="/donations/:id" element={wrap(["tourist"], TouristLayout, <DonationDetail />)} />
                 <Route path="/profile" element={wrap(["tourist"], TouristLayout, <Profile />)} />
 
-                <Route path="/ministry/dashboard" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryDashboard />)} />
-                <Route path="/ministry/donations" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryDonations />)} />
-                <Route path="/ministry/requests" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryRequests />)} />
-                <Route path="/ministry/partners" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryPartners />)} />
-                <Route path="/ministry/payouts" element={wrap(["ministry_admin", "ministry_user"], MinistryLayout, <MinistryPayouts />)} />
-                <Route path="/ministry/users" element={wrap(["ministry_admin"], MinistryLayout, <MinistryUsers />)} />
+                <Route path="/ministry/dashboard" element={wrap(["ministry_admin", "ministry_user", "super_admin"], MinistryLayout, <MinistryDashboard />)} />
+                <Route path="/ministry/donations" element={wrap(["ministry_admin", "ministry_user", "super_admin"], MinistryLayout, <MinistryDonations />)} />
+                <Route path="/ministry/requests" element={wrap(["ministry_admin", "ministry_user", "super_admin"], MinistryLayout, <MinistryRequests />)} />
+                <Route path="/ministry/partners" element={wrap(["ministry_admin", "ministry_user", "super_admin"], MinistryLayout, <MinistryPartners />)} />
+                <Route path="/ministry/payouts" element={wrap(["ministry_admin", "ministry_user", "super_admin"], MinistryLayout, <MinistryPayouts />)} />
+                <Route path="/ministry/users" element={wrap(["ministry_admin", "super_admin"], MinistryLayout, <MinistryUsers />)} />
 
                 <Route path="/partner/dashboard" element={wrap(["partner_admin"], PartnerLayout, <PartnerDashboard />)} />
                 <Route path="/partner/requests" element={wrap(["partner_admin"], PartnerLayout, <PartnerRequests />)} />

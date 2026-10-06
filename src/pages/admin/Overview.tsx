@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -15,20 +15,27 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
-import { apiErrorMessage } from "@/lib/api";
 import { kes, kg, treeCount, usd } from "@/lib/format";
+import { dateMatcher } from "@/lib/dateFilter";
+import { buildDonationLedger } from "@/lib/ledger";
 import { isOpenPayout, PAYOUT_STATUS_LABEL, RECIPIENT_LABEL } from "@/lib/payouts";
+import { plantingTotals, requestDonationIds } from "@/lib/plantingStatus";
 import { roleLabel } from "@/lib/portal";
 import { AdminStatCard } from "@/components/portal/PortalUI";
 import { ActivityFeed, type ActivityCategory, type ActivityEntry } from "@/components/admin/ActivityFeed";
 import { AlertsPanel, type AlertItem } from "@/components/admin/AlertsPanel";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { DashboardCharts, type DashboardChartData } from "@/components/admin/DashboardCharts";
 import { QuickActions } from "@/components/admin/QuickActions";
 import { AdminSpinner } from "@/components/admin/TablePagination";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { AppRole, StoreState } from "@/types/otot";
 
 const DAY_MS = 86_400_000;
+/** The API expires unconfirmed charges after 60 minutes; flag them well before. */
+const LONG_PENDING_MS = 30 * 60 * 1000;
 const PARTNER_ROLES: AppRole[] = ["partner_admin", "partner_agent"];
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
@@ -53,8 +60,8 @@ function buildAlerts(state: StoreState): AlertItem[] {
     type: "plantation",
     severity: "warning",
     count: unassigned,
-    message: `${plural(unassigned, "plantation request")} awaiting assignment`,
-    href: "/admin/finance",
+    message: `${plural(unassigned, "plantation request")} awaiting a partner`,
+    href: "/ministry/requests",
   });
   const review = count(state.plantationRequests, (r) => r.status === "ready_for_review");
   push({
@@ -62,17 +69,45 @@ function buildAlerts(state: StoreState): AlertItem[] {
     type: "plantation",
     severity: "warning",
     count: review,
-    message: `${plural(review, "plantation request")} ready for review`,
-    href: "/admin/finance",
+    message: `${plural(review, "plantation request")} reported planted, awaiting Ministry verification`,
+    href: "/ministry/requests",
+  });
+  const now = Date.now();
+  const flagged = count(state.payments, (p) => Boolean(p.issue) && p.status !== "refunded");
+  const longPending = count(
+    state.payments,
+    (p) => p.status === "pending" && !p.issue && now - new Date(p.createdAt).getTime() > LONG_PENDING_MS,
+  );
+  push({
+    id: "payment-issues",
+    type: "payment",
+    severity: "error",
+    count: flagged + longPending,
+    message: [
+      flagged ? `${plural(flagged, "payment")} flagged (duplicate, wrong amount or reversed)` : "",
+      longPending ? `${plural(longPending, "payment")} pending for over 30 minutes` : "",
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    href: "/admin/finance?tab=payments&status=issues",
   });
   const failedPayments = count(state.payments, (p) => p.status === "failed");
   push({
     id: "failed-payments",
     type: "payment",
-    severity: "error",
+    severity: "warning",
     count: failedPayments,
     message: plural(failedPayments, "failed payment"),
-    href: "/admin/finance",
+    href: "/admin/finance?tab=payments&status=failed",
+  });
+  const reviewPayouts = count(state.payouts, (p) => p.needsReview);
+  push({
+    id: "review-payouts",
+    type: "payout",
+    severity: "error",
+    count: reviewPayouts,
+    message: `${plural(reviewPayouts, "payout")} need review (possible double payment)`,
+    href: "/admin/finance?tab=payouts&status=needs_review",
   });
   const failedPayouts = count(state.payouts, (p) => p.status === "failed");
   push({
@@ -81,7 +116,7 @@ function buildAlerts(state: StoreState): AlertItem[] {
     severity: "error",
     count: failedPayouts,
     message: plural(failedPayouts, "failed payout"),
-    href: "/admin/finance",
+    href: "/admin/finance?tab=payouts&status=failed",
   });
   const pendingPayouts = count(state.payouts, (p) => isOpenPayout(p.status));
   push({
@@ -90,7 +125,7 @@ function buildAlerts(state: StoreState): AlertItem[] {
     severity: "warning",
     count: pendingPayouts,
     message: `${plural(pendingPayouts, "payout")} in progress`,
-    href: "/admin/finance",
+    href: "/admin/finance?tab=payouts&status=in_progress",
   });
 
   if (alerts.length === 0) {
@@ -140,7 +175,7 @@ function buildActivity(state: StoreState): ActivityEntry[] {
       action: `payment ${p.status}`,
       tone: p.status === "failed" ? "delete" : p.status === "success" ? "create" : "update",
       resource: p.paymentMode,
-      description: usd(p.amount),
+      description: p.amountKes ? kes(p.amountKes) : usd(p.amount),
       timestamp: p.createdAt,
       actor: uid ? userName.get(uid) : undefined,
       href: "/admin/finance",
@@ -153,7 +188,7 @@ function buildActivity(state: StoreState): ActivityEntry[] {
       action: `request ${r.status.replace(/_/g, " ")}`,
       tone: r.status === "completed" ? "create" : "update",
       resource: "Plantation request",
-      description: usd(r.amount),
+      description: `${plural(requestDonationIds(r).length, "donation")} · ${usd(r.amount)}`,
       timestamp: r.createdAt,
       actor: r.partnerId ? vendorName.get(r.partnerId) : undefined,
       href: "/admin/finance",
@@ -189,7 +224,7 @@ function buildActivity(state: StoreState): ActivityEntry[] {
 function buildCharts(state: StoreState): DashboardChartData {
   const now = Date.now();
   const days = Array.from({ length: 30 }, (_, i) => dayKey(new Date(now - (29 - i) * DAY_MS).toISOString()));
-  const paid = state.donations.filter((d) => d.status === "paid");
+  const ledger = buildDonationLedger(state).filter((row) => row.donation.status === "paid");
   const joinedBy = (roles: AppRole[], date: string) =>
     state.users.filter((u) => roles.includes(u.role) && u.createdAt && dayKey(u.createdAt) <= date).length;
 
@@ -199,38 +234,36 @@ function buildCharts(state: StoreState): DashboardChartData {
     partners: joinedBy(PARTNER_ROLES, date),
   }));
 
+  // Funded on the day the money arrived.
   const treesByDay = new Map<string, number>();
-  for (const d of paid) {
-    const key = dayKey(d.createdAt);
-    treesByDay.set(key, (treesByDay.get(key) ?? 0) + treeCount(d.trees));
+  for (const row of ledger) {
+    const key = dayKey(row.paidAt);
+    treesByDay.set(key, (treesByDay.get(key) ?? 0) + treeCount(row.donation.trees));
   }
   const treeTrends = days.map((date) => ({ date, trees: treesByDay.get(date) ?? 0 }));
 
-  const split = { plantation: 0, platform: 0, ministry: 0, processor: 0 };
-  for (const p of state.payments) {
-    if (p.status !== "success") continue;
-    split.plantation += p.transactionChargesSplit.plantation;
-    split.platform += p.transactionChargesSplit.platform;
-    split.ministry += p.transactionChargesSplit.ministry;
-    split.processor += p.transactionChargesSplit.processor;
+  // Where the money went, from the KES ledger (void shares were never real money).
+  const split = { partner: 0, otot: 0, ministry: 0 };
+  for (const a of state.paymentAllocations) {
+    if (a.status !== "void") split[a.recipientType] += a.amountKes;
   }
+  const fees = state.payments
+    .filter((p) => p.status === "success" && p.issue !== "duplicate")
+    .reduce((s, p) => s + (p.feeKes ?? 0) + (p.payoutFeeKes ?? 0), 0);
   const revenue = [
-    { name: "Partner", value: split.plantation, color: "#1a5d1a" },
-    { name: "OTOT", value: split.platform, color: "#d4704b" },
+    { name: "Partner", value: split.partner, color: "#1a5d1a" },
+    { name: "OTOT", value: split.otot, color: "#d4704b" },
     { name: "Ministry", value: split.ministry, color: "#a77a27" },
-    { name: "Afrinet fee", value: split.processor, color: "#8b4513" },
+    { name: "Afrinet fees", value: fees, color: "#8b4513" },
   ];
 
+  // Trees the Ministry has assigned to each partner, at any stage.
   const donationTrees = new Map(state.donations.map((d) => [d.id, treeCount(d.trees)]));
-  const requestTrees = new Map(
-    state.plantationRequests.map((r) => {
-      const ids = r.donationIds.length > 0 ? r.donationIds : [r.donationId];
-      return [r.id, ids.reduce((s, id) => s + (donationTrees.get(id) ?? 0), 0)];
-    }),
-  );
   const vendorTrees = new Map<string, number>();
-  for (const vr of state.vendorPlantationRequests) {
-    vendorTrees.set(vr.vendorId, (vendorTrees.get(vr.vendorId) ?? 0) + (requestTrees.get(vr.plantationRequestId) ?? 0));
+  for (const r of state.plantationRequests) {
+    if (!r.partnerId) continue;
+    const trees = requestDonationIds(r).reduce((s, id) => s + (donationTrees.get(id) ?? 0), 0);
+    vendorTrees.set(r.partnerId, (vendorTrees.get(r.partnerId) ?? 0) + trees);
   }
   const topPartners = state.vendors
     .map((v) => ({ name: v.name, trees: vendorTrees.get(v.id) ?? 0 }))
@@ -244,15 +277,24 @@ function buildCharts(state: StoreState): DashboardChartData {
 export default function AdminOverview() {
   const { state, loading, resetDemo } = useStore();
   const navigate = useNavigate();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetText, setResetText] = useState("");
 
   const stats = useMemo(() => {
     const paid = state.donations.filter((d) => d.status === "paid");
-    const monthAgo = Date.now() - 30 * DAY_MS;
-    const countRole = (roles: AppRole[]) => state.users.filter((u) => roles.includes(u.role)).length;
-    const byType = new Map<string, number>();
-    for (const d of paid) {
-      for (const line of d.trees) byType.set(line.treeType, (byType.get(line.treeType) ?? 0) + line.count);
+    const ledger = buildDonationLedger(state).filter((row) => row.donation.status === "paid");
+    // Calendar month in Nairobi time, by the date the money arrived.
+    const thisMonth = dateMatcher({ preset: "this_month" });
+    // Duplicates belong to the payer until refunded.
+    const duplicateKes = new Map<string, number>();
+    for (const p of state.payments) {
+      if (p.status === "success" && p.issue === "duplicate") {
+        duplicateKes.set(p.donationId, (duplicateKes.get(p.donationId) ?? 0) + (p.amountKes ?? 0));
+      }
     }
+    const received = (row: (typeof ledger)[number]) => row.grossKes - (duplicateKes.get(row.donation.id) ?? 0);
+    const planting = plantingTotals(state);
+    const countRole = (roles: AppRole[]) => state.users.filter((u) => roles.includes(u.role)).length;
 
     return {
       usersBreakdown: [
@@ -261,19 +303,20 @@ export default function AdminOverview() {
         { label: "Partners", value: countRole(PARTNER_ROLES) },
         { label: "Admins", value: countRole(["super_admin"]) },
       ],
-      trees: paid.reduce((s, d) => s + treeCount(d.trees), 0),
+      trees: planting.funded,
       offset: paid.reduce((s, d) => s + d.carbonOffsetKg, 0),
-      treeBreakdown: [...byType.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([label, value]) => ({ label, value: value.toLocaleString() })),
-      revenue: paid.reduce((s, d) => s + d.amount, 0),
-      monthRevenue: paid
-        .filter((d) => new Date(d.createdAt).getTime() >= monthAgo)
-        .reduce((s, d) => s + d.amount, 0),
+      treeBreakdown: [
+        { label: "Awaiting partner", value: planting.awaitingPartner.toLocaleString() },
+        { label: "Assigned", value: planting.assigned.toLocaleString() },
+        { label: "Reported planted", value: planting.reported.toLocaleString() },
+        { label: "Verified planted", value: planting.verified.toLocaleString() },
+      ],
+      revenueKes: ledger.reduce((s, row) => s + received(row), 0),
+      revenueUsd: paid.reduce((s, d) => s + d.amount, 0),
+      monthRevenueKes: ledger.filter((row) => thisMonth(row.paidAt)).reduce((s, row) => s + received(row), 0),
       paidCount: paid.length,
     };
-  }, [state.donations, state.users]);
+  }, [state]);
 
   const alerts = useMemo(() => buildAlerts(state), [state]);
   const activities = useMemo(() => buildActivity(state), [state]);
@@ -291,21 +334,19 @@ export default function AdminOverview() {
             <h1 className="text-3xl sm:text-4xl font-bold text-admin-primary mb-2">Dashboard</h1>
             <p className="text-admin-primary/70">Complete system oversight and control</p>
           </div>
-          <Button
-            variant="outline"
-            className="border-admin-primary/20 text-admin-primary"
-            onClick={async () => {
-              try {
-                await resetDemo();
-                toast.success("Demo data reset");
-              } catch (err) {
-                toast.error(apiErrorMessage(err));
-              }
-            }}
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset demo data
-          </Button>
+          {state.settings.demoResetAllowed && (
+            <Button
+              variant="outline"
+              className="border-admin-primary/20 text-admin-primary"
+              onClick={() => {
+                setResetText("");
+                setResetOpen(true);
+              }}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset demo data
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -317,17 +358,18 @@ export default function AdminOverview() {
             breakdown={stats.usersBreakdown}
           />
           <AdminStatCard
-            title="Total Trees"
+            title="Trees funded"
             value={stats.trees.toLocaleString()}
             icon={Trees}
             description={`${kg(stats.offset)} CO₂ offset`}
             breakdown={stats.treeBreakdown}
           />
           <AdminStatCard
-            title="Revenue"
-            value={usd(stats.revenue)}
+            title="Received"
+            value={kes(stats.revenueKes)}
             icon={DollarSign}
-            description={`${usd(stats.monthRevenue)} this month · ${stats.paidCount} paid`}
+            description={`${kes(stats.monthRevenueKes)} this calendar month · ${stats.paidCount} paid donations`}
+            breakdown={[{ label: "Tourists paid (USD)", value: usd(stats.revenueUsd) }]}
           />
           <AdminStatCard
             title="Partners"
@@ -367,6 +409,41 @@ export default function AdminOverview() {
             { title: "Configuration", icon: Settings, onClick: () => navigate("/admin/config") },
           ]}
         />
+
+        {state.settings.demoResetAllowed && (
+          <ConfirmDialog
+            open={resetOpen}
+            onOpenChange={setResetOpen}
+            title="Reset all demo data?"
+            description={
+              <>
+                <p>
+                  This deletes every account, partner, wallet, trip, donation, payment, request and payout in this
+                  environment and reloads the demo data. Accounts you created are gone. It can't be undone.
+                </p>
+                <p>Type RESET to confirm.</p>
+              </>
+            }
+            confirmLabel="Reset demo data"
+            busyLabel="Resetting…"
+            destructive
+            confirmDisabled={resetText !== "RESET"}
+            onConfirm={async () => {
+              await resetDemo();
+              toast.success("Demo data reset");
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="reset-confirm">Type RESET</Label>
+              <Input
+                id="reset-confirm"
+                autoComplete="off"
+                value={resetText}
+                onChange={(e) => setResetText(e.target.value)}
+              />
+            </div>
+          </ConfirmDialog>
+        )}
       </div>
     </div>
   );

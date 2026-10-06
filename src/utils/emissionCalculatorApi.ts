@@ -14,8 +14,7 @@ export type AccommodationType =
   | "cruise"
   | "service_apartment";
 
-// Single source of truth for the local-fallback emission factors. These were
-// previously duplicated in CarbonCalculator.tsx and AgentCalculateOffset.tsx.
+// Emission factors for the local fallback and for accommodation CO₂.
 export const EMISSION_FACTORS = {
   flight: {
     // kg CO2 per km per passenger (London–Nairobi 6818 km reference)
@@ -33,10 +32,6 @@ export const EMISSION_FACTORS = {
     service_apartment: 12,
   },
 } as const;
-
-// Fallback tree-offset capacity (kg CO2 per tree). The tourist flow overrides
-// this with DB-driven sequestration rates via useCarbonCalculation.
-export const KG_CO2_PER_TREE = 160;
 
 export interface FlightLeg {
   origin: string; // IATA code
@@ -60,10 +55,7 @@ export interface FlightEmissionResult {
   source: "service" | "local";
 }
 
-/**
- * Local Haversine + emission-factor computation. Mirrors the exact math the two
- * calculators used before this integration, so it is a faithful fallback.
- */
+/** Local Haversine + emission-factor computation, used when the service can't answer. */
 export function computeFlightEmissionsLocal(
   params: FlightEmissionParams
 ): FlightEmissionResult {
@@ -140,7 +132,7 @@ async function fetchLegFromService(
  * service URL is not configured). Flight-time mode is always local.
  *
  * Traveler count and the return multiplier are applied client-side so the
- * service and local paths stay symmetric and match the pre-integration behavior.
+ * service and local paths stay symmetric.
  */
 export async function getFlightEmissions(
   params: FlightEmissionParams

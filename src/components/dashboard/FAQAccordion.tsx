@@ -4,22 +4,24 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { CO2_KG_PER_TREE_YEAR } from "@/lib/impact";
+import { PLANTED_HERE } from "@/lib/treeStages";
 
 const faqData = [
   {
     question: "How does tree planting offset my carbon footprint?",
     answer:
-      "Trees absorb CO2 as they grow. On average, a tree can absorb 22 kg of CO2 per year. Funding trees through OTOT creates a carbon sink that helps offset emissions from your travel.",
+      `Trees absorb CO₂ as they grow. On average, a growing tree absorbs about ${CO2_KG_PER_TREE_YEAR} kg of CO₂ per year. Funding trees through OTOT creates a carbon sink that helps offset emissions from your travel.`,
   },
   {
     question: "Where are the trees planted in Kenya?",
     answer:
-      "Trees are planted with ministry-approved plantation partners in selected sites across Kenya. Partners focus on degraded land and keep the ministry informed as planting work moves from assignment to completion.",
+      `Every OTOT tree is planted in the ${PLANTED_HERE}, a degraded water tower the Ministry is restoring with approved planting partners. Partners keep the Ministry informed as work moves from assignment to completion.`,
   },
   {
     question: "How can I track the trees I funded?",
     answer:
-      "Each paid donation appears on your dashboard with the tree mix, carbon target, and status. Open a donation to see payment details and the plantation request as the ministry assigns a partner.",
+      "Each donation appears on your dashboard and in My Trees with the tree mix, CO₂ offset and status. Open a donation to follow it from payment to planting: a partner is assigned, planting gets underway, the Ministry verifies the work, and your trees count as planted.",
   },
   {
     question: "What is the Responsible Traveler Pledge?",

@@ -1,6 +1,8 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { useState } from "react";
+import { LogOut, ChevronLeft, ChevronRight, KeyRound, Settings } from "lucide-react";
+import { ChangePasswordDialog } from "@/components/auth/ChangePasswordDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { roleLabel } from "@/lib/portal";
 import ktbLogo from "@/assets/ktb-logo.png";
@@ -256,6 +258,7 @@ function PanelNav({ items, brand, theme }: { items: NavItem[]; brand: string; th
   const location = useLocation();
   const signOutNow = useSignOut();
   const roleText = session ? roleLabel(session.role) : brand;
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   return (
     <Sidebar collapsible="icon" className={cn("group/sidebar", theme.sidebar)}>
@@ -365,12 +368,17 @@ function PanelNav({ items, brand, theme }: { items: NavItem[]; brand: string; th
               <p className="text-xs text-muted-foreground truncate">{session?.email}</p>
               <p className="text-[11px] text-muted-foreground/80 truncate">{roleText}</p>
             </div>
+            <DropdownMenuItem onClick={() => setPasswordOpen(true)} className="flex items-center gap-2 cursor-pointer">
+              <KeyRound className="h-4 w-4" />
+              <span>Change password</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={signOutNow} className="flex items-center gap-2 text-destructive cursor-pointer">
               <LogOut className="h-4 w-4" />
               <span>Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
       </SidebarFooter>
     </Sidebar>
   );
@@ -381,6 +389,7 @@ function AdminNav({ items }: { items: NavItem[] }) {
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const signOutNow = useSignOut();
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   return (
     <Sidebar>
@@ -400,15 +409,27 @@ function AdminNav({ items }: { items: NavItem[] }) {
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => setPasswordOpen(true)}
+                className="h-8 w-8 text-admin-cream hover:bg-admin-cream/10"
+                aria-label="Change password"
+                title="Change password"
+              >
+                <KeyRound className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={signOutNow}
                 className="h-8 w-8 text-admin-cream hover:bg-admin-cream/10"
                 aria-label="Sign out"
+                title="Sign out"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
         )}
+        <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
         <SidebarGroup>
           <SidebarGroupLabel className="text-admin-cream/70">God Mode</SidebarGroupLabel>
           <SidebarGroupContent>

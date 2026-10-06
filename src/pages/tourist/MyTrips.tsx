@@ -19,15 +19,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { kg } from "@/lib/format";
+import { OFFSET_LABELS, tripTypeLabel } from "@/lib/offsetLabels";
 import {
   ACCOMMODATION_LABELS,
   TRAVEL_CLASS_LABELS,
-  airportCity,
   formatDateRange,
   offsetStatus,
-  offsetTripState,
-  treesPlantedForTrip,
+  remainingCarbonKg,
+  treesFundedForTrip,
   tripNights,
+  tripRouteLabel,
+  type OffsetStatus,
 } from "@/lib/trips";
 import type { Trip } from "@/types/otot";
 import { Button } from "@/components/ui/button";
@@ -50,19 +52,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TripDetailsDialog } from "@/components/tourist/TripDetailsDialog";
+import { OffsetBadge } from "@/components/tourist/StatusBadges";
+import { OffsetTripButton, PendingPaymentLink } from "@/components/tourist/OffsetTripButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
-type Filter = "all" | "fully" | "partially" | "not";
-
-function OffsetBadge({ planted, needed }: { planted: number; needed: number }) {
-  if (planted >= needed) {
-    return <Badge className="bg-green-100 hover:bg-green-100 text-green-700 border-green-200">Fully Offset</Badge>;
-  }
-  if (planted > 0) {
-    return <Badge className="bg-amber-100 hover:bg-amber-100 text-amber-700 border-amber-200">Partially Offset</Badge>;
-  }
-  return <Badge className="bg-red-100 hover:bg-red-100 text-red-700 border-red-200">Not Offset</Badge>;
-}
+type Filter = "all" | OffsetStatus;
 
 export default function MyTrips() {
   const navigate = useNavigate();
@@ -77,25 +72,19 @@ export default function MyTrips() {
       .filter((t) => t.userId === session?.userId)
       .map((trip) => ({
         trip,
-        planted: treesPlantedForTrip(trip.id, state.donations),
+        funded: treesFundedForTrip(trip.id, state.donations),
+        status: offsetStatus(trip, state.donations),
+        remainingKg: remainingCarbonKg(trip, state.donations),
       }));
   }, [session?.userId, state.donations, state.trips]);
 
-  const filtered = trips.filter(({ trip, planted }) => {
-    const status = offsetStatus(trip, planted);
-    if (statusFilter === "all") return true;
-    return status === statusFilter;
-  });
+  const filtered = trips.filter(({ status }) => statusFilter === "all" || status === statusFilter);
 
   const counts = {
     all: trips.length,
-    fully: trips.filter(({ trip, planted }) => offsetStatus(trip, planted) === "fully").length,
-    partially: trips.filter(({ trip, planted }) => offsetStatus(trip, planted) === "partially").length,
-    not: trips.filter(({ trip, planted }) => offsetStatus(trip, planted) === "not").length,
-  };
-
-  const offsetTrip = (trip: Trip) => {
-    navigate("/donate", { state: offsetTripState(trip, state.donations) });
+    fully: trips.filter(({ status }) => status === "fully").length,
+    partially: trips.filter(({ status }) => status === "partially").length,
+    not: trips.filter(({ status }) => status === "not").length,
   };
 
   const confirmDelete = async () => {
@@ -112,9 +101,9 @@ export default function MyTrips() {
 
   const filterCards: { key: Filter; label: string; value: number; icon: typeof Plane; ring: string; iconWrap: string; iconColor: string }[] = [
     { key: "all", label: "Total Trips", value: counts.all, icon: Plane, ring: "ring-primary", iconWrap: "bg-primary/10", iconColor: "text-primary" },
-    { key: "fully", label: "Fully Offset", value: counts.fully, icon: CheckCircle2, ring: "ring-green-600", iconWrap: "bg-green-500/10", iconColor: "text-green-600" },
-    { key: "partially", label: "Partially Offset", value: counts.partially, icon: AlertCircle, ring: "ring-amber-500", iconWrap: "bg-amber-500/10", iconColor: "text-amber-600" },
-    { key: "not", label: "Not Offset", value: counts.not, icon: XCircle, ring: "ring-destructive", iconWrap: "bg-destructive/10", iconColor: "text-destructive" },
+    { key: "fully", label: OFFSET_LABELS.fully, value: counts.fully, icon: CheckCircle2, ring: "ring-green-600", iconWrap: "bg-green-500/10", iconColor: "text-green-600" },
+    { key: "partially", label: OFFSET_LABELS.partially, value: counts.partially, icon: AlertCircle, ring: "ring-amber-500", iconWrap: "bg-amber-500/10", iconColor: "text-amber-600" },
+    { key: "not", label: OFFSET_LABELS.not, value: counts.not, icon: XCircle, ring: "ring-destructive", iconWrap: "bg-destructive/10", iconColor: "text-destructive" },
   ];
 
   return (
@@ -129,7 +118,13 @@ export default function MyTrips() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer inline align-middle ml-0.5" />
+                    <button
+                      type="button"
+                      aria-label="How trips get here"
+                      className="ml-0.5 inline-flex align-middle rounded-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Info className="h-3.5 w-3.5" aria-hidden />
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p className="max-w-[220px]">
@@ -152,12 +147,17 @@ export default function MyTrips() {
           {filterCards.map((card) => {
             const Icon = card.icon;
             return (
-              <Card
+              <button
+                type="button"
                 key={card.key}
-                className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === card.key ? `ring-2 ${card.ring}` : ""}`}
+                aria-pressed={statusFilter === card.key}
                 onClick={() => setStatusFilter(card.key)}
+                className={cn(
+                  "rounded-lg border bg-card text-left text-card-foreground shadow-sm transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  statusFilter === card.key && `ring-2 ${card.ring}`,
+                )}
               >
-                <CardContent className="pt-6 pb-4 flex items-center justify-between">
+                <div className="p-6 pb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`h-10 w-10 rounded-full ${card.iconWrap} flex items-center justify-center shrink-0`}>
                       <Icon className={`h-5 w-5 ${card.iconColor}`} />
@@ -167,9 +167,9 @@ export default function MyTrips() {
                       <p className="text-xs text-muted-foreground">{card.label}</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </CardContent>
-              </Card>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" aria-hidden />
+                </div>
+              </button>
             );
           })}
         </div>
@@ -205,16 +205,16 @@ export default function MyTrips() {
             </div>
           )}
 
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-muted/50 border-b">
                       <tr>
-                        {["Trip ID/Dt", "Travel Dates", "Trip Details", "CO₂ Emissions", "Trees Needed", "Trees Planted", "Offset Status", "Actions"].map(
+                        {["Trip ID/Dt", "Travel Dates", "Trip Details", "CO₂ Emissions", "Trees funded", "Offset Status", "Actions"].map(
                           (h) => (
-                            <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
+                            <th key={h} className="px-3 py-4 text-left text-sm font-semibold text-foreground whitespace-nowrap">
                               {h}
                             </th>
                           ),
@@ -222,11 +222,11 @@ export default function MyTrips() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filtered.map(({ trip, planted }) => {
+                      {filtered.map(({ trip, funded, status, remainingKg }) => {
                         const range = formatDateRange(trip.fromDate, trip.toDate);
                         return (
                           <tr key={trip.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="px-6 py-6 whitespace-nowrap">
+                            <td className="px-3 py-5 whitespace-nowrap">
                               <div className="space-y-1">
                                 <div className="text-sm font-semibold text-foreground">{trip.friendlyTripId}</div>
                                 <div className="text-xs text-muted-foreground">
@@ -237,24 +237,22 @@ export default function MyTrips() {
                                 </Badge>
                               </div>
                             </td>
-                            <td className="px-6 py-6 whitespace-nowrap">
+                            <td className="px-3 py-5 min-w-[7.5rem]">
                               <div className="text-sm">
                                 <div className="font-medium text-foreground">{range.dateText}</div>
                                 <div className="text-xs text-muted-foreground">{range.daysText}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-6 space-y-1">
-                              <div className="font-medium text-foreground">
-                                {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
-                              </div>
+                            <td className="px-3 py-5 space-y-1">
+                              <div className="font-medium text-foreground">{tripRouteLabel(trip)}</div>
                               <div className="text-sm text-muted-foreground">
-                                {TRAVEL_CLASS_LABELS[trip.travelClass]}, {trip.isReturn ? "Return" : "One-way"}
+                                {TRAVEL_CLASS_LABELS[trip.travelClass]}, {tripTypeLabel(trip)}
                               </div>
                               {trip.accommodationType !== "none" && (
                                 <div className="text-xs text-muted-foreground">{ACCOMMODATION_LABELS[trip.accommodationType]}</div>
                               )}
                             </td>
-                            <td className="px-6 py-6 whitespace-nowrap text-sm space-y-1">
+                            <td className="px-3 py-5 whitespace-nowrap text-sm space-y-1">
                               <div>
                                 <span className="text-muted-foreground">Flight: </span>
                                 <span className="font-semibold">{kg(trip.flightCo2)}</span>
@@ -270,37 +268,33 @@ export default function MyTrips() {
                                 <span className="font-bold">{kg(trip.totalCo2)} CO₂</span>
                               </div>
                             </td>
-                            <td className="px-6 py-6">
-                              <div className="flex items-center gap-2">
-                                <Leaf className="h-5 w-5 text-primary" />
-                                <div>
-                                  <div className="font-bold text-lg">{trip.treesNeeded}</div>
-                                  <div className="text-xs text-muted-foreground">{trip.treesNeeded === 1 ? "tree" : "trees"}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-6">
+                            <td className="px-3 py-5 whitespace-nowrap">
                               <div className="flex items-center gap-2">
                                 <Leaf className="h-5 w-5 text-accent" />
                                 <div>
-                                  <div className="font-bold text-lg">{planted}</div>
-                                  <div className="text-xs text-muted-foreground">{planted === 1 ? "tree" : "trees"}</div>
+                                  <div className="font-bold text-lg">
+                                    {funded}
+                                    <span className="text-sm font-normal text-muted-foreground"> of {trip.treesNeeded}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">{trip.treesNeeded === 1 ? "tree needed" : "trees needed"}</div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-6">
-                              <OffsetBadge planted={planted} needed={trip.treesNeeded} />
+                            <td className="px-3 py-5">
+                              <div className="space-y-1">
+                                <OffsetBadge status={status} />
+                                {status === "partially" && (
+                                  <div className="text-xs text-muted-foreground whitespace-nowrap">{kg(remainingKg)} CO₂ left</div>
+                                )}
+                              </div>
                             </td>
-                            <td className="px-6 py-6">
+                            <td className="px-3 py-5">
                               <div className="flex items-center gap-2">
-                                <Button size="sm" onClick={() => offsetTrip(trip)} disabled={planted >= trip.treesNeeded}>
-                                  <Leaf className="h-3 w-3 mr-1" />
-                                  Offset
-                                </Button>
+                                <OffsetTripButton trip={trip} />
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                      <MoreVertical className="h-4 w-4" />
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" aria-label={`Actions for trip ${trip.friendlyTripId}`}>
+                                      <MoreVertical className="h-4 w-4" aria-hidden />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
@@ -308,7 +302,7 @@ export default function MyTrips() {
                                       <Eye className="h-4 w-4 mr-2" />
                                       Trip Details
                                     </DropdownMenuItem>
-                                    {planted === 0 ? (
+                                    {funded === 0 ? (
                                       <DropdownMenuItem onClick={() => setDeletingId(trip.id)} className="text-destructive focus:text-destructive">
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Delete Trip
@@ -322,6 +316,7 @@ export default function MyTrips() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
+                              <PendingPaymentLink trip={trip} className="mt-2" />
                             </td>
                           </tr>
                         );
@@ -333,8 +328,8 @@ export default function MyTrips() {
             </Card>
           </div>
 
-          <div className="lg:hidden space-y-4">
-            {filtered.map(({ trip, planted }) => {
+          <div className="xl:hidden space-y-4">
+            {filtered.map(({ trip, funded, status, remainingKg }) => {
               const range = formatDateRange(trip.fromDate, trip.toDate);
               const nights = tripNights(trip.fromDate, trip.toDate);
               return (
@@ -351,12 +346,10 @@ export default function MyTrips() {
                         </Badge>
                       </div>
                       <div className="flex gap-2">
-                        <OffsetBadge planted={planted} needed={trip.treesNeeded} />
+                        <OffsetBadge status={status} />
                       </div>
                     </div>
-                    <CardTitle className="text-lg">
-                      {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
-                    </CardTitle>
+                    <CardTitle className="text-lg">{tripRouteLabel(trip)}</CardTitle>
                     <CardDescription>
                       {range.dateText} ({range.daysText})
                     </CardDescription>
@@ -364,7 +357,7 @@ export default function MyTrips() {
                   <CardContent className="space-y-3">
                     <div className="text-sm">
                       <div className="text-muted-foreground mb-1">
-                        {TRAVEL_CLASS_LABELS[trip.travelClass]}, {trip.isReturn ? "Return" : "One-way"}
+                        {TRAVEL_CLASS_LABELS[trip.travelClass]}, {tripTypeLabel(trip)}
                       </div>
                       <div className="text-muted-foreground">{ACCOMMODATION_LABELS[trip.accommodationType]}</div>
                       {trip.numTravelers > 1 && <div className="text-muted-foreground">{trip.numTravelers} travelers</div>}
@@ -397,21 +390,26 @@ export default function MyTrips() {
                       <div className="flex justify-between items-center text-accent font-medium">
                         <span className="flex items-center gap-1">
                           <Leaf className="h-3 w-3" />
-                          Trees planted:
+                          Trees funded:
                         </span>
-                        <span>{planted}</span>
+                        <span>{funded}</span>
                       </div>
+                      {status !== "fully" && (
+                        <div className="flex justify-between pt-1 border-t">
+                          <span className="text-muted-foreground">CO₂ left to offset:</span>
+                          <span className="font-semibold">{kg(remainingKg)}</span>
+                        </div>
+                      )}
                     </div>
 
+                    <PendingPaymentLink trip={trip} />
+
                     <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => offsetTrip(trip)} className="flex-1" disabled={planted >= trip.treesNeeded}>
-                        <Leaf className="h-3 w-3 mr-1" />
-                        Offset Emissions
-                      </Button>
+                      <OffsetTripButton trip={trip} label="Offset emissions" className="flex-1" />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="h-9 w-9 p-0">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button size="sm" variant="outline" className="h-9 w-9 p-0 ml-auto" aria-label={`Actions for trip ${trip.friendlyTripId}`}>
+                            <MoreVertical className="h-4 w-4" aria-hidden />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -419,7 +417,7 @@ export default function MyTrips() {
                             <Eye className="h-4 w-4 mr-2" />
                             Trip Details
                           </DropdownMenuItem>
-                          {planted === 0 ? (
+                          {funded === 0 ? (
                             <DropdownMenuItem onClick={() => setDeletingId(trip.id)} className="text-destructive focus:text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete Trip
@@ -441,7 +439,7 @@ export default function MyTrips() {
         </>
       )}
 
-      <TripDetailsDialog trip={details} donations={state.donations} onClose={() => setDetails(null)} />
+      <TripDetailsDialog trip={details} onClose={() => setDetails(null)} />
 
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
         <AlertDialogContent>

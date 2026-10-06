@@ -1,5 +1,6 @@
 import type { PayoutStatus, PlantationRequestStatus, VendorRequestStatus } from "@/types/otot";
 import { PAYOUT_STATUS_LABEL } from "@/lib/payouts";
+import { REQUEST_STATUS_LABEL } from "@/lib/plantingStatus";
 
 export const C = {
   green: "#3B6D11",
@@ -35,13 +36,8 @@ export const REQUEST_STATUS_ORDER: PlantationRequestStatus[] = [
   "completed",
 ];
 
-export const REQUEST_STATUS_LABELS: Record<PlantationRequestStatus, string> = {
-  unassigned: "Waiting to be assigned",
-  assigned: "Assigned",
-  in_progress: "In progress",
-  ready_for_review: "Ready for review",
-  completed: "Completed",
-};
+/** Same words as the Ministry: "Reported planted" until the Ministry verifies it. */
+export const REQUEST_STATUS_LABELS: Record<PlantationRequestStatus, string> = REQUEST_STATUS_LABEL;
 
 export const REQUEST_STATUS_COLORS: Record<PlantationRequestStatus, string> = {
   unassigned: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
@@ -61,10 +57,11 @@ export const REQUEST_STATUS_BAR: Record<PlantationRequestStatus, string> = {
 
 export const VENDOR_STATUS_ORDER: VendorRequestStatus[] = ["assigned", "in_progress", "completed"];
 
+/** A ticket marked completed is the agent reporting the work done; the Ministry still verifies it. */
 export const VENDOR_STATUS_LABELS: Record<VendorRequestStatus, string> = {
   assigned: "Assigned",
   in_progress: "In progress",
-  completed: "Completed",
+  completed: "Reported done",
 };
 
 export const VENDOR_STATUS_COLORS: Record<VendorRequestStatus, string> = {

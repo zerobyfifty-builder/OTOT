@@ -1,57 +1,94 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowRight, Check, ClipboardList, Handshake, MapPin, Plane, Sprout, TreePine, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ClipboardCheck,
+  ClipboardList,
+  Handshake,
+  Info,
+  MapPin,
+  Plane,
+  Sprout,
+  TreePine,
+  Wallet,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { redirectToCheckout } from "@/lib/checkout";
+import { checkoutActionLabel, checkoutMethodFromMode, checkoutReady, redirectToCheckout } from "@/lib/checkout";
 import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { kg, kes, shortDate, treeCount, usd } from "@/lib/format";
-import { airportCity } from "@/lib/trips";
+import { splitCharges } from "@/lib/charges";
+import { DIRECT_DONATION } from "@/lib/offsetLabels";
+import { tripRouteLabel } from "@/lib/trips";
 import { PLANTED_HERE, toTouristStage } from "@/lib/treeStages";
 import { cn } from "@/lib/utils";
-import type { AllocationStatus, CheckoutMethod, PaymentAllocation, RecipientType } from "@/types/otot";
-import {
-  CheckoutMethodFields,
-  checkoutActionLabel,
-  checkoutMethodFromMode,
-  checkoutReady,
-} from "@/components/shared/CheckoutMethodFields";
+import type { CheckoutMethod, Payment, PaymentStatus, StoreSettings } from "@/types/otot";
+import { CheckoutMethodFields } from "@/components/shared/CheckoutMethodFields";
 import { SimulatePaymentButton } from "@/components/shared/SimulatePaymentButton";
 import { TouristPage } from "@/components/layout/TouristPage";
 import { Button } from "@/components/ui/button";
 import treeSilhouette from "@/assets/tree-green-cropped.png";
 import "@/styles/donation-ticket.css";
 
-/** How far the stub tree has grown at each point of the journey (0 = unpaid … 5 = planted). */
-const GROWTH = [0.06, 0.24, 0.42, 0.62, 0.82, 1];
+/** How far the stub tree has grown at each point of the journey (0 = unpaid … 6 = planted). */
+const GROWTH = [0.06, 0.2, 0.36, 0.52, 0.68, 0.84, 1];
 
-const PAYOUT_LABELS: Record<AllocationStatus, string> = {
-  pending: "Queued for payout",
-  initiated: "Paying out",
-  in_progress: "Paying out",
-  transferred: "Paid out",
-  failed: "Payout retrying",
+const REFRESH_MS = 5_000;
+const REFRESH_LIMIT_MS = 10 * 60_000;
+
+const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  success: "Confirmed",
+  pending: "Waiting for confirmation",
+  failed: "Failed",
+  refunded: "Refunded",
 };
 
 export default function DonationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { session } = useAuth();
-  const { state, retryDonationCheckout, simulatePaymentSuccess } = useStore();
+  const { state, refresh, retryDonationCheckout, simulatePaymentSuccess } = useStore();
   const [retrying, setRetrying] = useState(false);
   const [simulating, setSimulating] = useState(false);
   const [method, setMethod] = useState<CheckoutMethod | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [grown, setGrown] = useState(false);
   const donation = state.donations.find((d) => d.id === id);
-  const payment = state.payments
+  const payments = state.payments
     .filter((p) => p.donationId === id)
     .slice()
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+  // The payment that paid for the donation, else the latest attempt.
+  const payment =
+    payments.find((p) => p.status === "success" && !p.issue) ?? payments.find((p) => p.status === "success") ?? payments[0];
+  const duplicate = payments.find((p) => p.issue === "duplicate");
   const request = state.plantationRequests.find((r) => r.donationIds.includes(id ?? ""));
   const retryMethod = method ?? checkoutMethodFromMode(payment?.paymentMode);
+  const pendingPaymentId = payment?.status === "pending" ? payment.id : null;
+
+  useEffect(() => {
+    // Pick up the webhook's confirmation while the payment is still open.
+    if (!pendingPaymentId) return;
+    let alive = true;
+    let timer: number | undefined;
+    const startedAt = Date.now();
+    const schedule = () => {
+      if (!alive || Date.now() - startedAt >= REFRESH_LIMIT_MS) return;
+      timer = window.setTimeout(() => void tick(), REFRESH_MS);
+    };
+    const tick = async () => {
+      if (!document.hidden) await refresh().catch(() => undefined);
+      schedule();
+    };
+    schedule();
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+    };
+  }, [pendingPaymentId, refresh]);
 
   useEffect(() => {
     // Let the bare silhouette paint first, then grow it to the current stage.
@@ -69,17 +106,36 @@ export default function DonationDetail() {
 
   const trip = donation.tripId ? state.trips.find((t) => t.id === donation.tripId) : undefined;
   const partner = request?.partnerId ? state.vendors.find((v) => v.id === request.partnerId) : undefined;
-  const allocations = payment ? state.paymentAllocations.filter((a) => a.paymentId === payment.id) : [];
   const trees = treeCount(donation.trees);
   const paid = donation.status === "paid";
+  const refunded = donation.status === "refunded";
   const stage = toTouristStage(request?.status);
-  const reached = !paid ? 0 : !request ? 1 : { waiting: 2, assigned: 3, scheduled: 4, planted: 5 }[stage];
+  const reached = !paid ? 0 : !request ? 1 : { waiting: 2, assigned: 3, scheduled: 4, verifying: 5, planted: 6 }[stage];
 
-  const headline = !paid
-    ? payment?.status === "failed"
-      ? "Payment didn't go through"
-      : "Waiting for your payment"
-    : { waiting: "Waiting for a planting partner", assigned: "A partner has your trees", scheduled: "Planting is underway", planted: "Your trees are in the ground" }[stage];
+  const headline = refunded
+    ? "This donation was refunded"
+    : !paid
+      ? payment?.status === "failed"
+        ? "Payment didn't go through"
+        : "Waiting for your payment"
+      : {
+          waiting: "Waiting for a planting partner",
+          assigned: "A partner has your trees",
+          scheduled: "Planting is underway",
+          verifying: "The Ministry is verifying the planting",
+          planted: "Your trees are in the ground",
+        }[stage];
+
+  const paymentNotice = (() => {
+    if (duplicate) {
+      return duplicate.status === "refunded"
+        ? "You were charged twice for this donation. The extra payment has been refunded."
+        : "You were charged twice for this donation; the extra payment will be refunded.";
+    }
+    if (refunded || payment?.status === "refunded") return "This payment was refunded to you.";
+    if (payment?.issue) return "We're reviewing this payment with Afrinet. You don't need to do anything; we'll update this page.";
+    return null;
+  })();
 
   const markPaid = async () => {
     if (!payment) return;
@@ -135,6 +191,11 @@ export default function DonationDetail() {
       detail: "Seedlings are raised and carried to the site.",
     },
     {
+      icon: ClipboardCheck,
+      title: "Verifying planting",
+      detail: "The Ministry checks the partner's report before counting your trees as planted.",
+    },
+    {
       icon: TreePine,
       title: "In the ground",
       detail: `Planted at ${PLANTED_HERE}.`,
@@ -169,7 +230,7 @@ export default function DonationDetail() {
                 <div className="mt-1 flex items-start gap-2 font-semibold">
                   <Plane className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(150_62%_32%)]" aria-hidden />
                   <div className="min-w-0">
-                    {trip ? `${airportCity(trip.originAirport)} → ${airportCity(trip.destinationAirport)}` : "Direct gift"}
+                    {trip ? tripRouteLabel(trip) : DIRECT_DONATION}
                   </div>
                 </div>
               </div>
@@ -208,7 +269,7 @@ export default function DonationDetail() {
                       {trip.friendlyTripId}
                     </Link>
                   ) : (
-                    "No trip linked"
+                    DIRECT_DONATION
                   )}
                 </dd>
               </div>
@@ -219,7 +280,11 @@ export default function DonationDetail() {
             <div>
               <div className="text-xl font-semibold leading-snug text-balance">{headline}</div>
               <div className="mt-1.5 text-sm text-[hsl(96_45%_80%)]">
-                {paid ? `${reached} of 5 steps done` : "The journey starts once you pay"}
+                {refunded
+                  ? "Refunded"
+                  : paid
+                    ? `${reached} of ${steps.length} steps done`
+                    : "The journey starts once you pay"}
               </div>
             </div>
             <div
@@ -232,6 +297,13 @@ export default function DonationDetail() {
             </div>
           </div>
         </section>
+
+        {paymentNotice && (
+          <section className="donation-panel flex items-start gap-3 p-5 sm:p-6" role="status">
+            <Info className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(150_62%_32%)]" aria-hidden />
+            <div className="text-sm leading-relaxed">{paymentNotice}</div>
+          </section>
+        )}
 
         {payment?.status === "pending" && (
           <section className="donation-panel p-6 sm:p-8 space-y-4">
@@ -250,7 +322,7 @@ export default function DonationDetail() {
           </section>
         )}
 
-        {payment?.status === "failed" && (
+        {payment?.status === "failed" && !paid && !refunded && (
           <section className="donation-panel p-6 sm:p-8 space-y-4">
             <h2 className="dt-h font-semibold">Try the payment again</h2>
             {payment.failureMessage && <div className="text-sm text-destructive">{payment.failureMessage}</div>}
@@ -273,7 +345,7 @@ export default function DonationDetail() {
           <h2 id="journey-heading" className="dt-h font-semibold">
             From payment to planted
           </h2>
-          <ol className="mt-6 grid gap-0 md:grid-cols-5 md:gap-4">
+          <ol className="mt-6 grid gap-0 md:grid-cols-6 md:gap-4">
             {steps.map((step, index) => {
               const done = index < reached;
               const current = index === reached;
@@ -314,7 +386,7 @@ export default function DonationDetail() {
 
         {payment && (
           <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.4fr_1fr]">
-            <MoneySplit amount={payment.amount} split={payment.transactionChargesSplit} allocations={allocations} />
+            <MoneySplit payment={payment} settings={state.settings} />
 
             <section className="donation-panel p-6 sm:p-8" aria-labelledby="payment-heading">
               <h2 id="payment-heading" className="dt-h font-semibold">
@@ -322,10 +394,7 @@ export default function DonationDetail() {
               </h2>
               <dl className="mt-5 space-y-4 text-sm">
                 <Row label="Method" value={payment.paymentMode} />
-                <Row
-                  label="Status"
-                  value={{ success: "Confirmed", pending: "Waiting for confirmation", failed: "Failed" }[payment.status]}
-                />
+                <Row label="Status" value={PAYMENT_STATUS_LABELS[payment.status]} />
                 {payment.amountKes != null && <Row label="Charged" value={kes(payment.amountKes)} />}
                 {payment.mpesaReceipt && <Row label="M-Pesa receipt" value={payment.mpesaReceipt} mono />}
                 {payment.afrinetTransactionCode && <Row label="Transaction" value={payment.afrinetTransactionCode} mono />}
@@ -357,58 +426,74 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   );
 }
 
-const SHARES: { key: "plantation" | "ministry" | "platform" | "processor"; recipient?: RecipientType; label: string; note: string; color: string }[] = [
-  { key: "plantation", recipient: "partner", label: "Planting partner", note: "Seedlings, planting and care", color: "hsl(150 62% 30%)" },
-  { key: "ministry", recipient: "ministry", label: "Ministry", note: "Site oversight and verification", color: "hsl(178 48% 36%)" },
-  { key: "platform", recipient: "otot", label: "OTOT", note: "Running One Tourist One Tree", color: "hsl(96 52% 52%)" },
-  { key: "processor", label: "Afrinet fee", note: "Payment processing", color: "hsl(40 75% 55%)" },
+type ShareKey = "plantation" | "ministry" | "platform" | "processor";
+
+const SHARES: { key: ShareKey; label: string; note: string; color: string }[] = [
+  { key: "plantation", label: "Planting partner", note: "Seedlings, planting and care", color: "hsl(150 62% 30%)" },
+  { key: "ministry", label: "Ministry", note: "Site oversight and verification", color: "hsl(178 48% 36%)" },
+  { key: "platform", label: "OTOT", note: "Running One Tourist One Tree", color: "hsl(96 52% 52%)" },
+  { key: "processor", label: "Afrinet fees", note: "Payment processing and transfers", color: "hsl(40 75% 55%)" },
 ];
 
-function MoneySplit({
-  amount,
-  split,
-  allocations,
-}: {
-  amount: number;
-  split: Record<(typeof SHARES)[number]["key"], number>;
-  allocations: PaymentAllocation[];
-}) {
-  const total = SHARES.reduce((sum, s) => sum + split[s.key], 0) || amount || 1;
+/**
+ * Whole-shilling split of what was charged, mirroring splitKes in bakend: the
+ * payment's recorded fees when settled, else today's rates. Without a KES
+ * amount, fall back to the dollar split.
+ */
+function moneySplit(payment: Payment, settings: StoreSettings): { total: string; shares: Record<ShareKey, string>; widths: Record<ShareKey, number> } {
+  if (payment.amountKes == null) {
+    const split = splitCharges(payment.amount, settings);
+    return {
+      total: usd(payment.amount),
+      shares: { plantation: usd(split.plantation), ministry: usd(split.ministry), platform: usd(split.platform), processor: usd(split.processor) },
+      widths: split,
+    };
+  }
+  const gross = payment.amountKes;
+  const fee = payment.feeKes ?? Math.round((gross * settings.chargeFeePct) / 100);
+  const payoutFee = payment.payoutFeeKes ?? Math.round((gross * settings.payoutFeePct) / 100);
+  const net = Math.max(0, gross - fee - payoutFee);
+  const platform = Math.round(net * 0.15);
+  const ministry = Math.round(net * 0.15);
+  const widths = { plantation: net - platform - ministry, ministry, platform, processor: fee + payoutFee };
+  return {
+    total: kes(gross),
+    shares: { plantation: kes(widths.plantation), ministry: kes(ministry), platform: kes(platform), processor: kes(widths.processor) },
+    widths,
+  };
+}
+
+function MoneySplit({ payment, settings }: { payment: Payment; settings: StoreSettings }) {
+  const { total, shares, widths } = moneySplit(payment, settings);
+  const sum = SHARES.reduce((acc, s) => acc + widths[s.key], 0) || 1;
   return (
     <section className="donation-panel p-6 sm:p-8" aria-labelledby="split-heading">
       <h2 id="split-heading" className="dt-h font-semibold">
-        Where your {usd(amount)} goes
+        Where your {total} goes
       </h2>
+      {payment.amountKes != null && (
+        <div className="mt-1 text-sm text-[var(--dt-ink-muted)]">{usd(payment.amount)} charged in Kenyan shillings</div>
+      )}
       <div className="mt-5 flex h-4 overflow-hidden rounded-full bg-[hsl(110_20%_92%)]" aria-hidden>
-        {SHARES.filter((s) => split[s.key] > 0).map((s) => (
+        {SHARES.filter((s) => widths[s.key] > 0).map((s) => (
           <div
             key={s.key}
-            style={{ width: `${(split[s.key] / total) * 100}%`, background: s.color }}
+            style={{ width: `${(widths[s.key] / sum) * 100}%`, background: s.color }}
             className="h-full border-r-2 border-[var(--dt-paper)] last:border-r-0"
           />
         ))}
       </div>
       <ul className="mt-6 space-y-4">
-        {SHARES.map((s) => {
-          const allocation = s.recipient ? allocations.find((a) => a.recipientType === s.recipient) : undefined;
-          return (
-            <li key={s.key} className="flex items-start gap-3">
-              <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.color }} aria-hidden />
-              <div className="min-w-0 flex-1">
-                <div className="font-medium">{s.label}</div>
-                <div className="text-sm text-[var(--dt-ink-muted)]">{s.note}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold tabular-nums">{usd(split[s.key])}</div>
-                {allocation && (
-                  <div className="text-xs tabular-nums text-[var(--dt-ink-muted)]">
-                    {kes(allocation.amountKes)} · {PAYOUT_LABELS[allocation.status]}
-                  </div>
-                )}
-              </div>
-            </li>
-          );
-        })}
+        {SHARES.map((s) => (
+          <li key={s.key} className="flex items-start gap-3">
+            <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.color }} aria-hidden />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">{s.label}</div>
+              <div className="text-sm text-[var(--dt-ink-muted)]">{s.note}</div>
+            </div>
+            <div className="text-right font-semibold tabular-nums">{shares[s.key]}</div>
+          </li>
+        ))}
       </ul>
     </section>
   );

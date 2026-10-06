@@ -1,13 +1,21 @@
 import { useMemo, useState } from "react";
-import { Search, Users } from "lucide-react";
+import { Search, UserPlus, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { roleLabel } from "@/lib/portal";
-import { DateTimeCell, EmptyCard, PartnerPageHeader, Spinner, StaticHead } from "@/components/partner/PartnerUI";
+import {
+  AccountStatus,
+  CreateStaffDialog,
+  StaffAccountActions,
+  TemporaryPasswordDialog,
+  type IssuedCredentials,
+} from "@/components/admin/StaffAccounts";
+import { DateTimeCell, EmptyCard, PartnerPageHeader, Spinner, StaticHead, TablePager } from "@/components/partner/PartnerUI";
 import { PAGE_SIZE } from "@/components/partner/partnerTheme";
 import { useRefresh } from "@/components/partner/useRefresh";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,8 +33,16 @@ export default function PartnerTeam() {
   const { refreshing, run: handleRefresh } = useRefresh(refresh);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const members = state.users.filter((u) => u.vendorId === session?.vendorId);
+  const [page, setPage] = useState(1);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [credentials, setCredentials] = useState<IssuedCredentials | null>(null);
+  const members = useMemo(
+    () => state.users.filter((u) => u.vendorId === session?.vendorId),
+    [state.users, session?.vendorId],
+  );
   const vendor = state.vendors.find((v) => v.id === session?.vendorId);
+  // A partner admin manages field agents only; other admins are managed by the Super Admin.
+  const canManage = session?.role === "partner_admin";
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -36,6 +52,9 @@ export default function PartnerTeam() {
       return `${u.name} ${u.email}`.toLowerCase().includes(q);
     });
   }, [members, roleFilter, search]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+  const pageRows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -44,6 +63,14 @@ export default function PartnerTeam() {
         subtitle={vendor ? `${vendor.name} · organization members and their roles` : "Organization members and their roles"}
         onRefresh={handleRefresh}
         refreshing={refreshing}
+        actions={
+          canManage ? (
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add field agent
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -51,7 +78,10 @@ export default function PartnerTeam() {
           <h2 className="text-xl font-semibold">
             {members.length} {members.length === 1 ? "Member" : "Members"}
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">Vendor admins and field agents with portal access</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Partner admins and field agents with portal access. You can add field agents, reset their passwords or
+            deactivate them.
+          </p>
         </div>
       </div>
 
@@ -60,12 +90,21 @@ export default function PartnerTeam() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search by name or email"
             className="pl-10"
           />
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
+        <Select
+          value={roleFilter}
+          onValueChange={(value) => {
+            setRoleFilter(value);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
@@ -90,18 +129,20 @@ export default function PartnerTeam() {
                   <StaticHead label="Name" />
                   <StaticHead label="Email" />
                   <StaticHead label="Job Role" />
+                  <StaticHead label="Status" />
                   <StaticHead label="Joined" />
+                  {canManage && <StaticHead label={<span className="sr-only">Actions</span>} className="w-10" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={canManage ? 6 : 5} className="text-center py-12 text-muted-foreground">
                       No members match this search.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filtered.slice(0, PAGE_SIZE).map((u) => (
+                  pageRows.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -125,16 +166,38 @@ export default function PartnerTeam() {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        <AccountStatus user={u} />
+                      </TableCell>
+                      <TableCell>
                         <DateTimeCell value={u.createdAt} />
                       </TableCell>
+                      {canManage && (
+                        <TableCell>
+                          {u.role === "partner_agent" && u.id !== session?.userId && (
+                            <StaffAccountActions user={u} onCredentials={setCredentials} />
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
           </div>
+          {filtered.length > PAGE_SIZE && <TablePager page={current} total={filtered.length} onPage={setPage} />}
         </Card>
       )}
+
+      {canManage && session?.vendorId && (
+        <CreateStaffDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          roles={["partner_agent"]}
+          fixedVendorId={session.vendorId}
+          onCreated={setCredentials}
+        />
+      )}
+      <TemporaryPasswordDialog credentials={credentials} onClose={() => setCredentials(null)} />
     </div>
   );
 }

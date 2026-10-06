@@ -1,18 +1,9 @@
-import { useEffect, useState } from "react";
-import { loadAppEnv, simulationAllowed } from "@/lib/appEnv";
+import { useStore } from "@/contexts/StoreContext";
 
+/**
+ * The API decides: simulation is off in production and wherever live Afrinet
+ * keys are set (unless ALLOW_SIMULATION is on).
+ */
 export function useSimulationAllowed(): boolean {
-  const [allowed, setAllowed] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    void loadAppEnv().then((env) => {
-      if (alive) setAllowed(simulationAllowed(env));
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  return allowed;
+  return useStore().state.settings.simulationAllowed;
 }

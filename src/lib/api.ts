@@ -3,11 +3,14 @@ const LEGACY_SESSION_KEY = "otot.mock-session";
 
 export class ApiError extends Error {
   status: number;
+  /** Server error code, e.g. "payment_pending" or "password_change_required". */
+  code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -51,11 +54,9 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   const data: unknown =
     res.status === 204 ? {} : await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message =
-      data && typeof data === "object" && "error" in data && typeof data.error === "string"
-        ? data.error
-        : "Request failed";
-    throw new ApiError(res.status, message);
+    const body = data && typeof data === "object" ? (data as { error?: unknown; code?: unknown }) : {};
+    const message = typeof body.error === "string" ? body.error : "Request failed";
+    throw new ApiError(res.status, message, typeof body.code === "string" ? body.code : undefined);
   }
   return data as T;
 }

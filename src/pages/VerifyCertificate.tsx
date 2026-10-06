@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, FileText } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { PLANTED_HERE } from "@/lib/treeStages";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { CertificateRecord } from "@/types/otot";
@@ -40,6 +41,7 @@ export default function VerifyCertificate() {
               <p><span className="text-muted-foreground">Type:</span> {certificate.certificateType} Certificate</p>
               <p><span className="text-muted-foreground">Issued:</span> {new Date(certificate.issuedDate).toLocaleDateString()}</p>
               {certificate.numTrees !== undefined && <p><span className="text-muted-foreground">Trees planted:</span> {certificate.numTrees}</p>}
+              {certificate.certificateType === "Tree Planting" && <p><span className="text-muted-foreground">Planted at:</span> {certificate.location ?? PLANTED_HERE}</p>}
               <p className="break-all text-xs text-muted-foreground">ID: {certificate.id}</p>
             </>
           ) : !loading ? <p className="text-muted-foreground">Check the certificate ID or ask the holder for a current copy.</p> : null}

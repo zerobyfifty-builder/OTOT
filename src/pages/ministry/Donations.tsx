@@ -3,14 +3,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { kg, shortDate, treeCount, usd } from "@/lib/format";
+import { kes, kg, shortDate, treeCount, usd } from "@/lib/format";
+import { receivedKesByDonation } from "@/lib/ledger";
+import { REQUEST_STATUS_LABEL } from "@/lib/plantingStatus";
+import { usePagination } from "@/components/admin/usePagination";
 import {
   MinistryStatusBadge,
   SortableHead,
   TablePagination,
   TableToolbar,
 } from "@/components/ministry/TableControls";
-import { compareValues, paginate, type SortDirection } from "@/components/ministry/utils";
+import { compareValues, type SortDirection } from "@/components/ministry/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,46 +22,50 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const NO_REQUEST = "no_request";
 
-type SortField = "tourist" | "treeType" | "quantity" | "status" | "offset" | "amount" | "createdAt";
+type SortField = "tourist" | "treeType" | "quantity" | "status" | "offset" | "amountKes" | "createdAt";
 
 export default function MinistryDonations() {
   const { session } = useAuth();
   const { state, loading, createPlantationRequest } = useStore();
-  const canWrite = session?.role === "ministry_admin";
+  // Super Admin can open the Ministry screens and acts with Ministry admin rights.
+  const canWrite = session?.role === "ministry_admin" || session?.role === "super_admin";
   const [partnerByDonation, setPartnerByDonation] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  const activeVendors = state.vendors.filter((v) => v.status === "active");
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
-  const rows = useMemo(
-    () =>
-      state.donations
-        .filter((d) => d.status === "paid")
-        .map((d) => {
-          const request = state.plantationRequests.find((r) => r.donationIds.includes(d.id));
-          return {
-            donation: d,
-            request,
-            tourist: state.users.find((u) => u.id === d.userId)?.email ?? "Unknown",
-            treeType: d.trees.map((t) => t.treeType).join(", "),
-            quantity: treeCount(d.trees),
-            status: request?.status ?? NO_REQUEST,
-            offset: d.carbonOffsetKg,
-            amount: d.amount,
-            createdAt: d.createdAt,
-          };
-        }),
-    [state.donations, state.plantationRequests, state.users],
-  );
+  const rows = useMemo(() => {
+    const received = receivedKesByDonation(state);
+    return state.donations
+      .filter((d) => d.status === "paid")
+      .map((d) => {
+        const request = state.plantationRequests.find((r) => r.donationIds.includes(d.id));
+        const user = state.users.find((u) => u.id === d.userId);
+        return {
+          donation: d,
+          request,
+          // View-only Ministry users don't receive tourists' emails.
+          tourist: user?.email || user?.name || "Unknown",
+          treeType: d.trees.map((t) => t.treeType).join(", "),
+          quantity: treeCount(d.trees),
+          status: request?.status ?? NO_REQUEST,
+          offset: d.carbonOffsetKg,
+          amountKes: received.get(d.id) ?? 0,
+          createdAt: d.createdAt,
+        };
+      });
+  }, [state]);
 
   const statusOptions = useMemo(
     () =>
       Array.from(new Set(rows.map((r) => r.status)))
         .sort()
-        .map((value) => ({ value, label: value === NO_REQUEST ? "No request" : value.replace(/_/g, " ") })),
+        .map((value) => ({
+          value,
+          label: value === NO_REQUEST ? "No request" : REQUEST_STATUS_LABEL[value as keyof typeof REQUEST_STATUS_LABEL],
+        })),
     [rows],
   );
 
@@ -67,13 +74,17 @@ export default function MinistryDonations() {
     return rows
       .filter(
         (r) =>
-          (!q || r.tourist.toLowerCase().includes(q) || r.treeType.toLowerCase().includes(q)) &&
+          (!q ||
+            r.tourist.toLowerCase().includes(q) ||
+            r.treeType.toLowerCase().includes(q) ||
+            r.donation.id.toLowerCase().includes(q)) &&
           (statusFilter === "all" || r.status === statusFilter),
       )
       .sort((a, b) => compareValues(a[sortField], b[sortField], sortDirection));
   }, [rows, searchQuery, statusFilter, sortField, sortDirection]);
 
-  const pageRows = paginate(sortedRows, currentPage, pageSize);
+  // usePagination clamps the page when filters or new requests shrink the list.
+  const pager = usePagination(sortedRows, 10);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -111,20 +122,17 @@ export default function MinistryDonations() {
                 search={searchQuery}
                 onSearchChange={(v) => {
                   setSearchQuery(v);
-                  setCurrentPage(1);
+                  pager.resetPage();
                 }}
-                searchPlaceholder="Search by email, tree type..."
+                searchPlaceholder="Search by tourist, tree type or donation ID..."
                 status={statusFilter}
                 onStatusChange={(v) => {
                   setStatusFilter(v);
-                  setCurrentPage(1);
+                  pager.resetPage();
                 }}
                 statusOptions={statusOptions}
-                pageSize={pageSize}
-                onPageSizeChange={(v) => {
-                  setPageSize(v);
-                  setCurrentPage(1);
-                }}
+                pageSize={pager.pageSize}
+                onPageSizeChange={pager.setPageSize}
               />
 
               <div className="border rounded-lg overflow-x-auto">
@@ -140,16 +148,16 @@ export default function MinistryDonations() {
                       <SortableHead align="right" onClick={() => handleSort("offset")}>
                         CO₂ Offset
                       </SortableHead>
-                      <SortableHead align="right" onClick={() => handleSort("amount")}>
-                        Amount
+                      <SortableHead align="right" onClick={() => handleSort("amountKes")}>
+                        Received
                       </SortableHead>
                       <SortableHead onClick={() => handleSort("createdAt")}>Created</SortableHead>
                       {canWrite && <TableHead>Assign Partner</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {pageRows.length > 0 ? (
-                      pageRows.map(({ donation: d, request, ...row }) => (
+                    {pager.pageRows.length > 0 ? (
+                      pager.pageRows.map(({ donation: d, request, ...row }) => (
                         <TableRow key={d.id}>
                           <TableCell className="font-medium">{row.tourist}</TableCell>
                           <TableCell>{row.treeType || "Not specified"}</TableCell>
@@ -162,7 +170,10 @@ export default function MinistryDonations() {
                             )}
                           </TableCell>
                           <TableCell className="text-right">{kg(row.offset)}</TableCell>
-                          <TableCell className="text-right">{usd(row.amount)}</TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <div className="tabular-nums">{kes(row.amountKes)}</div>
+                            <div className="text-xs text-muted-foreground">{usd(d.amount)}</div>
+                          </TableCell>
                           <TableCell className="whitespace-nowrap">{shortDate(row.createdAt)}</TableCell>
                           {canWrite && (
                             <TableCell>
@@ -175,10 +186,10 @@ export default function MinistryDonations() {
                                     onValueChange={(v) => setPartnerByDonation((p) => ({ ...p, [d.id]: v }))}
                                   >
                                     <SelectTrigger className="w-44">
-                                      <SelectValue placeholder="Partner" />
+                                      <SelectValue placeholder="Partner (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {state.vendors.map((v) => (
+                                      {activeVendors.map((v) => (
                                         <SelectItem key={v.id} value={v.id}>
                                           {v.name}
                                         </SelectItem>
@@ -219,11 +230,11 @@ export default function MinistryDonations() {
               </div>
 
               <TablePagination
-                currentPage={currentPage}
-                pageSize={pageSize}
-                total={sortedRows.length}
+                currentPage={pager.currentPage}
+                pageSize={pager.pageSize}
+                total={pager.totalCount}
                 noun="orders"
-                onPageChange={setCurrentPage}
+                onPageChange={pager.setPage}
               />
             </div>
           )}

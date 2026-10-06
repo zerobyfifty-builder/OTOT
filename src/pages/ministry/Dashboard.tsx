@@ -21,14 +21,22 @@ import {
 } from "lucide-react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxis, YAxis } from "recharts";
 import { useStore } from "@/contexts/StoreContext";
-import { kes, shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, usd } from "@/lib/format";
+import { receivedKesByDonation } from "@/lib/ledger";
 import { isOpenPayout } from "@/lib/payouts";
+import { plantingTotals } from "@/lib/plantingStatus";
 import { airportCountry } from "@/lib/trips";
 import { AccentStatCard, EmptyState, TableFrame } from "@/components/portal/PortalUI";
 import { ChartDateRangePicker } from "@/components/ministry/ChartDateRangePicker";
 import { ChartExportButton } from "@/components/ministry/ChartExportButton";
 import { MinistryStatusBadge } from "@/components/ministry/TableControls";
-import { EMPTY_RANGE, inDateRange, requestTrees, type ChartDateRange } from "@/components/ministry/utils";
+import {
+  EMPTY_RANGE,
+  inDateRange,
+  requestReceivedKes,
+  requestTrees,
+  type ChartDateRange,
+} from "@/components/ministry/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,7 +46,7 @@ const n = (value: number) => Math.round(value).toLocaleString("en-US");
 
 const chartConfig = {
   tourists: { label: "Tourists", color: "hsl(var(--primary))" },
-  revenue: { label: "Revenue ($)", color: "hsl(var(--accent))" },
+  revenue: { label: "Revenue (KES)", color: "hsl(var(--accent))" },
   trips: { label: "Trips", color: "hsl(var(--primary))" },
   pax: { label: "Passengers", color: "hsl(142 70% 55%)" },
 };
@@ -48,21 +56,24 @@ export default function MinistryDashboard() {
   const [countriesDateRange, setCountriesDateRange] = useState<ChartDateRange>(EMPTY_RANGE);
   const [tripsDateRange, setTripsDateRange] = useState<ChartDateRange>(EMPTY_RANGE);
 
+  const received = useMemo(() => receivedKesByDonation(state), [state]);
+
   const stats = useMemo(() => {
     const paid = state.donations.filter((d) => d.status === "paid");
     const requests = state.plantationRequests;
     const payouts = state.payouts.filter((p) => p.recipientType === "partner");
-    const shares = state.paymentAllocations;
-    const successPayments = state.payments.filter((p) => p.status === "success");
+    // Void shares (test money) are never paid, so they are not part of anyone's share.
+    const shares = state.paymentAllocations.filter((a) => a.status !== "void");
+    const settled = state.payments.filter((p) => p.status === "success" && p.issue !== "duplicate");
     const trips = state.trips;
     const totalVisitors = trips.reduce((s, t) => s + t.numTravelers, 0);
+    const planting = plantingTotals(state);
     return {
       paidCount: paid.length,
-      totalTrees: paid.reduce((s, d) => s + treeCount(d.trees), 0),
-      totalRevenue: paid.reduce((s, d) => s + d.amount, 0),
+      planting,
+      receivedKes: [...received.values()].reduce((s, v) => s + v, 0),
+      receivedUsd: paid.reduce((s, d) => s + d.amount, 0),
       co2Pledged: paid.reduce((s, d) => s + d.carbonOffsetKg, 0),
-      plantedTrees: requests.filter((r) => r.status === "completed").reduce((s, r) => s + requestTrees(state, r), 0),
-      allocatedTrees: requests.filter((r) => r.partnerId).reduce((s, r) => s + requestTrees(state, r), 0),
       flightCO2: trips.reduce((s, t) => s + t.flightCo2, 0),
       accommodationCO2: trips.reduce((s, t) => s + t.accommodationCo2, 0),
       totalCO2: trips.reduce((s, t) => s + t.totalCo2, 0),
@@ -75,24 +86,23 @@ export default function MinistryDashboard() {
       inProgress: requests.filter((r) => r.status === "assigned" || r.status === "in_progress").length,
       ready: requests.filter((r) => r.status === "ready_for_review").length,
       plantationShareKes: shares.filter((a) => a.recipientType === "partner").reduce((s, a) => s + a.amountKes, 0),
-      retainedKes:
-        shares.filter((a) => a.recipientType !== "partner").reduce((s, a) => s + a.amountKes, 0) +
-        successPayments.reduce((s, p) => s + (p.feeKes ?? 0), 0),
+      ototMinistryKes: shares.filter((a) => a.recipientType !== "partner").reduce((s, a) => s + a.amountKes, 0),
+      feesKes: settled.reduce((s, p) => s + (p.feeKes ?? 0) + (p.payoutFeeKes ?? 0), 0),
       paidOutKes: payouts.filter((p) => p.status === "transferred").reduce((s, p) => s + p.amountKes, 0),
       paidOutCount: payouts.filter((p) => p.status === "transferred").length,
       inFlight: payouts.filter((p) => isOpenPayout(p.status)),
       failedPayouts: payouts.filter((p) => p.status === "failed").length,
       activePartners: state.vendors.filter((v) => v.status === "active").length,
     };
-  }, [state]);
+  }, [state, received]);
 
   const revenueByTrip = useMemo(() => {
     const map: Record<string, number> = {};
     state.donations.forEach((d) => {
-      if (d.status === "paid" && d.tripId) map[d.tripId] = (map[d.tripId] || 0) + d.amount;
+      if (d.status === "paid" && d.tripId) map[d.tripId] = (map[d.tripId] || 0) + (received.get(d.id) ?? 0);
     });
     return map;
-  }, [state.donations]);
+  }, [state.donations, received]);
 
   const countriesChartData = useMemo(() => {
     const countryMap: Record<string, { tourists: number; revenue: number }> = {};
@@ -105,7 +115,7 @@ export default function MinistryDashboard() {
         countryMap[country].revenue += revenueByTrip[t.id] || 0;
       });
     return Object.entries(countryMap)
-      .map(([country, d]) => ({ country, tourists: d.tourists, revenue: Math.round(d.revenue * 100) / 100 }))
+      .map(([country, d]) => ({ country, tourists: d.tourists, revenue: Math.round(d.revenue) }))
       .sort((a, b) => b.revenue - a.revenue || b.tourists - a.tourists)
       .slice(0, 10);
   }, [state.trips, revenueByTrip, countriesDateRange]);
@@ -123,7 +133,7 @@ export default function MinistryDashboard() {
         periodMap[key].revenue += revenueByTrip[t.id] || 0;
       });
     return Object.entries(periodMap)
-      .map(([period, d]) => ({ period, trips: d.trips, pax: d.pax, revenue: Math.round(d.revenue * 100) / 100 }))
+      .map(([period, d]) => ({ period, trips: d.trips, pax: d.pax, revenue: Math.round(d.revenue) }))
       .sort((a, b) => a.period.localeCompare(b.period));
   }, [state.trips, revenueByTrip, tripsDateRange]);
 
@@ -133,8 +143,10 @@ export default function MinistryDashboard() {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div className="mb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Kenya Tourism Board</h1>
-        <p className="text-sm text-muted-foreground mt-1">Government Partner Dashboard</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Ministry Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          One Tourist One Tree: tourist funding, partner planting and payouts
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -143,14 +155,16 @@ export default function MinistryDashboard() {
         ) : (
           <>
             <AccentStatCard
-              label="Total Trees"
-              value={n(stats.totalTrees)}
+              label="Trees Funded"
+              value={n(stats.planting.funded)}
               icon={TreePine}
               accent={{ border: "border-l-primary", icon: "text-primary" }}
               breakdown={[
                 { label: "Contributions", value: stats.paidCount },
-                { label: "Planted & Verified", value: n(stats.plantedTrees), highlight: true },
-                { label: "Allocated", value: n(stats.allocatedTrees) },
+                { label: "Awaiting partner", value: n(stats.planting.awaitingPartner) },
+                { label: "Assigned", value: n(stats.planting.assigned) },
+                { label: "Reported planted", value: n(stats.planting.reported) },
+                { label: "Planted & Verified", value: n(stats.planting.verified), highlight: true },
               ]}
             />
             <AccentStatCard
@@ -168,10 +182,11 @@ export default function MinistryDashboard() {
               ]}
             />
             <AccentStatCard
-              label="Revenue"
-              value={usd(stats.totalRevenue)}
+              label="Received (KES)"
+              value={kes(stats.receivedKes)}
               icon={DollarSign}
               accent={{ border: "border-l-violet-500", icon: "text-violet-500" }}
+              breakdown={[{ label: "Tourists paid (USD)", value: usd(stats.receivedUsd) }]}
             />
             <AccentStatCard
               label="Trips"
@@ -194,7 +209,7 @@ export default function MinistryDashboard() {
               accent={{ border: "border-l-amber-500", icon: "text-amber-500" }}
               breakdown={[
                 { label: "Unassigned", value: stats.unassigned },
-                { label: "Ready to Complete", value: stats.ready, highlight: true },
+                { label: "Reported planted (to verify)", value: stats.ready, highlight: true },
               ]}
             />
           </>
@@ -202,19 +217,25 @@ export default function MinistryDashboard() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-violet-500" /> Financial Overview
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-violet-500" /> Financial Overview (KES)
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Afrinet fees come off first; the rest is split 15% OTOT, 15% Ministry and 70% partner.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {loading ? (
-            [...Array(5)].map((_, i) => <Skeleton key={i} className="h-20" />)
+            [...Array(6)].map((_, i) => <Skeleton key={i} className="h-20" />)
           ) : (
             <>
-              <MiniStatCard label="Gross Contributions" value={usd(stats.totalRevenue)} icon={Receipt} color="text-foreground" />
-              <MiniStatCard label="Plantation Share" value={kes(stats.plantationShareKes)} icon={CheckCircle2} color="text-primary" />
-              <MiniStatCard label="Retained (Platform, Ministry & Fees)" value={kes(stats.retainedKes)} icon={Building} color="text-violet-500" />
-              <MiniStatCard label="Transferred to Plantation" value={kes(stats.paidOutKes)} icon={ArrowUpRight} color="text-emerald-500" />
-              <MiniStatCard label="Pending Processing" value={kes(inFlightKes)} icon={Clock} color="text-amber-500" />
+              <MiniStatCard label="Received" value={kes(stats.receivedKes)} icon={Receipt} color="text-foreground" />
+              <MiniStatCard label="Afrinet Fees" value={kes(stats.feesKes)} icon={Receipt} color="text-muted-foreground" />
+              <MiniStatCard label="Partner Share" value={kes(stats.plantationShareKes)} icon={CheckCircle2} color="text-primary" />
+              <MiniStatCard label="OTOT & Ministry Shares" value={kes(stats.ototMinistryKes)} icon={Building} color="text-violet-500" />
+              <MiniStatCard label="Transferred to Partners" value={kes(stats.paidOutKes)} icon={ArrowUpRight} color="text-emerald-500" />
+              <MiniStatCard label="Partner Payouts in Progress" value={kes(inFlightKes)} icon={Clock} color="text-amber-500" />
             </>
           )}
         </div>
@@ -232,7 +253,7 @@ export default function MinistryDashboard() {
                     columns={[
                       { key: "country", label: "Country" },
                       { key: "tourists", label: "Tourists" },
-                      { key: "revenue", label: "Revenue ($)" },
+                      { key: "revenue", label: "Revenue (KES)" },
                     ]}
                     data={countriesChartData}
                     iconOnly
@@ -265,7 +286,7 @@ export default function MinistryDashboard() {
                     stroke="hsl(142 70% 45%)"
                     strokeWidth={2}
                     dot={{ fill: "hsl(142 70% 45%)", r: 3 }}
-                    name="Revenue ($)"
+                    name="Revenue (KES)"
                   />
                 </ComposedChart>
               </ChartContainer>
@@ -287,7 +308,7 @@ export default function MinistryDashboard() {
                       { key: "period", label: "Period" },
                       { key: "trips", label: "Trips" },
                       { key: "pax", label: "Passengers" },
-                      { key: "revenue", label: "Revenue ($)" },
+                      { key: "revenue", label: "Revenue (KES)" },
                     ]}
                     data={tripsChartData}
                     iconOnly
@@ -321,7 +342,7 @@ export default function MinistryDashboard() {
                     stroke="hsl(var(--accent))"
                     strokeWidth={2}
                     dot={{ fill: "hsl(var(--accent))", r: 3 }}
-                    name="Revenue ($)"
+                    name="Revenue (KES)"
                   />
                 </ComposedChart>
               </ChartContainer>
@@ -391,8 +412,8 @@ export default function MinistryDashboard() {
               iconClass="text-primary"
             />
             <ActivityRow
-              title="Ready for Review"
-              description={`${stats.ready} requests awaiting ministry sign-off`}
+              title="Reported Planted"
+              description={`${stats.ready} requests the partner reported done, awaiting your verification`}
               icon={BadgeCheck}
               iconClass="text-emerald-500"
             />
@@ -428,7 +449,7 @@ export default function MinistryDashboard() {
                     <TableHead>Created</TableHead>
                     <TableHead>Partner</TableHead>
                     <TableHead className="text-right">Trees</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Received</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -440,7 +461,7 @@ export default function MinistryDashboard() {
                         {state.vendors.find((v) => v.id === r.partnerId)?.name || "Unassigned"}
                       </TableCell>
                       <TableCell className="text-right">{n(requestTrees(state, r))}</TableCell>
-                      <TableCell className="text-right">{usd(r.amount)}</TableCell>
+                      <TableCell className="text-right">{kes(requestReceivedKes(received, r))}</TableCell>
                       <TableCell>
                         <MinistryStatusBadge status={r.status} />
                       </TableCell>

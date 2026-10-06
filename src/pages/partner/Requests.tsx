@@ -4,7 +4,10 @@ import { CheckCircle2, ChevronDown, ChevronRight, Clock, DollarSign, Search, Tre
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, treeCount } from "@/lib/format";
+import { partnerShareKesByDonation } from "@/lib/ledger";
+import { plantingTotals, requestDonationIds } from "@/lib/plantingStatus";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import {
   DateTimeCell,
   EmptyCard,
@@ -37,6 +40,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { PlantationRequest } from "@/types/otot";
+
+type Move = { request: PlantationRequest; agentId: string; fromAgent?: string };
 
 export default function PartnerRequests() {
   const { session } = useAuth();
@@ -47,32 +53,41 @@ export default function PartnerRequests() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [moving, setMoving] = useState<Move | null>(null);
   const vendorId = session?.vendorId;
   const requests = state.plantationRequests.filter((r) => r.partnerId === vendorId);
-  const agents = state.users.filter((u) => u.vendorId === vendorId && u.role === "partner_agent");
+  // Only active agents can take work; deactivated agents can't sign in.
+  const agents = state.users.filter((u) => u.vendorId === vendorId && u.role === "partner_agent" && u.active);
+  const userName = (id?: string) => state.users.find((u) => u.id === id)?.name;
+  const shareByDonation = partnerShareKesByDonation(state, vendorId);
 
-  const donationsFor = (donationIds: string[]) => state.donations.filter((d) => donationIds.includes(d.id));
-  const treesFor = (donationIds: string[]) =>
-    donationsFor(donationIds).reduce((total, d) => total + treeCount(d.trees), 0);
+  const donationsFor = (r: PlantationRequest) => {
+    const ids = new Set(requestDonationIds(r));
+    return state.donations.filter((d) => ids.has(d.id));
+  };
+  const shareFor = (r: PlantationRequest) =>
+    requestDonationIds(r).reduce((s, id) => s + (shareByDonation.get(id) ?? 0), 0);
 
-  const totalTrees = requests.reduce((s, r) => s + treesFor(r.donationIds), 0);
-  const completedTrees = requests
-    .filter((r) => r.status === "completed")
-    .reduce((s, r) => s + treesFor(r.donationIds), 0);
-  const plantingAmount = requests.reduce((s, r) => s + r.amount, 0);
+  const totals = plantingTotals(state, vendorId);
+  const shareTotal = requests.reduce((s, r) => s + shareFor(r), 0);
 
   const query = search.trim().toLowerCase();
   const filtered = [...requests]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .filter((r) => {
+      const vpr = state.vendorPlantationRequests.find((v) => v.plantationRequestId === r.id);
       if (statusFilter === "not_created") {
-        if (state.vendorPlantationRequests.some((v) => v.plantationRequestId === r.id)) return false;
+        if (vpr) return false;
       } else if (statusFilter !== "all" && r.status !== statusFilter) {
         return false;
       }
       if (!query) return true;
-      const species = donationsFor(r.donationIds).flatMap((d) => d.trees.map((t) => t.treeType.toLowerCase()));
-      return shortRef(r.id).toLowerCase().includes(query) || species.some((s) => s.includes(query));
+      const species = donationsFor(r).flatMap((d) => d.trees.map((t) => t.treeType.toLowerCase()));
+      return (
+        shortRef(r.id).toLowerCase().includes(query) ||
+        species.some((s) => s.includes(query)) ||
+        (userName(vpr?.assignedAgentId) ?? "").toLowerCase().includes(query)
+      );
     });
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const page = Math.min(currentPage, totalPages);
@@ -86,22 +101,37 @@ export default function PartnerRequests() {
       return next;
     });
 
+  const assign = async (r: PlantationRequest) => {
+    const agentId = agentPick[r.id];
+    if (!agentId) {
+      toast.error("Pick an agent first.");
+      return;
+    }
+    try {
+      await createVendorPlantationRequest(r.id, agentId);
+      setAgentPick((p) => ({ ...p, [r.id]: "" }));
+      toast.success(`Assigned to ${userName(agentId) ?? "the agent"}`);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <PartnerPageHeader
         title="Tree Orders"
-        subtitle="Plantation requests from the ministry — create a vendor request and assign it to a field agent"
+        subtitle="Plantation requests from the Ministry: give each one to a field agent, or move it to another agent"
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <IconStatCard label="Total Allocated" value={fmtNum(totalTrees)} icon={TreePine} tint={{ bg: "bg-primary/10", fg: "text-primary" }} />
-        <IconStatCard label="Completed" value={fmtNum(completedTrees)} icon={CheckCircle2} tint={{ bg: "bg-green-100", fg: "text-green-600" }} />
-        <IconStatCard label="Planting Amount" value={usd(plantingAmount)} icon={DollarSign} tint={{ bg: "bg-blue-100", fg: "text-blue-600" }} />
+        <IconStatCard label="Trees Assigned" value={fmtNum(totals.funded)} icon={TreePine} tint={{ bg: "bg-primary/10", fg: "text-primary" }} />
+        <IconStatCard label="Verified Planted" value={fmtNum(totals.verified)} icon={CheckCircle2} tint={{ bg: "bg-green-100", fg: "text-green-600" }} />
+        <IconStatCard label="Your Share" value={kes(shareTotal)} icon={DollarSign} tint={{ bg: "bg-blue-100", fg: "text-blue-600" }} />
         <IconStatCard
-          label="Pending Planting"
-          value={fmtNum(totalTrees - completedTrees)}
+          label="Not Yet Verified"
+          value={fmtNum(totals.funded - totals.verified)}
           icon={Clock}
           tint={{ bg: "bg-orange-100", fg: "text-orange-600" }}
         />
@@ -111,7 +141,7 @@ export default function PartnerRequests() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by order ID or species..."
+            placeholder="Search by order ID, species or agent..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -132,7 +162,7 @@ export default function PartnerRequests() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {REQUEST_STATUS_ORDER.map((s) => (
+            {REQUEST_STATUS_ORDER.filter((s) => s !== "unassigned").map((s) => (
               <SelectItem key={s} value={s}>
                 {REQUEST_STATUS_LABELS[s]}
               </SelectItem>
@@ -157,17 +187,21 @@ export default function PartnerRequests() {
                     <StaticHead label="Order ID" />
                     <StaticHead label="Date" />
                     <StaticHead label="Trees" />
-                    <StaticHead label="Planting Amnt" />
+                    <StaticHead label="Your Share" />
                     <StaticHead label="Request Status" />
-                    <StaticHead label="Vendor Request" />
+                    <StaticHead label="Agent Ticket" />
                     <StaticHead label="Assign Agent" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginated.map((r) => {
-                    const donations = donationsFor(r.donationIds);
+                    const donations = donationsFor(r);
                     const vpr = state.vendorPlantationRequests.find((v) => v.plantationRequestId === r.id);
                     const agent = vpr ? state.users.find((u) => u.id === vpr.assignedAgentId) : undefined;
+                    // A ticket can move until the work is reported done.
+                    const open =
+                      r.status !== "ready_for_review" && r.status !== "completed" && (!vpr || vpr.status !== "completed");
+                    const choices = agents.filter((a) => a.id !== vpr?.assignedAgentId);
                     const isExpanded = expanded.has(r.id);
                     const lines = donations.flatMap((d) => d.trees.map((t) => ({ ...t, donationId: d.id, createdAt: d.createdAt })));
                     return (
@@ -185,32 +219,52 @@ export default function PartnerRequests() {
                             <DateTimeCell value={r.createdAt} />
                           </TableCell>
                           <TableCell className="text-sm font-medium tabular-nums">{fmtNum(treeCount(donations.flatMap((d) => d.trees)))}</TableCell>
-                          <TableCell className="text-sm font-medium tabular-nums">{usd(r.amount)}</TableCell>
+                          <TableCell className="text-sm font-medium tabular-nums">{kes(shareFor(r))}</TableCell>
                           <TableCell>
                             <StatusPill label={REQUEST_STATUS_LABELS[r.status]} className={REQUEST_STATUS_COLORS[r.status]} />
+                            {r.reviewNote && r.status !== "completed" && (
+                              <div className="text-[11px] text-amber-700 mt-1 max-w-[220px] line-clamp-2" title={r.reviewNote}>
+                                Sent back by the Ministry: {r.reviewNote}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             {vpr ? (
                               <div className="leading-tight">
                                 <StatusPill label={VENDOR_STATUS_LABELS[vpr.status]} className={VENDOR_STATUS_COLORS[vpr.status]} />
-                                {agent && <div className="text-[11px] text-muted-foreground mt-1">{agent.name}</div>}
+                                {agent && (
+                                  <div className="text-[11px] text-muted-foreground mt-1">
+                                    {agent.name}
+                                    {!agent.active && " (inactive)"}
+                                  </div>
+                                )}
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">Not created</span>
+                              <span className="text-xs text-muted-foreground">No agent yet</span>
                             )}
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            {!vpr ? (
+                            {open ? (
                               <div className="flex items-center gap-1.5">
                                 <Select
                                   value={agentPick[r.id] || ""}
                                   onValueChange={(v) => setAgentPick((p) => ({ ...p, [r.id]: v }))}
                                 >
                                   <SelectTrigger className="w-[170px] h-7 text-xs border-2 border-primary/50 bg-primary/5 hover:border-primary font-medium text-left">
-                                    <SelectValue placeholder="Select agent" />
+                                    <SelectValue
+                                      placeholder={
+                                        choices.length
+                                          ? vpr
+                                            ? "Move to agent"
+                                            : "Select agent"
+                                          : agents.length
+                                            ? "No other active agents"
+                                            : "No active agents"
+                                      }
+                                    />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {agents.map((a) => (
+                                    {choices.map((a) => (
                                       <SelectItem key={a.id} value={a.id}>
                                         {a.name}
                                       </SelectItem>
@@ -219,22 +273,18 @@ export default function PartnerRequests() {
                                 </Select>
                                 <Button
                                   size="sm"
+                                  variant={vpr ? "outline" : "default"}
                                   className="h-7 px-3 text-xs font-semibold"
-                                  onClick={async () => {
-                                    const agentId = agentPick[r.id];
-                                    if (!agentId) {
-                                      toast.error("Pick an agent");
-                                      return;
-                                    }
-                                    try {
-                                      await createVendorPlantationRequest(r.id, agentId);
-                                      toast.success("Assigned to agent");
-                                    } catch (err) {
-                                      toast.error(apiErrorMessage(err));
+                                  disabled={!agentPick[r.id]}
+                                  onClick={() => {
+                                    if (vpr) {
+                                      setMoving({ request: r, agentId: agentPick[r.id], fromAgent: agent?.name });
+                                    } else {
+                                      void assign(r);
                                     }
                                   }}
                                 >
-                                  Assign
+                                  {vpr ? "Move" : "Assign"}
                                 </Button>
                               </div>
                             ) : (
@@ -315,6 +365,26 @@ export default function PartnerRequests() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={moving !== null}
+        onOpenChange={(open) => !open && setMoving(null)}
+        title="Move this ticket to another agent?"
+        description={
+          <p>
+            Order <span className="font-mono">{moving ? shortRef(moving.request.id) : ""}</span> moves from{" "}
+            {moving?.fromAgent ?? "its current agent"} to {userName(moving?.agentId) ?? "the new agent"}. The ticket keeps
+            its progress; {moving?.fromAgent ?? "the current agent"} will no longer see it.
+          </p>
+        }
+        confirmLabel="Move ticket"
+        onConfirm={async () => {
+          const { request, agentId } = moving!;
+          await createVendorPlantationRequest(request.id, agentId);
+          setAgentPick((p) => ({ ...p, [request.id]: "" }));
+          toast.success(`Ticket moved to ${userName(agentId) ?? "the agent"}`);
+        }}
+      />
     </div>
   );
 }

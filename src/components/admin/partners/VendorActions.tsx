@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Edit, MoreVertical, Power } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
@@ -29,14 +30,19 @@ import type { Vendor } from "@/types/otot";
 interface VendorForm {
   name: string;
   region: string;
+  /** New partners only; an existing partner's number is changed on the Wallets screen. */
   mpesaPhone: string;
+  confirmMpesaPhone: string;
 }
 
 const toForm = (vendor?: Vendor): VendorForm => ({
   name: vendor?.name ?? "",
   region: vendor?.region ?? "",
-  mpesaPhone: vendor?.mpesaPhone ?? "",
+  mpesaPhone: "",
+  confirmMpesaPhone: "",
 });
+
+const digits = (value: string) => value.replace(/\D/g, "");
 
 function VendorFormBody({
   vendor,
@@ -57,6 +63,10 @@ function VendorFormBody({
       toast.error("Organization name is required");
       return;
     }
+    if (!vendor && digits(form.mpesaPhone) !== digits(form.confirmMpesaPhone)) {
+      toast.error("The two M-Pesa numbers don't match. Type the payout number again.");
+      return;
+    }
     setSaving(true);
     try {
       await upsertVendor({
@@ -64,9 +74,9 @@ function VendorFormBody({
         status: vendor?.status ?? "active",
         name: form.name.trim(),
         region: form.region.trim() || vendor?.region || "Kenya",
-        // An empty string removes the partner's wallet.
-        mpesaPhone: form.mpesaPhone.trim(),
-      });
+        // Empty leaves any existing wallet untouched; wallets are managed on the Wallets screen.
+        mpesaPhone: vendor ? undefined : form.mpesaPhone.trim() || undefined,
+      }, vendor ? undefined : form.confirmMpesaPhone.trim() || undefined);
       toast.success(vendor ? "Partner updated successfully" : "Partner created successfully");
       onDone();
     } catch (err) {
@@ -90,16 +100,48 @@ function VendorFormBody({
           placeholder="Kenya"
         />
       </div>
-      <div>
-        <Label>M-Pesa Number</Label>
-        <Input
-          className="font-mono"
-          value={form.mpesaPhone}
-          onChange={(e) => setForm({ ...form, mpesaPhone: e.target.value })}
-          placeholder="2547XXXXXXXX"
-        />
-        <p className="text-xs text-muted-foreground mt-1">This partner's payout wallet. Also editable under Wallets.</p>
-      </div>
+      {vendor ? (
+        <div>
+          <Label>Payout M-Pesa number</Label>
+          <p className="font-mono text-sm mt-1">{vendor.mpesaPhone || "Not set"}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Change it on the{" "}
+            <Link to="/admin/wallets" className="underline">
+              Wallets screen
+            </Link>
+            , which asks for the number twice and records who changed it.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <Label htmlFor="vendor-phone">Payout M-Pesa number</Label>
+            <Input
+              id="vendor-phone"
+              className="font-mono"
+              inputMode="tel"
+              value={form.mpesaPhone}
+              onChange={(e) => setForm({ ...form, mpesaPhone: e.target.value })}
+              placeholder="2547XXXXXXXX"
+            />
+          </div>
+          <div>
+            <Label htmlFor="vendor-phone-confirm">Type the number again</Label>
+            <Input
+              id="vendor-phone-confirm"
+              className="font-mono"
+              inputMode="tel"
+              value={form.confirmMpesaPhone}
+              onChange={(e) => setForm({ ...form, confirmMpesaPhone: e.target.value })}
+              placeholder="2547XXXXXXXX"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Optional now. Partner payouts go to this number, so check it carefully. You can add or change it later on
+              the Wallets screen.
+            </p>
+          </div>
+        </>
+      )}
       <div className="flex gap-2 pt-4">
         <Button type="submit" className="flex-1" disabled={saving || !dirty}>
           {saving ? "Saving..." : vendor ? "Save Changes" : "Create Partner"}
@@ -145,14 +187,18 @@ function VendorStatusDialog({
   onOpenChange: (open: boolean) => void;
   vendor: Vendor;
 }) {
-  const { upsertVendor } = useStore();
+  const { state, upsertVendor } = useStore();
   const [loading, setLoading] = useState(false);
   const active = vendor.status === "active";
+  const openRequests = state.plantationRequests.filter(
+    (r) => r.partnerId === vendor.id && (r.status === "assigned" || r.status === "in_progress"),
+  ).length;
 
   const toggle = async () => {
     setLoading(true);
     try {
-      await upsertVendor({ ...vendor, status: active ? "inactive" : "active" });
+      // Status only: leave the payout wallet as it is.
+      await upsertVendor({ ...vendor, mpesaPhone: undefined, status: active ? "inactive" : "active" });
       toast.success(`Partner ${active ? "deactivated" : "activated"} successfully`);
       onOpenChange(false);
     } catch (err) {
@@ -170,17 +216,27 @@ function VendorStatusDialog({
           <AlertDialogDescription>
             {active ? (
               <>
-                Are you sure you want to deactivate <strong>{vendor.name}</strong>?
+                Deactivate <strong>{vendor.name}</strong>?
                 <br />
                 <br />
-                They will not appear in active lists but all data will be preserved. You can reactivate them anytime.
+                Their staff can't sign in. Open requests should be reassigned. Payouts are blocked.
+                {openRequests > 0 && (
+                  <>
+                    {" "}
+                    {openRequests} open {openRequests === 1 ? "request is" : "requests are"} with them now; reassign{" "}
+                    {openRequests === 1 ? "it" : "them"} on the Ministry's Planting Requests screen.
+                  </>
+                )}
+                <br />
+                <br />
+                Their records are kept and you can reactivate them at any time.
               </>
             ) : (
               <>
-                Are you sure you want to activate <strong>{vendor.name}</strong>?
+                Activate <strong>{vendor.name}</strong>?
                 <br />
                 <br />
-                They will appear in active lists again.
+                Their staff can sign in again, the Ministry can assign them requests, and payouts to them are allowed.
               </>
             )}
           </AlertDialogDescription>

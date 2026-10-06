@@ -2,6 +2,7 @@ import { pdf } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import { PledgeCertificate } from "@/components/certificates/PledgeCertificate";
 import { TreeCertificate } from "@/components/certificates/TreeCertificate";
+import { PLANTED_HERE } from "@/lib/treeStages";
 import type { CertificateRecord } from "@/types/otot";
 import ktbLogo from "@/assets/ktb-dual-logo.png";
 import kfsLogo from "@/assets/mau-forest-complex-logo.jpeg";
@@ -59,7 +60,7 @@ export async function generateCertificate(certificate: CertificateRecord): Promi
       certificateId={certificate.id}
       ototId={certificate.userId}
       co2Offset={certificate.co2Offset ?? 0}
-      location={certificate.location ?? "Kenya"}
+      location={certificate.location ?? PLANTED_HERE}
       qrCodeDataUrl={qrCodeDataUrl}
       ktbLogoDataUrl={ktbLogoDataUrl}
       kfsLogoDataUrl={kfsLogoDataUrl}

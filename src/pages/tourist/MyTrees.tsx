@@ -4,11 +4,13 @@ import { format } from "date-fns";
 import { ChevronDown, Cloud, Eye, MapPin, Plane, Plus, ShoppingBag, Sprout, TreePine } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { treeCount } from "@/lib/format";
-import { airportCity, remainingCarbonKg, remainingTrees } from "@/lib/trips";
+import { kg, treeCount, usd } from "@/lib/format";
+import { DIRECT_DONATION, tripTypeLabel } from "@/lib/offsetLabels";
+import { carbonOffsetForTrip, remainingCarbonKg, remainingTrees, tripRouteLabel } from "@/lib/trips";
 import { PLANTED_HERE, STAGE_ORDER, TOURIST_STAGE_LABELS, toTouristStage, type TouristStage } from "@/lib/treeStages";
 import type { Donation, PlantationRequest, Trip } from "@/types/otot";
 import { TripDetailsDialog } from "@/components/tourist/TripDetailsDialog";
+import { OffsetTripButton, PendingPaymentLink } from "@/components/tourist/OffsetTripButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,10 +19,12 @@ import { Accordion, AccordionItem } from "@/components/ui/accordion";
 
 const ITEMS_PER_PAGE = 10;
 
+const PARTLY_PLANTED = "Partly planted";
+
 function groupStatus(stages: TouristStage[]) {
   if (stages.length === 0) return TOURIST_STAGE_LABELS.waiting;
-  if (stages.every((s) => s === "planted")) return "Planted";
-  if (stages.some((s) => s === "planted")) return "Partially Planted";
+  if (stages.every((s) => s === "planted")) return TOURIST_STAGE_LABELS.planted;
+  if (stages.some((s) => s === "planted")) return PARTLY_PLANTED;
   const min = stages.reduce<TouristStage>(
     (acc, s) => (STAGE_ORDER.indexOf(s) < STAGE_ORDER.indexOf(acc) ? s : acc),
     "planted",
@@ -29,20 +33,22 @@ function groupStatus(stages: TouristStage[]) {
 }
 
 function groupStatusColor(status: string) {
-  if (status === "Planted") return "bg-accent/10 text-accent border-accent/20";
-  if (status === "Partially Planted") return "bg-blue-500/10 text-blue-700 border-blue-500/20";
+  if (status === TOURIST_STAGE_LABELS.planted) return "bg-accent/10 text-accent border-accent/20";
+  if (status === PARTLY_PLANTED) return "bg-blue-500/10 text-blue-700 border-blue-500/20";
   if (status === TOURIST_STAGE_LABELS.waiting) return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
   if (status === TOURIST_STAGE_LABELS.assigned) return "bg-orange-500/10 text-orange-700 border-orange-500/20";
   if (status === TOURIST_STAGE_LABELS.scheduled) return "bg-cyan-500/10 text-cyan-700 border-cyan-500/20";
+  if (status === TOURIST_STAGE_LABELS.verifying) return "bg-violet-500/10 text-violet-700 border-violet-500/20";
   return "bg-muted text-muted-foreground";
 }
 
-const STAGE_META: { stage: TouristStage; label: string; cls: string }[] = [
-  { stage: "waiting", label: "Waiting", cls: "text-yellow-700" },
-  { stage: "assigned", label: "Assigned", cls: "text-orange-700" },
-  { stage: "scheduled", label: "Scheduled", cls: "text-cyan-700" },
-  { stage: "planted", label: "Planted", cls: "text-emerald-700" },
-];
+const STAGE_TONES: Record<TouristStage, string> = {
+  waiting: "text-yellow-700",
+  assigned: "text-orange-700",
+  scheduled: "text-cyan-700",
+  verifying: "text-violet-700",
+  planted: "text-emerald-700",
+};
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 const fmtCompact = (n: number) => {
@@ -117,23 +123,21 @@ export default function MyTrees() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedGroups = groups.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const plantedTrees = mine.reduce((sum, d) => sum + treeCount(d.trees), 0);
+  // Trip totals count trip-linked donations only; direct donations are shown on their own.
+  const tripDonations = mine.filter((d) => d.tripId);
+  const directDonations = mine.filter((d) => !d.tripId);
+  const fundedTrees = tripDonations.reduce((sum, d) => sum + treeCount(d.trees), 0);
+  const directTrees = directDonations.reduce((sum, d) => sum + treeCount(d.trees), 0);
+  const directCo2 = directDonations.reduce((sum, d) => sum + d.carbonOffsetKg, 0);
   const treesNeeded = trips.reduce((sum, t) => sum + t.treesNeeded, 0);
-  const treesRemaining = Math.max(0, treesNeeded - plantedTrees);
+  const treesRemaining = trips.reduce((sum, t) => sum + remainingTrees(t, state.donations), 0);
   const totalCO2ToOffset = trips.reduce((sum, t) => sum + t.totalCo2, 0);
-  const co2AlreadyOffset = mine.reduce((sum, d) => sum + d.carbonOffsetKg, 0);
-  const co2Remaining = Math.max(0, totalCO2ToOffset - co2AlreadyOffset);
-  const treesPct = treesNeeded > 0 ? Math.min(100, Math.round((plantedTrees / treesNeeded) * 100)) : 0;
+  // Per trip, so extra CO₂ on one trip doesn't count against another.
+  const co2Remaining = trips.reduce((sum, t) => sum + remainingCarbonKg(t, state.donations), 0);
+  const co2AlreadyOffset = Math.max(0, totalCO2ToOffset - co2Remaining);
+  const treesPct =
+    fundedTrees + treesRemaining > 0 ? Math.min(100, Math.round((fundedTrees / (fundedTrees + treesRemaining)) * 100)) : 0;
   const co2Pct = totalCO2ToOffset > 0 ? Math.min(100, Math.round((co2AlreadyOffset / totalCO2ToOffset) * 100)) : 0;
-
-  const offsetTrip = (trip: Trip) =>
-    navigate("/donate", {
-      state: {
-        carbonOffsetKg: remainingCarbonKg(trip, state.donations),
-        treesNeeded: remainingTrees(trip, state.donations),
-        tripId: trip.id,
-      },
-    });
 
   const toggleList = (key: string) =>
     setExpandedLists((prev) => {
@@ -166,13 +170,13 @@ export default function MyTrees() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-emerald-900">Trees Overview</p>
-                    <p className="text-xs text-emerald-700/70">Your planting progress</p>
+                    <p className="text-xs text-emerald-700/70">Trees funded for your trips</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
                     { label: "Needed", value: treesNeeded, color: "text-emerald-900" },
-                    { label: "Committed", value: plantedTrees, color: "text-green-700" },
+                    { label: "Funded", value: fundedTrees, color: "text-green-700" },
                     { label: "Remaining", value: treesRemaining, color: "text-orange-600" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl bg-white/60 ring-1 ring-white/80 backdrop-blur px-2 py-3 text-center min-w-0">
@@ -185,9 +189,9 @@ export default function MyTrees() {
                 </div>
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-emerald-800/80 mb-1.5 font-medium">
-                    <span>{treesPct}% committed</span>
+                    <span>{treesPct}% funded</span>
                     <span className="tabular-nums">
-                      {fmt(plantedTrees)} / {fmt(treesNeeded)}
+                      {fmt(fundedTrees)} / {fmt(fundedTrees + treesRemaining)}
                     </span>
                   </div>
                   <div className="h-2.5 rounded-full bg-white/60 overflow-hidden ring-1 ring-white/80">
@@ -196,6 +200,11 @@ export default function MyTrees() {
                       style={{ width: `${treesPct}%` }}
                     />
                   </div>
+                  <p className="mt-2 text-xs text-emerald-800/70">
+                    {directTrees > 0
+                      ? `Plus ${fmt(directTrees)} ${directTrees === 1 ? "tree" : "trees"} from direct donations.`
+                      : "Remaining is an estimate; the tree mix you choose sets the final count."}
+                  </p>
                 </div>
               </div>
             </div>
@@ -209,7 +218,7 @@ export default function MyTrees() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-teal-900">CO₂ Impact</p>
-                    <p className="text-xs text-teal-700/70">Emissions offset by your trees</p>
+                    <p className="text-xs text-teal-700/70">Trip emissions offset by trees you funded</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -240,6 +249,9 @@ export default function MyTrees() {
                       style={{ width: `${co2Pct}%` }}
                     />
                   </div>
+                  {directCo2 > 0 && (
+                    <p className="mt-2 text-xs text-teal-800/70">Plus {kg(directCo2)} from direct donations.</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -252,9 +264,9 @@ export default function MyTrees() {
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Sprout className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No trees planted yet</h3>
-              <p className="text-muted-foreground mb-6">Start your reforestation journey by planting your first tree!</p>
-              <Button onClick={() => navigate("/carbon-calculator")}>
+              <h3 className="text-xl font-semibold mb-2">No trees funded yet</h3>
+              <p className="text-muted-foreground mb-6">Start your reforestation journey by funding your first tree.</p>
+              <Button onClick={() => navigate("/donate")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Plant Your First Tree
               </Button>
@@ -267,7 +279,7 @@ export default function MyTrees() {
                 {paginatedGroups.map((group, groupIndex) => {
                   const trip = group.trip;
                   const isTrip = group.key !== "__direct__";
-                  const stageCounts: Record<TouristStage, number> = { waiting: 0, assigned: 0, scheduled: 0, planted: 0 };
+                  const stageCounts: Record<TouristStage, number> = { waiting: 0, assigned: 0, scheduled: 0, verifying: 0, planted: 0 };
                   for (const d of group.donations) {
                     stageCounts[toTouristStage(requestByDonation.get(d.id)?.status)] += treeCount(d.trees);
                   }
@@ -285,12 +297,11 @@ export default function MyTrees() {
                             </div>
                             <div className="min-w-0">
                               <p className="font-semibold text-foreground text-sm">
-                                {isTrip ? trip?.friendlyTripId || `Trip ${startIndex + groupIndex + 1}` : "Direct Purchase"}
+                                {isTrip ? trip?.friendlyTripId || `Trip ${startIndex + groupIndex + 1}` : DIRECT_DONATION}
                               </p>
                               {trip && (
                                 <p className="text-xs text-muted-foreground">
-                                  {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
-                                  {trip.isReturn ? " (Return)" : " (One Way)"}
+                                  {tripRouteLabel(trip)} ({tripTypeLabel(trip)})
                                 </p>
                               )}
                               <p className="text-xs text-muted-foreground">{format(new Date(group.latestDate), "d MMM yyyy")}</p>
@@ -301,10 +312,11 @@ export default function MyTrees() {
                               <button
                                 type="button"
                                 onClick={() => setSelectedTrip(trip)}
-                                className="text-primary hover:text-primary/80 p-1"
+                                className="text-primary hover:text-primary/80 p-1 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 title="View trip details"
+                                aria-label={`View details for trip ${trip.friendlyTripId}`}
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-4 w-4" aria-hidden />
                               </button>
                             </div>
                           )}
@@ -318,59 +330,63 @@ export default function MyTrees() {
                                 <p className="text-sm font-bold text-foreground">{trip.treesNeeded}</p>
                               </div>
                               <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                <p className="text-xs text-muted-foreground">Committed</p>
+                                <p className="text-xs text-muted-foreground">Funded</p>
                                 <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                               </div>
                               <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                <p className="text-xs text-muted-foreground">Remaining</p>
-                                <p className="text-sm font-bold text-orange-500">{Math.max(0, trip.treesNeeded - group.totalTrees)}</p>
+                                <p className="text-xs text-muted-foreground">CO₂ left</p>
+                                <p className="text-sm font-bold text-orange-500">{kg(remainingCarbonKg(trip, state.donations))}</p>
                               </div>
                               <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
                                 <p className="text-xs text-muted-foreground">Contribution</p>
-                                <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
+                                <p className="text-sm font-bold text-foreground">{usd(group.totalAmount)}</p>
                               </div>
                             </>
                           ) : (
                             <>
                               <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
-                                <p className="text-xs text-muted-foreground">Committed</p>
+                                <p className="text-xs text-muted-foreground">Funded</p>
                                 <p className="text-sm font-bold text-green-600">{group.totalTrees}</p>
                               </div>
                               <div className="bg-muted/40 rounded-lg px-3 py-2 text-center">
                                 <p className="text-xs text-muted-foreground">Contribution</p>
-                                <p className="text-sm font-bold text-foreground">${group.totalAmount.toFixed(2)}</p>
+                                <p className="text-sm font-bold text-foreground">{usd(group.totalAmount)}</p>
                               </div>
                             </>
                           )}
                         </div>
 
-                        {trip && (
-                          <>
-                            <div className="mb-3">
-                              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                <span>
-                                  {trip.treesNeeded > 0 ? Math.min(100, Math.round((group.totalTrees / trip.treesNeeded) * 100)) : 0}% offset
-                                </span>
-                                <span>
-                                  {group.totalTrees} / {trip.treesNeeded} trees
-                                </span>
-                              </div>
-                              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-primary transition-all duration-500"
-                                  style={{ width: `${trip.treesNeeded > 0 ? Math.min(100, (group.totalTrees / trip.treesNeeded) * 100) : 0}%` }}
-                                />
-                              </div>
-                            </div>
-                            {group.totalTrees < trip.treesNeeded && (
-                              <div className="flex justify-end">
-                                <Button size="sm" onClick={() => offsetTrip(trip)}>
-                                  + Plant More Trees
-                                </Button>
-                              </div>
-                            )}
-                          </>
-                        )}
+                        {trip &&
+                          (() => {
+                            const offsetKg = carbonOffsetForTrip(trip.id, state.donations);
+                            // remainingCarbonKg allows rounding slack, so a covered trip reads 100%.
+                            const pct =
+                              remainingCarbonKg(trip, state.donations) === 0
+                                ? 100
+                                : Math.floor(Math.min(100, (offsetKg / trip.totalCo2) * 100));
+                            return (
+                              <>
+                                <div className="mb-3">
+                                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                    <span>{pct}% offset</span>
+                                    <span>
+                                      {kg(Math.min(offsetKg, trip.totalCo2))} / {kg(trip.totalCo2)} CO₂
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-primary transition-all duration-500"
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap items-center justify-end gap-3">
+                                  <PendingPaymentLink trip={trip} />
+                                  <OffsetTripButton trip={trip} label="+ Plant More Trees" showIcon={false} />
+                                </div>
+                              </>
+                            );
+                          })()}
                       </div>
 
                       <div className="relative mx-4 mb-4 mt-1 overflow-hidden rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-100/90 via-green-50/85 to-teal-100/90 shadow-md">
@@ -385,14 +401,14 @@ export default function MyTrees() {
                           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-950">
                             {group.donations.length} {group.donations.length === 1 ? "contribution" : "contributions"}
                           </span>
-                          {STAGE_META.filter((m) => stageCounts[m.stage] > 0).map((m) => (
+                          {STAGE_ORDER.filter((stage) => stageCounts[stage] > 0).map((stage) => (
                             <span
-                              key={m.stage}
-                              className={`inline-flex items-center gap-1 text-xs font-medium tabular-nums whitespace-nowrap ${m.cls}`}
-                              title={`${m.label}: ${stageCounts[m.stage]} ${stageCounts[m.stage] === 1 ? "tree" : "trees"}`}
+                              key={stage}
+                              className={`inline-flex items-center gap-1 text-xs font-medium tabular-nums whitespace-nowrap ${STAGE_TONES[stage]}`}
+                              title={`${TOURIST_STAGE_LABELS[stage]}: ${stageCounts[stage]} ${stageCounts[stage] === 1 ? "tree" : "trees"}`}
                             >
-                              {m.label} {stageCounts[m.stage]}
-                              <TreePine className="h-3 w-3" />
+                              {TOURIST_STAGE_LABELS[stage]} {stageCounts[stage]}
+                              <TreePine className="h-3 w-3" aria-hidden />
                             </span>
                           ))}
                           <ChevronDown className={`h-3.5 w-3.5 ml-auto text-emerald-800 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
@@ -481,6 +497,7 @@ export default function MyTrees() {
                     size="sm"
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
+                    aria-label="Previous page"
                   >
                     ←
                   </Button>
@@ -490,6 +507,7 @@ export default function MyTrees() {
                       min={1}
                       max={totalPages}
                       value={currentPage}
+                      aria-label={`Page number, 1 to ${totalPages}`}
                       onChange={(e) => {
                         const page = parseInt(e.target.value, 10);
                         if (page >= 1 && page <= totalPages) setCurrentPage(page);
@@ -503,6 +521,7 @@ export default function MyTrees() {
                     size="sm"
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
+                    aria-label="Next page"
                   >
                     →
                   </Button>
@@ -512,7 +531,7 @@ export default function MyTrees() {
           </Card>
         )}
 
-        <TripDetailsDialog trip={selectedTrip} donations={state.donations} onClose={() => setSelectedTrip(null)} />
+        <TripDetailsDialog trip={selectedTrip} onClose={() => setSelectedTrip(null)} />
       </div>
     </div>
   );

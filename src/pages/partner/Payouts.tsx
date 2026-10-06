@@ -35,7 +35,10 @@ export default function PartnerPayouts() {
   const [page, setPage] = useState(1);
   const vendorId = session?.vendorId;
   const payouts = state.payouts.filter((p) => p.recipientType === "partner" && p.partnerId === vendorId);
-  const shares = state.paymentAllocations.filter((a) => a.recipientType === "partner" && a.partnerId === vendorId);
+  // Void shares (test money, refunded payments) are never paid, so they are left out.
+  const shares = state.paymentAllocations.filter(
+    (a) => a.recipientType === "partner" && a.partnerId === vendorId && a.status !== "void",
+  );
   const sum = (rows: { amountKes: number }[]) => rows.reduce((s, r) => s + r.amountKes, 0);
   const allocatedTotal = sum(shares);
   const paidRows = payouts.filter((p) => p.status === "transferred");
@@ -68,7 +71,7 @@ export default function PartnerPayouts() {
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <PartnerPageHeader
         title="Climate Funding"
-        subtitle="End-to-end plantation share from allocation to M-Pesa confirmation"
+        subtitle="Your share of each tourist payment (after Afrinet fees and the OTOT and Ministry shares), from Ministry assignment to M-Pesa confirmation"
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
@@ -77,7 +80,7 @@ export default function PartnerPayouts() {
         <SummaryStatCard
           label="Total Allocated"
           value={kes(allocatedTotal)}
-          sub={`${shares.length} donations assigned by the Ministry`}
+          sub={`${shares.length} payments assigned to you by the Ministry`}
         />
         <SummaryStatCard
           label="Transferred"
@@ -95,7 +98,7 @@ export default function PartnerPayouts() {
           label="Still Owed"
           value={kes(balance)}
           valueClassName="text-amber-600"
-          sub={`${owedShares.length} donations not yet paid`}
+          sub={`${owedShares.length} shares not yet sent. Payable as soon as a request is assigned.`}
         />
       </div>
 
@@ -171,7 +174,7 @@ export default function PartnerPayouts() {
                           className={PAYOUT_STATUS_COLORS[p.status]}
                         />
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                      <TableCell className="text-sm text-muted-foreground max-w-[220px] truncate" title={p.failureMessage}>
                         {p.failureMessage ?? "—"}
                       </TableCell>
                     </TableRow>

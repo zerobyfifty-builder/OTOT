@@ -1,33 +1,96 @@
+import { useState } from "react";
 import { Info, Leaf, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
-import { splitCharges } from "@/lib/charges";
-import { kg, usd } from "@/lib/format";
+import { splitCharges, usdToKes } from "@/lib/charges";
+import { kes, kg, usd } from "@/lib/format";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const EXAMPLE_CONTRIBUTION = 100;
+/** Example tourist payment for the split preview, in USD (tourists are quoted in USD). */
+const EXAMPLE_USD = 100;
+const MAX_FEE_PCT = 20;
 
-function RateBox({ label, hint, value, note }: { label: string; hint: string; value: string; note?: string }) {
+const pctLabel = (value: number) => `${Number(value.toFixed(2))}%`;
+
+/** Valid fee: a number from 0 to 20 with at most two decimals. */
+function parseFee(raw: string): number | null {
+  if (!/^\d+(\.\d{1,2})?$/.test(raw.trim())) return null;
+  const value = Number(raw);
+  return value >= 0 && value <= MAX_FEE_PCT ? value : null;
+}
+
+function FeeField({
+  id,
+  label,
+  hint,
+  value,
+  onChange,
+  invalid,
+}: {
+  id: string;
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (value: string) => void;
+  invalid: boolean;
+}) {
   return (
     <div className="space-y-2">
-      <Label className="font-medium">{label}</Label>
+      <Label htmlFor={id} className="font-medium">
+        {label}
+      </Label>
       <p className="text-xs text-muted-foreground">{hint}</p>
       <div className="flex items-center gap-2 max-w-xs">
-        <div className="w-24 h-10 rounded-md border border-input bg-muted flex items-center justify-center text-sm font-semibold tabular-nums">
-          {value}
-        </div>
-        {note && <span className="text-xs text-muted-foreground italic">{note}</span>}
+        <Input
+          id={id}
+          inputMode="decimal"
+          className="w-28 tabular-nums"
+          value={value}
+          aria-invalid={invalid}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <span className="text-sm text-muted-foreground">% of each payment</span>
       </div>
+      {invalid && <p className="text-xs text-destructive">Enter a percentage from 0 to {MAX_FEE_PCT}, e.g. 2.9.</p>}
     </div>
   );
 }
 
 export default function AdminConfig() {
-  const { state } = useStore();
-  const example = splitCharges(EXAMPLE_CONTRIBUTION);
-  const pct = (amount: number) => `${Number(((amount / EXAMPLE_CONTRIBUTION) * 100).toFixed(1))}%`;
+  const { state, updateFeeSettings } = useStore();
+  const { settings } = state;
+  const [chargeFee, setChargeFee] = useState(String(settings.chargeFeePct));
+  const [payoutFee, setPayoutFee] = useState(String(settings.payoutFeePct));
+  const [confirming, setConfirming] = useState(false);
+  const [synced, setSynced] = useState(settings);
+
+  // The store loads after first render; follow it until the user starts editing.
+  if (synced !== settings) {
+    if (chargeFee === String(synced.chargeFeePct)) setChargeFee(String(settings.chargeFeePct));
+    if (payoutFee === String(synced.payoutFeePct)) setPayoutFee(String(settings.payoutFeePct));
+    setSynced(settings);
+  }
+
+  const chargeFeePct = parseFee(chargeFee);
+  const payoutFeePct = parseFee(payoutFee);
+  const valid = chargeFeePct !== null && payoutFeePct !== null;
+  const dirty = valid && (chargeFeePct !== settings.chargeFeePct || payoutFeePct !== settings.payoutFeePct);
+
+  // Preview with the rates typed above (the saved rates until you change them).
+  const rates = valid ? { chargeFeePct, payoutFeePct } : settings;
+  const exampleKes = usdToKes(EXAMPLE_USD, settings.kesPerUsd);
+  const example = splitCharges(exampleKes, rates);
+  // Same cent rounding as splitCharges.
+  const chargeFeeKes = Math.round(exampleKes * rates.chargeFeePct) / 100;
+  const netKes = exampleKes - example.processor;
+  const share = (amount: number) => `${Number(((amount / exampleKes) * 100).toFixed(1))}%`;
+
   const activeTypes = state.treeTypes.filter((t) => t.active);
   const avgCost = state.treeTypes.reduce((s, t) => s + t.costPerTree, 0) / Math.max(1, state.treeTypes.length);
 
@@ -43,10 +106,10 @@ export default function AdminConfig() {
       <div>
         <h2 className="text-lg font-semibold flex items-center gap-2 text-admin-primary">
           <Wallet className="h-5 w-5" />
-          Wallet Settings
+          Fees and Split
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Fund allocation split applied to every tree planting contribution at checkout.
+          Every Afrinet fee comes off each payment first. What's left is split 15% OTOT, 15% Ministry and 70% partner.
         </p>
       </div>
 
@@ -54,70 +117,89 @@ export default function AdminConfig() {
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <CardTitle className="text-base">Contribution Split Configuration</CardTitle>
+              <CardTitle className="text-base">Afrinet fees</CardTitle>
               <CardDescription className="mt-1.5">
-                The estimated Afrinet fee is deducted first. The remaining amount is split between OTOT,
-                the Ministry, and the plantation partner.
+                Changes apply to payments that settle from now on. Past splits never change.
               </CardDescription>
             </div>
             <Badge variant="outline" className="shrink-0">
-              Read-only
+              Saved: {pctLabel(settings.chargeFeePct)} + {pctLabel(settings.payoutFeePct)}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <RateBox
-            label="(1) Afrinet transaction fee"
-            hint="Estimated at 2.9% of the gross contribution."
-            value={pct(example.processor)}
+          <FeeField
+            id="charge-fee"
+            label="(1) Afrinet collection fee"
+            hint="What Afrinet charges to collect an M-Pesa or card payment."
+            value={chargeFee}
+            onChange={setChargeFee}
+            invalid={chargeFeePct === null}
           />
-          <RateBox
-            label="(2) OTOT share"
-            hint="15% of the amount remaining after the Afrinet fee."
-            value={usd(example.platform)}
+          <FeeField
+            id="payout-fee"
+            label="(2) Payout transfer fee reserve"
+            hint="Held back to cover the M-Pesa fees for sending the OTOT, Ministry and partner shares out."
+            value={payoutFee}
+            onChange={setPayoutFee}
+            invalid={payoutFeePct === null}
           />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button disabled={!dirty} onClick={() => setConfirming(true)}>
+              Save fee rates
+            </Button>
+            {dirty && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setChargeFee(String(settings.chargeFeePct));
+                  setPayoutFee(String(settings.payoutFeePct));
+                }}
+              >
+                Discard changes
+              </Button>
+            )}
+          </div>
 
           <Separator />
 
           <div className="bg-muted/50 rounded-lg p-4 space-y-1">
             <p className="text-sm font-medium flex items-center gap-1.5">
               <Info className="h-4 w-4 text-muted-foreground" />
-              Amount to split after Afrinet fee: <span className="font-bold">{usd(EXAMPLE_CONTRIBUTION - example.processor)}</span>
+              Shares (of the amount left after both fees)
             </p>
             <p className="text-xs text-muted-foreground">
-              OTOT receives 15%, the Ministry 15%, and the partner 70% of this amount.
+              (3) OTOT 15% · (4) Ministry 15% · (5) Partner 70%. These percentages are fixed.
             </p>
           </div>
 
-          <RateBox
-            label="(3) Ministry share"
-            hint="15% of the amount after the Afrinet fee."
-            value={usd(example.ministry)}
-          />
-
-          <RateBox label="(4) Partner share" hint="70% of the amount after the Afrinet fee."
-            value={usd(example.plantation)} />
-
-          <Separator />
-
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-semibold">Example: {usd(EXAMPLE_CONTRIBUTION)} Contribution Breakdown</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <p className="text-sm font-semibold">
+              Example: a {usd(EXAMPLE_USD)} payment = {kes(exampleKes)}
+              <span className="font-normal text-muted-foreground">
+                {" "}
+                (KES {settings.kesPerUsd} per USD{dirty ? ", with the rates above" : ""})
+              </span>
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
               {[
-                { label: "Afrinet fee", amount: example.processor },
+                { label: "Collection fee", amount: chargeFeeKes },
+                { label: "Transfer reserve", amount: example.processor - chargeFeeKes },
                 { label: "OTOT", amount: example.platform },
                 { label: "Ministry", amount: example.ministry },
                 { label: "Partner", amount: example.plantation },
               ].map((row) => (
                 <div key={row.label} className="bg-background rounded p-3 text-center">
                   <p className="text-xs text-muted-foreground">{row.label}</p>
-                  <p className="text-lg font-bold">{usd(row.amount)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {pct(row.amount)} of {usd(EXAMPLE_CONTRIBUTION)}
-                  </p>
+                  <p className="text-lg font-bold tabular-nums">{kes(row.amount)}</p>
+                  <p className="text-xs text-muted-foreground">{share(row.amount)} of the payment</p>
                 </div>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground">
+              {kes(exampleKes)} − {kes(example.processor)} fees = {kes(netKes)} to split. The server rounds each share to
+              whole shillings when a payment settles.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -130,7 +212,7 @@ export default function AdminConfig() {
           Planting Costs
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Plantation cost per tree comes from each tree type. Edit individual species on Tree Types.
+          Tourists are quoted per tree in USD and charged the KES equivalent. Edit individual species on Tree Types.
         </p>
       </div>
 
@@ -142,7 +224,9 @@ export default function AdminConfig() {
         <CardContent className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Average cost per tree</span>
-            <span className="font-semibold">{usd(avgCost)}</span>
+            <span className="font-semibold">
+              {usd(avgCost)} <span className="font-normal text-muted-foreground">(≈ {kes(avgCost * settings.kesPerUsd)})</span>
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Active tree types</span>
@@ -155,7 +239,10 @@ export default function AdminConfig() {
                 <div key={t.id} className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t.name}</span>
                   <span>
-                    {usd(t.costPerTree)} <span className="text-muted-foreground">({kg(t.offsetKg)} CO₂)</span>
+                    {usd(t.costPerTree)}{" "}
+                    <span className="text-muted-foreground">
+                      (≈ {kes(t.costPerTree * settings.kesPerUsd)} · {kg(t.offsetKg)} CO₂)
+                    </span>
                   </span>
                 </div>
               ))}
@@ -163,6 +250,31 @@ export default function AdminConfig() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title="Change the Afrinet fee rates?"
+        description={
+          <>
+            <p>
+              Collection fee {pctLabel(settings.chargeFeePct)} → {pctLabel(chargeFeePct ?? 0)}, transfer reserve{" "}
+              {pctLabel(settings.payoutFeePct)} → {pctLabel(payoutFeePct ?? 0)}.
+            </p>
+            <p>
+              Payments that settle from now on are split with the new rates, which changes how much OTOT, the Ministry
+              and partners receive. Past splits never change.
+            </p>
+          </>
+        }
+        confirmLabel="Save fee rates"
+        busyLabel="Saving…"
+        onConfirm={async () => {
+          if (chargeFeePct === null || payoutFeePct === null) return;
+          await updateFeeSettings({ chargeFeePct, payoutFeePct });
+          toast.success("Fee rates saved. They apply to new payments.");
+        }}
+      />
     </div>
   );
 }

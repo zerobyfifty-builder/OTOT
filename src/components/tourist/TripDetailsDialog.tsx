@@ -1,29 +1,39 @@
 import { Link } from "react-router-dom";
-import { kg, treeCount, usd } from "@/lib/format";
-import { ACCOMMODATION_LABELS, TRAVEL_CLASS_LABELS, airportCity, formatDateRange } from "@/lib/trips";
-import type { Donation, Trip } from "@/types/otot";
+import { useStore } from "@/contexts/StoreContext";
+import { kg, shortDate, treeCount, usd } from "@/lib/format";
+import { donationPaymentState, tripTypeLabel } from "@/lib/offsetLabels";
+import {
+  ACCOMMODATION_LABELS,
+  TRAVEL_CLASS_LABELS,
+  carbonOffsetForTrip,
+  formatDateRange,
+  offsetStatus,
+  remainingCarbonKg,
+  tripRouteLabel,
+} from "@/lib/trips";
+import type { Trip } from "@/types/otot";
+import { DonationPaymentBadge, OffsetBadge } from "@/components/tourist/StatusBadges";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export function TripDetailsDialog({
-  trip,
-  donations,
-  onClose,
-}: {
-  trip: Trip | null;
-  donations: Donation[];
-  onClose: () => void;
-}) {
-  const linked = trip ? donations.filter((d) => d.tripId === trip.id) : [];
+export function TripDetailsDialog({ trip, onClose }: { trip: Trip | null; onClose: () => void }) {
+  const { state } = useStore();
+  const linked = trip
+    ? state.donations
+        .filter((d) => d.tripId === trip.id)
+        .slice()
+        .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    : [];
   return (
     <Dialog open={Boolean(trip)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         {trip && (
           <>
             <DialogHeader>
-              <DialogTitle>{trip.friendlyTripId}</DialogTitle>
-              <DialogDescription>
-                {airportCity(trip.originAirport)} → {airportCity(trip.destinationAirport)}
-              </DialogDescription>
+              <DialogTitle className="flex flex-wrap items-center gap-2">
+                {trip.friendlyTripId}
+                <OffsetBadge status={offsetStatus(trip, state.donations)} />
+              </DialogTitle>
+              <DialogDescription>{tripRouteLabel(trip)}</DialogDescription>
             </DialogHeader>
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
@@ -32,7 +42,7 @@ export function TripDetailsDialog({
               </div>
               <div>
                 <dt className="text-muted-foreground">Trip</dt>
-                <dd className="font-medium">{trip.isReturn ? "Return" : "One-way"}</dd>
+                <dd className="font-medium">{tripTypeLabel(trip)}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Dates</dt>
@@ -47,7 +57,7 @@ export function TripDetailsDialog({
                 <dd className="font-medium">{trip.numTravelers}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Trees needed</dt>
+                <dt className="text-muted-foreground">Trees needed (estimate)</dt>
                 <dd className="font-medium">{trip.treesNeeded}</dd>
               </div>
               <div>
@@ -58,24 +68,43 @@ export function TripDetailsDialog({
                 <dt className="text-muted-foreground">Stay CO₂</dt>
                 <dd className="font-medium">{kg(trip.accommodationCo2)}</dd>
               </div>
+              <div>
+                <dt className="text-muted-foreground">CO₂ offset</dt>
+                <dd className="font-medium">
+                  {kg(carbonOffsetForTrip(trip.id, state.donations))} of {kg(trip.totalCo2)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">CO₂ remaining</dt>
+                <dd className="font-medium">{kg(remainingCarbonKg(trip, state.donations))}</dd>
+              </div>
             </dl>
             <div className="space-y-2">
               <p className="text-sm font-semibold">Contributions</p>
               {linked.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No donations linked yet.</p>
               ) : (
-                linked.map((d) => (
-                  <Link
-                    key={d.id}
-                    to={`/donations/${d.id}`}
-                    className="flex justify-between text-sm border rounded-md px-3 py-2 hover:bg-muted/40"
-                  >
-                    <span>
-                      {treeCount(d.trees)} trees · {kg(d.carbonOffsetKg)}
-                    </span>
-                    <span className="font-semibold">{usd(d.amount)}</span>
-                  </Link>
-                ))
+                linked.map((d) => {
+                  const trees = treeCount(d.trees);
+                  return (
+                    <Link
+                      key={d.id}
+                      to={`/donations/${d.id}`}
+                      className="flex items-center justify-between gap-3 text-sm border rounded-md px-3 py-2 hover:bg-muted/40"
+                    >
+                      <span className="min-w-0">
+                        <span className="block">
+                          {trees} {trees === 1 ? "tree" : "trees"} · {kg(d.carbonOffsetKg)}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">{shortDate(d.createdAt)}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <DonationPaymentBadge state={donationPaymentState(d, state.payments)} />
+                        <span className="font-semibold">{usd(d.amount)}</span>
+                      </span>
+                    </Link>
+                  );
+                })
               )}
             </div>
           </>

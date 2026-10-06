@@ -11,6 +11,7 @@ export const PAYOUT_STATUS_LABEL: Record<PayoutStatus, string> = {
 export const ALLOCATION_STATUS_LABEL: Record<AllocationStatus | "unassigned", string> = {
   pending: "Pending",
   unassigned: "Awaiting assignment",
+  void: "Not payable",
   ...PAYOUT_STATUS_LABEL,
 };
 
@@ -47,11 +48,17 @@ export const isOpenPayout = (status: PayoutStatus) => status === "initiated" || 
 /** Status to show for one share, including the "awaiting assignment" state. */
 export function shareStatus(share?: PaymentAllocation): AllocationStatus | "unassigned" | undefined {
   if (!share) return undefined;
+  // A void share is never paid, whoever it is assigned to.
+  if (share.status === "void") return "void";
   if (share.recipientType === "partner" && !share.partnerId) return "unassigned";
   return share.status;
 }
 
-/** A share can go into a new payout once it is assigned and not already moving. */
+/**
+ * A share can go into a new payout once it is assigned (a partner share is
+ * payable as soon as the Ministry assigns the request) and not already moving.
+ * Void shares never qualify.
+ */
 export function isPayable(share?: PaymentAllocation): boolean {
   if (!share || share.amountKes <= 0) return false;
   if (share.recipientType === "partner" && !share.partnerId) return false;

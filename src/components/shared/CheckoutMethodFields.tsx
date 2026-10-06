@@ -2,28 +2,7 @@ import type { ReactNode } from "react";
 import { MpesaPhoneField } from "@/components/shared/MpesaPhoneField";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { looksLikeMpesaPhone } from "@/lib/mpesa";
-import type { CheckoutMethod, PaymentMode } from "@/types/otot";
-
-export function checkoutMethodFromMode(mode?: PaymentMode): CheckoutMethod {
-  return mode === "Card" ? "card" : "mpesa";
-}
-
-export function checkoutReady(method: CheckoutMethod, phoneNumber: string): boolean {
-  return method === "card" || looksLikeMpesaPhone(phoneNumber);
-}
-
-export function checkoutActionLabel(
-  method: CheckoutMethod,
-  options?: { busy?: boolean; retry?: boolean },
-): string {
-  if (method === "card") {
-    if (options?.busy) return "Opening card checkout…";
-    return options?.retry ? "Try card checkout" : "Continue to card checkout";
-  }
-  if (options?.busy) return "Sending M-Pesa prompt…";
-  return options?.retry ? "Try M-Pesa again" : "Pay with M-Pesa";
-}
+import type { CheckoutMethod } from "@/types/otot";
 
 type CheckoutMethodFieldsProps = {
   method: CheckoutMethod;

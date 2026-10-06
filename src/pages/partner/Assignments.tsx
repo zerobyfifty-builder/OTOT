@@ -4,7 +4,10 @@ import { ArrowRight, Check, CheckCircle2, Circle, Clock, Eye, ListChecks, MoreHo
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
-import { shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, treeCount } from "@/lib/format";
+import { partnerShareKesByDonation } from "@/lib/ledger";
+import { requestDonationIds } from "@/lib/plantingStatus";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import {
   DateTimeCell,
   EmptyCard,
@@ -42,6 +45,12 @@ const NEXT: Record<VendorRequestStatus, VendorRequestStatus | null> = {
   completed: null,
 };
 
+const NEXT_ACTION: Record<VendorRequestStatus, string> = {
+  assigned: "Mark assigned",
+  in_progress: "Mark in progress",
+  completed: "Report planting done",
+};
+
 export default function PartnerAssignments() {
   const { session } = useAuth();
   const { state, loading, refresh, updateVendorRequestStatus } = useStore();
@@ -51,7 +60,10 @@ export default function PartnerAssignments() {
   const [agentFilter, setAgentFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<VendorPlantationRequest | null>(null);
+  const [reporting, setReporting] = useState<VendorPlantationRequest | null>(null);
   const isAdmin = session?.role === "partner_admin";
+  // Agents receive no payment data; only partner admins see the KES share.
+  const shareByDonation = isAdmin ? partnerShareKesByDonation(state, session.vendorId) : new Map<string, number>();
   const mine = state.vendorPlantationRequests.filter((v) =>
     isAdmin ? v.vendorId === session.vendorId : v.assignedAgentId === session?.userId,
   );
@@ -60,7 +72,12 @@ export default function PartnerAssignments() {
   const requestFor = (v: VendorPlantationRequest) => state.plantationRequests.find((r) => r.id === v.plantationRequestId);
   const donationsFor = (v: VendorPlantationRequest) => {
     const request = requestFor(v);
-    return state.donations.filter((d) => request?.donationIds.includes(d.id));
+    const ids = new Set(request ? requestDonationIds(request) : []);
+    return state.donations.filter((d) => ids.has(d.id));
+  };
+  const shareFor = (v: VendorPlantationRequest) => {
+    const request = requestFor(v);
+    return request ? requestDonationIds(request).reduce((s, id) => s + (shareByDonation.get(id) ?? 0), 0) : 0;
   };
   const treesFor = (v: VendorPlantationRequest) => donationsFor(v).reduce((total, d) => total + treeCount(d.trees), 0);
   const speciesFor = (v: VendorPlantationRequest) =>
@@ -68,9 +85,14 @@ export default function PartnerAssignments() {
   const agentName = (v: VendorPlantationRequest) => state.users.find((u) => u.id === v.assignedAgentId)?.name ?? "Agent";
 
   const advance = async (v: VendorPlantationRequest, next: VendorRequestStatus) => {
+    // Reporting the work done sends it to the Ministry for verification, so confirm first.
+    if (next === "completed") {
+      setReporting(v);
+      return;
+    }
     try {
       await updateVendorRequestStatus(v.id, next);
-      toast.success(`Marked ${next.replace(/_/g, " ")}`);
+      toast.success(`Ticket marked ${VENDOR_STATUS_LABELS[next].toLowerCase()}`);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
@@ -111,7 +133,7 @@ export default function PartnerAssignments() {
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Planting</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <InfoField label="Trees" value={fmtNum(treesFor(selected))} />
-                  <InfoField label="Planting Amount" value={request ? usd(request.amount) : undefined} />
+                  {isAdmin && <InfoField label="Partner Share" value={kes(shareFor(selected))} />}
                 </div>
                 <div className="rounded-lg border bg-card p-4 space-y-1.5">
                   {speciesFor(selected).length > 0 ? (
@@ -139,6 +161,11 @@ export default function PartnerAssignments() {
                     </div>
                   )}
                 </div>
+                {request?.reviewNote && request.status !== "completed" && (
+                  <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                    <span className="font-medium">Sent back by the Ministry:</span> {request.reviewNote}
+                  </p>
+                )}
               </div>
               {next && (
                 <div className="flex gap-2 pt-4">
@@ -149,7 +176,7 @@ export default function PartnerAssignments() {
                       setSelected(null);
                     }}
                   >
-                    <Check className="mr-2 h-4 w-4" /> Mark {next.replace(/_/g, " ")}
+                    <Check className="mr-2 h-4 w-4" /> {NEXT_ACTION[next]}
                   </Button>
                 </div>
               )}
@@ -158,6 +185,32 @@ export default function PartnerAssignments() {
         })()}
       </SheetContent>
     </Sheet>
+  );
+
+  const reportDialog = (
+    <ConfirmDialog
+      open={reporting !== null}
+      onOpenChange={(open) => !open && setReporting(null)}
+      title="Report this planting done?"
+      description={
+        <>
+          <p>
+            Confirm that all {reporting ? fmtNum(treesFor(reporting)) : ""} trees on ticket{" "}
+            <span className="font-mono">{reporting ? shortRef(reporting.id) : ""}</span> are in the ground.
+          </p>
+          <p>
+            The Ministry is then asked to verify the planting. You can't change the ticket after this unless the
+            Ministry sends it back.
+          </p>
+        </>
+      }
+      confirmLabel="Report planting done"
+      busyLabel="Reporting…"
+      onConfirm={async () => {
+        await updateVendorRequestStatus(reporting!.id, "completed");
+        toast.success("Reported done. The Ministry will verify the planting.");
+      }}
+    />
   );
 
   if (!isAdmin) {
@@ -178,10 +231,10 @@ export default function PartnerAssignments() {
             <SummaryStatCard label="Assigned" value={fmtNum(counts.assigned)} valueClassName="text-blue-600" sub="Not yet started" />
             <SummaryStatCard label="In Progress" value={fmtNum(counts.in_progress)} valueClassName="text-orange-600" sub="Planting under way" />
             <SummaryStatCard
-              label="Completed"
+              label="Reported Done"
               value={fmtNum(counts.completed)}
               valueClassName="text-green-600"
-              sub={`${fmtNum(mine.filter((v) => v.status === "completed").reduce((s, v) => s + treesFor(v), 0))} trees planted`}
+              sub={`${fmtNum(mine.filter((v) => v.status === "completed").reduce((s, v) => s + treesFor(v), 0))} trees reported done`}
             />
           </div>
 
@@ -193,7 +246,6 @@ export default function PartnerAssignments() {
                   <TableHead>Assigned</TableHead>
                   <TableHead>Trees</TableHead>
                   <TableHead>Species</TableHead>
-                  <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -201,13 +253,13 @@ export default function PartnerAssignments() {
               <TableBody>
                 {loading && mine.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7}>
+                    <TableCell colSpan={6}>
                       <Spinner className="py-8" />
                     </TableCell>
                   </TableRow>
                 ) : sorted.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No tickets yet. Your partner admin will assign plantation work here.
                     </TableCell>
                   </TableRow>
@@ -221,9 +273,13 @@ export default function PartnerAssignments() {
                         <TableCell>{shortDate(v.createdAt)}</TableCell>
                         <TableCell className="font-medium">{fmtNum(treesFor(v))}</TableCell>
                         <TableCell className="max-w-[260px] truncate text-muted-foreground">{speciesFor(v).join(", ") || "—"}</TableCell>
-                        <TableCell>{request ? usd(request.amount) : "—"}</TableCell>
                         <TableCell>
                           <StatusPill label={VENDOR_STATUS_LABELS[v.status]} className={VENDOR_STATUS_COLORS[v.status]} />
+                          {request?.reviewNote && request.status !== "completed" && (
+                            <div className="text-[11px] text-amber-700 mt-1 max-w-[220px] line-clamp-2" title={request.reviewNote}>
+                              Sent back: {request.reviewNote}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -238,7 +294,7 @@ export default function PartnerAssignments() {
                               </DropdownMenuItem>
                               {next && (
                                 <DropdownMenuItem onClick={() => advance(v, next)}>
-                                  <Check className="mr-2 h-4 w-4" /> Mark {next.replace(/_/g, " ")}
+                                  <Check className="mr-2 h-4 w-4" /> {NEXT_ACTION[next]}
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -253,6 +309,7 @@ export default function PartnerAssignments() {
           </div>
         </div>
         {detailSheet}
+        {reportDialog}
       </div>
     );
   }
@@ -285,7 +342,7 @@ export default function PartnerAssignments() {
         <IconStatCard label="Total Tickets" value={fmtNum(mine.length)} icon={ListChecks} tint={{ bg: "bg-primary/10", fg: "text-primary" }} />
         <IconStatCard label="Assigned" value={fmtNum(counts.assigned)} icon={Clock} tint={{ bg: "bg-orange-100", fg: "text-orange-600" }} />
         <IconStatCard label="In Progress" value={fmtNum(counts.in_progress)} icon={TreePine} tint={{ bg: "bg-blue-100", fg: "text-blue-600" }} />
-        <IconStatCard label="Completed" value={fmtNum(counts.completed)} icon={CheckCircle2} tint={{ bg: "bg-green-100", fg: "text-green-600" }} />
+        <IconStatCard label="Reported Done" value={fmtNum(counts.completed)} icon={CheckCircle2} tint={{ bg: "bg-green-100", fg: "text-green-600" }} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -356,7 +413,7 @@ export default function PartnerAssignments() {
                   <StaticHead label="Field Agent" />
                   <StaticHead label="Trees" />
                   <StaticHead label="Species" />
-                  <StaticHead label="Planting Amnt" />
+                  <StaticHead label="Partner Share" />
                   <StaticHead label="Planting Status" />
                   <StaticHead label="Action" className="w-16" />
                 </TableRow>
@@ -375,7 +432,7 @@ export default function PartnerAssignments() {
                       <TableCell className="text-sm font-medium">{agentName(v)}</TableCell>
                       <TableCell className="text-sm font-medium tabular-nums">{fmtNum(treesFor(v))}</TableCell>
                       <TableCell className="text-xs text-muted-foreground max-w-[220px] truncate">{speciesFor(v).join(", ") || "—"}</TableCell>
-                      <TableCell className="text-sm font-medium tabular-nums">{request ? usd(request.amount) : "—"}</TableCell>
+                      <TableCell className="text-sm font-medium tabular-nums">{request ? kes(shareFor(v)) : "—"}</TableCell>
                       <TableCell>
                         {next ? (
                           <Select value="" onValueChange={(value) => advance(v, value as VendorRequestStatus)}>
@@ -424,6 +481,11 @@ export default function PartnerAssignments() {
                         ) : (
                           <StatusPill label={VENDOR_STATUS_LABELS[v.status]} className={VENDOR_STATUS_COLORS[v.status]} />
                         )}
+                        {request?.reviewNote && request.status !== "completed" && (
+                          <div className="text-[11px] text-amber-700 mt-1 max-w-[220px] line-clamp-2" title={request.reviewNote}>
+                            Sent back: {request.reviewNote}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelected(v)}>
@@ -440,6 +502,7 @@ export default function PartnerAssignments() {
         </Card>
       )}
       {detailSheet}
+      {reportDialog}
     </div>
   );
 }

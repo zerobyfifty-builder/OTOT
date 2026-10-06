@@ -3,8 +3,10 @@ import { AlertCircle, AlertTriangle, Info, RefreshCw, TreePine } from "lucide-re
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { kes, shortDate, treeCount, usd } from "@/lib/format";
+import { kes, shortDate, treeCount } from "@/lib/format";
+import { partnerShareKesByDonation } from "@/lib/ledger";
 import { isOpenPayout } from "@/lib/payouts";
+import { requestDonationIds } from "@/lib/plantingStatus";
 import { GlobalDateRangeFilter } from "@/components/partner/GlobalDateRangeFilter";
 import { CardEmpty, CrosshairTooltip, DCard, KpiTile, StatusPill, ThinBar } from "@/components/partner/PartnerUI";
 import { SpeciesDonut } from "@/components/partner/SpeciesDonut";
@@ -45,6 +47,9 @@ export default function PartnerDashboard() {
   const vprs = state.vendorPlantationRequests.filter((v) => v.vendorId === vendorId);
   const payouts = state.payouts.filter((p) => p.recipientType === "partner" && p.partnerId === vendorId);
   const agents = state.users.filter((u) => u.vendorId === vendorId && u.role === "partner_agent");
+
+  const shareByDonation = partnerShareKesByDonation(state, vendorId);
+  const shareFor = (donationIds: string[]) => donationIds.reduce((s, id) => s + (shareByDonation.get(id) ?? 0), 0);
 
   const treesFor = (donationIds: string[]) =>
     state.donations
@@ -129,12 +134,20 @@ export default function PartnerDashboard() {
       sub: "Assigned to agents but not marked in progress",
     });
   }
+  const sentBack = requests.filter((r) => r.reviewNote && (r.status === "assigned" || r.status === "in_progress"));
+  if (sentBack.length > 0) {
+    alerts.push({
+      level: "red",
+      title: `Sent back by the Ministry (${sentBack.length})`,
+      sub: sentBack[0].reviewNote ?? "",
+    });
+  }
   const inReview = requests.filter((r) => r.status === "ready_for_review");
   if (inReview.length > 0) {
     alerts.push({
       level: "blue",
-      title: `Awaiting ministry review (${inReview.length})`,
-      sub: "Completed in the field, pending sign-off",
+      title: `Reported planted, awaiting Ministry verification (${inReview.length})`,
+      sub: "Trees count as planted once the Ministry verifies them",
     });
   }
 
@@ -193,7 +206,7 @@ export default function PartnerDashboard() {
             />
             <KpiTile label="Trees in queue" value={treesInQueue} tint={KPI_TINTS[2]} delay={160} />
             <KpiTile
-              label="Payouts"
+              label="Paid to you"
               value={rangedPayouts.filter((p) => p.status === "transferred").reduce((s, p) => s + p.amountKes, 0)}
               prefix="KES "
               decimals={0}
@@ -429,7 +442,7 @@ export default function PartnerDashboard() {
                       <TableRow className="hover:bg-transparent border-b border-border/40">
                         <TableHead className={TABLE_HEAD}>Received</TableHead>
                         <TableHead className={TABLE_HEAD}>Trees</TableHead>
-                        <TableHead className={TABLE_HEAD}>Amount</TableHead>
+                        <TableHead className={TABLE_HEAD}>Your Share</TableHead>
                         <TableHead className={TABLE_HEAD}>Status</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -438,7 +451,7 @@ export default function PartnerDashboard() {
                         <TableRow key={r.id} className="hover:bg-[#F8FAF8] dark:hover:bg-gray-800 transition-colors">
                           <TableCell className="text-[13px]">{shortDate(r.createdAt)}</TableCell>
                           <TableCell className="text-[13px] font-medium tabular-nums">{fmtNum(treesFor(r.donationIds))}</TableCell>
-                          <TableCell className="text-[13px] tabular-nums">{usd(r.amount)}</TableCell>
+                          <TableCell className="text-[13px] tabular-nums">{kes(shareFor(requestDonationIds(r)))}</TableCell>
                           <TableCell>
                             <StatusPill label={REQUEST_STATUS_LABELS[r.status]} className={REQUEST_STATUS_COLORS[r.status]} />
                           </TableCell>

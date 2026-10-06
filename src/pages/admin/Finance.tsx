@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Download, RefreshCw, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/contexts/StoreContext";
@@ -14,10 +15,20 @@ import {
   sweepModeDescription,
   type SweepMode,
 } from "@/lib/payouts";
+import {
+  PLANTING_STAGE_HINT,
+  PLANTING_STAGE_LABEL,
+  PLANTING_STAGE_TONE,
+  REQUEST_STATUS_LABEL,
+  plantingStage,
+  requestByDonation,
+  requestDonationIds,
+} from "@/lib/plantingStatus";
 import { AdminSpinner, TablePagination } from "@/components/admin/TablePagination";
 import { downloadCsv, UNDERLINE_TABS_LIST, UNDERLINE_TABS_TRIGGER } from "@/components/admin/styles";
 import { usePagination } from "@/components/admin/usePagination";
 import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
+import { ReasonDialog } from "@/components/admin/ConfirmDialog";
 import { ALL_TIME, dateFilterLabel, dateMatcher, type DateFilter } from "@/lib/dateFilter";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Badge } from "@/components/ui/badge";
@@ -37,12 +48,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Payout, RecipientType, Wallet } from "@/types/otot";
+import { Textarea } from "@/components/ui/textarea";
+import type { Payment, PaymentIssue, Payout, RecipientType, Wallet } from "@/types/otot";
 
 type FinanceTab = "donations" | "payouts" | "payments" | "requests";
 
 interface Column {
   label: ReactNode;
+  /** CSV header; every column on screen is exported, in the same order. */
+  csv: string;
   key: string;
   className?: string;
 }
@@ -50,10 +64,13 @@ interface Column {
 interface Row {
   id: string;
   status: string;
+  /** Extra filter values a row matches, e.g. "issues" or "needs_review". */
+  flags: string[];
   /** ISO timestamp the date filter applies to. */
   date: string;
   search: string;
   cells: ReactNode[];
+  /** One value per column header (see Column.csv); a column can export several values. */
   csv: (string | number)[];
 }
 
@@ -63,8 +80,18 @@ const DONATION_FILTERS: { value: string; label: string }[] = [
   { value: "unassigned", label: "Awaiting Ministry assignment" },
   { value: "in_flight", label: "Payout in progress" },
   { value: "failed", label: "Payout failed" },
+  { value: "void", label: "Not payable" },
   { value: "settled", label: "Fully settled" },
 ];
+
+const ISSUE_LABEL: Record<PaymentIssue, string> = {
+  duplicate: "Duplicate",
+  amount_mismatch: "Amount mismatch",
+  reversed: "Reversed",
+};
+
+/** The API expires unconfirmed charges after 60 minutes; flag them well before. */
+const LONG_PENDING_MS = 30 * 60 * 1000;
 
 const TABS: {
   value: FinanceTab;
@@ -82,82 +109,85 @@ const TABS: {
     value: "payouts",
     label: "Payouts",
     noun: "payouts",
-    statuses: (["initiated", "in_progress", "transferred", "failed"] as const).map((s) => ({
-      value: s,
-      label: PAYOUT_STATUS_LABEL[s],
-    })),
+    statuses: [
+      ...(["initiated", "in_progress", "transferred", "failed"] as const).map((s) => ({
+        value: s,
+        label: PAYOUT_STATUS_LABEL[s],
+      })),
+      { value: "needs_review", label: "Needs review" },
+    ],
   },
   {
     value: "payments",
     label: "Payments",
     noun: "payments",
-    statuses: ["pending", "success", "failed"].map((s) => ({
-      value: s,
-      label: s,
-    })),
+    statuses: [
+      { value: "issues", label: "Needs attention" },
+      { value: "pending", label: "Pending" },
+      { value: "success", label: "Success" },
+      { value: "failed", label: "Failed" },
+      { value: "refunded", label: "Refunded" },
+    ],
   },
   {
     value: "requests",
     label: "Plantation Requests",
     noun: "requests",
-    statuses: ["unassigned", "assigned", "in_progress", "ready_for_review", "completed"].map((s) => ({
+    statuses: (["unassigned", "assigned", "in_progress", "ready_for_review", "completed"] as const).map((s) => ({
       value: s,
-      label: s.replace(/_/g, " "),
+      label: REQUEST_STATUS_LABEL[s],
     })),
   },
 ];
 
 const COLUMNS: Record<FinanceTab, Column[]> = {
   donations: [
-    { key: "id", label: "Donation ID" },
-    { key: "user", label: "User Details" },
-    { key: "date", label: "Date" },
-    { key: "vendor", label: "Vendor" },
-    { key: "amount", label: "Amount", className: "text-right" },
+    { key: "id", label: "Donation ID", csv: "Donation ID" },
+    { key: "user", label: "User Details", csv: "User,Email" },
+    { key: "date", label: "Paid", csv: "Paid" },
+    { key: "vendor", label: "Vendor", csv: "Vendor" },
+    { key: "planting", label: "Planting", csv: "Planting" },
+    { key: "amount", label: "Amount", className: "text-right", csv: "Amount (KES),Amount (USD)" },
+    { key: "fee", label: "Afrinet Fees", className: "text-right", csv: "Afrinet fees (KES)" },
+    { key: "otot", label: "Tech Processing Fee (OTOT)", className: "text-right", csv: "OTOT fee (KES),OTOT status" },
     {
-      key: "fee",
-      label: "Payment Processing Fee (Afrinet)",
+      key: "ministry",
+      label: "Admin Fee (Ministry)",
       className: "text-right",
+      csv: "Ministry fee (KES),Ministry status",
     },
-    {
-      key: "otot",
-      label: "Tech Processing Fee (OTOT)",
-      className: "text-right",
-    },
-    { key: "ministry", label: "Admin Fee (Ministry)", className: "text-right" },
-    {
-      key: "vendorAmount",
-      label: "Vendor Payout Amount",
-      className: "text-right",
-    },
-    { key: "vendorStatus", label: "Vendor Payout Status" },
+    { key: "vendorAmount", label: "Vendor Payout Amount", className: "text-right", csv: "Vendor payout (KES)" },
+    { key: "vendorStatus", label: "Vendor Payout Status", csv: "Vendor payout status" },
   ],
   payouts: [
-    { key: "date", label: "Date" },
-    { key: "recipient", label: "Recipient" },
-    { key: "phone", label: "M-Pesa" },
-    { key: "donations", label: "Donations" },
-    { key: "reference", label: "Reference" },
-    { key: "source", label: "Sent by" },
-    { key: "status", label: "Status" },
-    { key: "amount", label: "Amount", className: "text-right" },
-    { key: "actions", label: "", className: "text-right" },
+    { key: "date", label: "Date", csv: "Date" },
+    { key: "recipient", label: "Recipient", csv: "Recipient" },
+    { key: "phone", label: "M-Pesa", csv: "M-Pesa" },
+    { key: "donations", label: "Donations", csv: "Donations" },
+    { key: "reference", label: "Reference", csv: "Transaction code,Reference" },
+    { key: "source", label: "Sent by", csv: "Sent by" },
+    { key: "status", label: "Status", csv: "Status,Needs review" },
+    { key: "amount", label: "Amount", className: "text-right", csv: "Amount (KES)" },
+    { key: "notes", label: "Notes", csv: "Failure,Review note,Resolution note" },
+    { key: "actions", label: "", className: "text-right", csv: "" },
   ],
   payments: [
-    { key: "date", label: "Date" },
-    { key: "email", label: "User Email" },
-    { key: "reference", label: "Reference" },
-    { key: "mode", label: "Mode" },
-    { key: "status", label: "Status" },
-    { key: "amount", label: "Amount", className: "text-right" },
+    { key: "date", label: "Started", csv: "Started" },
+    { key: "email", label: "User Email", csv: "User email" },
+    { key: "reference", label: "Reference", csv: "Reference" },
+    { key: "mode", label: "Mode", csv: "Mode" },
+    { key: "status", label: "Status", csv: "Status,Issue,Simulated" },
+    { key: "amount", label: "Amount", className: "text-right", csv: "Amount (KES),Amount (USD)" },
+    { key: "notes", label: "Notes", csv: "Failure,Resolution note" },
+    { key: "actions", label: "", className: "text-right", csv: "" },
   ],
   requests: [
-    { key: "date", label: "Date" },
-    { key: "id", label: "ID" },
-    { key: "donations", label: "Donations" },
-    { key: "partner", label: "Partner" },
-    { key: "status", label: "Status" },
-    { key: "amount", label: "Amount", className: "text-right" },
+    { key: "date", label: "Date", csv: "Date" },
+    { key: "id", label: "ID", csv: "ID" },
+    { key: "donations", label: "Donations", csv: "Donations" },
+    { key: "partner", label: "Partner", csv: "Partner" },
+    { key: "status", label: "Status", csv: "Status" },
+    { key: "amount", label: "Received", className: "text-right", csv: "Received (KES),Amount (USD)" },
   ],
 };
 
@@ -166,6 +196,7 @@ const shortId = (id: string) => id.substring(0, 8);
 const byNewest = <T extends { createdAt: string }>(rows: T[]) =>
   [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 const shareLabel = (share?: DonationShare) => (share ? ALLOCATION_STATUS_LABEL[share.status] : "");
+const isTab = (value: string | null): value is FinanceTab => TABS.some((t) => t.value === value);
 
 function donationMatches(row: DonationLedgerRow, filter: string): boolean {
   const { ministry, partner, otot } = row.shares;
@@ -181,8 +212,12 @@ function donationMatches(row: DonationLedgerRow, filter: string): boolean {
       return all.some((s) => s.status === "initiated" || s.status === "in_progress");
     case "failed":
       return all.some((s) => s.status === "failed");
+    case "void":
+      return all.some((s) => s.status === "void");
     case "settled":
-      return all.length > 0 && all.every((s) => s.status === "transferred" || s.amountKes === 0);
+      return (
+        all.length > 0 && all.every((s) => s.status === "transferred" || s.status === "void" || s.amountKes === 0)
+      );
     default:
       return true;
   }
@@ -192,7 +227,9 @@ function ShareCell({ share, showStatus }: { share?: DonationShare; showStatus?: 
   if (!share) return <span className="text-muted-foreground">—</span>;
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className="tabular-nums">{kes(share.amountKes)}</span>
+      <span className={share.status === "void" ? "tabular-nums text-muted-foreground line-through" : "tabular-nums"}>
+        {kes(share.amountKes)}
+      </span>
       {showStatus && <ShareStatus share={share} compact />}
     </div>
   );
@@ -206,6 +243,14 @@ function ShareStatus({ share, compact }: { share?: DonationShare; compact?: bool
     </span>
   );
 }
+
+/** A Super Admin can settle a pending or failed charge by hand; duplicates are refunded instead. */
+const canResolvePayment = (p: Payment) =>
+  (p.status === "pending" || p.status === "failed") && p.issue !== "duplicate" && p.issue !== "reversed";
+const canRefundPayment = (p: Payment) =>
+  p.status !== "refunded" && (p.issue === "duplicate" || p.issue === "amount_mismatch");
+const isLongPending = (p: Payment, now: number) =>
+  p.status === "pending" && !p.issue && now - new Date(p.createdAt).getTime() > LONG_PENDING_MS;
 
 /** `donationIds` undefined means every payable share of that recipient. */
 type PayTarget = { recipientType: RecipientType; donationIds?: string[] };
@@ -224,16 +269,34 @@ const PAY_TITLE: Record<RecipientType, string> = {
 };
 
 export default function AdminFinance() {
-  const { state, loading, refresh, payDonationShares, resolvePayout } = useStore();
-  const [tab, setTab] = useState<FinanceTab>("donations");
+  const {
+    state,
+    loading,
+    refresh,
+    payDonationShares,
+    resolvePayout,
+    acknowledgePayoutReview,
+    resolvePayment,
+    refundPayment,
+  } = useStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [tab, setTab] = useState<FinanceTab>(isTab(initialTab) ? initialTab : "donations");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const status = searchParams.get("status");
+    const tabDef = TABS.find((t) => t.value === tab);
+    return status && tabDef?.statuses.some((s) => s.value === status) ? status : "all";
+  });
   const [dateFilter, setDateFilter] = useState<DateFilter>(ALL_TIME);
   const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [payTarget, setPayTarget] = useState<PayTarget | null>(null);
   const [paying, setPaying] = useState(false);
   const [resolving, setResolving] = useState<Payout | null>(null);
+  const [reviewing, setReviewing] = useState<Payout | null>(null);
+  const [resolvingPayment, setResolvingPayment] = useState<Payment | null>(null);
+  const [refunding, setRefunding] = useState<Payment | null>(null);
   const [overview, setOverview] = useState<WalletsOverview | null>(null);
 
   useEffect(() => {
@@ -242,14 +305,21 @@ export default function AdminFinance() {
       .catch((err) => toast.error(apiErrorMessage(err)));
   }, []);
 
+  // Links from the Overview alerts set the tab and filter once; drop them so a refresh starts clean.
+  useEffect(() => {
+    if (searchParams.has("tab") || searchParams.has("status")) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   // Only paid donations have money to split; unpaid checkouts stay on the Payments tab.
   const ledger = useMemo(() => buildDonationLedger(state).filter((row) => row.donation.status === "paid"), [state]);
   const ledgerById = useMemo(() => new Map(ledger.map((row) => [row.donation.id, row])), [ledger]);
   const vendorName = useMemo(() => new Map(state.vendors.map((v) => [v.id, v.name])), [state.vendors]);
   const inDateRange = useMemo(() => dateMatcher(dateFilter), [dateFilter]);
+  const { chargeFeePct, payoutFeePct } = state.settings;
 
+  // Money totals follow the date the money arrived.
   const totals = useMemo(() => {
-    const rows = ledger.filter((row) => inDateRange(row.donation.createdAt));
+    const rows = ledger.filter((row) => inDateRange(row.paidAt));
     const sum = (type: RecipientType, pick: (s: DonationShare) => number) =>
       rows.reduce((total, row) => total + (row.shares[type] ? pick(row.shares[type]!) : 0), 0);
     return {
@@ -264,8 +334,10 @@ export default function AdminFinance() {
   }, [ledger, inDateRange]);
 
   const rowsByTab = useMemo<Record<FinanceTab, Row[]>>(() => {
+    const now = Date.now();
     const users = new Map(state.users.map((u) => [u.id, u]));
     const donationUser = new Map(state.donations.map((d) => [d.id, d.userId]));
+    const requests = requestByDonation(state);
     const donationsByPayout = new Map<string, Set<string>>();
     for (const a of state.paymentAllocations) {
       if (!a.payoutId) continue;
@@ -279,10 +351,13 @@ export default function AdminFinance() {
       const user = users.get(d.userId);
       const partner = row.shares.partner;
       const vendor = partner?.partnerId ? (vendorName.get(partner.partnerId) ?? "") : "";
+      const stage = plantingStage(requests.get(d.id)?.status);
+      const feesKes = row.feeKes + row.payoutFeeKes;
       return {
         id: d.id,
         status: d.status,
-        date: d.createdAt,
+        flags: [],
+        date: row.paidAt,
         search: `${user?.email ?? ""} ${user?.name ?? ""} ${d.id} ${vendor}`.toLowerCase(),
         cells: [
           <span className="font-mono text-sm">{shortId(d.id)}</span>,
@@ -290,13 +365,16 @@ export default function AdminFinance() {
             <div className="font-medium truncate">{user?.name || "—"}</div>
             <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
           </div>,
-          <span className="whitespace-nowrap">{shortDate(d.createdAt)}</span>,
+          <span className="whitespace-nowrap">{shortDate(row.paidAt)}</span>,
           vendor || <span className="text-muted-foreground">Not assigned</span>,
+          <span title={PLANTING_STAGE_HINT[stage]}>
+            <StatusBadge status={PLANTING_STAGE_TONE[stage]} label={PLANTING_STAGE_LABEL[stage]} />
+          </span>,
           <div className="flex flex-col items-end">
             <span className="font-medium tabular-nums">{kes(row.grossKes)}</span>
             <span className="text-xs text-muted-foreground">{usd(d.amount)}</span>
           </div>,
-          <span className="tabular-nums">{kes(row.feeKes)}</span>,
+          <span className="tabular-nums">{kes(feesKes)}</span>,
           <ShareCell share={row.shares.otot} showStatus />,
           <ShareCell share={row.shares.ministry} showStatus />,
           <ShareCell share={partner} />,
@@ -306,11 +384,12 @@ export default function AdminFinance() {
           d.id,
           user?.name ?? "",
           user?.email ?? "",
-          shortDate(d.createdAt),
+          shortDate(row.paidAt),
           vendor,
-          d.amount.toFixed(2),
+          PLANTING_STAGE_LABEL[stage],
           row.grossKes,
-          row.feeKes,
+          d.amount.toFixed(2),
+          feesKes,
           row.shares.otot?.amountKes ?? "",
           shareLabel(row.shares.otot),
           row.shares.ministry?.amountKes ?? "",
@@ -326,6 +405,7 @@ export default function AdminFinance() {
       return {
         id: p.id,
         status: p.status,
+        flags: p.needsReview ? ["needs_review"] : [],
         date: p.createdAt,
         search: `${p.recipientName} ${p.reference} ${p.transactionCode ?? ""} ${p.mpesaPhone ?? ""}`.toLowerCase(),
         cells: [
@@ -341,31 +421,56 @@ export default function AdminFinance() {
             {p.transactionCode ? <div className="text-muted-foreground">{p.reference}</div> : null}
           </div>,
           <span className="text-sm">{PAYOUT_SOURCE_LABEL[p.source]}</span>,
-          <div>
+          <div className="flex flex-col items-start gap-1">
             <StatusBadge status={p.status} label={PAYOUT_STATUS_LABEL[p.status]} />
-            {p.failureMessage && (
-              <div className="text-xs text-muted-foreground mt-1 max-w-[220px] truncate" title={p.failureMessage}>
-                {p.failureMessage}
-              </div>
-            )}
+            {p.needsReview && <StatusBadge status="needs_review" label="Needs review" />}
           </div>,
           <span className="font-medium tabular-nums">{kes(p.amountKes)}</span>,
-          isOpenPayout(p.status) ? (
-            <Button variant="outline" size="sm" onClick={() => setResolving(p)}>
-              Resolve
-            </Button>
-          ) : null,
+          <div className="text-xs max-w-[240px] space-y-1">
+            {p.needsReview && (
+              <p className="text-orange-800" title={p.reviewNote}>
+                {p.reviewNote ?? "A late success arrived after its shares were re-sent: possible double payment."}
+              </p>
+            )}
+            {p.failureMessage && (
+              <p className="text-muted-foreground truncate" title={p.failureMessage}>
+                {p.failureMessage}
+              </p>
+            )}
+            {p.resolutionNote && (
+              <p className="text-muted-foreground truncate" title={p.resolutionNote}>
+                Resolved: {p.resolutionNote}
+              </p>
+            )}
+            {!p.needsReview && !p.failureMessage && !p.resolutionNote && <span className="text-muted-foreground">—</span>}
+          </div>,
+          <div className="flex justify-end gap-2">
+            {isOpenPayout(p.status) && (
+              <Button variant="outline" size="sm" onClick={() => setResolving(p)}>
+                Resolve
+              </Button>
+            )}
+            {p.needsReview && (
+              <Button variant="outline" size="sm" onClick={() => setReviewing(p)}>
+                Mark reviewed
+              </Button>
+            )}
+          </div>,
         ],
         csv: [
           shortDate(p.createdAt),
           `${p.recipientName} (${RECIPIENT_LABEL[p.recipientType]})`,
           p.mpesaPhone ?? "",
           count,
-          p.transactionCode || p.reference,
+          p.transactionCode ?? "",
+          p.reference,
           PAYOUT_SOURCE_LABEL[p.source],
           PAYOUT_STATUS_LABEL[p.status],
+          p.needsReview ? "Yes" : "",
           p.amountKes,
-          "",
+          p.failureMessage ?? "",
+          p.reviewNote ?? "",
+          p.resolutionNote ?? "",
         ],
       };
     });
@@ -373,54 +478,116 @@ export default function AdminFinance() {
     const payments = byNewest(state.payments).map((p): Row => {
       const mail = users.get(donationUser.get(p.donationId) ?? "")?.email ?? "";
       const reference = p.mpesaReceipt || p.externalReference || p.afrinetTransactionCode || p.id;
+      const longPending = isLongPending(p, now);
+      const needsAttention = (Boolean(p.issue) && p.status !== "refunded") || longPending;
       return {
         id: p.id,
         status: p.status,
+        flags: needsAttention ? ["issues"] : [],
         date: p.createdAt,
-        search: `${mail} ${reference} ${p.id}`.toLowerCase(),
+        search: `${mail} ${reference} ${p.id} ${p.donationId}`.toLowerCase(),
         cells: [
-          shortDate(p.createdAt),
+          <span className="whitespace-nowrap">{shortDate(p.createdAt)}</span>,
           <span className="font-medium">{mail || "—"}</span>,
           <span className="font-mono text-sm">{reference === p.id ? shortId(p.id) : reference}</span>,
           <Badge variant="outline">{p.paymentMode}</Badge>,
-          <StatusBadge status={p.status} />,
-          <span className="font-medium">{p.amountKes ? kes(p.amountKes) : usd(p.amount)}</span>,
+          <div className="flex flex-wrap items-center gap-1">
+            <StatusBadge status={p.status} />
+            {p.issue && <StatusBadge status={p.issue} label={ISSUE_LABEL[p.issue]} />}
+            {longPending && <StatusBadge status="needs_review" label="Pending 30+ min" />}
+            {p.simulated && (
+              <Badge variant="outline" className="border-dashed text-muted-foreground">
+                Simulated
+              </Badge>
+            )}
+          </div>,
+          <div className="flex flex-col items-end">
+            <span className="font-medium tabular-nums">{p.amountKes ? kes(p.amountKes) : "—"}</span>
+            <span className="text-xs text-muted-foreground">{usd(p.amount)}</span>
+          </div>,
+          <div className="text-xs max-w-[220px] space-y-1">
+            {p.failureMessage && (
+              <p className="text-muted-foreground truncate" title={p.failureMessage}>
+                {p.failureMessage}
+              </p>
+            )}
+            {p.resolutionNote && (
+              <p className="text-muted-foreground truncate" title={p.resolutionNote}>
+                Resolved: {p.resolutionNote}
+              </p>
+            )}
+            {!p.failureMessage && !p.resolutionNote && <span className="text-muted-foreground">—</span>}
+          </div>,
+          <div className="flex justify-end gap-2">
+            {canResolvePayment(p) && (
+              <Button variant="outline" size="sm" onClick={() => setResolvingPayment(p)}>
+                Resolve
+              </Button>
+            )}
+            {canRefundPayment(p) && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!p.afrinetTransactionCode}
+                title={p.afrinetTransactionCode ? undefined : "No Afrinet transaction to reverse"}
+                onClick={() => setRefunding(p)}
+              >
+                Refund
+              </Button>
+            )}
+          </div>,
         ],
-        csv: [shortDate(p.createdAt), mail, reference, p.paymentMode, p.status, p.amount.toFixed(2)],
+        csv: [
+          shortDate(p.createdAt),
+          mail,
+          reference,
+          p.paymentMode,
+          p.status,
+          p.issue ? ISSUE_LABEL[p.issue] : longPending ? "Pending 30+ min" : "",
+          p.simulated ? "Yes" : "",
+          p.amountKes ?? "",
+          p.amount.toFixed(2),
+          p.failureMessage ?? "",
+          p.resolutionNote ?? "",
+        ],
       };
     });
 
-    const requests = byNewest(state.plantationRequests).map((r): Row => {
+    const requestRows = byNewest(state.plantationRequests).map((r): Row => {
       const partner = r.partnerId ? (vendorName.get(r.partnerId) ?? "") : "";
-      const count = r.donationIds.length || 1;
+      const ids = requestDonationIds(r);
+      const receivedKes = ids.reduce((s, id) => s + (ledgerById.get(id)?.grossKes ?? 0), 0);
       return {
         id: r.id,
         status: r.status,
+        flags: [],
         date: r.createdAt,
-        search: `${partner} ${r.id}`.toLowerCase(),
+        search: `${partner} ${r.id} ${ids.join(" ")}`.toLowerCase(),
         cells: [
           shortDate(r.createdAt),
           <span className="font-mono text-sm">{shortId(r.id)}</span>,
-          count,
+          ids.length,
           partner || <span className="text-muted-foreground">Unassigned</span>,
-          <StatusBadge status={r.status} />,
-          <span className="font-medium">{usd(r.amount)}</span>,
+          <StatusBadge status={r.status} label={REQUEST_STATUS_LABEL[r.status]} />,
+          <div className="flex flex-col items-end">
+            <span className="font-medium tabular-nums">{kes(receivedKes)}</span>
+            <span className="text-xs text-muted-foreground">{usd(r.amount)}</span>
+          </div>,
         ],
-        csv: [shortDate(r.createdAt), r.id, count, partner, r.status, r.amount.toFixed(2)],
+        csv: [
+          shortDate(r.createdAt),
+          r.id,
+          ids.length,
+          partner,
+          REQUEST_STATUS_LABEL[r.status],
+          receivedKes,
+          r.amount.toFixed(2),
+        ],
       };
     });
 
-    return { donations, payouts, payments, requests };
-  }, [
-    ledger,
-    state.users,
-    state.donations,
-    state.payouts,
-    state.payments,
-    state.paymentAllocations,
-    state.plantationRequests,
-    vendorName,
-  ]);
+    return { donations, payouts, payments, requests: requestRows };
+  }, [ledger, ledgerById, state, vendorName]);
 
   const activeTab = TABS.find((t) => t.value === tab) ?? TABS[0];
   const columns = COLUMNS[tab];
@@ -431,13 +598,13 @@ export default function AdminFinance() {
       if (!inDateRange(r.date)) return false;
       if (statusFilter === "all") return true;
       if (tab === "donations") return donationMatches(ledgerById.get(r.id)!, statusFilter);
-      return r.status === statusFilter;
+      return r.status === statusFilter || r.flags.includes(statusFilter);
     });
   }, [rowsByTab, tab, search, statusFilter, ledgerById, inDateRange]);
 
   const pager = usePagination(rows, 25);
 
-  // Selection: only donations with a share that can be paid right now.
+  // Selection: only donations with a share that can be paid right now (never void shares).
   const isSelectable = (id: string) => {
     const row = ledgerById.get(id);
     return Boolean(row?.shares.ministry?.payable || row?.shares.partner?.payable || row?.shares.otot?.payable);
@@ -458,7 +625,7 @@ export default function AdminFinance() {
     const ids =
       dateFilter.preset === "all"
         ? undefined
-        : ledger.filter((r) => inDateRange(r.donation.createdAt) && r.shares.otot?.payable).map((r) => r.donation.id);
+        : ledger.filter((r) => inDateRange(r.paidAt) && r.shares.otot?.payable).map((r) => r.donation.id);
     setPayTarget({ recipientType: "otot", donationIds: ids });
   };
   const pageSelectable = pager.pageRows.filter((r) => isSelectable(r.id));
@@ -473,27 +640,9 @@ export default function AdminFinance() {
     });
 
   const exportRows = () => {
-    const header =
-      tab === "donations"
-        ? [
-            "Donation ID",
-            "User",
-            "Email",
-            "Date",
-            "Vendor",
-            "Amount (USD)",
-            "Amount (KES)",
-            "Afrinet fee (KES)",
-            "OTOT fee (KES)",
-            "OTOT status",
-            "Ministry fee (KES)",
-            "Ministry status",
-            "Vendor payout (KES)",
-            "Vendor payout status",
-          ]
-        : columns.map((c) => (typeof c.label === "string" ? c.label : c.key));
+    const header = columns.filter((c) => c.csv).flatMap((c) => c.csv.split(","));
     downloadCsv(`${tab}-${new Date().toISOString().split("T")[0]}.csv`, [header, ...rows.map((r) => r.csv)]);
-    toast.success("Transactions exported successfully");
+    toast.success(`Exported ${rows.length} ${activeTab.noun}`);
   };
 
   const walletFor = (type: RecipientType, partnerId?: string) =>
@@ -552,7 +701,7 @@ export default function AdminFinance() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-admin-primary">Financial Transactions</h1>
           <p className="text-muted-foreground mt-1">
-            Each donation split into the Afrinet fee, OTOT, Ministry and vendor shares, and the M-Pesa payouts that
+            Each donation split into Afrinet fees, OTOT, Ministry and vendor shares (KES), and the M-Pesa payouts that
             settle them
           </p>
         </div>
@@ -588,7 +737,7 @@ export default function AdminFinance() {
           {
             label: "Collected",
             value: kes(totals.grossKes),
-            sub: `${totals.paidCount} paid donations${dateFilter.preset === "all" ? "" : ` · ${dateFilterLabel(dateFilter)}`}`,
+            sub: `${totals.paidCount} paid donations${dateFilter.preset === "all" ? "" : ` · paid ${dateFilterLabel(dateFilter)}`}`,
           },
           {
             label: "Ministry fees pending",
@@ -598,7 +747,7 @@ export default function AdminFinance() {
           {
             label: "Vendor payouts pending",
             value: kes(totals.partnerDue),
-            sub: `${kes(totals.unassignedKes)} awaiting Ministry assignment`,
+            sub: `Payable once assigned · ${kes(totals.unassignedKes)} awaiting Ministry assignment`,
           },
           {
             label: "OTOT tech fee pending",
@@ -663,10 +812,12 @@ export default function AdminFinance() {
               <Input
                 placeholder={
                   tab === "requests"
-                    ? "Search by partner or ID..."
+                    ? "Search by partner, request or donation ID..."
                     : tab === "payouts"
                       ? "Search by recipient, number or reference..."
-                      : "Search by user, vendor or ID..."
+                      : tab === "payments"
+                        ? "Search by user, reference, payment or donation ID..."
+                        : "Search by user, vendor or ID..."
                 }
                 value={search}
                 onChange={(e) => {
@@ -697,7 +848,7 @@ export default function AdminFinance() {
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 {activeTab.statuses.map((s) => (
-                  <SelectItem key={s.value} value={s.value} className="capitalize">
+                  <SelectItem key={s.value} value={s.value}>
                     {s.label}
                   </SelectItem>
                 ))}
@@ -716,6 +867,16 @@ export default function AdminFinance() {
               </SelectContent>
             </Select>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Dates are in Nairobi time.{" "}
+            {tab === "donations"
+              ? "Donations are dated by when the money arrived."
+              : tab === "payments"
+                ? "Payments are dated by when the checkout started."
+                : tab === "payouts"
+                  ? "Payouts are dated by when they were sent."
+                  : "Requests are dated by when they were created."}
+          </p>
 
           {tab === "donations" && visibleSelected.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md border bg-muted/40 px-4 py-3 text-sm">
@@ -837,9 +998,11 @@ export default function AdminFinance() {
               />
               {tab === "donations" && (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Vendor payout = amount − Afrinet fee (2.9%) − OTOT fee (15% of the remainder) − Ministry fee (15% of
-                  the remainder). Vendors are paid only after the Ministry assigns them. The OTOT fee moves to the OTOT
-                  wallet automatically; see Wallets.
+                  Vendor payout = amount − Afrinet fees ({chargeFeePct}% collection + {payoutFeePct}% transfer reserve at
+                  today's rates; each payment keeps the rates it settled with) − OTOT fee (15% of the remainder) −
+                  Ministry fee (15% of the remainder). A vendor's share is payable as soon as the Ministry assigns
+                  them. Not payable = test money or a refunded or reversed payment; it is never paid out. Planting:
+                  Funded → Assigned → Reported planted → Verified.
                 </p>
               )}
             </>
@@ -852,8 +1015,8 @@ export default function AdminFinance() {
           <DialogHeader>
             <DialogTitle>{payTarget ? PAY_TITLE[payTarget.recipientType] : ""}</DialogTitle>
             <DialogDescription>
-              One M-Pesa B2C transfer per recipient through Afrinet. Selected shares are marked Initiated until Afrinet
-              confirms them.
+              One M-Pesa B2C transfer per recipient through Afrinet. This sends real money and can't be recalled.
+              Selected shares are marked Initiated until Afrinet confirms them.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -903,6 +1066,75 @@ export default function AdminFinance() {
           setResolving(null);
         }}
       />
+
+      <ReasonDialog
+        open={reviewing !== null}
+        onOpenChange={(open) => !open && setReviewing(null)}
+        title="Mark this payout reviewed?"
+        description={
+          <>
+            <p>
+              {reviewing?.recipientName} · {reviewing ? kes(reviewing.amountKes) : ""} ·{" "}
+              <span className="font-mono">{reviewing?.reference}</span>
+            </p>
+            <p>
+              A late success arrived after this payout's shares were sent again, so the recipient may have been paid
+              twice. Record how it was settled (e.g. recovered, or deducted from the next payout). This clears the flag.
+            </p>
+          </>
+        }
+        label="How was it settled?"
+        confirmLabel="Mark reviewed"
+        onConfirm={async (note) => {
+          await acknowledgePayoutReview(reviewing!.id, note);
+          toast.success("Payout marked reviewed");
+        }}
+      />
+
+      <ResolvePaymentDialog
+        payment={resolvingPayment}
+        onClose={() => setResolvingPayment(null)}
+        onResolve={async (input) => {
+          if (!resolvingPayment) return;
+          await resolvePayment(resolvingPayment.id, input);
+          toast.success(input.status === "success" ? "Payment marked paid" : "Payment marked failed");
+          setResolvingPayment(null);
+        }}
+      />
+
+      <ReasonDialog
+        open={refunding !== null}
+        onOpenChange={(open) => !open && setRefunding(null)}
+        title="Refund this payment?"
+        description={
+          <>
+            <p>
+              {refunding?.amountKes ? kes(refunding.amountKes) : refunding ? usd(refunding.amount) : ""} ·{" "}
+              {refunding?.issue ? ISSUE_LABEL[refunding.issue] : ""} ·{" "}
+              <span className="font-mono">{refunding?.afrinetTransactionCode}</span>
+            </p>
+            <p>
+              Asks Afrinet to reverse the charge to the payer. Its unpaid shares become not payable; any share already
+              sent must be recovered by hand.
+              {refunding?.issue === "amount_mismatch"
+                ? " Unless another payment covers the donation, it is marked refunded and its trees are no longer funded."
+                : " The donation's original payment is not affected."}{" "}
+              This can't be undone.
+            </p>
+          </>
+        }
+        label="Reason for the refund"
+        confirmLabel="Refund payment"
+        destructive
+        onConfirm={async (reason) => {
+          const payment = await refundPayment(refunding!.id, reason);
+          toast.success(
+            payment.status === "refunded"
+              ? "Payment refunded"
+              : "Refund requested. Afrinet will confirm it; the payment updates when it does.",
+          );
+        }}
+      />
     </div>
   );
 }
@@ -916,20 +1148,32 @@ function ResolvePayoutDialog({
   onClose: () => void;
   onResolve: (input: { status: "transferred" | "failed"; transactionCode?: string; note?: string }) => Promise<void>;
 }) {
+  const [outcome, setOutcome] = useState<"transferred" | "failed">("transferred");
   const [code, setCode] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    setOutcome("transferred");
     setCode(payout?.transactionCode ?? "");
     setNote("");
   }, [payout]);
 
-  const submit = async (status: "transferred" | "failed") => {
+  // The API needs a transaction code to mark it transferred (unless Afrinet sent one) and a reason to mark it failed.
+  const missing =
+    outcome === "transferred"
+      ? !code.trim() && !payout?.transactionCode
+        ? "Enter the M-Pesa transaction code from the Afrinet merchant portal."
+        : null
+      : !note.trim()
+        ? "Explain why it failed."
+        : null;
+
+  const submit = async () => {
     setBusy(true);
     try {
       await onResolve({
-        status,
+        status: outcome,
         transactionCode: code.trim() || undefined,
         note: note.trim() || undefined,
       });
@@ -946,8 +1190,7 @@ function ResolvePayoutDialog({
         <DialogHeader>
           <DialogTitle>Resolve payout</DialogTitle>
           <DialogDescription>
-            Use this only after checking the Afrinet merchant portal. Marking it failed makes its donations payable
-            again.
+            Use this only after checking the Afrinet merchant portal for what actually happened to this transfer.
           </DialogDescription>
         </DialogHeader>
         {payout && (
@@ -961,21 +1204,176 @@ function ResolvePayoutDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="resolve-code">M-Pesa / Afrinet transaction code</Label>
-              <Input id="resolve-code" value={code} onChange={(e) => setCode(e.target.value)} />
+              <Label>What happened?</Label>
+              <Select value={outcome} onValueChange={(v) => setOutcome(v as "transferred" | "failed")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="transferred">The money arrived (transferred)</SelectItem>
+                  <SelectItem value="failed">The money never left (failed)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {outcome === "transferred"
+                  ? "Its shares are marked transferred."
+                  : "Its shares become payable again and may be sent a second time. Only choose this if the portal shows no transfer."}
+              </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="resolve-note">Note</Label>
-              <Input id="resolve-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
+              <Label htmlFor="resolve-code">
+                M-Pesa transaction code{outcome === "transferred" && !payout.transactionCode ? " (required)" : ""}
+              </Label>
+              <Input id="resolve-code" value={code} maxLength={64} onChange={(e) => setCode(e.target.value)} />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="resolve-note">Note{outcome === "failed" ? " (required)" : " (optional)"}</Label>
+              <Textarea
+                id="resolve-note"
+                rows={2}
+                maxLength={500}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={outcome === "failed" ? "e.g. Merchant portal shows the B2C request was rejected." : ""}
+              />
+            </div>
+            {missing && <p className="text-xs text-muted-foreground">{missing}</p>}
           </div>
         )}
         <DialogFooter className="gap-2">
-          <Button variant="outline" disabled={busy} onClick={() => void submit("failed")}>
-            Mark failed
+          <Button variant="outline" disabled={busy} onClick={onClose}>
+            Cancel
           </Button>
-          <Button disabled={busy} onClick={() => void submit("transferred")}>
-            Mark transferred
+          <Button
+            variant={outcome === "failed" ? "destructive" : "default"}
+            disabled={busy || Boolean(missing)}
+            onClick={() => void submit()}
+          >
+            {busy ? "Saving…" : outcome === "failed" ? "Mark failed" : "Mark transferred"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResolvePaymentDialog({
+  payment,
+  onClose,
+  onResolve,
+}: {
+  payment: Payment | null;
+  onClose: () => void;
+  onResolve: (input: { status: "success" | "failed"; receipt?: string; note: string }) => Promise<void>;
+}) {
+  const [outcome, setOutcome] = useState<"success" | "failed">("success");
+  const [receipt, setReceipt] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setOutcome("success");
+    setReceipt("");
+    setNote("");
+  }, [payment]);
+
+  const missing =
+    outcome === "success" && !receipt.trim()
+      ? "Enter the M-Pesa receipt or card transaction reference from the merchant portal."
+      : !note.trim()
+        ? "Add a note explaining how you confirmed this."
+        : null;
+
+  const submit = async () => {
+    setBusy(true);
+    try {
+      await onResolve({
+        status: outcome,
+        receipt: outcome === "success" ? receipt.trim() : undefined,
+        note: note.trim(),
+      });
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={payment !== null} onOpenChange={(open) => !open && !busy && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Resolve payment</DialogTitle>
+          <DialogDescription>
+            For a charge Afrinet never confirmed (or confirmed with a different amount). Check the Afrinet merchant
+            portal first.
+          </DialogDescription>
+        </DialogHeader>
+        {payment && (
+          <div className="space-y-4 text-sm">
+            <div className="rounded-md border px-3 py-2">
+              <div className="font-medium">
+                {payment.amountKes ? kes(payment.amountKes) : usd(payment.amount)} · {payment.paymentMode} ·{" "}
+                {payment.status}
+                {payment.issue ? ` · ${ISSUE_LABEL[payment.issue]}` : ""}
+              </div>
+              <div className="font-mono text-xs text-muted-foreground">
+                {payment.externalReference ?? payment.id}
+                {payment.failureMessage ? ` · ${payment.failureMessage}` : ""}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>What happened?</Label>
+              <Select value={outcome} onValueChange={(v) => setOutcome(v as "success" | "failed")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="success">The tourist paid (mark paid)</SelectItem>
+                  <SelectItem value="failed">No money arrived (mark failed)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {outcome === "success"
+                  ? "The donation becomes paid, its trees are funded and the money is split into payable shares."
+                  : "The payment stays unpaid. The tourist can try again."}
+              </p>
+            </div>
+            {outcome === "success" && (
+              <div className="space-y-2">
+                <Label htmlFor="payment-receipt">M-Pesa receipt or card reference (required)</Label>
+                <Input
+                  id="payment-receipt"
+                  value={receipt}
+                  maxLength={64}
+                  onChange={(e) => setReceipt(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="payment-note">Note (required)</Label>
+              <Textarea
+                id="payment-note"
+                rows={2}
+                maxLength={500}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. Receipt QJK1ABC2 found in the merchant portal on 6 Oct."
+              />
+            </div>
+            {missing && <p className="text-xs text-muted-foreground">{missing}</p>}
+          </div>
+        )}
+        <DialogFooter className="gap-2">
+          <Button variant="outline" disabled={busy} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant={outcome === "failed" ? "destructive" : "default"}
+            disabled={busy || Boolean(missing)}
+            onClick={() => void submit()}
+          >
+            {busy ? "Saving…" : outcome === "failed" ? "Mark failed" : "Mark paid"}
           </Button>
         </DialogFooter>
       </DialogContent>

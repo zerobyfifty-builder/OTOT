@@ -1,34 +1,46 @@
 import { useMemo, useState } from "react";
-import { Loader2, RefreshCw, Search } from "lucide-react";
+import { Loader2, RefreshCw, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { useStore } from "@/contexts/StoreContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useStore, type StaffRole } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { roleLabel } from "@/lib/portal";
-import { paginate } from "@/components/ministry/utils";
+import { TablePagination } from "@/components/admin/TablePagination";
+import { usePagination } from "@/components/admin/usePagination";
+import {
+  AccountStatus,
+  CreateStaffDialog,
+  StaffAccountActions,
+  TemporaryPasswordDialog,
+  type IssuedCredentials,
+} from "@/components/admin/StaffAccounts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function MinistryUsers() {
+  const { session } = useAuth();
   const { state, loading, refresh } = useStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [credentials, setCredentials] = useState<IssuedCredentials | null>(null);
+
+  // Ministry admins manage view-only Ministry users; Super Admin manages both roles.
+  const manageable: StaffRole[] =
+    session?.role === "super_admin"
+      ? ["ministry_user", "ministry_admin"]
+      : session?.role === "ministry_admin"
+        ? ["ministry_user"]
+        : [];
+  const canManage = (role: string, userId: string) =>
+    userId !== session?.userId && (manageable as string[]).includes(role);
 
   const users = useMemo(() => {
-    const q = searchTerm.toLowerCase();
+    const q = searchTerm.trim().toLowerCase();
     return state.users
       .filter((u) => u.role === "ministry_admin" || u.role === "ministry_user")
       .filter((u) => roleFilter === "all" || u.role === roleFilter)
@@ -36,9 +48,7 @@ export default function MinistryUsers() {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [state.users, searchTerm, roleFilter]);
 
-  const totalCount = users.length;
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const pageUsers = paginate(users, currentPage, pageSize);
+  const pager = usePagination(users, 10);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -50,11 +60,18 @@ export default function MinistryUsers() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {manageable.length > 0 && (
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              {manageable.length === 1 ? "Add Ministry user" : "Add Ministry account"}
+            </Button>
+          )}
           <Button
             onClick={() => refresh().catch((err) => toast.error(apiErrorMessage(err)))}
             variant="outline"
             size="icon"
             title="Refresh"
+            aria-label="Refresh"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -71,7 +88,7 @@ export default function MinistryUsers() {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setCurrentPage(1);
+                  pager.resetPage();
                 }}
                 className="pl-10"
               />
@@ -80,7 +97,7 @@ export default function MinistryUsers() {
               value={roleFilter}
               onValueChange={(value) => {
                 setRoleFilter(value);
-                setCurrentPage(1);
+                pager.resetPage();
               }}
             >
               <SelectTrigger className="w-full sm:w-[200px]">
@@ -92,21 +109,16 @@ export default function MinistryUsers() {
                 <SelectItem value="ministry_user">Ministry Users</SelectItem>
               </SelectContent>
             </Select>
-            <Select
-              value={pageSize.toString()}
-              onValueChange={(value) => {
-                setPageSize(Number(value));
-                setCurrentPage(1);
-              }}
-            >
+            <Select value={pager.pageSize.toString()} onValueChange={(value) => pager.setPageSize(Number(value))}>
               <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
-                <SelectItem value="25">25 / page</SelectItem>
-                <SelectItem value="50">50 / page</SelectItem>
-                <SelectItem value="100">100 / page</SelectItem>
+                {[10, 25, 50, 100].map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} / page
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -127,68 +139,61 @@ export default function MinistryUsers() {
                       <TableHead>Email</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
+                      {manageable.length > 0 && (
+                        <TableHead className="w-10">
+                          <span className="sr-only">Actions</span>
+                        </TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {pageUsers.map((u) => (
+                    {pager.pageRows.map((u) => (
                       <TableRow key={u.id}>
-                        <TableCell className="font-medium">{u.email}</TableCell>
+                        <TableCell className="font-medium">{u.email || "—"}</TableCell>
                         <TableCell>{u.name}</TableCell>
                         <TableCell>
-                          <Badge variant={u.role === "ministry_admin" ? "default" : "secondary"} className="capitalize">
-                            {u.ministryRole || roleLabel(u.role)}
+                          <Badge variant={u.role === "ministry_admin" ? "default" : "secondary"}>
+                            {roleLabel(u.role)}
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          <AccountStatus user={u} />
+                        </TableCell>
                         <TableCell>{new Date(u.createdAt).toLocaleDateString()}</TableCell>
+                        {manageable.length > 0 && (
+                          <TableCell>
+                            {canManage(u.role, u.id) && <StaffAccountActions user={u} onCredentials={setCredentials} />}
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
 
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of{" "}
-                  {totalCount} users
-                </p>
-                {totalPages > 1 && (
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                        const pageNum = i + 1;
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(pageNum)}
-                              isActive={currentPage === pageNum}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </div>
+              <TablePagination
+                currentPage={pager.currentPage}
+                pageSize={pager.pageSize}
+                totalCount={pager.totalCount}
+                noun="users"
+                onPageChange={pager.setPage}
+              />
             </>
           )}
         </CardContent>
       </Card>
+
+      {manageable.length > 0 && (
+        <CreateStaffDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          roles={manageable}
+          onCreated={setCredentials}
+        />
+      )}
+      <TemporaryPasswordDialog credentials={credentials} onClose={() => setCredentials(null)} />
     </div>
   );
 }

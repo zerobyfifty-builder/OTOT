@@ -18,6 +18,11 @@ const TONES: Record<string, string> = {
   refunded: "bg-red-100 text-red-800 border-red-200",
   inactive: "bg-stone-100 text-stone-600 border-stone-200",
   active: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  void: "bg-stone-100 text-stone-500 border-stone-200",
+  duplicate: "bg-orange-100 text-orange-800 border-orange-200",
+  amount_mismatch: "bg-orange-100 text-orange-800 border-orange-200",
+  reversed: "bg-red-100 text-red-800 border-red-200",
+  needs_review: "bg-orange-100 text-orange-800 border-orange-200",
 };
 
 export function StatusBadge({ status, label = status.replace(/_/g, " ") }: { status: string; label?: string }) {

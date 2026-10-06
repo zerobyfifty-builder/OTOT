@@ -1,13 +1,21 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { useStore } from "@/contexts/StoreContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useStore, type StaffRole } from "@/contexts/StoreContext";
 import { apiErrorMessage } from "@/lib/api";
 import { roleLabel } from "@/lib/portal";
 import { shortDate, usd } from "@/lib/format";
 import { PortalPage } from "@/components/portal/PortalUI";
 import { AdminSpinner, TablePagination } from "@/components/admin/TablePagination";
 import { usePagination } from "@/components/admin/usePagination";
+import {
+  AccountStatus,
+  CreateStaffDialog,
+  StaffAccountActions,
+  TemporaryPasswordDialog,
+  type IssuedCredentials,
+} from "@/components/admin/StaffAccounts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -33,6 +41,9 @@ const ROLE_FILTERS: { value: string; label: string; roles?: AppRole[] }[] = [
 
 const PAGE_SIZES = [10, 25, 50, 100];
 
+/** Super Admin can create and manage every staff role; tourists sign up themselves. */
+const STAFF_ROLES: StaffRole[] = ["ministry_admin", "ministry_user", "partner_admin", "partner_agent", "super_admin"];
+
 function roleVariant(role: AppRole): "default" | "secondary" | "outline" | "destructive" {
   if (role === "super_admin") return "destructive";
   if (role === "tourist") return "secondary";
@@ -40,10 +51,14 @@ function roleVariant(role: AppRole): "default" | "secondary" | "outline" | "dest
 }
 
 export default function AdminUsers() {
+  const { session } = useAuth();
   const { state, loading, refresh } = useStore();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [credentials, setCredentials] = useState<IssuedCredentials | null>(null);
+  const vendorName = useMemo(() => new Map(state.vendors.map((v) => [v.id, v.name])), [state.vendors]);
 
   const contributions = useMemo(() => {
     const totals = new Map<string, number>();
@@ -60,10 +75,13 @@ export default function AdminUsers() {
       .filter(
         (u) =>
           (!roles || roles.includes(u.role)) &&
-          (!q || u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)),
+          (!q ||
+            u.email.toLowerCase().includes(q) ||
+            u.name.toLowerCase().includes(q) ||
+            (u.vendorId ? (vendorName.get(u.vendorId) ?? "").toLowerCase().includes(q) : false)),
       )
       .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
-  }, [state.users, search, roleFilter]);
+  }, [state.users, search, roleFilter, vendorName]);
 
   const pager = usePagination(users, 10);
 
@@ -71,27 +89,33 @@ export default function AdminUsers() {
     <PortalPage
       tone="admin"
       title="All Users"
-      subtitle="Manage tourist, ministry, and plantation partner accounts across the platform"
+      subtitle="Every account on the platform. Create staff accounts, reset their passwords or deactivate them. Tourists sign up themselves."
       actions={
-        <Button
-          variant="outline"
-          size="icon"
-          title="Refresh"
-          aria-label="Refresh"
-          disabled={refreshing}
-          onClick={async () => {
-            setRefreshing(true);
-            try {
-              await refresh();
-            } catch (err) {
-              toast.error(apiErrorMessage(err));
-            } finally {
-              setRefreshing(false);
-            }
-          }}
-        >
-          <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-        </Button>
+        <>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add staff account
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            title="Refresh"
+            aria-label="Refresh"
+            disabled={refreshing}
+            onClick={async () => {
+              setRefreshing(true);
+              try {
+                await refresh();
+              } catch (err) {
+                toast.error(apiErrorMessage(err));
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+          >
+            <RefreshCw className={refreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+          </Button>
+        </>
       }
     >
       <Card>
@@ -100,7 +124,7 @@ export default function AdminUsers() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or email..."
+                placeholder="Search by name, email or partner..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -155,8 +179,13 @@ export default function AdminUsers() {
                       <TableHead>Email</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Partner</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Total Contribution</TableHead>
                       <TableHead>Joined</TableHead>
+                      <TableHead className="w-10">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -167,8 +196,21 @@ export default function AdminUsers() {
                         <TableCell>
                           <Badge variant={roleVariant(u.role)}>{roleLabel(u.role)}</Badge>
                         </TableCell>
-                        <TableCell>{usd(contributions.get(u.id) ?? 0)}</TableCell>
+                        <TableCell className="text-sm">
+                          {u.vendorId ? (vendorName.get(u.vendorId) ?? "—") : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell>
+                          <AccountStatus user={u} />
+                        </TableCell>
+                        <TableCell>
+                          {u.role === "tourist" ? usd(contributions.get(u.id) ?? 0) : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
                         <TableCell>{u.createdAt ? shortDate(u.createdAt) : "—"}</TableCell>
+                        <TableCell>
+                          {u.role !== "tourist" && u.id !== session?.userId && (
+                            <StaffAccountActions user={u} onCredentials={setCredentials} />
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -185,6 +227,15 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      <CreateStaffDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        roles={STAFF_ROLES}
+        vendors={state.vendors}
+        onCreated={setCredentials}
+      />
+      <TemporaryPasswordDialog credentials={credentials} onClose={() => setCredentials(null)} />
     </PortalPage>
   );
 }
