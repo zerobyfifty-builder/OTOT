@@ -78,3 +78,12 @@ export function remainingCarbonKg(trip: Trip, donations: Donation[]) {
 export function remainingTrees(trip: Trip, donations: Donation[]) {
   return Math.max(0, trip.treesNeeded - treesPlantedForTrip(trip.id, donations));
 }
+
+/** Router state for `/donate` that keeps the donation linked to this trip. */
+export function offsetTripState(trip: Trip, donations: Donation[]) {
+  return {
+    carbonOffsetKg: remainingCarbonKg(trip, donations) || trip.totalCo2,
+    treesNeeded: remainingTrees(trip, donations),
+    tripId: trip.id,
+  };
+}

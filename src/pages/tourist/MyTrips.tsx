@@ -25,8 +25,7 @@ import {
   airportCity,
   formatDateRange,
   offsetStatus,
-  remainingCarbonKg,
-  remainingTrees,
+  offsetTripState,
   treesPlantedForTrip,
   tripNights,
 } from "@/lib/trips";
@@ -96,13 +95,7 @@ export default function MyTrips() {
   };
 
   const offsetTrip = (trip: Trip) => {
-    navigate("/donate", {
-      state: {
-        carbonOffsetKg: remainingCarbonKg(trip, state.donations) || trip.totalCo2,
-        treesNeeded: remainingTrees(trip, state.donations),
-        tripId: trip.id,
-      },
-    });
+    navigate("/donate", { state: offsetTripState(trip, state.donations) });
   };
 
   const confirmDelete = async () => {

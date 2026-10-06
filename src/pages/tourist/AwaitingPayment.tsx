@@ -6,6 +6,7 @@ import { apiErrorMessage } from "@/lib/api";
 import { redirectToCheckout } from "@/lib/checkout";
 import { looksLikeMpesaPhone } from "@/lib/mpesa";
 import { kes, usd } from "@/lib/format";
+import { offsetTripState } from "@/lib/trips";
 import type { CheckoutMethod, Payment } from "@/types/otot";
 import {
   CheckoutMethodFields,
@@ -24,7 +25,7 @@ export default function AwaitingPayment() {
   const [params] = useSearchParams();
   const cancelled = params.get("cancelled") === "1";
   const navigate = useNavigate();
-  const { getPayment, syncPayment, simulatePaymentSuccess, retryDonationCheckout, refresh } = useStore();
+  const { state, getPayment, syncPayment, simulatePaymentSuccess, retryDonationCheckout, refresh } = useStore();
   const [payment, setPayment] = useState<Payment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
@@ -82,6 +83,8 @@ export default function AwaitingPayment() {
   }
 
   const card = payment?.paymentMode === "Card";
+  const donation = payment ? state.donations.find((d) => d.id === payment.donationId) : undefined;
+  const trip = donation?.tripId ? state.trips.find((t) => t.id === donation.tripId) : undefined;
 
   const retry = async () => {
     if (!payment) return;
@@ -185,7 +188,10 @@ export default function AwaitingPayment() {
             </div>
           )}
           <Button asChild variant="outline">
-            <Link to="/donate">Back to donate</Link>
+            {/* A failed trip payment must stay linked to its trip, or the new donation won't offset it. */}
+            <Link to="/donate" state={trip ? offsetTripState(trip, state.donations) : undefined}>
+              Back to donate
+            </Link>
           </Button>
         </CardContent>
       </Card>

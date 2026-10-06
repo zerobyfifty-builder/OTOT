@@ -1,0 +1,141 @@
+/* Tourist donation page: a boarding pass from the trip to the forest. */
+
+.donation-page {
+  --dt-ink: hsl(140 45% 10%);
+  --dt-ink-muted: hsl(140 14% 34%);
+  --dt-paper: hsl(60 33% 99%);
+  --dt-paper-edge: hsl(110 30% 86%);
+  --dt-forest-1: hsl(154 52% 18%);
+  --dt-forest-2: hsl(128 55% 9%);
+  --dt-leaf: hsl(96 62% 62%);
+  --dt-leaf-deep: hsl(150 62% 32%);
+  --dt-stub: 18rem;
+  --dt-notch: 0.9rem;
+  color: var(--dt-ink);
+}
+
+/* glass-dashboard.css whitens and enlarges section h2s with !important; this page sits on paper, not glass. */
+html body .tourist-dashboard-glass .donation-page h2:is(.dt-h, .dt-title):not(.tourist-page-heading):not(.faq-heading) {
+  color: var(--dt-ink) !important;
+  text-shadow: none !important;
+  letter-spacing: -0.01em !important;
+  font-size: 1.125rem !important;
+  line-height: 1.4 !important;
+}
+
+html body .tourist-dashboard-glass .donation-page h2.dt-title:not(.tourist-page-heading):not(.faq-heading) {
+  font-size: 2.25rem !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em !important;
+}
+
+@media (min-width: 640px) {
+  html body .tourist-dashboard-glass .donation-page h2.dt-title:not(.tourist-page-heading):not(.faq-heading) {
+    font-size: 3rem !important;
+  }
+}
+
+/* Same source whitens every [data-state] element; unselected toggles sit on paper here. */
+html body .tourist-dashboard-glass .donation-page [data-radix-collection-item][data-state="off"] {
+  color: var(--dt-ink) !important;
+  text-shadow: none !important;
+}
+
+.donation-page ::selection {
+  background: hsl(96 62% 62% / 0.45);
+  color: var(--dt-ink);
+}
+
+/* Paper surface shared by every panel on the page. */
+.donation-panel {
+  background: var(--dt-paper);
+  border: 1px solid var(--dt-paper-edge);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 2px hsl(140 40% 10% / 0.06),
+    0 24px 48px -28px hsl(150 50% 12% / 0.35);
+}
+
+/* The ticket: notches are cut with a mask so they show whatever sits behind. */
+.donation-ticket {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  box-shadow:
+    0 2px 4px hsl(140 40% 10% / 0.08),
+    0 36px 72px -32px hsl(150 55% 10% / 0.55);
+}
+
+.donation-ticket__main {
+  background:
+    radial-gradient(40rem 18rem at 0% 0%, hsl(96 70% 88% / 0.7), transparent 60%),
+    var(--dt-paper);
+  padding: 1.75rem;
+}
+
+.donation-ticket__stub {
+  position: relative;
+  padding: 1.75rem;
+  color: hsl(100 40% 95%);
+  background:
+    radial-gradient(22rem 16rem at 80% 0%, hsl(150 60% 26% / 0.9), transparent 70%),
+    linear-gradient(180deg, var(--dt-forest-1), var(--dt-forest-2));
+  border-top: 2px dashed hsl(110 35% 80% / 0.55);
+}
+
+@media (min-width: 768px) {
+  .donation-ticket {
+    grid-template-columns: 1fr var(--dt-stub);
+    -webkit-mask:
+      radial-gradient(circle at calc(100% - var(--dt-stub)) 0, transparent var(--dt-notch), #000 calc(var(--dt-notch) + 0.5px)) top / 100% 51% no-repeat,
+      radial-gradient(circle at calc(100% - var(--dt-stub)) 100%, transparent var(--dt-notch), #000 calc(var(--dt-notch) + 0.5px)) bottom / 100% 51% no-repeat;
+    mask:
+      radial-gradient(circle at calc(100% - var(--dt-stub)) 0, transparent var(--dt-notch), #000 calc(var(--dt-notch) + 0.5px)) top / 100% 51% no-repeat,
+      radial-gradient(circle at calc(100% - var(--dt-stub)) 100%, transparent var(--dt-notch), #000 calc(var(--dt-notch) + 0.5px)) bottom / 100% 51% no-repeat;
+  }
+  .donation-ticket__main { padding: 2.25rem 2.5rem; }
+  .donation-ticket__stub {
+    border-top: 0;
+    border-left: 2px dashed hsl(110 35% 80% / 0.55);
+  }
+}
+
+/* The tree silhouette is the matte; the fill rises with planting progress. */
+.donation-tree {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 465 / 299;
+  -webkit-mask: var(--dt-tree) center / contain no-repeat;
+  mask: var(--dt-tree) center / contain no-repeat;
+  background: hsl(100 40% 92% / 0.24);
+}
+
+.donation-tree__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--dt-grow, 0));
+  background: linear-gradient(0deg, var(--dt-leaf-deep), var(--dt-leaf) 70%, hsl(80 80% 75%));
+  transition: transform 1800ms cubic-bezier(0.16, 1, 0.3, 1) 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donation-tree__fill { transition: none; }
+}
+
+/* Journey */
+.donation-step__dot {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.donation-page a:focus-visible,
+.donation-page button:focus-visible {
+  outline: 2px solid var(--dt-leaf-deep);
+  outline-offset: 3px;
+}

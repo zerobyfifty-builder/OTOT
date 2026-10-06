@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
 import { treeCount } from "@/lib/format";
 import { airportCity, remainingCarbonKg, remainingTrees } from "@/lib/trips";
+import { PLANTED_HERE, STAGE_ORDER, TOURIST_STAGE_LABELS, toTouristStage, type TouristStage } from "@/lib/treeStages";
 import type { Donation, PlantationRequest, Trip } from "@/types/otot";
 import { TripDetailsDialog } from "@/components/tourist/TripDetailsDialog";
 import { Badge } from "@/components/ui/badge";
@@ -14,33 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
 
-const TOURIST_STAGE_LABELS = {
-  waiting: "Waiting to be Assigned",
-  assigned: "Assigned",
-  scheduled: "Planting Scheduled",
-  planted: "Planted",
-} as const;
-
-type TouristStage = keyof typeof TOURIST_STAGE_LABELS;
-
-const STAGE_ORDER: TouristStage[] = ["waiting", "assigned", "scheduled", "planted"];
-
-const PLANTED_HERE = "Mau Forest Complex";
 const ITEMS_PER_PAGE = 10;
-
-function toTouristStage(status: PlantationRequest["status"] | undefined): TouristStage {
-  switch (status) {
-    case "ready_for_review":
-    case "completed":
-      return "planted";
-    case "in_progress":
-      return "scheduled";
-    case "assigned":
-      return "assigned";
-    default:
-      return "waiting";
-  }
-}
 
 function groupStatus(stages: TouristStage[]) {
   if (stages.length === 0) return TOURIST_STAGE_LABELS.waiting;
@@ -292,11 +267,13 @@ export default function MyTrees() {
                 {paginatedGroups.map((group, groupIndex) => {
                   const trip = group.trip;
                   const isTrip = group.key !== "__direct__";
-                  const isExpanded = expandedLists.has(group.key);
                   const stageCounts: Record<TouristStage, number> = { waiting: 0, assigned: 0, scheduled: 0, planted: 0 };
                   for (const d of group.donations) {
                     stageCounts[toTouristStage(requestByDonation.get(d.id)?.status)] += treeCount(d.trees);
                   }
+                  // Groups with trees still on their way start open so their status is visible; a click flips the default.
+                  const openByDefault = stageCounts.planted < group.totalTrees;
+                  const isExpanded = expandedLists.has(group.key) !== openByDefault;
 
                   return (
                     <AccordionItem key={group.key} value={group.key} className="border-b last:border-b-0">
@@ -385,11 +362,13 @@ export default function MyTrees() {
                                 />
                               </div>
                             </div>
-                            <div className="flex justify-end">
-                              <Button size="sm" onClick={() => offsetTrip(trip)} disabled={group.totalTrees >= trip.treesNeeded}>
-                                {group.totalTrees >= trip.treesNeeded ? "Planted All Trees" : "+ Plant More Trees"}
-                              </Button>
-                            </div>
+                            {group.totalTrees < trip.treesNeeded && (
+                              <div className="flex justify-end">
+                                <Button size="sm" onClick={() => offsetTrip(trip)}>
+                                  + Plant More Trees
+                                </Button>
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
